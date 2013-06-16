@@ -1,4 +1,76 @@
 @(message: String)
-@main("clide2") {
-    @message
-}
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Clide 2</title>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+    @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module=routes.Assets.at("javascripts/main").url)
+  </head>
+  <body ui-view='root' ng-animate='{enter: "root-enter", leave: "root-leave"}'>
+    <noscript>
+      <div class='modal'>
+        Your browser does not support JavaScript.<br/>
+        Please enable JS and refresh this page.
+      </div>
+    </noscript>    
+  </body>
+</html>
+
+  <!--<div ng-controller='AppController'>
+    <div id='backstage'>
+      <h1>Backstage</h1><br/>
+      Hallo
+    </div>
+    <div ng-controller='ProjectController' ng-class='{sidebar:sidebar,extendedStatusbar:output}'>    
+      <nav id="ribbon">
+        <ul class="nav menu">
+        </ul>
+        <div id="sidebarButton" ng-click='sidebar=!sidebar'>&#xE093;</div>
+      </nav>
+      <div id="sidebarContainer">
+        <nav id="sidebar">
+          <ul id="sidebarContent">
+            <li class="section">
+              <h1>Files</h1>
+              <ul class="treeview">              
+                <script type='text/ng-template' id='fileTemplate'>                    
+                  {{file.name}}
+                  <ul>
+                    <li ng-repeat='file in file.files' ng-include='fileTemplate' ng-class='file.type'/>
+                  </ul>
+                </script>
+                <li ng-repeat='file in files' ng-class='file.type' ng-include='fileTemplate' ng-bind='file.name'/>
+              </ul>
+            </li>
+          </ul>
+        </nav>
+        <div id="content" ng-view>
+          <tabs>
+            <tab ng-repeat='file in openFiles' title='{{file.name}}' close='close(file)'>
+              <editor file='{{file}}'>{{file.content}}</editor>
+            </tab>
+          </tabs>
+        </div>
+        <div id="search">
+          <div id="searchButton">&#xE11A;</div>
+          <input id="searchBox" disabled></input>
+        </div>
+        <div id="statusbar">
+          <ul class="buttons">
+            <li id="consoleButton" ng-click="output=!output" ng-class="{active:output}">Output</li>          
+          </ul>
+          <ul class="statusMessages">
+            <li id="syslog"></li>
+            <li id="sessionLogic"></li>
+            <li id="sessionStatus" class="phase">&#xE118;</li>
+          </ul>        
+          <div id="output"></div>
+        </div>  
+      </div>          
+      <ul id="completion">
+        <li>no matches...</li>
+      </ul>
+    </div>
+  </div>  -->

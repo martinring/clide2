@@ -1,0 +1,113 @@
+#statusbar {
+  -webkit-transition: all @fancy-transition ease;
+  position: fixed;
+  bottom: 0;
+  left: @ribbon-width;
+  right: 0;
+  background: @grayLight;
+  height: @statusbar-height;  
+  .buttons {
+    position: absolute;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    li {
+      line-height: @statusbar-height;
+      vertical-align: middle;
+      margin: 0 0px 0 8px;
+      padding: 4px;
+      display: inline;
+      &:hover {
+        background-color: white;
+      }
+      &.active {
+        color: white;
+        background-color: @accent;
+      }
+    }
+    li.separator {
+      width: 1px;
+      height: @statusbar-height;
+      background: gray;
+    }
+  }
+  .statusMessages {
+    list-style: none;  
+    padding: 0;
+    margin: 0;
+    text-align: right;     
+    li {
+      line-height: @statusbar-height;
+      vertical-align: middle;
+      padding: 0 4px 0 8px;
+      margin: 0;
+      display: inline;
+    }
+    li.separator {
+      width: 1px;
+      height: @statusbar-height;
+      background: gray;
+    }
+    .phase {    
+      
+    }  
+  }  
+  #output {
+    padding: 4px 8px;
+    white-space: pre;
+    font-family: Main;
+    position: absolute;
+    top: 24px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: scroll;
+    border-top: 3px solid @accent;
+    background-color: white;    
+  }
+}
+
+#statusbar {
+  height: @statusbar-height;  
+}
+
+.sidebar #statusbar {
+  left: @ribbon-width + @sidebar-width;
+}
+
+.extendedStatusbar #statusbar {
+  height: @statusbar-height + @output-height;
+}
+
+#sessionStatus {
+  font-family: icon;
+  font-size: 16px;
+  color: @red;
+  -webkit-transition: all 0.5s ease;  
+
+  &.working {
+    /*text-shadow: 0 0 4px @green;*/
+    -webkit-animation: cssAnimation 0.5s 1 linear;    
+    @-webkit-keyframes cssAnimation {
+      from { -webkit-transform: rotate(1deg) }
+      to { -webkit-transform: rotate(360deg) }
+    }
+  }
+
+  &.Startup {
+    color: @orange;
+  }
+
+  &.Ready {
+    color: @green;
+  }
+}
+
+#progress {
+  position: absolute;  
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: @accent;
+}

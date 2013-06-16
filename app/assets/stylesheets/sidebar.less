@@ -1,0 +1,377 @@
+#sidebarContainer {
+  -webkit-transition: left @fancy-transition ease;
+  position: fixed;
+  top: 0;
+  left: -(@sidebar-width);
+  right: 0;
+  bottom: 0;
+}
+
+.sidebar #sidebarContainer {
+  left: 0;
+}
+
+#content {  
+  z-index: 0;
+  position: absolute;
+  background-color: #ccc;
+  left: @sidebar-width + @ribbon-width;
+  top: 0;
+  bottom: @statusbar-height;
+  right: 0;
+  overflow: hidden;
+}
+
+#ribbon {
+  z-index: 3;
+  color: #000;
+  -webkit-transition: background-color @fancy-transition ease;
+  cursor: default;
+  background-color: #ddd;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 38px 0 0 0;
+  width: @ribbon-width;
+  top: 0;
+  a {
+    color: #000;  
+  }
+  a:hover {
+    background: transparent;
+    color: #000;
+  }
+}
+
+#ribbon .menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  -webkit-transition: all @quick-transition ease;
+  li {
+    overflow: visible;
+    font-family: icon;
+    font-size: 16px;
+    text-align: center;
+    vertical-align: middle;
+    width: 32px;
+    color: #111;
+    opacity: 0.2;
+    display: inline-block;
+    line-height: 32px;
+    margin: 0;
+    padding: 0;
+    -webkit-transition: opacity @quick-transition ease;
+    .icon {
+      fill: white;
+      overflow: visible;
+      width: 16px;
+      height: 16px;
+    }
+    &:hover {
+      text-decoration: none;
+      opacity: 1;
+    }
+    &:last {
+      margin-right: 0;
+    }
+  }
+  li.active {
+    opacity: 1;
+  }
+}
+
+#sidebarButton {
+  opacity: 0.6;
+  display: inline-block;
+  font-family: icon;
+  font-size: 16px;
+  width: 32px;
+  padding-bottom: 2px;
+  height: 32px;
+  text-align: center;
+  line-height: 32px;
+  vertical-align: middle;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  -webkit-transition: -webkit-transform @fancy-transition ease;
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.sidebar #sidebarButton {
+  -webkit-transform: rotate(-180deg);
+}
+
+#sidebar {
+  z-index: 2;
+  box-shadow: 1px 1px 5px #888;  
+  position: absolute;
+  background-color: @grayLighter;  
+  bottom: 0;
+  top: 0;
+  width: @sidebar-width;
+  padding: 32px 0 0 @ribbon-width;
+
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+
+
+  ::-webkit-scrollbar-button {
+    visibility: hidden;
+  }
+
+  ::-webkit-scrollbar-thumb {  
+    background: #ccc;
+    opacity: 0;
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .section {
+    margin: 0;
+    margin-bottom: 8px;
+    padding: 0;
+    list-style: none;
+    opacity: 0.2;
+    -webkit-transition: opacity @quick-transition ease;
+    
+    position: relative;
+
+    .buttons {
+      position: absolute;
+      right: 16px;
+      top: 8px;      
+      .button {
+        font-family: icon;
+        opacity: 0.2;
+        display: inline;
+        margin-left: 4px;
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+
+    &:hover, &.active {
+      opacity: 1;
+    }
+  }
+
+  h1 {
+    font-family: "myriad-pro", "Segoe UI Light";
+    font-weight: 100;
+    font-size: 16pt;
+    margin: 8px 16px;
+  }
+
+
+  hr {
+    margin: 16px;
+    color: #EEE;
+  }
+
+  .treeview {
+    list-style: none;
+    width: 100%;
+    padding: 0;
+    margin: 0px 0;
+
+    li.thy {
+      color: @textColor;
+      display: block;
+      height: 28px;
+      padding: 0px 16px;            
+      position: relative;
+      -webkit-transition: background-color @quick-transition ease;
+
+      .icon {        
+        float: left;
+        font-family: icon;
+        font-size: 20px;
+        width: 20px;
+        vertical-align: middle;
+        text-align: center;
+        height: 28px;            
+      }
+      
+      .title {        
+        margin-left: 28px;        
+        margin-top: 4px;
+        vertical-align: middle;
+        .name {          
+        }
+        .progress {
+          margin-top: 2px;
+          display: block;
+          line-height: 0 !important;          
+        }
+      }
+
+      &:hover {
+        text-decoration: none;
+        background-color: @grayLight;
+      } 
+
+      &.selected {        
+        border-left: 8px solid @accent;        
+        padding-left: 8px;
+      }
+
+      li::before, li::after {
+        display: table;
+        content: "";
+      }
+    }
+  }
+  
+  .content {
+    color: @textColor;
+    display: block;
+    padding: 0 16px;
+  }  
+
+  .commandGroup {
+    list-style: none;
+    width: 100%;
+    padding: 0;
+    margin: 16px 0 0 0;
+
+    &:first-child {
+      margin: 0;
+    }
+
+    li.command {
+      color: @textColor;
+      display: block;
+      height: 28px;
+      padding: 0px 16px;            
+      position: relative;
+      -webkit-transition: background-color @quick-transition ease;
+
+      .icon {        
+        float: left;
+        font-family: icon;
+        font-size: 20px;
+        width: 20px;
+        vertical-align: middle;
+        text-align: center;
+        height: 28px;    
+      }
+      
+      .title {        
+        margin-left: 28px;        
+        margin-top: 4px;
+        vertical-align: middle;
+        .name {       
+          line-height: 28px;   
+        }
+      }
+
+      &:hover {
+        text-decoration: none;
+        background-color: @grayLight;
+      } 
+
+      &.selected {        
+        border-left: 8px solid @accent;        
+        padding-left: 8px;
+      }
+
+      li::before, li::after {
+        display: table;
+        content: "";
+      }
+    }
+
+  }
+
+}
+
+#sidebarContent {
+  padding: 0 0 128px 0;
+  margin: 0;
+  position: absolute;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  bottom: 0;
+  left: 32px;
+  right: 0;
+  top: 32px;
+}
+
+
+.sidebar #sidebar, .search #sidebar {
+  left: 0;
+}
+
+#search {
+  z-index: 7;
+  -webkit-transition: width @fancy-transition ease, background-color @quick-transition ease;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 29px;
+  border-bottom: 3px solid @green;
+  background: #ccc;
+  overflow: hidden;
+  #searchBox {
+    background: none;
+    position: absolute;
+    top: 0;
+    left: 32px;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    border: naone;
+    padding: 16px 16px;
+    &:focus {
+      border: none;
+      outline: none;
+    }
+  }
+  &.active {
+    #searchButton {
+      opacity: 1;
+    }
+  }
+}
+
+.sidebar #search, .search #search {
+  background: @white;
+  width: @ribbon-width + @sidebar-width;
+}
+
+#searchButton {
+  z-index: 8;
+  opacity: 0.4;
+  position: absolute;
+  font-size: 16px;
+  vertical-align: middle;
+  text-align: center;
+  font-family: icon;
+  line-height: 29px;
+  width: 32px;
+  height: 32px;
+  &:hover {
+    opacity: 1;
+  }
+}
+  
+.tab-content {
+  position: fixed;
+  z-index: 1;
+  background-color: #fff;
+  padding: 0;
+  left: @ribbon-width;
+  right: 0;
+  top: 32px;
+  bottom: 0px;
+  -webkit-transition: left @fancy-transition ease;
+}
