@@ -1,8 +1,7 @@
-#statusbar {
-  -webkit-transition: all @fancy-transition ease;
-  position: fixed;
+#statusbar {  
+  position: absolute;
   bottom: 0;
-  left: @ribbon-width;
+  left: @ribbon-width + @sidebar-width;
   right: 0;
   background: @grayLight;
   height: @statusbar-height;  
@@ -68,11 +67,8 @@
 }
 
 #statusbar {
-  height: @statusbar-height;  
-}
-
-.sidebar #statusbar {
-  left: @ribbon-width + @sidebar-width;
+  -webkit-transition: height ease 0.5s;
+  height: @statusbar-height; 
 }
 
 .extendedStatusbar #statusbar {
@@ -83,7 +79,7 @@
   font-family: icon;
   font-size: 16px;
   color: @red;
-  -webkit-transition: all 0.5s ease;  
+  /*-webkit-transition: all 0.5s ease;  */
 
   &.working {
     /*text-shadow: 0 0 4px @green;*/

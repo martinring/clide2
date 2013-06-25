@@ -30,10 +30,10 @@
   background-color: #ddd;
   position: fixed;
   bottom: 0;
-  left: 0;
-  padding: 38px 0 0 0;
+  left: 0;  
+  padding: 6px 0 0 0;
   width: @ribbon-width;
-  top: 0;
+  top: 32px;
   a {
     color: #000;  
   }
@@ -46,8 +46,7 @@
 #ribbon .menu {
   list-style: none;
   padding: 0;
-  margin: 0;
-  -webkit-transition: all @quick-transition ease;
+  margin: 0;  
   li {
     overflow: visible;
     font-family: icon;
@@ -312,13 +311,13 @@
 
 #search {
   z-index: 7;
-  -webkit-transition: width @fancy-transition ease, background-color @quick-transition ease;
-  position: fixed;
+  -webkit-transition: background-color @quick-transition ease;
+  position: absolute;
   left: 0;
   top: 0;
-  width: 32px;
+  width: 282px;
   height: 29px;
-  border-bottom: 3px solid @green;
+  border-bottom: 3px solid @accent;
   background: #ccc;
   overflow: hidden;
   #searchBox {
@@ -329,7 +328,7 @@
     right: 0;
     bottom: 0;
     margin: 0;
-    border: naone;
+    border: none;
     padding: 16px 16px;
     &:focus {
       border: none;
@@ -344,14 +343,15 @@
 }
 
 .sidebar #search, .search #search {
-  background: @white;
-  width: @ribbon-width + @sidebar-width;
+  background: @white;  
 }
 
 #searchButton {
   z-index: 8;
   opacity: 0.4;
-  position: absolute;
+  position: fixed;
+  top: 0;
+  left: 0;
   font-size: 16px;
   vertical-align: middle;
   text-align: center;
@@ -372,6 +372,5 @@
   left: @ribbon-width;
   right: 0;
   top: 32px;
-  bottom: 0px;
-  -webkit-transition: left @fancy-transition ease;
+  bottom: 0px;  
 }

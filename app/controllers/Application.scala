@@ -7,8 +7,12 @@ import play.api.data.Forms._
 
 object Application extends Controller with Secured {
   def index = Action { implicit request =>
-    Ok(views.html.index("Hallo Welt"))
+    Ok(views.html.index("/"))
   }
+
+  def any(path: String) = Action { implicit request =>
+    Ok(views.html.index(path))
+  }  
 
   // -- Authentication
   val loginForm = Form(

@@ -1,0 +1,27 @@
+button {
+  margin-left: 8px;
+  background-color: rgba(205,205,205,.82);
+  border: none;
+  outline: none;
+  padding: 3px 12px;
+  color: #212121;
+  &:hover{
+    background-color: rgba(205,205,205,.7);
+  }
+  &.default {
+    background-color: @accent;
+    color: white; 
+    &:hover{
+      background-color: lighten(@accent,5%);      
+    } 
+  }  
+  &[disabled=disabled] {
+    background-color: rgba(205,205,205,.82);
+    color: gray;
+    cursor: default;
+    &:hover{
+      background-color: rgba(205,205,205,.82);
+    } 
+  }
+}
+

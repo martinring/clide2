@@ -1,2 +1,5 @@
-require ['angular','domReady'], (angular, domReady) -> 
-  domReady -> angular.bootstrap document, ['clide']
+require ['angular','jquery','app'], (angular, $) -> 
+  $ -> 
+    console.log 'Hallo'
+    angular.bootstrap document, ['clide']        
+    $('#loading').remove()

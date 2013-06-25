@@ -1,12 +1,25 @@
-define [], () -> (Projects) ->
+define () -> (Projects) ->
   files: [
       name: "#{Projects.current}-file1"
       type: 'thy'
     ,
       name: "#{Projects.current}-file1"
       type: 'thy'
+    ,
+      name: "#{Projects.current}-folder1"
+      type: 'dir'
+      files: [
+          name: "#{Projects.current}-file1"
+          type: 'thy'
+        ,
+          name: "#{Projects.current}-file1"
+          type: 'thy'
+        ]
     ]
   openFiles: [
-      name: "#{Projects.current}-file1"
-      type: 'thy'    
+      name: "blubb"
+      type: 'thy' 
+    ,
+      name: "flubb"
+      type: 'thy'   
   ]

@@ -8,38 +8,117 @@
 @import 'codemirror/show-hint.less';
 @import 'sidebar.less';
 @import 'statusbar.less';
+@import 'buttons.less';
+@import 'dialog.less';
+@import 'backstage.less';
 
 body {
+  background-color: #ccc;
   user-select: none;
   -webkit-user-select: none;
   font-family: 'myriad-pro', 'Segoe UI', 'Helvetica';
 }
 
-.root-enter, .root-leave {
-  -webkit-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
-  -moz-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
-  -o-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
-  transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+a {
+  text-decoration: none;
+  color: @accent;
+  &:hover {
+    color: lighten(@accent, 5%);
+  }
 }
 
-.root-enter {
-  opacity:0;
-  left:100px;
-  width:100%;
-  position:absolute;
-}
-.root-enter.root-enter-active {
-  left:0;
-  opacity:1;
+
+h1 {
+  font-weight: 100;
+  font-size: 26;
+  margin: 0;
+  margin-bottom: 16px;
 }
 
-.root-leave {
-  position:absolute;
-  left:0;
-  width:100%;
+h2 {
+  font-weight: 100;
+  font-size: 20;
+  margin: 0;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+#console {  
+  position: fixed;  
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;  
+  background-color: rgba(0,0,0,0.6);
+  padding: 8px;
+  font-family: 'inconsolata';
+  color: white;
+  z-index: 100001;    
+  div {
+    white-space: pre;  
+  }
+}
+
+#backstage, #login {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#login {
+  z-index: 100000;
+}
+
+#loading.dialogContainer {  
+  z-index: -1;
+}
+
+#loading .dialog {
+  margin-top: -50px;
+}
+
+#login .dialog {
+  margin-top: -110px;
+}
+
+#login.view-enter, #login.view-leave {
+  -webkit-transition: opacity ease 0.5s;
+  -moz-transition: opacity ease 0.5s;
+  -o-transition: opacity ease 0.5s;
+  transition: opacity ease 0.5s;
+}
+
+#login.view-enter {
+  opacity:0;
+}
+#login.view-enter#login.view-enter-active {
+  opacity: 1;
+}
+
+#login.view-leave {
   opacity:1;
 }
-.root-leave.root-leave-active {
-  left:-100px;
+#login.view-leave#login.view-leave-active {
   opacity:0;
+}
+
+.fadeIn,.fadeOut {
+  -webkit-transition: opacity ease 0.5s;
+  -moz-transition: opacity ease 0.5s;
+  -o-transition: opacity ease 0.5s;
+  transition: opacity ease 0.5s;
+}
+.fadeIn{
+  opacity:0;
+}
+.fadeOut{
+  opacity:1;
+}
+.fadeIn.fadeIn-active {
+  opacity: 1;
+}
+.fadeOut.fadeOut-active{
+    opacity:0;
 }

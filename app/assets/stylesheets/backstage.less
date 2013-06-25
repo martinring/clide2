@@ -1,0 +1,100 @@
+#backstage {
+  z-index: 10000;
+  background-color: #fff;      
+  color: #333;
+  padding: 30px;
+  margin: 30px;
+  margin-top: 0;
+  box-shadow: 0 0 16px #000;
+  cursor: default;
+  overflow-y: auto;
+  .section {
+    display: table-cell;
+    padding-right: 30px;
+    min-width: 200px;
+  }
+
+  h1 {
+    color: #000;
+  }
+}
+
+#projectList {
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  li {    
+    padding: 4px 8px;    
+  }
+  li:hover {
+    background-color: #eee;
+  }
+  li.current {
+    color: white;    
+    background: @accent;
+    a {
+      color: white;
+    }
+  }
+}
+
+#backstage .title {
+  font-size: 60px;
+  color: @accent;  
+}
+
+.panes {  
+  border-top: 10px solid #eee;
+  padding-top: 15px;
+  overflow: scroll-x;
+  display: table-row;
+}
+
+#ide {
+  z-index: 1;
+}
+
+#backstage.view-enter, #backstage.view-leave {
+  -webkit-transition: -webkit-transform ease 0.5s;
+  -moz-transition: -moz-transform ease 0.5s;
+  -o-transition: -o-transform ease 0.5s;
+  transition: transform ease 0.5s;
+}
+
+#backstage.view-enter {
+  -webkit-transform: translate(0,-100%)
+}
+#backstage.view-enter#backstage.view-enter-active {
+  -webkit-transform: translate(0,0);
+}
+
+#backstage.view-leave {
+  -webkit-transform: translate(0,0);
+}
+#backstage.view-leave#backstage.view-leave-active {
+  -webkit-transform: translate(0,-100%)
+}
+
+#ide.view-enter, #ide.view-leave {
+  -webkit-transition: opacity ease 0.5s;
+  -moz-transition: opacity ease 0.5s;
+  -o-transition: opacity ease 0.5s;
+  transition: opacity ease 0.5s;
+}
+
+#ide.view-enter {
+  opacity: 0;
+}
+#ide.view-enter#ide.view-enter-active {
+  opacity: 1;
+}
+
+#ide.view-leave {
+  opacity: 1;
+}
+#ide.view-leave#ide.view-leave-active {
+  opacity: 0;
+}
+

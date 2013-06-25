@@ -1,76 +1,35 @@
-@(message: String)
+@(path: String)
 <!DOCTYPE html>
 <html>
   <head>
     <title>Clide 2</title>
     <meta charset="utf-8"/>
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-    @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module=routes.Assets.at("javascripts/main").url)
+    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">    
+    @helper.requireJs(core = routes.WebJarAssets.at(WebJarAssets.locate("require.js")).url, module=routes.Assets.at("javascripts/main").url)
+    <script>var path='@path'</script>
   </head>
-  <body ui-view='root' ng-animate='{enter: "root-enter", leave: "root-leave"}'>
+  <body ng-controller='AppController'>
     <noscript>
       <div class='modal'>
         Your browser does not support JavaScript.<br/>
-        Please enable JS and refresh this page.
+        Please enable JS and refresh this page. 
       </div>
-    </noscript>    
+    </noscript>            
+    <div id='loading' class='dialogContainer'>
+      <div class='dialog'>
+        <div class='content'>
+          <h1>please wait...</h1>
+          clide is initializing. this might take a while.
+        </div>
+      </div>
+    </div>
+    <div id='root' ng-view ng-animate='{enter: "view-enter", leave: "view-leave"}'>      
+    </div>
+    <div id='console' ng-show="app.wait" ng-animate="{show: 'fadeIn', hide:'fadeOut'}">
+      <div ng-repeat='line in console.lines track by $index' ng-bind='line'>
+        
+      </div>
+    </div>
   </body>
 </html>
-
-  <!--<div ng-controller='AppController'>
-    <div id='backstage'>
-      <h1>Backstage</h1><br/>
-      Hallo
-    </div>
-    <div ng-controller='ProjectController' ng-class='{sidebar:sidebar,extendedStatusbar:output}'>    
-      <nav id="ribbon">
-        <ul class="nav menu">
-        </ul>
-        <div id="sidebarButton" ng-click='sidebar=!sidebar'>&#xE093;</div>
-      </nav>
-      <div id="sidebarContainer">
-        <nav id="sidebar">
-          <ul id="sidebarContent">
-            <li class="section">
-              <h1>Files</h1>
-              <ul class="treeview">              
-                <script type='text/ng-template' id='fileTemplate'>                    
-                  {{file.name}}
-                  <ul>
-                    <li ng-repeat='file in file.files' ng-include='fileTemplate' ng-class='file.type'/>
-                  </ul>
-                </script>
-                <li ng-repeat='file in files' ng-class='file.type' ng-include='fileTemplate' ng-bind='file.name'/>
-              </ul>
-            </li>
-          </ul>
-        </nav>
-        <div id="content" ng-view>
-          <tabs>
-            <tab ng-repeat='file in openFiles' title='{{file.name}}' close='close(file)'>
-              <editor file='{{file}}'>{{file.content}}</editor>
-            </tab>
-          </tabs>
-        </div>
-        <div id="search">
-          <div id="searchButton">&#xE11A;</div>
-          <input id="searchBox" disabled></input>
-        </div>
-        <div id="statusbar">
-          <ul class="buttons">
-            <li id="consoleButton" ng-click="output=!output" ng-class="{active:output}">Output</li>          
-          </ul>
-          <ul class="statusMessages">
-            <li id="syslog"></li>
-            <li id="sessionLogic"></li>
-            <li id="sessionStatus" class="phase">&#xE118;</li>
-          </ul>        
-          <div id="output"></div>
-        </div>  
-      </div>          
-      <ul id="completion">
-        <li>no matches...</li>
-      </ul>
-    </div>
-  </div>  -->

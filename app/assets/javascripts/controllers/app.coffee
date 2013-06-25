@@ -1,4 +1,3 @@
-define () -> () -> ($scope) ->
-  $scope.start = () ->
-    $scope.state = 'ide'
-  $scope.state = 'login'
+define () -> ($scope, App, Console) ->
+  $scope.app = App
+  $scope.console = Console
