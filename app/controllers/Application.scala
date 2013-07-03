@@ -13,15 +13,27 @@ object Application extends Controller with Secured {
   def any(path: String) = Action { implicit request =>
     Ok(views.html.index(path))
   }  
-
+  
+  def session = WebSocket.async[String] { request =>
+    null
+  }
+  
   // -- Authentication
   val loginForm = Form(
     tuple(
+      "name" -> text,
+      "password" -> text
+    ) verifying ("Invalid name or password", result => result match {
+      case (name, password) => true //User.authenticate(email, password).isDefined
+    })
+  )
+  
+  val signupForm = Form(
+    tuple(
+      "name" -> text,
       "email" -> text,
       "password" -> text
-    ) verifying ("Invalid email or password", result => result match {
-      case (email, password) => true //User.authenticate(email, password).isDefined
-    })
+    ) verifying ()
   )
 
   /**

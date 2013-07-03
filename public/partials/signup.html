@@ -4,9 +4,9 @@
       <div class='content' ng-controller='LoginController'>
         <h1>sign up for clide</h1>        
         <form name='signupForm'>
-          email address: <input type='email' ng-model='email' required/>
-          password: <input type='password' ng-model='password' ng-change='checkPassword()' required/>
-          retype password: <input type='password' ng-model='password2' name='password2' ng-change='checkPassword()' required/>
+          username: <input type='text' ng-model='name' ng-change='checkPassword()' name='name' required/>
+          email address: <input type='email' ng-model='email' name='email' required/>          
+          retype password: <input type='password' ng-model='password' name='password' required/>
           <div class='buttons'>
             <button type='submit' class='default' ng-click='login()' ng-disabled='!signupForm.$valid'>Sign Up</button>
             <button ng-click='login()'>Cancel</button>            

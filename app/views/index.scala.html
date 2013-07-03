@@ -1,9 +1,10 @@
 @(path: String)
 <!DOCTYPE html>
-<html>
+<html lang='en'>
   <head>
     <title>Clide 2</title>
     <meta charset="utf-8"/>
+
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">    
     @helper.requireJs(core = routes.WebJarAssets.at(WebJarAssets.locate("require.js")).url, module=routes.Assets.at("javascripts/main").url)
@@ -26,7 +27,7 @@
     </div>
     <div id='root' ng-view ng-animate='{enter: "view-enter", leave: "view-leave"}'>      
     </div>
-    <div id='console' ng-show="app.wait" ng-animate="{show: 'fadeIn', hide:'fadeOut'}">
+    <div id='console' ng-show="app.wait" ng-animate="{show: 'fadeIn', hide:'fadeOut'}" style="display:none">
       <div ng-repeat='line in console.lines track by $index' ng-bind='line'>
         
       </div>

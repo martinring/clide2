@@ -122,3 +122,43 @@ h2 {
 .fadeOut.fadeOut-active{
     opacity:0;
 }
+
+.expand,.collapse {
+  -webkit-transition: -webkit-transform ease 0.2s;  
+}
+.expand{
+  -webkit-transform: scaleY(0.0);
+}
+.collapse{
+  -webkit-transform: scaleY(1.0);
+}
+.expand.expand-active {
+  -webkit-transform: scaleY(1.0);
+}
+.collapse.collapse-active{
+  -webkit-transform: scaleY(0.0);
+}
+
+
+.progress {
+  font-size: 0;
+  height: 3px;
+  overflow: hidden;
+  background-color: #ccc;
+  div {          
+    display: inline;
+    height: 3px;
+  }
+  .finished {
+    background-color: @accent;
+  }
+  .running {
+    background-color: white;
+  }
+  .warned {
+    background-color: yellow;    
+  }
+  .failed {
+    background-color: red;
+  }
+}

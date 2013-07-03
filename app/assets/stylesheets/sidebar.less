@@ -174,60 +174,6 @@
     margin: 16px;
     color: #EEE;
   }
-
-  .treeview {
-    list-style: none;
-    width: 100%;
-    padding: 0;
-    margin: 0px 0;
-
-    li.thy {
-      color: @textColor;
-      display: block;
-      height: 28px;
-      padding: 0px 16px;            
-      position: relative;
-      -webkit-transition: background-color @quick-transition ease;
-
-      .icon {        
-        float: left;
-        font-family: icon;
-        font-size: 20px;
-        width: 20px;
-        vertical-align: middle;
-        text-align: center;
-        height: 28px;            
-      }
-      
-      .title {        
-        margin-left: 28px;        
-        margin-top: 4px;
-        vertical-align: middle;
-        .name {          
-        }
-        .progress {
-          margin-top: 2px;
-          display: block;
-          line-height: 0 !important;          
-        }
-      }
-
-      &:hover {
-        text-decoration: none;
-        background-color: @grayLight;
-      } 
-
-      &.selected {        
-        border-left: 8px solid @accent;        
-        padding-left: 8px;
-      }
-
-      li::before, li::after {
-        display: table;
-        content: "";
-      }
-    }
-  }
   
   .content {
     color: @textColor;
@@ -255,8 +201,7 @@
 
       .icon {        
         float: left;
-        font-family: icon;
-        font-size: 20px;
+        font-family: icon;        
         width: 20px;
         vertical-align: middle;
         text-align: center;
@@ -373,4 +318,47 @@
   right: 0;
   top: 32px;
   bottom: 0px;  
+}
+
+ul.treeview {
+  list-style: none;
+  padding: 0;
+  li {    
+    position: relative;    
+    display: block;  
+    .icon {
+      position: absolute;
+      top: 8px;
+      left: 16px;
+      width: 24px;      
+      text-align: center;
+      vertical-align: middle;
+      font-family: icon;
+      &.folder {
+        -webkit-transition: -webkit-transform ease 0.2s;
+        -webkit-transform: rotate(0deg);
+        &.opened {
+          -webkit-transform: rotate(45deg);
+        }
+      }
+    }
+    .title {      
+      padding: 4px 16px 4px 46px;
+      &:hover {
+        background-color: #ddd;
+      }
+    }    
+    .treeview {
+      border-left: 1px dashed #ccc;
+      margin-left: 16px; 
+      li {
+        .icon {
+          left: 8px;
+        }
+        .title {
+          padding: 4px 16px 4px 38px;
+        }
+      }
+    }
+  }
 }

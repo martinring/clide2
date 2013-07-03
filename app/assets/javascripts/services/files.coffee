@@ -1,25 +1,50 @@
-define () -> (Projects) ->
-  files: [
-      name: "#{Projects.current}-file1"
-      type: 'thy'
-    ,
-      name: "#{Projects.current}-file1"
-      type: 'thy'
-    ,
-      name: "#{Projects.current}-folder1"
+define () -> 
+  (Projects) ->
+    tree = [
+      name: "foolder"
       type: 'dir'
+      icon: '\uE156'
+      collapsed: true
       files: [
-          name: "#{Projects.current}-file1"
-          type: 'thy'
-        ,
-          name: "#{Projects.current}-file1"
-          type: 'thy'
+        name: "foolder"
+        type: 'dir'
+        icon: '\uE156'
+        collapsed: true
+        files: [
+            name: "baz"
+            type: 'thy'
+            opened: true
+            icon: '\uE0EF'
+          ,
+            name: "zap"
+            type: 'thy'
+            icon: '\uE0EF'          
         ]
-    ]
-  openFiles: [
-      name: "blubb"
-      type: 'thy' 
+      ,
+        name: "baz"
+        type: 'thy'
+        opened: true
+        icon: '\uE0EF'
+      ,
+        name: "zap"
+        type: 'thy'
+        icon: '\uE0EF'          
     ,
-      name: "flubb"
-      type: 'thy'   
-  ]
+      name: "foo"
+      type: 'thy'
+      icon: '\uE0EF'
+    ,
+      name: "bar"
+      type: 'thy'
+      opened: true
+      icon: '\uE0EF'
+    ,
+      name: "baz"
+      type: 'thy'
+      opened: true
+      icon: '\uE0EF'  
+      ] 
+    ]
+    return (  
+      files: tree
+    )
