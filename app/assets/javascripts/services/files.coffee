@@ -14,35 +14,35 @@ define () ->
             name: "baz"
             type: 'thy'
             opened: true
-            icon: '\uE0EF'
+            icon: '\uE00F'
           ,
             name: "zap"
             type: 'thy'
-            icon: '\uE0EF'          
+            icon: '\uE00F'          
         ]
       ,
         name: "baz"
         type: 'thy'
         opened: true
-        icon: '\uE0EF'
+        icon: '\uE00F'
       ,
         name: "zap"
         type: 'thy'
-        icon: '\uE0EF'          
+        icon: '\uE00F'          
     ,
       name: "foo"
       type: 'thy'
-      icon: '\uE0EF'
+      icon: '\uE00F'
     ,
       name: "bar"
       type: 'thy'
       opened: true
-      icon: '\uE0EF'
+      icon: '\uE00F'
     ,
       name: "baz"
       type: 'thy'
       opened: true
-      icon: '\uE0EF'  
+      icon: '\uE00F'  
       ] 
     ]
     return (  

@@ -7,6 +7,14 @@
   background-color: rgba(0,0,0,0.2);
   z-index: 1000;
   vertical-align: center;
+  .error {
+    color: red;        
+    &:before {
+      font-family: icon;
+      content: '\E088';
+      margin-right: 4px;      
+    }
+  }
   .dialog {  
     box-shadow: 0 0 16px #000;      
     top: 50%;
@@ -34,9 +42,12 @@
         }
         input {
           border: none;
-          outline: none;
-          background-color: rgba(205,205,205,.3)
-        }  
+          outline: none;         
+          background-color: rgba(205,205,205,.3);
+          &.ng-dirty.ng-invalid {
+            background-color: rgba(205,155,105,.3)
+          }
+        }          
          .buttons {
           width: 100%;
           margin-top: 8px;

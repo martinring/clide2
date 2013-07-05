@@ -1,15 +1,15 @@
 <div id='signup'>
   <div class='dialogContainer'>
     <div class='dialog'>
-      <div class='content' ng-controller='LoginController'>
+      <div class='content' ng-controller='SignupController'>
         <h1>sign up for clide</h1>        
-        <form name='signupForm'>
-          username: <input type='text' ng-model='name' ng-change='checkPassword()' name='name' required/>
+        <form name='signupForm' id='signupForm'>
+          username: <input type='text' ng-model='name' name='name' required/>
           email address: <input type='email' ng-model='email' name='email' required/>          
-          retype password: <input type='password' ng-model='password' name='password' required/>
+          password: <input type='password' ng-model='password' name='password' ng-minlength='8' required/>
           <div class='buttons'>
             <button type='submit' class='default' ng-click='login()' ng-disabled='!signupForm.$valid'>Sign Up</button>
-            <button ng-click='login()'>Cancel</button>            
+            <button ng-click='go("/login")'>Cancel</button>            
           </div>
         </form>
       </div>

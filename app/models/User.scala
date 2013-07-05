@@ -16,12 +16,18 @@ case class User(name: String, email: String, password: String) {
 }
 
 object Users extends Table[User]("users") {  
-  def name     = column[String]("name", O.PrimaryKey, O.AutoInc)
+  def name     = column[String]("name", O.PrimaryKey)
   def email    = column[String]("email")
   def password = column[String]("password")
-  def *        = name ~ email ~ password <> (User, User.unapply _)
+  def *        = name ~ email ~ password <> (User.apply _, User.unapply _)
   
-  def get(name: String) = for {
+  val getByName = for {
+    name <- Parameters[String]
     user <- Users if user.name === name
+  } yield user.*
+  
+  val getByEmail = for {
+    email <- Parameters[String]
+    user  <- Users if user.email === email
   } yield user.*
 }

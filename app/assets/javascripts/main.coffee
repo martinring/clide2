@@ -22,5 +22,6 @@ require.config
   ]    
 
 # Initialize Fonts
-require ['typekit', 'bootstrap', 'config'], (Typekit) -> 
+require ['typekit', 'routes', 'bootstrap', 'config'], (Typekit, routes) -> 
   Typekit.load()
+  window.routes = routes

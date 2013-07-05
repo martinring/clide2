@@ -25,6 +25,12 @@ a {
   &:hover {
     color: lighten(@accent, 5%);
   }
+  -webkit-transition: -webkit-transform ease 0.1s;
+  -webkit-transform-origin: 0.5 0.5;
+  -webkit-transform: scale(1);
+  &:active {    
+    -webkit-transform: scale(0.95);
+  }
 }
 
 
@@ -55,7 +61,13 @@ h2 {
   color: white;
   z-index: 100001;    
   div {
-    white-space: pre;  
+    white-space: pre;
+    &.failure {
+      color: red;
+    }
+    &.success {
+      color: lightgreen;
+    }
   }
 }
 
@@ -138,7 +150,6 @@ h2 {
 .collapse.collapse-active{
   -webkit-transform: scaleY(0.0);
 }
-
 
 .progress {
   font-size: 0;

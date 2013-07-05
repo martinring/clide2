@@ -28,7 +28,7 @@
     <div id='root' ng-view ng-animate='{enter: "view-enter", leave: "view-leave"}'>      
     </div>
     <div id='console' ng-show="app.wait" ng-animate="{show: 'fadeIn', hide:'fadeOut'}" style="display:none">
-      <div ng-repeat='line in console.lines track by $index' ng-bind='line'>
+      <div ng-repeat='line in console.lines track by $index' ng-bind='line.text' ng-class='line.type'>
         
       </div>
     </div>
