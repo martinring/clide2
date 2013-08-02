@@ -2,7 +2,10 @@ define [], () -> ($routeProvider, $locationProvider) ->
   $locationProvider.html5Mode(true)
 
   $routeProvider.when '/'      
-    redirectTo: '/login'
+    redirectTo: '/collab'
+  $routeProvider.when '/collab'      
+    templateUrl: '/assets/partials/collab.html'    
+    controller:  'CollabController'
   $routeProvider.when '/login'      
     templateUrl: '/assets/partials/login.html'
     controller:  'LoginController'

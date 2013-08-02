@@ -6,7 +6,23 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.db.slick.DB.withSession
-
+import play.api.libs.json.JsValue
+import play.api.libs.iteratee.Concurrent
+import play.api.libs.iteratee.Iteratee
+import akka.actor.Actor
+import akka.actor.Props
+import akka.actor.ActorDSL._
+import scala.concurrent.duration._
+import play.api.libs.json.JsString
+import play.api.libs.concurrent.Execution.Implicits._
+import models.ot.{Document,Server,Operation,Change}
+import play.api.libs.concurrent.Akka
+import play.api.libs.concurrent.Akka.system
+import models.ot.Acknowledgement
+import play.api.Play.current
+import models.ot.Register
+import models.ot.Initialize
+import play.api.libs.json.Json
 
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>    
@@ -49,6 +65,45 @@ object Application extends Controller with Secured {
     )
   }
   
+  val server = Akka.system.actorOf(Server.props(Document("Test".toList)))
+  var id = 1
+  
+  def collab = WebSocket.using[JsValue] { implicit request =>
+    implicit val sys = system
+    implicit val timeout = 5 seconds
+    val (out,channel) = Concurrent.broadcast[JsValue]
+    val client = actor(new Act {
+      server ! Register("client"+id)
+      id += 1
+      become {
+        case json: JsValue   =>
+          val rev = (json \ "rev").as[Int]
+          val op = (json \ "op").as[Operation]
+          server ! Change(rev,op)
+        case Initialize(rev, doc) =>
+          channel.push(Json.obj(
+            "type" -> "init",
+            "rev" -> rev,
+            "doc" -> doc.stream.mkString))
+        case Acknowledgement => 
+          channel.push(Json.obj(
+            "type" -> "ack"))
+        case Change(rev,op) =>
+          channel.push(Json.obj(
+            "type" -> "change",
+            "rev" -> rev,
+            "op" -> op))
+        case e: Exception =>
+          channel.push(Json.obj(
+            "type" -> "error",
+            "msg" -> e.getMessage(),
+            "ss" -> e.getStackTraceString))
+      }
+    })
+    val in = Iteratee.foreach[JsValue] { client ! _ }        
+    (in,out)
+  }
+  
   /**
    * Handle signup form submission.
    */
@@ -74,7 +129,8 @@ object Application extends Controller with Secured {
     Ok(
       Routes.javascriptRouter("jsRoutes")(
         routes.javascript.Application.index,   
-        routes.javascript.Application.login
+        routes.javascript.Application.login,
+        routes.javascript.Application.collab
       )
     ).as("text/javascript") 
   }

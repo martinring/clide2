@@ -16,6 +16,7 @@ object ApplicationBuild extends Build {
     "org.webjars" % "jquery" % "2.0.2",   
     "org.webjars" % "requirejs-plugins" % "3ff54566f8",
     "org.webjars" % "webjars-play" % "2.1.0-1",
+    "org.scalacheck" %% "scalacheck" % "1.10.1" % "test",
     jdbc
   )
 
