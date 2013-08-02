@@ -65,26 +65,30 @@ object Application extends Controller with Secured {
     )
   }
   
-  val server = Akka.system.actorOf(Server.props(Document("Test".toList)))
-  var id = 1
+  val server = Akka.system.actorOf(Server.props(Document("Test")))
+  var id = 0
   
   def collab = WebSocket.using[JsValue] { implicit request =>
     implicit val sys = system
     implicit val timeout = 5 seconds
     val (out,channel) = Concurrent.broadcast[JsValue]
-    val client = actor(new Act {
-      server ! Register("client"+id)
+    val client = actor(new Act {      
       id += 1
       become {
         case json: JsValue   =>
-          val rev = (json \ "rev").as[Int]
-          val op = (json \ "op").as[Operation]
-          server ! Change(rev,op)
+          (json \ "type").as[String] match {
+            case "change" =>
+              val rev = (json \ "rev").as[Int]
+	          val op = (json \ "op").as[Operation]
+	          server ! Change(rev,op)
+            case "register" =>
+              server ! Register("client"+id)
+          }
         case Initialize(rev, doc) =>
           channel.push(Json.obj(
             "type" -> "init",
             "rev" -> rev,
-            "doc" -> doc.stream.mkString))
+            "doc" -> doc.content))
         case Acknowledgement => 
           channel.push(Json.obj(
             "type" -> "ack"))

@@ -10,8 +10,9 @@ define ->
     applyClient: (operation) ->
       @setState @state.applyClient(this, operation)
 
-    applyServer: (operation) ->
-      @revision++
+    applyServer: (revision, operation) ->
+      if revision isnt ++@revision
+        throw new Error("inconsistent revisions... something is broken!")
       @setState @state.applyServer(this, operation)
 
     serverAck: ->
@@ -77,39 +78,18 @@ define ->
         new AwaitingWithBuffer(@outstanding, newBuffer)
 
       applyServer: (client, operation) ->
-        # Operation comes from another client
-        #
-        #                       /\
-        #     this.outstanding /  \ operation
-        #                     /    \
-        #                    /\    /
-        #       this.buffer /  \* / pair1[0] (new outstanding)
-        #                  /    \/
-        #                  \    /
-        #          pair2[1] \  / pair2[0] (new buffer)
-        # the transformed    \/
-        # operation -- can
-        # be applied to the
-        # client's current
-        # document
-        #
-        # * pair1[1]
         transform = operation.constructor.transform
         pair1 = transform(@outstanding, operation)
         pair2 = transform(@buffer, pair1[1])
         client.applyOperation pair2[1]
         new AwaitingWithBuffer(pair1[0], pair2[0])
 
-      serverAck: (client) ->        
-        # The pending operation has been acknowledged
-        # => send buffer
+      serverAck: (client) ->
         client.sendOperation client.revision, @buffer
         new AwaitingConfirm(@buffer)
 
       transformCursor: (cursor) ->
         cursor.transform(@outstanding).transform @buffer
 
-      resend: (client) ->        
-        # The confirm didn't come because the client was disconnected.
-        # Now that it has reconnected, we resend the outstanding operation.
+      resend: (client) ->
         client.sendOperation client.revision, @outstanding

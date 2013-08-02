@@ -21,14 +21,17 @@ case class Retain(n: Int) extends Action { assume(n>=0) }
 case class Insert(s: String) extends Action
 /** Delete the next `n` characters */
 case class Delete(n: Int) extends Action { assume(n>=0) }
+/** Annotate out of band */
+case class Annotate(starting: List[String], ending: List[String], attributes: List[Map[String,String]])
 
-object Action {
+object Action {    
   implicit object ActionFormat extends Format[Action] {
     def reads(json: JsValue): JsResult[Action] = json match {
       case JsNumber(n) if n > 0      => JsSuccess(Retain(n.toInt))
       case JsNumber(n) if n < 0      => JsSuccess(Delete(-n.toInt))
-      case JsString(s) if s.nonEmpty => JsSuccess(Insert(s)) 
-      case _                         => JsError("cant parse action: expected number or string")
+      case JsString(s) if s.nonEmpty => JsSuccess(Insert(s))
+      
+      case _                         => JsError("cant parse action: expected number, string or object")
     }
     def writes(action: Action): JsValue = action match {
       case Retain(n) => JsNumber(n)
