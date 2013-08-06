@@ -43,9 +43,12 @@ define ['ot/TextOperation'], (TextOperation) ->
           cm.replaceRange "", from, to
         else if TextOperation.isAnnotate(op)
           for mark, i in op.starting
-            pendingMarkers[mark] = op.attributes[i]
+            pendingMarkers[mark] = 
+              startIndex: index
+              attributes: op.attributes[i]
           for mark in op.ending
-            pendingMarkers[mark]
+            marker = markers[mark]
+            cm.markText cm.posFromIndex(marker.startIndex), cm.posFromIndex(index), marker.attributes
 
     registerCallbacks: (cb) =>
       @callbacks = cb

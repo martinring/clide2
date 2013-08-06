@@ -5,10 +5,6 @@ import scala.reflect.ClassTag
 import akka.actor.{Actor,Props}
 import scala.annotation.tailrec
 
-trait Annotation
-case class Attributes(length: Int, children: List[Annotation]) extends Annotation
-case class Nothing(length: Int) extends Annotation
-
 case class Document(content: String) {  
   def apply(op: Operation): Try[Document] = {
     @tailrec

@@ -22,7 +22,7 @@ case class Insert(s: String) extends Action
 /** Delete the next `n` characters */
 case class Delete(n: Int) extends Action { assume(n>=0) }
 /** Annotate out of band */
-case class Annotate(starting: List[String], ending: List[String], attributes: List[Map[String,String]])
+case class Annotate(starting: List[String], ending: List[String], attributes: List[Map[String,String]]) extends Action
 
 object Action {    
   implicit object ActionFormat extends Format[Action] {
@@ -69,7 +69,12 @@ object Operation {
     case xs            => Delete(n)::xs
   }    
   
+  private def addAnnotate(a: Annotate, ops: List[Action]): List[Action] = ops match {
+    case Delete(m)::xs => a::ops    
+  }
+  
   private def canonicalize(ops: List[Action]): List[Action] = { 
+    @tailrec
 	def loop(as: List[Action], bs: List[Action]): List[Action] = (as,bs) match {
 	  case (as,Nil) => as
 	  case (as,Retain(n)::bs) =>          

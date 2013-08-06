@@ -24,7 +24,7 @@ class Server(initialState: Document) extends Actor {
 	    case Success((newOp,newState)) => 
 	      state = newState
 	      revision += 1
-	      history ::= newOp
+	      history ::= newOp	      
 	      clients.values.filter(_ != sender).foreach(_ ! Change(revision,newOp))
 	      sender ! Acknowledgement
 	    case Failure(e) =>
