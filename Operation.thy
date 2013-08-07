@@ -1,8 +1,40 @@
+(* Formalisation of Operational Transformation *)
+(* author: Martin Ring, DFKI Bremen *)
+
 theory Operation
 imports Main List
 begin
 
+section {* Formalisation of Operational Transformation *}
+
+text {* 
+A document is a list of elements. An operation is a list of actions, that
+is processed sequentially. An action can either alter the document at the
+current position, move the virtual cursor on the document forward or both.
+
+There are three types of actions of which an operation is composed:
+\texttt{Retain}, \texttt{Insert} and \texttt{Delete}. An operation is
+a list of actions.
+
+\begin{itemize}
+\item \texttt{Retain} moves the cursor by one step
+\item \texttt{Insert} inserts an element at the position of the cursor and moves the
+cursor behind that elment
+\item \texttt{Delete} removes the element at the current position not moving the cursor 
+\end{itemize}
+*}
+
 datatype 'char Action = Retain | Insert 'char | Delete 
+
+text {*
+An operation as an input length and an output length:
+
+The input length is the length of a document on which the operation can
+be applied yielding a result.
+
+The output length is the length of the result of the application on a
+document on which the operation is defined.
+*}
 
 function lengthBeforeOp :: "'char Action list \<Rightarrow> nat"
 where
@@ -26,6 +58,19 @@ where
 | "applyOp (Insert c#next) (head#tail) = Option.map (\<lambda>a. c#a) (applyOp next (head#tail))"
 | "applyOp (Delete#next)   (head#tail) = applyOp next tail"
 | "applyOp _ _ = None"
+
+text {* the application of an operation \texttt{a} to a document \texttt{d}
+        yields a result iff the base length of the operation is equal to the
+        length of the document *}
+
+lemma apply_complete: "(lengthBeforeOp a) = (size d) \<longleftrightarrow> isSome (applyOp a d)"  
+proof (induct a)
+  show "lengthBeforeOp [] = size d \<longleftrightarrow> isSome (applyOp [] d)"
+  proof (auto)
+    have "lengthBeforeOp [] = 0" by simp
+    have "lengthBeforeOp [] = size d \<longleftrightarrow> d = []" by simp
+    also have "isSome (applyOp [] d) \<longrightarrow> d = []" by simp
+    finally show ?thesis.
 
 fun addDeleteOp :: "'char Action list \<Rightarrow> 'char Action list"
 where
@@ -61,8 +106,9 @@ where
 | "transform (Delete#as) (Retain#bs) = Option.map (\<lambda>(at,bt). (addDeleteOp(at),bt)) (transform as bs)"
 | "transform _ _ = None"
 
-lemma transform_inv: "\<forall> a b. Option.bind (transform a b) (\<lambda>(at,bt). compose a bt)
-                           = Option.bind (transform a b) (\<lambda>(at,bt). compose b at)"
+(* convergence property TP1 *)
+lemma transform_convergence: "\<forall> a b. Option.bind (transform a b) (\<lambda>(at,bt). compose a bt)
+                                   = Option.bind (transform a b) (\<lambda>(at,bt). compose b at)"
   oops
 
 export_code applyOp addDeleteOp compose transform in Scala
