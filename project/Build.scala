@@ -3,9 +3,8 @@ import Keys._
 import play.Project._
 
 object ApplicationBuild extends Build {
-
   val appName         = "clide2"
-  val appVersion      = "1.0-SNAPSHOT"
+  val appVersion      = "1.0-SNAPSHOT"   
 
   val appDependencies = Seq(    
     "com.typesafe.slick" %% "slick" % "1.0.0",
@@ -21,11 +20,12 @@ object ApplicationBuild extends Build {
     jdbc
   )
 
-  val main = play.Project(appName, appVersion, appDependencies).settings(
+  val main = play.Project(appName, appVersion, appDependencies).settings(    
+    scalaVersion := "2.10.2",
     resolvers += Resolver.url("Objectify Play Repository", url("http://schaloner.github.com/releases/"))(Resolver.ivyStylePatterns),
-    resolvers += Resolver.url("Objectify Play Snapshot Repository", url("http://schaloner.github.com/snapshots/"))(Resolver.ivyStylePatterns),
+    resolvers += Resolver.url("Objectify Play Snapshot Repository", url("http://schaloner.github.com/snapshots/"))(Resolver.ivyStylePatterns),    
     lessEntryPoints <<= baseDirectory(d => (d / "app" / "assets" / "stylesheets" ** "main.less")),
     requireJs += "main.js",
     requireJsShim += "main.js"
-  )
+  ) //dependsOn RootProject(file("../play-js"))
 }

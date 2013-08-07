@@ -45,7 +45,7 @@ define ['codemirror','routes','concurrency/document','concurrency/client'], (Cod
         when 'error'
           alert(msg.msg)
         else 
-          console.log 'server: ' msg
+          console.log 'server: ', msg
           if client.canApplyOperation(msg)
             client.applyOperation(msg)
           else 

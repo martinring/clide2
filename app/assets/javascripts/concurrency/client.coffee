@@ -1,76 +1,95 @@
-define ['concurrency/config'], (config) ->
-  class Client  
-    constructor: (@id, @doc) ->
-      @clock = 0
+define ->   
+  class Client       
+    constructor: (revision) ->
+      @revision = revision # the next expected revision number
+      @state = new Synchronized # start state      
 
-    registerCallbacks: (callbacks) ->
-      @callbacks = callbacks
+    setState: (state) ->
+      @state = state
 
-    generateId: =>
-      @clock += 1
-      config.maxClients * @clock + @id
+    applyClient: (operation) ->
+      @setState @state.applyClient(this, operation)
 
-    canApplyOperation: (op) => switch op.type
-      when 'insert' 
-        @doc.indexOf(op.ch.previous,op.hint) >= 0 and 
-        @doc.indexOf(op.ch.next,op.hint) >= 0
-      when 'delete'
-        @doc.indexOf(op.ch.id,op.hint) >= 0
-      else undefined
+    applyServer: (revision, operation) ->
+      if revision isnt ++@revision
+        throw new Error("inconsistent revisions... something is broken!")
+      @setState @state.applyServer(this, operation)
 
-    applyOperation: (op) => switch op.type
-      when 'insert'
-        integrate = (ch,p,n) =>
-          pi = @doc.indexOf(p,op.hint)
-          ni = @doc.indexOf(n,op.hint)
-          if pi + 1 == ni
-            @doc.insert(ch,ni)
-            if @callbacks.insert
-              @callbacks.insert(@doc.visible().indexOf(@doc[ni]), ch.value)
-          else 
-            s = @doc.subseq(pi,ni)
-            l = s.filter (c) -> 
-             for other in s
-               return false if c.next is other.id or other.id is c.previous
-             return true
-            f = (l) -> for c, j in l
-             return j if c.id >= ch.id
-            i = f(l)
-            np = l[i-1].id
-            nn = l[i].id
-            if np is p and nn is n
-              throw new Exception "infinite loop"
-            integrate(ch,np,nn)
-        integrate(op.ch,op.ch.previous,op.ch.next)
-        console.log @doc
-      when 'hide'
-        index = @doc.indexOf(op.ch.id,op.hint)
-        @doc.get(index).visible = false
-        if @callbacks.hide
-          @callbacks.hide(@doc.visible().indexOf(@doc[index]))
-      else 
-        throw new Exception "invalid operation"
+    serverAck: ->
+      @revision++
+      @setState @state.serverAck(this)
 
-    generateInsert: (position, c) =>
-      console.log @doc.visible()
-      cp = @doc.visible()[position-1] or @doc.start
-      cn = @doc.visible()[position] or @doc.end
-      ch = 
-        id: @generateId()
-        value: c
-        previous: cp.id
-        next: cn.id
-        visible: true
-      return (
-        type: 'insert'
-        ch: ch
-        hint: @doc.indexOf(cp.id,position)
-      )
+    serverReconnect: ->
+      @state.resend this  if typeof @state.resend is "function"
 
-    generateHide: (position) =>
-      ch = @doc.visible()[position]
-      return (
-        type: 'hide'
-        ch: ch
-        hint: @doc.indexOf(ch.id,position)
-      )
+    transformCursor: (cursor) ->
+      @state.transformCursor cursor
+
+    sendOperation: (revision, operation) ->
+      throw new Error("sendOperation must be defined in child class")
+
+    applyOperation: (operation) ->
+      throw new Error("applyOperation must be defined in child class")
+
+    class Synchronized      
+      applyClient: (client, operation) ->
+        client.sendOperation client.revision, operation
+        new AwaitingConfirm(operation)
+
+      applyServer: (client, operation) ->
+        client.applyOperation operation
+        this
+
+      serverAck: (client) ->
+        throw new Error("There is no pending operation.")
+
+      transformCursor: (cursor) ->
+        cursor
+    
+    class AwaitingConfirm
+      constructor: (outstanding) ->
+        @outstanding = outstanding
+
+      applyClient: (client, operation) ->
+        new AwaitingWithBuffer(@outstanding, operation)
+
+      applyServer: (client, operation) ->
+        pair = operation.constructor.transform(@outstanding, operation)
+        client.applyOperation pair[1]
+        new AwaitingConfirm(pair[0])
+
+      serverAck: (client) ->
+        new Synchronized
+
+      transformCursor: (cursor) ->
+        cursor.transform @outstanding
+
+      resend: (client) ->
+        client.sendOperation client.revision, @outstanding
+
+    class AwaitingWithBuffer 
+      constructor: (outstanding, buffer) ->
+        @outstanding = outstanding
+        @buffer = buffer  
+
+      applyClient: (client, operation) ->        
+        # Compose the user's changes onto the buffer
+        newBuffer = @buffer.compose(operation)
+        new AwaitingWithBuffer(@outstanding, newBuffer)
+
+      applyServer: (client, operation) ->
+        transform = operation.constructor.transform
+        pair1 = transform(@outstanding, operation)
+        pair2 = transform(@buffer, pair1[1])
+        client.applyOperation pair2[1]
+        new AwaitingWithBuffer(pair1[0], pair2[0])
+
+      serverAck: (client) ->
+        client.sendOperation client.revision, @buffer
+        new AwaitingConfirm(@buffer)
+
+      transformCursor: (cursor) ->
+        cursor.transform(@outstanding).transform @buffer
+
+      resend: (client) ->
+        client.sendOperation client.revision, @outstanding

@@ -19,8 +19,6 @@ import play.api.libs.concurrent.Akka
 import play.api.libs.concurrent.Akka.system
 import play.api.Play.current
 import play.api.libs.json.Json
-import models.concurrency.Server
-import models.concurrency.Operation
 
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>    
@@ -62,36 +60,12 @@ object Application extends Controller with Secured {
       user => Ok(f"you successfully logged in as '${user._1}'").withSession("name" -> user._1)
     )
   }
-  
-  val server = Akka.system.actorOf(Server.props)
-  
+    
   def collab = WebSocket.using[JsValue] { implicit request =>
     implicit val sys = system
     implicit val timeout = 5 seconds
     val (out,channel) = Concurrent.broadcast[JsValue]
-    var cid = -1
-    val client = actor(new Act {      
-      become {
-        case json: JsValue =>
-          println(json.toString)
-          (json \ "type").as[String] match {
-	        case "register" => server ! Server.Register
-	        case _ => server ! json.as[Operation]
-	      }          
-        case o: Operation =>
-          channel.push(Json.toJson(o))
-        case Server.ServerFull =>
-          channel.push(Json.obj(
-            "type" -> "error",
-            "msg"  -> "the server is full"))
-        case Server.Registered(id) =>
-          cid = id
-          channel.push(Json.obj(
-            "type" -> "registered",
-            "id"   -> id))       
-      }
-    })
-    val in = Iteratee.foreach[JsValue]{client!_}.mapDone(_ => server!Server.Leave(cid))        
+    val in = Iteratee.foreach[JsValue]{ println }        
     (in,out)
   }
   

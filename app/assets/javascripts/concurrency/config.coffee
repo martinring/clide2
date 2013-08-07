@@ -1,2 +1,0 @@
-define ->
-  maxClients: 16
