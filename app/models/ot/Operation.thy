@@ -2,10 +2,12 @@
 (* author: Martin Ring, DFKI Bremen *)
 
 theory Operation
-imports Main List
+imports Main List Option
 begin
 
 section {* Formalisation of Operational Transformation *}
+
+subsection {* Actions, Operations and Documents *}
 
 text {* 
 A document is a list of elements. An operation is a list of actions, that
@@ -36,41 +38,38 @@ The output length is the length of the result of the application on a
 document on which the operation is defined.
 *}
 
-function lengthBeforeOp :: "'char Action list \<Rightarrow> nat"
+fun lengthBeforeOp :: "'char Action list \<Rightarrow> nat"
 where
   "lengthBeforeOp [] = 0"
-| "lengthBeforeOp (Retain#next)    = 1 + lengthBeforeOp next"
-| "lengthBeforeOp (Delete#next)    = 1 + lengthBeforeOp next"
-| "lengthBeforeOp (Insert(_)#next) = 0 + lengthBeforeOp next"
-by pat_completeness auto
+| "lengthBeforeOp (Retain#next)    = Suc (lengthBeforeOp next)"
+| "lengthBeforeOp (Delete#next)    = Suc (lengthBeforeOp next)"
+| "lengthBeforeOp (Insert(_)#next) = lengthBeforeOp next"
 
 fun lengthAfterOp :: "'char Action list \<Rightarrow> nat"
 where
   "lengthAfterOp [] = 0"
-| "lengthAfterOp (Retain#next)    = 1 + lengthAfterOp next"
-| "lengthAfterOp (Delete#next)    = 0 + lengthAfterOp next"
-| "lengthAfterOp (Insert(_)#next) = 1 + lengthAfterOp next"
+| "lengthAfterOp (Retain#next)    = Suc (lengthAfterOp next)"
+| "lengthAfterOp (Delete#next)    = lengthAfterOp next"
+| "lengthAfterOp (Insert(_)#next) = Suc (lengthAfterOp next)"
 
 fun applyOp :: "'char Action list \<Rightarrow> 'char list \<Rightarrow> 'char list option"
 where
-  "applyOp [] [] = Some []"
+  "applyOp ([])            ([])        = Some []"
 | "applyOp (Retain#next)   (head#tail) = Option.map (\<lambda>a. head#a) (applyOp next tail)"
-| "applyOp (Insert c#next) (head#tail) = Option.map (\<lambda>a. c#a) (applyOp next (head#tail))"
+| "applyOp (Insert c#next) (d)         = Option.map (\<lambda>a. c#a) (applyOp next d)"
 | "applyOp (Delete#next)   (head#tail) = applyOp next tail"
-| "applyOp _ _ = None"
+| "applyOp (Retain#next)   ([])        = None"
+| "applyOp (Delete#next)   ([])        = None"
+| "applyOp ([])            (head#tail) = None"
 
 text {* the application of an operation \texttt{a} to a document \texttt{d}
         yields a result iff the base length of the operation is equal to the
         length of the document *}
 
-lemma apply_complete: "(lengthBeforeOp a) = (size d) \<longleftrightarrow> isSome (applyOp a d)"  
-proof (induct a)
-  show "lengthBeforeOp [] = size d \<longleftrightarrow> isSome (applyOp [] d)"
-  proof (auto)
-    have "lengthBeforeOp [] = 0" by simp
-    have "lengthBeforeOp [] = size d \<longleftrightarrow> d = []" by simp
-    also have "isSome (applyOp [] d) \<longrightarrow> d = []" by simp
-    finally show ?thesis.
+lemma apply_complete: "(applyOp a d) = None \<longleftrightarrow> (lengthBeforeOp a) \<noteq> (length d)"
+  oops
+
+subsection {* Composition of Operations *}
 
 fun addDeleteOp :: "'char Action list \<Rightarrow> 'char Action list"
 where
@@ -94,6 +93,8 @@ lemma compose_complete: "\<forall> a b. (lengthAfterOp a) = (lengthBeforeOp b) \
 lemma compose_inv: "\<forall> a b d. Option.bind (compose a b) (\<lambda>op'. applyOp op' d) 
                            = Option.bind (applyOp a d) (\<lambda>d'. applyOp b d')"
   oops
+
+subsection {* Operation Transformation *}
 
 fun transform :: "'char Action list \<Rightarrow> 'char Action list \<Rightarrow> (('char Action list) \<times> ('char Action list)) option"
 where
