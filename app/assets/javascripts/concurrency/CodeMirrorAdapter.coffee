@@ -1,4 +1,4 @@
-define ['ot/TextOperation'], (TextOperation) ->
+define ['concurrency/TextOperation'], (TextOperation) ->
   assert = (b, msg) ->
     throw new Error(msg or "assertion error")  unless b  
 

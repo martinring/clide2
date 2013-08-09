@@ -5,11 +5,11 @@
         <h1>welcome to clide</h1>
         <form name='loginForm' id='loginForm'>
         <p class='error' ng-bind='loginForm.error' ng-show='loginForm.error'/>
-        username: <input type='text' name='username' ng-model='username'/>
-        password: <input type='password' name='password' ng-model='password'/>
+        username: <input type='text' name='username' ng-model='username' required/>
+        password: <input type='password' name='password' ng-model='password' required/>
         <div class='buttons'>
           <a href='/signup'>Sign Up</a>
-          <button type='submit' class='default' ng-click='login()'>Login</button>
+          <button type='submit' class='default' ng-click='login()' ng-disabled='!loginForm.$valid || app.wait'>Login</button>
         </div>
         </form>
       </div>

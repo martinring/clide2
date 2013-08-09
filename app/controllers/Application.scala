@@ -13,6 +13,7 @@ import akka.actor.Actor
 import akka.actor.Props
 import akka.actor.ActorDSL._
 import scala.concurrent.duration._
+import scala.slick.driver.H2Driver.simple._
 import play.api.libs.json.JsString
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.concurrent.Akka
@@ -35,7 +36,7 @@ object Application extends Controller with Secured {
       "username" -> text,
       "password" -> text
     ) verifying ("Invalid name or password", result => result match {
-      case (name, password) => name == "martinring" //User.authenticate(email, password).isDefined
+      case credentials => withSession { implicit session => models.Users.authenticate(credentials).firstOption.isDefined }
     })
   )
   
@@ -60,6 +61,19 @@ object Application extends Controller with Secured {
       user => Ok(f"you successfully logged in as '${user._1}'").withSession("name" -> user._1)
     )
   }
+  
+  def signup = Action { implicit request =>
+    signupForm.bindFromRequest.fold(
+      formWithErrors => BadRequest(formWithErrors.errorsAsJson.toString),
+      user => withSession { implicit session =>
+        println("signup")
+        if (models.Users.insert(models.User(user._1, user._2, user._3)) > 0)
+          Ok(f"you successfully signed up as '${user._1}'").withSession("name" -> user._1)
+        else
+          BadRequest("Signup failed")
+      }      
+    ) 
+  }
     
   def collab = WebSocket.using[JsValue] { implicit request =>
     implicit val sys = system
@@ -68,16 +82,6 @@ object Application extends Controller with Secured {
     val in = Iteratee.foreach[JsValue]{ println }        
     (in,out)
   }
-  
-  /**
-   * Handle signup form submission.
-   */
-  def signup = Action { implicit request =>
-    signupForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(formWithErrors.errorsAsJson),
-      user => Ok(f"you successfully logged in as '${user._1}'").withSession("name" -> user._1)
-    )
-  }  
 
   /**
    * Logout and clean the session.
@@ -95,6 +99,7 @@ object Application extends Controller with Secured {
       Routes.javascriptRouter("jsRoutes")(
         routes.javascript.Application.index,   
         routes.javascript.Application.login,
+        routes.javascript.Application.signup,
         routes.javascript.Application.collab
       )
     ).as("text/javascript") 

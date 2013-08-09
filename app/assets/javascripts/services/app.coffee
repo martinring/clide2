@@ -1,4 +1,5 @@
-define () -> ($rootScope) ->
+define () -> ($rootScope) ->  
+
   class App 
     user: undefined
     wait: false

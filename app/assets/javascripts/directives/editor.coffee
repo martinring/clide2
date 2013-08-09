@@ -1,6 +1,6 @@
 # usage:
 # <editor file="{path}"/>
-define ['codemirror','routes','concurrency/document','concurrency/client'], (CodeMirror,routes,Document,Client) -> () -> 
+define ['codemirror','routes','concurrency/Client','concurrency/CodeMirrorAdapter'], (CodeMirror,routes,Client,CMAdapter) -> () -> 
   restrict: 'E'
   transclude: true
   controller: ($scope, $element) ->

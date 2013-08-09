@@ -30,4 +30,9 @@ object Users extends Table[User]("users") {
     email <- Parameters[String]
     user  <- Users if user.email === email
   } yield user.*
+  
+  val authenticate = for {
+    (name,password) <- Parameters[(String,String)]
+    user <- Users if user.name === name && user.password === password
+  } yield user.*
 }

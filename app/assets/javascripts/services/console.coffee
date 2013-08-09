@@ -1,9 +1,9 @@
-define () -> () ->
+define () -> ($rootScope) ->
   class Console 
     lines: []
     write: (line,type='info') =>
       @lines.push
         text: line
-        type: type    
+        type: type      
 
   return new Console
