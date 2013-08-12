@@ -1,4 +1,4 @@
-define () -> ($scope, $location, App, Projects,Console) ->
+define () -> ($scope, $location, App, Projects, Console) ->
   $scope.projects = Projects
   $scope.start = () ->
     Console.write "preparing project '#{Projects.projects[Projects.current].name}'"    
@@ -16,4 +16,3 @@ define () -> ($scope, $location, App, Projects,Console) ->
       $scope.$apply()
       setTimeout(done2,1000)
     setTimeout(done,1500)    
-    
