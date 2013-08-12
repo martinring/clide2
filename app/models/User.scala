@@ -34,5 +34,5 @@ object Users extends Table[User]("users") {
   val authenticate = for {
     (name,password) <- Parameters[(String,String)]
     user <- Users if user.name === name && user.password === password
-  } yield user.*
+  } yield user.*  
 }

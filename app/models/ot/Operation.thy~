@@ -42,12 +42,6 @@ The output length is the length of the result of the application on a
 document on which the operation is defined.
 *}
 
-inductive_set operationLengths :: "('char operation \<times> nat \<times> nat) set" where
-  empty[intro!]:  "([],0,0) \<in> operationLengths"
-| retain[intro!]: "(a,m,n)  \<in> operationLengths \<Longrightarrow> (Retain#a,Suc m, Suc n) \<in> operationLengths"
-| insert[intro!]: "(a,m,n)  \<in> operationLengths \<Longrightarrow> (Insert c#a,m, Suc n) \<in> operationLengths"
-| delete[intro!]: "(a,m,n)  \<in> operationLengths \<Longrightarrow> (Delete#a,Suc m,n) \<in> operationLengths"
-
 primrec lengthBeforeAction :: "'char action \<Rightarrow> nat" where
   "lengthBeforeAction Retain     = 1"
 | "lengthBeforeAction Delete     = 1"
@@ -64,14 +58,12 @@ fun lengthBeforeOp :: "'char operation \<Rightarrow> nat" where
 fun lengthAfterOp :: "'char operation \<Rightarrow> nat"
 where
   "lengthAfterOp as = listsum (map lengthAfterAction as)"
-         
-lemma lengthComb: "(a,m,n) \<in> operationLengths \<Longrightarrow> lengthBeforeOp a = m \<and> lengthAfterOp a = n"
-  by (erule operationLengths.induct, auto)
 
-lemma lengthDeterministic: "(a,m,n) \<in> operationLengths \<Longrightarrow> (a,m',n') \<in> operationLengths \<Longrightarrow> m = m' \<and> n = n'"
-  proof (induct a) case Nil show ?case by (metis Nil.prems(1) Nil.prems(2) lengthComb)
-  next case (Cons a as) show ?case by (metis Cons.prems(1) Cons.prems(2) lengthComb)
-  qed
+lemma lengthBeforeCombines [simp]: "lengthBeforeOp a + lengthBeforeOp b = lengthBeforeOp (a@b)"
+  by (induct a, auto)
+
+lemma lengthAfterCombines [simp]: "lengthAfterOp a + lengthAfterOp b = lengthAfterOp (a@b)"
+  by (induct a, auto)
 
 inductive_set validOperations :: "('char operation \<times> 'char document \<times> 'char document) set" where
   emptyDoc[intro!]: "([],[],[]) \<in> validOperations"
@@ -79,29 +71,11 @@ inductive_set validOperations :: "('char operation \<times> 'char document \<tim
 | delete[intro!]:   "(a,d,d') \<in> validOperations \<Longrightarrow> (Delete#a,c#d,d')     \<in> validOperations"
 | insert[intro!]:   "(a,d,d') \<in> validOperations \<Longrightarrow> ((Insert c)#a,d,c#d') \<in> validOperations"
 
-fun addDeleteOp :: "'char operation \<Rightarrow> 'char operation"
-where
-  "addDeleteOp (Insert c#next) = (Insert c)#(addDeleteOp next)"
-| "addDeleteOp as = Delete#as"
-
-lemma addDeleteOp[simp]: "(a,d,d') \<in> validOperations \<Longrightarrow> (addDeleteOp a,c#d,d') \<in> validOperations"
+lemma lengthOfValidInput: "(a,d,d') \<in> validOperations \<Longrightarrow> lengthBeforeOp a = length d"
   by (erule validOperations.induct, auto)
 
-lemma lengthValidInput: "(a,d,d') \<in> validOperations \<Longrightarrow> lengthBeforeOp a = length d"
+lemma lengthOfValidOutput: "(a,d,d') \<in> validOperations \<Longrightarrow> lengthAfterOp a = length d'"
   by (erule validOperations.induct, auto)
-
-lemma lengthValidOutput: "(a,d,d') \<in> validOperations \<Longrightarrow> lengthAfterOp a = length d'"
-  by (erule validOperations.induct, auto)
-
-lemma [simp]: "([],d#ds,d') \<notin> validOperations"
-  apply (rule ccontr) 
-  sorry
-
-
-lemma [simp]: "\<forall>c. a \<noteq> (Insert c) \<Longrightarrow> (a#as,[],d') \<notin> validOperations"
-  sorry
-
-(*lemma validOperationsDet: "(a,d,d') \<in> validOperations \<Longrightarrow> *)
 
 (* TODO: Completeness of validOperations *)
 
@@ -109,25 +83,11 @@ fun applyOp :: "'char operation \<Rightarrow> 'char document \<Rightarrow> 'char
 where
   "applyOp ([])            ([])        = Some []"
 | "applyOp (Retain#next)   (head#tail) = Option.map (\<lambda>a. head#a) (applyOp next tail)"
-| "applyOp (Insert c#next) (d)         = Option.map (\<lambda>a. c#a)    (applyOp next d)"
-| "applyOp (Delete#next)   (_#tail)    = applyOp next tail"
-| "applyOp _               _           = None"
-
-lemma addDeleteOp2: "(a,d,d') \<in> validOperations \<Longrightarrow> applyOp (addDeleteOp a) (c#d) = Some d'"
-  apply (erule validOperations.induct, auto)
-  oops
-
-fun normalize :: "'char operation \<Rightarrow> 'char operation" where
-  "normalize [] = []"
-| "normalize (Retain#a) = Retain#(normalize a)"
-| "normalize (Insert c#a) = Insert c#(normalize a)"
-| "normalize (Delete#a) = addDeleteOp (normalize a)"
-
-lemma normalizeInv: "(a,d,d') \<in> validOperations \<Longrightarrow> (normalize a, d, d') \<in> validOperations"
-  by (erule validOperations.induct, auto)
-
-lemma addDeleteOpInv: "(a,d,d') \<in> validOperations \<Longrightarrow> (addDeleteOp a,c#d,d') \<in> validOperations"
-  by (erule validOperations.induct, auto)
+| "applyOp (Insert c#next) (d)         = Option.map (\<lambda>a. c#a) (applyOp next d)"
+| "applyOp (Delete#next)   (head#tail) = applyOp next tail"
+| "applyOp (Retain#next)   ([])        = None"
+| "applyOp (Delete#next)   ([])        = None"
+| "applyOp ([])            (head#tail) = None"
 
 text {* the application of an operation \texttt{a} to a document \texttt{d}
         yields a result iff the base length of the operation is equal to the
@@ -136,12 +96,14 @@ text {* the application of an operation \texttt{a} to a document \texttt{d}
 lemma validOperationApplyOp: "(a,d,d') \<in> validOperations \<Longrightarrow> applyOp a d = Some d'"
   by (erule validOperations.induct, auto)
 
-lemma validOperationLength: "(a,d,d') \<in> validOperations \<Longrightarrow> (a,length d, length d') \<in> operationLengths"
-  by (erule validOperations.induct, auto)
-
 (* TODO: applyOp = None => \<notin> validOperations ? *)
 
 subsection {* Composition of Operations *}
+
+fun addDeleteOp :: "'char operation \<Rightarrow> 'char operation"
+where
+  "addDeleteOp (Insert c#next) = (Insert c)#(addDeleteOp next)"
+| "addDeleteOp as = Delete#as"
 
 fun compose :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation option"
 where
@@ -154,22 +116,7 @@ where
 | "compose (Insert(_)#as) (Delete#bs)   = compose as bs"
 | "compose _              _             = None"
 
-inductive_set composedOperations :: "('char operation \<times> 'char operation \<times> 'char operation \<times> 'char document \<times> 'char document \<times> 'char document) set" where
-  nil[intro!]:  "([],[],[],[],[],[]) \<in> composedOperations"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (addDeleteOp a,b,addDeleteOp ab,c#d,d',d'') \<in> composedOperations"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (a,Insert c#b,Insert c#ab,d,d',c#d'') \<in> composedOperations"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (Retain#a,Retain#b,Retain#ab,c#d,c#d',c#d'') \<in> composedOperations"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (Retain#a,addDeleteOp b,addDeleteOp ab,c#d,d',d'') \<in> composedOperations"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (Insert c#a,Retain#b,Insert c#ab,d,c#d',c#d'') \<in> composedOperations"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (Insert c#a,Delete#b,ab,d,c#d',d'') \<in> composedOperations"
-
-lemma "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (ab,d,d'') \<in> validOperations 
-                                                \<and> (a,d,d') \<in> validOperations
-                                                \<and> (b,d',d'') \<in> validOperations"
-  by (erule composedOperations.induct, auto)
-
-lemma "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> compose a b = Some ab"
-  by (erule composedOperations.induct, auto)
+lemma composeValidOperations: "(a,d,d') \<in> validOperations \<Longrightarrow> (b,d',d'') \<in> validOperations \<Longrightarrow> compose a b = Some ab"
 
 subsection {* Operation Transformation *}
 

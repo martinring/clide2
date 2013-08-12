@@ -11,6 +11,12 @@ object Projects extends Table[Project]("projects") {
   def ownerName = column[String]("owner")
   def owner   = foreignKey("fk_project_user", ownerName, Users)(_.name)
   def *       = id ~ name ~ ownerName <> (Project, Project.unapply _)
+ 
+  def getForUser = for {
+    name <- Parameters[String]
+    rights <- Rights if rights.userName === name
+    projects <- Projects if projects.ownerName === name || projects.id === rights.projectId
+  } yield projects
 }
 
 object Rights extends Table[(Int,String,Boolean,Boolean)]("rights") {

@@ -25,8 +25,6 @@
         </div>
       </div>
     </div>
-    <div id='root' ng-view ng-animate='{enter: "view-enter", leave: "view-leave"}'>      
-    </div>
     <div id='toasts'>
       <div ng-repeat='toast in toasts track by $index' class='toast' ng-class='toast.type' ng-animate="'toasts'">
         <span ng-bind='toast.message'/>
@@ -35,6 +33,23 @@
     </div>
     <div id='console' ng-show="app.wait" ng-animate="{show: 'fadeIn', hide:'fadeOut'}" style="display:none">
       <div ng-repeat='line in console.lines track by $index' ng-bind='line.text' ng-class='line.type'></div>
+    </div>
+    <div id='dialog' class='dialogContainer' ng-show='dialog.show'>
+      <div class='dialog'>
+        <div class='content'>
+          <h1 ng-bind='dialog.title'></h1>
+          <span ng-bind='dialog.message'></span>          
+          <div ng-repeat='query in dialog.queries'>
+            <span ng-bind='query.text'></span>
+            <input placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+          </div>
+          <div class='buttons'>
+            <button ng-repeat='button in dialog.buttons' ng-bind='button.text' ng-class='{ default: $index == 0 }'/>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id='root' ng-view ng-animate='{enter: "view-enter", leave: "view-leave"}'>      
     </div>
   </body>
 </html>

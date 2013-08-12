@@ -5,8 +5,10 @@ GET     /logout                             controllers.Application.logout
 
 # Javascript routing
 GET     /assets/javascripts/routes.js       controllers.Application.javascriptRoutes
-
 GET     /collab                             controllers.Application.collab
+
+# Projects
+GET     /api/projects                       controllers.Projects.index
 
 # Webjars
 GET     /assets/javascripts/lib/require.js  controllers.WebJarAssets.requirejs
