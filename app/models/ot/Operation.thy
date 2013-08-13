@@ -1,30 +1,28 @@
 (* Formalisation of Operational Transformation *)
 (* author: Martin Ring, DFKI Bremen *)
 
+header {* Formalisation of Operational Transformation *}
+
 theory Operation
 imports Main List Option
 begin
 
-section {* Formalisation of Operational Transformation *}
+section {* Actions, Operations and Documents *}
 
-subsection {* Actions, Operations and Documents *}
+text {* A document is a list of elements. An operation is a list of actions, that
+        is processed sequentially. An action can either alter the document at the
+        current position, move the virtual cursor on the document forward or both.
 
-text {* 
-A document is a list of elements. An operation is a list of actions, that
-is processed sequentially. An action can either alter the document at the
-current position, move the virtual cursor on the document forward or both.
+        There are three types of actions of which an operation is composed:
+        \texttt{Retain}, \texttt{Insert} and \texttt{Delete}. An operation is
+        a list of actions.
 
-There are three types of actions of which an operation is composed:
-\texttt{Retain}, \texttt{Insert} and \texttt{Delete}. An operation is
-a list of actions.
-
-\begin{itemize}
-\item \texttt{Retain} moves the cursor by one step
-\item \texttt{Insert} inserts an element at the position of the cursor and moves the
-cursor behind that elment
-\item \texttt{Delete} removes the element at the current position not moving the cursor 
-\end{itemize}
-*}
+        \begin{itemize}
+          \item \texttt{Retain} moves the cursor by one step
+          \item \texttt{Insert} inserts an element at the position of the cursor and moves the
+                                cursor behind that elment
+          \item \texttt{Delete} removes the element at the current position
+        \end{itemize} *}
 
 datatype 'char action = Retain | Insert 'char | Delete
 
@@ -32,58 +30,86 @@ type_synonym 'char operation = "'char action list"
 
 type_synonym 'char document = "'char list"
 
-text {*
-An operation as an input length and an output length:
+text {* An operation has an input length and an output length:
 
-The input length is the length of a document on which the operation can
-be applied yielding a result.
+        \begin{itemize}
+          \item The input length is the length of a document on which the operation can
+                be applied yielding a result.
+          \item The output length is the length of the result of the application on a
+                document on which the operation is defined.
+        \end{itemize} *}
 
-The output length is the length of the result of the application on a
-document on which the operation is defined.
-*}
+fun inputLength :: "'char operation \<Rightarrow> nat" where
+  "inputLength [] = 0"
+| "inputLength (Retain#as) = Suc (inputLength as)"
+| "inputLength (Delete#as) = Suc (inputLength as)"
+| "inputLength (Insert _#as)  = inputLength as"
 
-primrec lengthBeforeAction :: "'char action \<Rightarrow> nat" where
-  "lengthBeforeAction Retain     = 1"
-| "lengthBeforeAction Delete     = 1"
-| "lengthBeforeAction (Insert _) = 0"
+fun outputLength :: "'char operation \<Rightarrow> nat" where
+  "outputLength [] = 0"
+| "outputLength (Retain#as)   = Suc (outputLength as)"
+| "outputLength (Insert _#as) = Suc (outputLength as)"
+| "outputLength (Delete#as)   = outputLength as"
 
-primrec lengthAfterAction :: "'char action \<Rightarrow> nat" where
-  "lengthAfterAction Retain     = 1"
-| "lengthAfterAction Delete     = 0"
-| "lengthAfterAction (Insert _) = 1"
-
-inductive_set operationLengths :: "('char operation \<times> nat \<times> nat) set" where
-  empty[intro!]: "([],0,0) \<in> operationLengths"
-| step[intro!]:  "\<And>a. (as,m,n)  \<in> operationLengths \<Longrightarrow> (a#as,m + lengthBeforeAction a, n + lengthAfterAction a) \<in> operationLengths"
-
-fun lengthBeforeOp :: "'char operation \<Rightarrow> nat" where
-  "lengthBeforeOp as = listsum (map lengthBeforeAction as)"
-
-fun lengthAfterOp :: "'char operation \<Rightarrow> nat"
-where
-  "lengthAfterOp as = listsum (map lengthAfterAction as)"
+subsection {* Valid Operations *}
            
-inductive_set outputs :: "('char operation \<times> 'char document \<times> 'char document) set" where
-  emptyDoc[intro!]: "([],[],[]) \<in> outputs"
-| retain[intro!]:   "\<And>c. (a,d,d') \<in> outputs \<Longrightarrow> (Retain#a,c#d,c#d')   \<in> outputs"
-| delete[intro!]:   "\<And>c. (a,d,d') \<in> outputs \<Longrightarrow> (Delete#a,c#d,d')     \<in> outputs"
-| insert[intro!]:   "\<And>c. (a,d,d') \<in> outputs \<Longrightarrow> ((Insert c)#a,d,c#d') \<in> outputs"
+text {* We define an inductive set of all valid pairs of operations and documents as well as their
+        resulting output document .*}
 
-inductive_set inputs :: "('char operation \<times> 'char document) set" where
-  emptyDoc[intro!]: "([],[]) \<in> inputs"
-| retain[intro!]:   "\<And>c. (a,d) \<in> inputs \<Longrightarrow> (Retain#a,c#d)   \<in> inputs"
-| delete[intro!]:   "\<And>c. (a,d) \<in> inputs \<Longrightarrow> (Delete#a,c#d)   \<in> inputs"
-| insert[intro!]:   "\<And>c. (a,d) \<in> inputs \<Longrightarrow> ((Insert c)#a,d) \<in> inputs"
-   
-lemma outputsDeterministic: "\<And>a d. (a, d, d') \<in> outputs \<Longrightarrow> (a, d, e') \<in> outputs \<Longrightarrow> d' = e'"
-  apply (induct d')
+inductive_set outputs :: "('char operation \<times> 'char document \<times> 'char document) set" where
+  empty[intro!]:    "([],[],[]) \<in> outputs"
+| retain[intro!]:   "(a,d,d') \<in> outputs \<Longrightarrow> (Retain#a,c#d,c#d')   \<in> outputs"
+| delete[intro!]:   "(a,d,d') \<in> outputs \<Longrightarrow> (Delete#a,c#d,d')     \<in> outputs"
+| insert[intro!]:   "(a,d,d') \<in> outputs \<Longrightarrow> ((Insert c)#a,d,c#d') \<in> outputs"
+
+lemma undoRetain: "(Retain#a,c#d,c#d') \<in> outputs \<Longrightarrow> (a,d,d') \<in> outputs"
+  by (smt action.distinct(1) action.distinct(3) list.distinct(1) list.inject outputs.cases)
+
+lemma undoDelete: "(Delete#a,c#d,d') \<in> outputs \<Longrightarrow> (a,d,d') \<in> outputs"
+  by (smt action.distinct(3) action.distinct(5) list.distinct(1) list.inject outputs.cases)
+
+lemma undoInsert: "((Insert c)#a,d,c#d') \<in> outputs \<Longrightarrow> (a,d,d') \<in> outputs"
+  by (smt action.distinct(1) action.distinct(5) list.distinct(1) list.inject outputs.simps)
+
+text {* the application of operations on documents has to be deterministic *}
+
+lemma emptyInput: "([],[],d) \<in> outputs \<Longrightarrow> d = []"  
+  by (erule outputs.cases, auto)  
+
+lemma emptyInput2: "([],[],d#ds) \<notin> outputs"
+  by (auto, erule outputs.cases, auto)  
+
+lemma emptyOutput: "(a#as,d,[]) \<in> outputs \<Longrightarrow> a = Delete"
+  by (erule outputs.cases, auto)  
+
+lemma "(a,d,d') \<in> outputs \<Longrightarrow> \<forall>c. (a,d,c#d') \<notin> outputs"  
+  apply (clarify, erule outputs.cases, simp_all)
+  apply (drule emptyInput, simp)
+  
+
+(*lemma emptyOutput: "(a,d,[]) \<in> outputs \<Longrightarrow> *)
+
+lemma outputsDeterministic: "(a,d,d') \<in> outputs \<Longrightarrow> (a,d,d'') \<in> outputs \<longrightarrow> d' = d''"
+  apply (erule outputs.induct)
+  apply (auto)
+  apply (erule sym [OF emptyInput])
+  apply (induct d'')  
+  apply (drule emptyOutput)
+  apply (simp)
+  apply (drule undoRetain)
   sorry
 
-lemma lengthValidInput [simp]: "(a,d,d') \<in> outputs \<Longrightarrow> lengthBeforeOp a = length d"
-  by (erule outputs.induct, auto)
+text {* An operation $a$ is a valid operation on document $d$ iff the input length of $a$ equals 
+        the length of $d$ *} 
 
-lemma lengthValidOutput [simp]: "(a,d,d') \<in> outputs \<Longrightarrow> lengthAfterOp a = length d'"
-  by (erule outputs.induct, auto)
+lemma validLengths: "(a,d,d') \<in> outputs \<longleftrightarrow> inputLength a = length d \<and> outputLength a = length d'"
+  apply (auto)
+  apply (erule outputs.induct, auto)
+  apply (erule outputs.induct, auto)
+  
+  sorry  
+
+
 
 fun applyOp :: "'char operation \<Rightarrow> 'char document \<Rightarrow> 'char document option"
 where
@@ -104,9 +130,6 @@ lemma validOperationApplyOp[simp]: "(a,d,d') \<in> outputs \<Longrightarrow> app
 
 (* TODO *)
 
-lemma [simp]: "applyOp a d = Some d' \<Longrightarrow> (a,d,d') \<in> outputs"
-  sorry
-
 fun addDeleteOp :: "'char operation \<Rightarrow> 'char operation"
 where
   "addDeleteOp (Insert c#next) = (Insert c)#(addDeleteOp next)"
@@ -123,14 +146,6 @@ fun normalize :: "'char operation \<Rightarrow> 'char operation" where
 
 lemma [simp]: "(a,d,d') \<in> outputs \<Longrightarrow> (normalize a,d,d') \<in> outputs"
   by (rule outputs.induct, auto)
-
-(* todo: (a,d,d') \<in> outputs \<Longrightarrow> (b,d,d') \<in> outputs \<Longrightarrow> normalize a = normalize b *)
-
-
-lemma validOperationLength: "(a,d,d') \<in> validOperations \<Longrightarrow> (a,length d, length d') \<in> operationLengths"
-  by (erule validOperations.induct, auto)
-
-(* TODO: applyOp = None => \<notin> validOperations ? *)
 
 subsection {* Composition of Operations *}
 
@@ -153,14 +168,6 @@ inductive_set composedOperations :: "('char operation \<times> 'char operation \
 | [intro!]: "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (Retain#a,addDeleteOp b,addDeleteOp ab,c#d,d',d'') \<in> composedOperations"
 | [intro!]: "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (Insert c#a,Retain#b,Insert c#ab,d,c#d',c#d'') \<in> composedOperations"
 | [intro!]: "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (Insert c#a,Delete#b,ab,d,c#d',d'') \<in> composedOperations"
-
-lemma "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> (ab,d,d'') \<in> validOperations 
-                                                \<and> (a,d,d') \<in> validOperations
-                                                \<and> (b,d',d'') \<in> validOperations"
-  by (erule composedOperations.induct, auto)
-
-lemma "(a,b,ab,d,d',d'') \<in> composedOperations \<Longrightarrow> compose a b = Some ab"
-  by (erule composedOperations.induct, auto)
 
 subsection {* Operation Transformation *}
 
