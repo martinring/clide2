@@ -1,4 +1,4 @@
-define ['routes'], (routes) -> ($scope,$location,App,Console) ->
+define ['routes'], (routes) -> ($scope,$location,App,Console,Toasts) ->
   $scope.username = ''
   $scope.email = ''
   $scope.password = ''  
@@ -8,13 +8,11 @@ define ['routes'], (routes) -> ($scope,$location,App,Console) ->
     Console.write "signing up as '#{$scope.username}'..."
     routes.controllers.Application.signup().ajax
       data: $('#signupForm').serialize()
-      contentType: "application/json; charset=utf-8",
-      dataType: "json",
       success: (data) ->
         App.loggedIn = true
         App.user = $scope.username
-        Console.write data, 'success'
-        $location.path "/#{$scope.username}/backstage"
+        Toasts.push 'success', 'your account has been created'
+        $location.path "/login"
         App.wait = false
         $scope.$apply()
       error: (data) -> switch data.status

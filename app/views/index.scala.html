@@ -10,7 +10,7 @@
     @helper.requireJs(core = routes.WebJarAssets.at(WebJarAssets.locate("require.js")).url, module=routes.Assets.at("javascripts/main").url)
     <script>var path='@path'</script>
   </head>
-  <body ng-controller='AppController'>
+  <body ng-controller='AppController' ng-class='{wait: app.wait}'>
     <noscript>
       <div class='modal'>
         Your browser does not support JavaScript.<br/>
@@ -28,7 +28,7 @@
     <div id='toasts'>
       <div ng-repeat='toast in toasts track by $index' class='toast' ng-class='toast.type' ng-animate="'toasts'">
         <span ng-bind='toast.message'/>
-        <div class='close' ng-click='toast.remove()'>x</div>
+        <a class='close' ng-click='toast.remove()'>x</a>
       </div>
     </div>
     <div id='console' ng-show="app.wait" ng-animate="{show: 'fadeIn', hide:'fadeOut'}" style="display:none">

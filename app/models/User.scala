@@ -5,6 +5,7 @@ import Database.{threadLocalSession => session}
 import play.api.libs.iteratee.Concurrent
 import play.api.libs.iteratee.Iteratee
 import akka.actor.Actor
+import play.api.libs.Crypto
 
 case class User(name: String, email: String, password: String) {  
   lazy val socket = {

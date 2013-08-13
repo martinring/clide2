@@ -5,7 +5,6 @@ GET     /logout                             controllers.Application.logout
 
 # Javascript routing
 GET     /assets/javascripts/routes.js       controllers.Application.javascriptRoutes
-GET     /collab                             controllers.Application.collab
 
 # Projects
 GET     /api/projects                       controllers.Projects.index
@@ -16,6 +15,8 @@ GET     /assets/javascripts/lib/*file       controllers.WebJarAssets.at(file)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                       controllers.Assets.at(path="/public", file)
+
+GET     /collab                             controllers.Application.collab
 
 # Home page
 GET     /                                   controllers.Application.index(path="")

@@ -3,24 +3,23 @@ package models
 import scala.slick.driver.H2Driver.simple._
 import Database.{threadLocalSession => session}
 
-case class Project(id: Int, name: String, ownerName: String)
+case class Project(id: Long, name: String, ownerName: String)
 
 object Projects extends Table[Project]("projects") {
-  def id      = column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def id      = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def name    = column[String]("name")
   def ownerName = column[String]("owner")
   def owner   = foreignKey("fk_project_user", ownerName, Users)(_.name)
   def *       = id ~ name ~ ownerName <> (Project, Project.unapply _)
  
-  def getForUser = for {
-    name <- Parameters[String]
-    rights <- Rights if rights.userName === name
-    projects <- Projects if projects.ownerName === name || projects.id === rights.projectId
-  } yield projects
+  def getForOwner = for {
+    name <- Parameters[String]    
+    projects <- Projects if projects.ownerName === name
+  } yield projects   
 }
 
-object Rights extends Table[(Int,String,Boolean,Boolean)]("rights") {
-  def projectId = column[Int]("project")
+object Rights extends Table[(Long,String,Boolean,Boolean)]("rights") {
+  def projectId = column[Long]("project")
   def userName  = column[String]("user")
   def project   = foreignKey("fk_right_project", projectId, Projects)(_.id)
   def user      = foreignKey("fk_right_user", userName, Users)(_.name)

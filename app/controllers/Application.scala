@@ -20,6 +20,7 @@ import play.api.libs.concurrent.Akka
 import play.api.libs.concurrent.Akka.system
 import play.api.Play.current
 import play.api.libs.json.Json
+import play.api.libs.Crypto
 
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>    
@@ -36,7 +37,7 @@ object Application extends Controller with Secured {
       "username" -> text,
       "password" -> text
     ) verifying ("Invalid name or password", result => result match {
-      case credentials => withSession { implicit session => models.Users.authenticate(credentials).firstOption.isDefined }
+      case (name,password) => withSession { implicit session => models.Users.authenticate(name,Crypto.sign(name+password)).firstOption.isDefined }
     })
   )
   
@@ -65,9 +66,8 @@ object Application extends Controller with Secured {
   def signup = Action { implicit request =>
     signupForm.bindFromRequest.fold(
       formWithErrors => BadRequest(formWithErrors.errorsAsJson.toString),
-      user => withSession { implicit session =>
-        println("signup")
-        if (models.Users.insert(models.User(user._1, user._2, user._3)) > 0)
+      user => withSession { implicit session =>        
+        if (models.Users.insert(models.User(user._1, user._2, Crypto.sign(user._1 + user._3))) > 0)
           Ok(f"you successfully signed up as '${user._1}'").withSession("name" -> user._1)
         else
           BadRequest("Signup failed")
@@ -100,7 +100,8 @@ object Application extends Controller with Secured {
         routes.javascript.Application.index,   
         routes.javascript.Application.login,
         routes.javascript.Application.signup,
-        routes.javascript.Application.collab
+        routes.javascript.Application.collab,
+        routes.javascript.Projects.index
       )
     ).as("text/javascript") 
   }
