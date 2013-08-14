@@ -88,11 +88,11 @@ text {* if an operation $a$ is empty it can only be applied to the empty documen
 lemma emptyInput: "([],d,d') \<in> outputs \<Longrightarrow> d = [] \<and> d' = []"
   by (erule outputs.cases, auto)
 
-lemma emptyInput2: "([],d,d'#ds') \<notin> outputs"
+lemma emptyInput3: "([],d,d'#ds') \<notin> outputs"
   by (auto, erule outputs.cases, auto)  
 
-lemma emptyInput3: "([],d#ds,d') \<notin> outputs"
-  by (auto, erule outputs.cases, auto)  
+lemma emptyInput4: "([],d#ds,d') \<notin> outputs"
+  by (auto, erule outputs.cases, auto) 
 
 text {* if the output of an operation applied to a document is empty, the operation can only consist
         of delete actions *}
@@ -129,16 +129,18 @@ lemma insertOut: "(Insert c#as,d,d') \<in> outputs \<Longrightarrow> \<exists>cs
 
 text {* the application of operations on documents has to be deterministic *}
 
+lemma outputsSurjective: "\<exists>a d. (a,d,d') \<in> outputs"
+  by (induct_tac d', auto)
+
 lemma outputsDeterministic: "(a,d,d') \<in> outputs \<Longrightarrow> (a,d,d'') \<in> outputs \<longrightarrow> d' = d''"    
   apply (erule outputs.induct)
   apply (clarify)
   apply (drule emptyInput, simp)
   apply (clarify)
-  apply (drule retainOut) defer
+  defer defer
   apply (clarify)
-  apply (drule undoDelete) defer
-  apply (clarify)
-  apply (drule undoInsert)
+  apply (metis action.distinct(5) emptyDoc emptyInput insertOut)
+  
   sorry
 
 subsection {* Input and Output Lenght of Valid Operations *}
@@ -146,9 +148,13 @@ subsection {* Input and Output Lenght of Valid Operations *}
 text {* An operation $a$ is a valid operation on document $d$ iff the input length of $a$ equals 
         the length of $d$ *} 
 
-lemma validInputLength1 [rule_format]: 
-  shows "(a,d,d') \<in> outputs \<Longrightarrow> inputLength a = length d"
-  by (rule outputs.induct, auto)
+lemma validInputLength: "(a,d,d') \<in> outputs \<Longrightarrow> inputLength a = length d"
+  apply (erule outputs.induct)
+  apply (auto)
+  done
+
+lemma lengthValidInput: "inputLength a = length (d) \<longleftrightarrow> (a,d,f d) \<in> outputs"
+  sorry
 
 lemma sucLength [rule_format]: 
   shows "Suc (n) = length d \<longrightarrow> (\<exists>c cs. d = c#cs \<and> length cs = n)"
@@ -179,7 +185,7 @@ where
 | "applyOp (Insert c#next) (d)         = Option.map (\<lambda>d. c#d)    (applyOp next d)"
 | "applyOp (Delete#next)   (_#tail)    = applyOp next tail"
 | "applyOp _               _           = None"
-
+ 
 text {* We need to show the equality of the inductively defined set $outputs$ and the partial
         function $applyOp$ in order to use the inductive set for further correctness proofs
         involving $applyOp$ *}
@@ -252,9 +258,10 @@ lemma transform_complete: "(transform a b) = None \<longleftrightarrow> lengthBe
   oops
 
 (* convergence property TP1 *)
-lemma transform_convergence: "Option.bind (transform a b) (\<lambda>(at,bt). compose a bt)
-                            = Option.bind (transform a b) (\<lambda>(at,bt). compose b at)"
-  oops
+lemma transform_convergence:   
+  shows "Option.bind (transform a b) (\<lambda>(at,bt). compose a bt)
+       = Option.bind (transform a b) (\<lambda>(at,bt). compose b at)"
+  
 
 export_code applyOp addDeleteOp compose transform in JavaScript
   module_name Operation
