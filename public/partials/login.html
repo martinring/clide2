@@ -1,11 +1,12 @@
 <div id='login'>
   <div class='dialogContainer'>
+    <div class='dialogContainer2'>
     <div class='dialog'>
       <div class='content' ng-controller='LoginController'>
         <h1>welcome to clide</h1>
         <form name='loginForm' id='loginForm'>
         <p class='error' ng-bind='loginForm.error' ng-show='loginForm.error'/>
-        username: <input type='text' name='username' ng-model='username' required/>
+        username: <input type='text' name='username' ng-model='username' required autofocus/>
         password: <input type='password' name='password' ng-model='password' required/>
         <div class='buttons'>
           <a href='/signup'>Sign Up</a>
@@ -13,6 +14,7 @@
         </div>
         </form>
       </div>
+    </div>
     </div>
   </div>
 </div>

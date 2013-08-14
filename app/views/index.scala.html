@@ -18,11 +18,13 @@
       </div>
     </noscript>            
     <div id='loading' class='dialogContainer'>
+      <div class='dialogContainer2'>
       <div class='dialog'>
         <div class='content'>
           <h1>please wait...</h1>
           clide is initializing. this might take a while.
         </div>
+      </div>
       </div>
     </div>
     <div id='toasts'>
@@ -35,6 +37,7 @@
       <div ng-repeat='line in console.lines track by $index' ng-bind='line.text' ng-class='line.type'></div>
     </div>
     <div id='dialog' class='dialogContainer' ng-show='dialog.show'>
+      <div class='dialogContainer2'>
       <div class='dialog'>
         <div class='content'>
           <h1 ng-bind='dialog.title'></h1>
@@ -47,6 +50,7 @@
             <button ng-repeat='button in dialog.buttons' ng-bind='button.text' ng-class='{ default: $index == 0 }'/>
           </div>
         </div>
+      </div>
       </div>
     </div>
     <div id='root' ng-view ng-animate='{enter: "view-enter", leave: "view-leave"}'>      

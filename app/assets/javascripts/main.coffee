@@ -6,7 +6,7 @@ require.config
     codemirror:        'lib/codemirror/3.15/lib/codemirror'
     jquery:            'lib/jquery/2.0.2/jquery'
     typekit:           '//use.typekit.net/bzl6miy'
-    underscore:        'lib/underscore/underscore'
+    underscore:        'lib/underscorejs/1.5.1/underscore'    
   shim:
     'angular-cookies':
       exports: 'angular'

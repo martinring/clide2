@@ -1,11 +1,12 @@
 <div id='signup'>
   <div class='dialogContainer'>
+    <div class='dialogContainer2'>
     <div class='dialog'>
       <div class='content' ng-controller='SignupController'>
         <h1>sign up for clide</h1>        
         <form name='signupForm' id='signupForm'>
           <p class='error' ng-bind='signupForm.error' ng-show='loginForm.error'/>
-          username: <input type='text' ng-model='name' name='name' required/>
+          username: <input type='text' ng-model='name' name='name' required autofocus/>
           email address: <input type='email' ng-model='email' name='email' required/>          
           password: <input type='password' ng-model='password' name='password' ng-minlength='8' required/>
           <div class='buttons'>
@@ -14,6 +15,7 @@
           </div>
         </form>
       </div>
+    </div>
     </div>
   </div>
 </div>
