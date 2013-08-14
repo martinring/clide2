@@ -82,33 +82,63 @@ inductive_set outputs :: "('char operation \<times> 'char document \<times> 'cha
 | delete[intro!]:   "(a,d,d') \<in> outputs \<Longrightarrow> (Delete#a,c#d,d')     \<in> outputs"
 | insert[intro!]:   "(a,d,d') \<in> outputs \<Longrightarrow> ((Insert c)#a,d,c#d') \<in> outputs"
 
-lemma undoRetain [rule_format]: "\<forall>c. (Retain#a,c#d,c#d') \<in> outputs \<longrightarrow> (a,d,d') \<in> outputs"
+text {* if an operation $a$ is empty it can only be applied to the empty document and the
+        result is also the empty document *}
+
+lemma emptyInput: "([],d,d') \<in> outputs \<Longrightarrow> d = [] \<and> d' = []"
+  by (erule outputs.cases, auto)
+
+lemma emptyInput2: "([],d,d'#ds') \<notin> outputs"
+  by (auto, erule outputs.cases, auto)  
+
+lemma emptyInput3: "([],d#ds,d') \<notin> outputs"
+  by (auto, erule outputs.cases, auto)  
+
+text {* if the output of an operation applied to a document is empty, the operation can only consist
+        of delete actions *}
+
+lemma emptyOutput: "(a#as,d,[]) \<in> outputs \<Longrightarrow> a = Delete"
+  by (erule outputs.cases, auto)
+
+text {* an operation applied to the empty document can only consist of insert operations *}
+
+lemma emptyDoc: "(a#as,[],d') \<in> outputs \<Longrightarrow> \<exists>c. a = Insert c"
+  by (erule outputs.cases, auto)
+
+text {* Reverse induction rules *}
+
+lemma undoRetain: "(Retain#a,c#d,c#d') \<in> outputs \<Longrightarrow> (a,d,d') \<in> outputs"
   by (smt action.distinct(1) action.distinct(3) list.distinct(1) list.inject outputs.cases)
 
-lemma undoDelete [rule_format]: "\<forall>c. (Delete#a,c#d,d') \<in> outputs \<longrightarrow> (a,d,d') \<in> outputs"
+lemma undoDelete: "(Delete#a,c#d,d') \<in> outputs \<Longrightarrow> (a,d,d') \<in> outputs"
   by (smt action.distinct(3) action.distinct(5) list.distinct(1) list.inject outputs.cases)
 
-lemma undoInsert [rule_format]: "\<forall>c. ((Insert c)#a,d,c#d') \<in> outputs \<longrightarrow> (a,d,d') \<in> outputs"
+lemma undoInsert: "((Insert c)#a,d,c#d') \<in> outputs \<Longrightarrow> (a,d,d') \<in> outputs"
   by (smt action.distinct(1) action.distinct(5) list.distinct(1) list.inject outputs.simps)
+
+lemma retainOut: "(Retain#a,c#cs,d') \<in> outputs \<Longrightarrow> \<exists>c' cs'. d' = c'#cs' \<and> (a,cs,cs') \<in> outputs"
+  apply (cases d', simp_all)
+  apply (drule emptyOutput, simp)
+  apply (rule undoRetain, clarify)
+  by (smt action.distinct(1) action.distinct(3) list.distinct(1) list.inject outputs.cases)
+  
+lemma insertOut: "(Insert c#as,d,d') \<in> outputs \<Longrightarrow> \<exists>cs'. d' = c#cs' \<and> (a,d,cs') \<in> outputs"
+  apply (cases d', simp_all)
+  apply (drule emptyOutput, simp)
+  sorry
 
 text {* the application of operations on documents has to be deterministic *}
 
-lemma emptyInput: "([],[],d) \<in> outputs \<Longrightarrow> d = []"
-  by (erule outputs.cases, auto)
-
-lemma emptyInput2: "([],[],d#ds) \<notin> outputs"
-  by (auto, erule outputs.cases, auto)  
-
-lemma emptyOutput: "(a#as,d,[]) \<in> outputs \<Longrightarrow> a = Delete"
-  by (erule outputs.cases, auto)    
-
-lemma outputsDeterministic: "(a,d,d') \<in> outputs \<Longrightarrow> (a,d,d'') \<in> outputs \<longrightarrow> d' = d''"
+lemma outputsDeterministic: "(a,d,d') \<in> outputs \<Longrightarrow> (a,d,d'') \<in> outputs \<longrightarrow> d' = d''"    
   apply (erule outputs.induct)
-  apply (auto)
-  apply (erule sym [OF emptyInput])
-  apply (induct d'')
-  apply (drule emptyOutput, simp)
-  
+  apply (clarify)
+  apply (drule emptyInput, simp)
+  apply (clarify)
+  apply (drule retainOut) defer
+  apply (clarify)
+  apply (drule undoDelete) defer
+  apply (clarify)
+  apply (drule undoInsert)
   sorry
 
 subsection {* Input and Output Lenght of Valid Operations *}
@@ -160,6 +190,7 @@ lemma validOperationApplyOp: "(a,d,d') \<in> outputs \<Longrightarrow> applyOp a
   done 
 
 lemma applyOpValidOperation: "applyOp a d = Some d' \<Longrightarrow> (a,d,d') \<in> outputs"
+  
   sorry
 
 (* TODO *)
