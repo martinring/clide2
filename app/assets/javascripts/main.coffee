@@ -3,24 +3,30 @@ require.config
   paths:    
     angular:           'lib/angularjs/1.1.5/angular'
     'angular-cookies': 'lib/angularjs/1.1.5/angular-cookies'
-    codemirror:        'lib/codemirror/3.13/lib/codemirror'
-    jquery:            'lib/jquery/2.0.2/jquery'    
+    codemirror:        'lib/codemirror/3.15/lib/codemirror'
+    jquery:            'lib/jquery/2.0.2/jquery'
     typekit:           '//use.typekit.net/bzl6miy'
     underscore:        'lib/underscore/underscore'
   shim:
+    'angular-cookies':
+      exports: 'angular'
+      deps:    ['angular']
     angular:
       exports: 'angular'
-    codemirror:
+      deps:    ['jquery']
+    jquery:
+      exports: 'jQuery'
+    codemirror: 
       exports: 'CodeMirror'
-    typekit:
+    typekit:    
       exports: 'Typekit'
-    underscore:
+    underscore: 
       exports: '_'
-    routes:
-      exports: 'jsRoutes'    
+    routes:     
+      exports: 'jsRoutes'
   priority: [
     'angular'
-  ]    
+  ]
 
 # Initialize Fonts
 require ['typekit', 'routes', 'bootstrap', 'config'], (Typekit, routes) -> 
