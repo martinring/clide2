@@ -6,16 +6,16 @@ import Database.{threadLocalSession => session}
 case class Project(id: Long, name: String, ownerName: String)
 
 object Projects extends Table[Project]("projects") {
-  def id      = column[Long]("id", O.PrimaryKey, O.AutoInc)
-  def name    = column[String]("name")
-  def ownerName = column[String]("owner")
-  def owner   = foreignKey("fk_project_user", ownerName, Users)(_.name)
-  def *       = id ~ name ~ ownerName <> (Project, Project.unapply _)
+  def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
+  def name         = column[String]("name")
+  def ownerName    = column[String]("owner")  
+  def owner        = foreignKey("fk_project_user", ownerName, Users)(_.name)  
+  def *            = id ~ name ~ ownerName <> (Project, Project.unapply _)
  
   def getForOwner = for {
-    name <- Parameters[String]    
+    name <- Parameters[String]
     projects <- Projects if projects.ownerName === name
-  } yield projects   
+  } yield projects
 }
 
 object Rights extends Table[(Long,String,Boolean,Boolean)]("rights") {
