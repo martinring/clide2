@@ -45,11 +45,31 @@ fun inputLength :: "'char operation \<Rightarrow> nat" where
 | "inputLength (Delete#as) = Suc (inputLength as)"
 | "inputLength (Insert _#as)  = inputLength as"
 
+text {* if an operation $a$ has input lenght 0, a must be empty or is consists only of insert 
+        actions *}
+
+lemma emptyInputInsert: "inputLength a = 0 \<Longrightarrow> a = [] \<or> (\<exists>c as. a = Insert c#as)"
+  apply (induct a, auto)
+  by (metis Suc_neq_Zero action.exhaust inputLength.simps(2) inputLength.simps(3))
+
 fun outputLength :: "'char operation \<Rightarrow> nat" where
   "outputLength [] = 0"
 | "outputLength (Retain#as)   = Suc (outputLength as)"
 | "outputLength (Insert _#as) = Suc (outputLength as)"
 | "outputLength (Delete#as)   = outputLength as"
+
+text {* if an operation $a$ has output lenght 0, a must be empty or is consists only of delete 
+        actions *}
+
+lemma emptyOutputDelete: "outputLength a = 0 \<Longrightarrow> a = [] \<or> (\<exists>as. a = Delete#as)"
+  apply (induct a, auto)
+  by (metis Suc_neq_Zero action.exhaust outputLength.simps(2) outputLength.simps(3))
+
+text {* if an operation $a$ has output and input lenght of 0, the operation must be empty *}
+
+lemma emptyInOutOp: "inputLength a = 0 \<and> outputLength a = 0 \<Longrightarrow> a = []"
+  apply (induct a, auto)
+  by (metis Zero_not_Suc emptyOutputDelete inputLength.simps(3) list.distinct(1))
 
 subsection {* Valid Operations *}
            
@@ -62,54 +82,65 @@ inductive_set outputs :: "('char operation \<times> 'char document \<times> 'cha
 | delete[intro!]:   "(a,d,d') \<in> outputs \<Longrightarrow> (Delete#a,c#d,d')     \<in> outputs"
 | insert[intro!]:   "(a,d,d') \<in> outputs \<Longrightarrow> ((Insert c)#a,d,c#d') \<in> outputs"
 
-lemma undoRetain: "(Retain#a,c#d,c#d') \<in> outputs \<Longrightarrow> (a,d,d') \<in> outputs"
+lemma undoRetain [rule_format]: "\<forall>c. (Retain#a,c#d,c#d') \<in> outputs \<longrightarrow> (a,d,d') \<in> outputs"
   by (smt action.distinct(1) action.distinct(3) list.distinct(1) list.inject outputs.cases)
 
-lemma undoDelete: "(Delete#a,c#d,d') \<in> outputs \<Longrightarrow> (a,d,d') \<in> outputs"
+lemma undoDelete [rule_format]: "\<forall>c. (Delete#a,c#d,d') \<in> outputs \<longrightarrow> (a,d,d') \<in> outputs"
   by (smt action.distinct(3) action.distinct(5) list.distinct(1) list.inject outputs.cases)
 
-lemma undoInsert: "((Insert c)#a,d,c#d') \<in> outputs \<Longrightarrow> (a,d,d') \<in> outputs"
+lemma undoInsert [rule_format]: "\<forall>c. ((Insert c)#a,d,c#d') \<in> outputs \<longrightarrow> (a,d,d') \<in> outputs"
   by (smt action.distinct(1) action.distinct(5) list.distinct(1) list.inject outputs.simps)
 
 text {* the application of operations on documents has to be deterministic *}
 
-lemma emptyInput: "([],[],d) \<in> outputs \<Longrightarrow> d = []"  
-  by (erule outputs.cases, auto)  
+lemma emptyInput: "([],[],d) \<in> outputs \<Longrightarrow> d = []"
+  by (erule outputs.cases, auto)
 
 lemma emptyInput2: "([],[],d#ds) \<notin> outputs"
   by (auto, erule outputs.cases, auto)  
 
 lemma emptyOutput: "(a#as,d,[]) \<in> outputs \<Longrightarrow> a = Delete"
-  by (erule outputs.cases, auto)  
-
-lemma "(a,d,d') \<in> outputs \<Longrightarrow> \<forall>c. (a,d,c#d') \<notin> outputs"  
-  apply (clarify, erule outputs.cases, simp_all)
-  apply (drule emptyInput, simp)
-  
-
-(*lemma emptyOutput: "(a,d,[]) \<in> outputs \<Longrightarrow> *)
+  by (erule outputs.cases, auto)    
 
 lemma outputsDeterministic: "(a,d,d') \<in> outputs \<Longrightarrow> (a,d,d'') \<in> outputs \<longrightarrow> d' = d''"
   apply (erule outputs.induct)
   apply (auto)
   apply (erule sym [OF emptyInput])
-  apply (induct d'')  
-  apply (drule emptyOutput)
-  apply (simp)
-  apply (drule undoRetain)
+  apply (induct d'')
+  apply (drule emptyOutput, simp)
+  
   sorry
+
+subsection {* Input and Output Lenght of Valid Operations *}
 
 text {* An operation $a$ is a valid operation on document $d$ iff the input length of $a$ equals 
         the length of $d$ *} 
 
-lemma validLengths: "(a,d,d') \<in> outputs \<longleftrightarrow> inputLength a = length d \<and> outputLength a = length d'"
-  apply (auto)
-  apply (erule outputs.induct, auto)
-  apply (erule outputs.induct, auto)
+lemma validInputLength1 [rule_format]: 
+  shows "(a,d,d') \<in> outputs \<Longrightarrow> inputLength a = length d"
+  by (rule outputs.induct, auto)
+
+lemma sucLength [rule_format]: 
+  shows "Suc (n) = length d \<longrightarrow> (\<exists>c cs. d = c#cs \<and> length cs = n)"
+  by (induct_tac d, auto)  
   
-  sorry  
+lemma validInputLength2 [rule_format]:
+  shows "\<exists>d'. inputLength a = length d \<longrightarrow> (a,d,d') \<in> outputs"
+  apply (induct_tac d, auto)  
 
+  sorry
 
+text {* if an operation $a$ is a valid operation on any document $d$ the length of the resulting 
+        document $d'$ is equal to the output lenght of $a$ *}
+
+lemma validOutputLength: "(a,d,d') \<in> outputs \<Longrightarrow> outputLength a = length d'"
+  by (erule outputs.induct, auto)
+
+subsection {* Application of operations *}
+
+text {* The $applyOp$ function applies an operation $a$ to document $d$ and yields either $None$ if
+        the input length of $a$ does not match the length of $d$ or $Some d'$ where d' is the result
+        of a valid application *}
 
 fun applyOp :: "'char operation \<Rightarrow> 'char document \<Rightarrow> 'char document option"
 where
@@ -119,14 +150,17 @@ where
 | "applyOp (Delete#next)   (_#tail)    = applyOp next tail"
 | "applyOp _               _           = None"
 
-text {* the application of an operation \texttt{a} to a document \texttt{d}
-        yields a result iff the base length of the operation is equal to the
-        length of the document *}
+text {* We need to show the equality of the inductively defined set $outputs$ and the partial
+        function $applyOp$ in order to use the inductive set for further correctness proofs
+        involving $applyOp$ *}
 
-lemma validOperationApplyOp[simp]: "(a,d,d') \<in> outputs \<Longrightarrow> applyOp a d = Some d'"
+lemma validOperationApplyOp: "(a,d,d') \<in> outputs \<Longrightarrow> applyOp a d = Some d'"
   apply (erule outputs.induct)
   apply (auto)
   done 
+
+lemma applyOpValidOperation: "applyOp a d = Some d' \<Longrightarrow> (a,d,d') \<in> outputs"
+  sorry
 
 (* TODO *)
 
