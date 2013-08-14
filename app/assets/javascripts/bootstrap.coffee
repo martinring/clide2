@@ -1,4 +1,4 @@
 require ['angular','jquery','app'], (angular, $) -> 
-  $ ->     
-    angular.bootstrap document, ['clide']        
+  angular.element(document).ready ->
+    angular.bootstrap document, ['clide']
     $('#loading').remove()
