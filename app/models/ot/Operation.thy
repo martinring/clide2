@@ -1,40 +1,47 @@
 (* Formalisation of Operational Transformation *)
 (* author: Martin Ring, DFKI Bremen *)
 
-header {* Formalisation of Operational Transformation *}
-
+(*<*)
+ 
 theory Operation
-imports Main List Option
+imports Main List Option Set
 begin
+
+(*>*)
 
 section {* Actions, Operations and Documents *}
 
-text {* A document is a list of elements. An operation is a list of actions, that
-        is processed sequentially. An action can either alter the document at the
-        current position, move the virtual cursor on the document forward or both.
+text {* A @{term document} is a list of elements. *}
 
-        There are three types of actions of which an operation is composed:
-        \texttt{Retain}, \texttt{Insert} and \texttt{Delete}. An operation is
-        a list of actions.
+type_synonym 'char document = "'char list"
 
-        \begin{itemize}
-          \item \texttt{Retain} moves the cursor by one step
-          \item \texttt{Insert} inserts an element at the position of the cursor and moves the
-                                cursor behind that elment
-          \item \texttt{Delete} removes the element at the current position
-        \end{itemize} *}
+text {* An @{term action} can either alter the document at the current position, move the virtual 
+        cursor on the document forward or both. *}
 
 datatype 'char action = Retain | Insert 'char | Delete
 
+text {* An @{term operation} is a list of actions. *}
+
 type_synonym 'char operation = "'char action list"
 
-type_synonym 'char document = "'char list"
+text {* There are three types of actions of which an operation is composed:
+        @{term Retain}, @{term "Insert c"} and @{term Delete}. An operation is
+        a list of actions.
+
+        \begin{itemize}
+          \item @{term Retain} moves the cursor to the next position
+          \item @{term "Insert c"} inserts element @{term c} at the position of the cursor and moves 
+                                 the cursor behind that elment
+          \item @{term Delete} removes the element at the current position
+        \end{itemize} *}
+ 
+subsection {* In- and Output Lengths of Operations *}
 
 text {* An operation has an input length and an output length:
 
         \begin{itemize}
           \item The input length is the length of a document on which the operation can
-                be applied yielding a result.
+                be applied.
           \item The output length is the length of the result of the application on a
                 document on which the operation is defined.
         \end{itemize} *}
@@ -48,9 +55,8 @@ fun inputLength :: "'char operation \<Rightarrow> nat" where
 text {* if an operation $a$ has input lenght 0, a must be empty or is consists only of insert 
         actions *}
 
-lemma emptyInputInsert: "inputLength a = 0 \<Longrightarrow> a = [] \<or> (\<exists>c as. a = Insert c#as)"
-  apply (induct a, auto)
-  by (metis Suc_neq_Zero action.exhaust inputLength.simps(2) inputLength.simps(3))
+lemma emptyInputInsert [rule_format]: "inputLength a = 0 \<longrightarrow> a = [] \<or> (\<exists>as c. a = Insert c#as)"
+  apply (induct_tac a, auto) by (case_tac a, auto)+  
 
 fun outputLength :: "'char operation \<Rightarrow> nat" where
   "outputLength [] = 0"
@@ -61,15 +67,13 @@ fun outputLength :: "'char operation \<Rightarrow> nat" where
 text {* if an operation $a$ has output lenght 0, a must be empty or is consists only of delete 
         actions *}
 
-lemma emptyOutputDelete: "outputLength a = 0 \<Longrightarrow> a = [] \<or> (\<exists>as. a = Delete#as)"
-  apply (induct a, auto)
-  by (metis Suc_neq_Zero action.exhaust outputLength.simps(2) outputLength.simps(3))
+lemma emptyOutputDelete [rule_format]: "outputLength a = 0 \<longrightarrow> a = [] \<or> (\<exists>as. a = Delete#as)"
+  apply (induct_tac a, auto) by (case_tac a, auto)+  
 
 text {* if an operation $a$ has output and input lenght of 0, the operation must be empty *}
 
-lemma emptyInOutOp: "inputLength a = 0 \<and> outputLength a = 0 \<Longrightarrow> a = []"
-  apply (induct a, auto)
-  by (metis Zero_not_Suc emptyOutputDelete inputLength.simps(3) list.distinct(1))
+lemma emptyInOutOp [rule_format]: "inputLength a = 0 \<and> outputLength a = 0 \<longrightarrow> a = []"
+  apply (induct_tac a, auto) by (case_tac a, auto)+ 
 
 subsection {* Valid Operations *}
            
@@ -82,27 +86,17 @@ inductive_set application :: "(('char operation \<times> 'char document) \<times
 | delete[intro!]:   "((a,d),d') \<in> application \<Longrightarrow> ((Delete#a,c#d),d')     \<in> application"
 | insert[intro!]:   "((a,d),d') \<in> application \<Longrightarrow> (((Insert c)#a,d),c#d') \<in> application"
 
-text {* iff an operation $a$ is empty it can only be applied to the empty document and the
+text {* iff an operation @{term a} is empty it can only be applied to the empty document and the
         result is also the empty document *}
 
 lemma emptyInput: "(([],d),d') \<in> application \<longleftrightarrow> d = [] \<and> d' = []"
-  apply (auto)
-  apply (erule application.cases, auto)
-  apply (erule application.cases, auto)
-  done
+  apply (auto) by (erule application.cases, auto)+
 
 lemma emptyInputDomain: "([],d) \<in> Domain application \<longleftrightarrow> d = []"
   by (auto simp add: emptyInput)
 
 lemma emptyDocInsert: "(a#as,[]) \<in> Domain application \<Longrightarrow> \<exists>c. a = Insert c"
   by (clarify, erule application.cases, auto)
-
-lemma emptyDocLength: "(a,[]) \<in> Domain application \<longrightarrow> inputLength a = 0"
-  apply (induct_tac a)
-  apply (force)
-  apply (clarify)
-  apply (case_tac a)
-  sorry  
 
 lemma remRetain: "((Retain # list, d) \<in> Domain application) = 
                   (\<exists>c cs. d = c#cs \<and> (list,cs) \<in> Domain application)"  
@@ -139,7 +133,7 @@ lemma applicationRange: "d' \<in> Range application"
   apply (auto)
   done
 
-subsection {* Input and Output Lenght of Valid Operations *}
+subsection {* In- and Output Lenghts of Valid Operations *}
 
 text {* All pairs of operations and documents are contained in the domain of the application
         iff the inputLength of the operation matches the length of the document *}
@@ -162,9 +156,9 @@ lemma validOutputLength: "((a,d),d') \<in> application \<Longrightarrow> outputL
 
 subsection {* Application function *}
 
-text {* The $applyOp$ function applies an operation $a$ to document $d$ and yields either $None$ if
-        the input length of $a$ does not match the length of $d$ or $Some d'$ where d' is the result
-        of a valid application *}
+text {* The @{term applyOp} function applies an operation @{term a} to document @{term d} and yields 
+        either @{term None} if the input length of @{term a} does not match the length of @{term d} 
+        or @{term "Some d'"} where @{term d'} is the result of a valid application *}
 
 fun applyOp :: "'char operation \<Rightarrow> 'char document \<Rightarrow> 'char document option"
 where
@@ -174,9 +168,9 @@ where
 | "applyOp (Delete#next)   (_#tail)    = applyOp next tail"
 | "applyOp _               _           = None"
  
-text {* We need to show the equality of the inductively defined set $application$ and the partial
-        function $applyOp$ in order to use the inductive set for further correctness proofs
-        involving $applyOp$ *}
+text {* We need to show the equality of the inductively defined set @{term application} and the partial
+        function @{term applyOp} in order to use the inductive set for further correctness proofs
+        involving @{term applyOp} *}
 
 lemma applyOpApplication1 [rule_format]: 
   "\<forall>d'. applyOp a d = Some d' \<longrightarrow> ((a,d),d') \<in> application"
@@ -189,7 +183,7 @@ lemma applyOpApplication2:
 lemma applyOpApplication: "applyOp a d = Some d' \<longleftrightarrow> ((a,d),d') \<in> application"
   by (force intro: applyOpApplication1 applyOpApplication2)
 
-text {* this also implicitly prooves that the relation $application$ is deterministic *}
+text {* this also implicitly proves that the relation @{term application} is deterministic *}
 
 subsection {* Normalization *}
 
@@ -222,7 +216,7 @@ lemma normalizeValid: "((a,d),d') \<in> application \<Longrightarrow> ((normaliz
   apply (auto intro: addDeleteOpValid2)
   done
 
-subsection {* Composition of Operations *}
+section {* Composition of Operations *}
 
 fun compose :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation option"
 where
@@ -246,7 +240,7 @@ inductive_set composition :: "(('char operation \<times> 'char operation) \<time
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Insert c#a,Retain#b),Insert c#ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Insert _#a,Delete#b),ab) \<in> composition"
 
-text {* And again we have to prove equivalence between the inductively defined relation and the 
+text {* And again we have to prove equivalence of the inductively defined relation and the 
         recursive function: *}
 
 lemma composeSet11 [rule_format]: 
@@ -268,12 +262,14 @@ text {* Two operations $a$ and $b$ can be composed iff the output length of $a$ 
 lemma compositionDomain1: "(a,b) \<in> Domain composition \<Longrightarrow> outputLength a = inputLength b"
   by (auto, erule composition.induct, auto)
 
-lemma compositionDomain2 [rule_format]: 
+(*lemma compositionDomain2 [rule_format]: 
   "\<forall>b. outputLength a = inputLength b \<longrightarrow> (a,b) \<in> Domain composition"
+  apply (induct_tac a)
+  apply (clarify, simp)
   sorry (* TODO! *)
   
 lemma compositionDomain: "(a,b) \<in> Domain composition \<longleftrightarrow> outputLength a = inputLength b"
-  by (force intro: compositionDomain1 compositionDomain2)
+  by (force intro: compositionDomain1 compositionDomain2)*)
 
 
 
@@ -283,7 +279,7 @@ text {* Every operation $ab$ can be produced in its normalized form by compositi
 (*TODO*)
 
 
-subsection {* Operation Transformation *}
+section {* Operation Transformation *}
 
 fun transform :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> ('char operation \<times> 'char operation) option"
 where
@@ -300,11 +296,11 @@ text {* the transformation of two operations yields a result iff they have an eq
 lemma transform_complete: "(transform a b) = None \<longleftrightarrow> lengthBeforeOp a \<noteq> lengthBeforeOp b"
   oops
 
-(* convergence property TP1 *)
+(* convergence property TP1 
 lemma transform_convergence:   
   shows "Option.bind (transform a b) (\<lambda>(at,bt). compose a bt)
        = Option.bind (transform a b) (\<lambda>(at,bt). compose b at)"
-  sorry
+  sorry *)
   
 
 export_code applyOp addDeleteOp compose transform in JavaScript
