@@ -182,7 +182,7 @@ lemma applyOpApplication1 [rule_format]:
   "\<forall>d'. applyOp a d = Some d' \<longrightarrow> ((a,d),d') \<in> application"
   by (rule applyOp.induct, auto)
 
-lemma applyOpApplication2 [rule_format]: 
+lemma applyOpApplication2: 
   "((a,d),d') \<in> application \<Longrightarrow> applyOp a d = Some d'"
   by (erule application.induct, auto)
 
@@ -203,7 +203,10 @@ lemma addDeleteOpValid: "((a,d),d') \<in> application \<Longrightarrow> \<forall
 
 lemma addDeleteOpValid2: "((Delete#as,d),d') \<in> application \<Longrightarrow> ((addDeleteOp as,d),d') \<in> application"
   by (smt action.distinct(3) action.distinct(5) addDeleteOpValid application.cases list.distinct(1) list.inject)
-    
+
+lemma addDeleteOutputLenght[simp]: "outputLength (addDeleteOp as) = outputLength as"
+  by (rule addDeleteOp.induct, auto)
+
 fun normalize :: "'char operation \<Rightarrow> 'char operation" where
   "normalize [] = []"
 | "normalize (Retain#a) = Retain#(normalize a)"
@@ -225,21 +228,60 @@ fun compose :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'cha
 where
   "compose [] []                        = Some []"
 | "compose (Delete#as)    (bs)          = Option.map (addDeleteOp) (compose as bs)"
-| "compose (as)           (Insert c#bs) = Option.map (\<lambda>a. Insert(c)#a) (compose as bs)"
-| "compose (Retain#as)    (Retain#bs)   = Option.map (\<lambda>a. Retain#a) (compose as bs)"
+| "compose (as)           (Insert c#bs) = Option.map (\<lambda>ab. Insert c#ab) (compose as bs)"
+| "compose (Retain#as)    (Retain#bs)   = Option.map (\<lambda>ab. Retain#ab) (compose as bs)"
 | "compose (Retain#as)    (Delete#bs)   = Option.map (addDeleteOp) (compose as bs)"
-| "compose (Insert(c)#as) (Retain#bs)   = Option.map (\<lambda>a. Insert(c)#a) (compose as bs)"
+| "compose (Insert(c)#as) (Retain#bs)   = Option.map (\<lambda>ab. Insert c#ab) (compose as bs)"
 | "compose (Insert(_)#as) (Delete#bs)   = compose as bs"
 | "compose _              _             = None"
 
-inductive_set composition :: "('char operation \<times> 'char operation \<times> 'char operation \<times> 'char document \<times> 'char document \<times> 'char document) set" where
-  nil[intro!]:  "([],[],[],[],[],[]) \<in> composition"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composition \<Longrightarrow> (addDeleteOp a,b,addDeleteOp ab,c#d,d',d'') \<in> composition"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composition \<Longrightarrow> (a,Insert c#b,Insert c#ab,d,d',c#d'') \<in> composition"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composition \<Longrightarrow> (Retain#a,Retain#b,Retain#ab,c#d,c#d',c#d'') \<in> composition"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composition \<Longrightarrow> (Retain#a,Delete#b,addDeleteOp ab,c#d,d',d'') \<in> composition"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composition \<Longrightarrow> (Insert c#a,Retain#b,Insert c#ab,d,c#d',c#d'') \<in> composition"
-| [intro!]: "(a,b,ab,d,d',d'') \<in> composition \<Longrightarrow> (Insert c#a,Delete#b,ab,d,c#d',d'') \<in> composition"
+text {* Again we define an inductive set describing the composition relation *}
+
+inductive_set composition :: "(('char operation \<times> 'char operation) \<times> 'char operation) set" where
+  nil[intro!]:  "(([],[]),[]) \<in> composition"
+| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Delete#a,b),addDeleteOp ab) \<in> composition"
+| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((a,Insert c#b),Insert c#ab) \<in> composition"
+| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Retain#a,Retain#b),Retain#ab) \<in> composition"
+| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Retain#a,Delete#b),addDeleteOp ab) \<in> composition"
+| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Insert c#a,Retain#b),Insert c#ab) \<in> composition"
+| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Insert _#a,Delete#b),ab) \<in> composition"
+
+text {* And again we have to prove equivalence between the inductively defined relation and the 
+        recursive function: *}
+
+lemma composeSet11 [rule_format]: 
+  "\<forall>ab c. compose a b = Some ab \<longrightarrow> compose a (Insert c # b) = Some (Insert c # ab)"
+  by (rule compose.induct, auto)
+
+lemma composeSet1: "((a,b),ab) \<in> composition \<Longrightarrow> compose a b = Some ab"
+  by (erule composition.induct, auto intro: composeSet11)
+
+lemma composeSet2[rule_format]: "\<forall>ab. compose a b = Some ab \<longrightarrow> ((a,b),ab) \<in> composition"
+  by (rule compose.induct, auto)
+
+lemma composeSet: "((a,b),ab) \<in> composition \<longleftrightarrow> compose a b = Some ab"
+  by (force intro: composeSet1 composeSet2)
+
+text {* Two operations $a$ and $b$ can be composed iff the output length of $a$ matches the input 
+        length of $b$ *}
+
+lemma compositionDomain1: "(a,b) \<in> Domain composition \<Longrightarrow> outputLength a = inputLength b"
+  by (auto, erule composition.induct, auto)
+
+lemma compositionDomain2 [rule_format]: 
+  "\<forall>b. outputLength a = inputLength b \<longrightarrow> (a,b) \<in> Domain composition"
+  sorry (* TODO! *)
+  
+lemma compositionDomain: "(a,b) \<in> Domain composition \<longleftrightarrow> outputLength a = inputLength b"
+  by (force intro: compositionDomain1 compositionDomain2)
+
+
+
+text {* Every operation $ab$ can be produced in its normalized form by composition of two 
+        operations  *}
+
+(*TODO*)
+
 
 subsection {* Operation Transformation *}
 
