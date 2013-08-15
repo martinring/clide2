@@ -52,7 +52,7 @@ fun inputLength :: "'char operation \<Rightarrow> nat" where
 | "inputLength (Delete#as) = Suc (inputLength as)"
 | "inputLength (Insert _#as)  = inputLength as"
 
-text {* if an operation $a$ has input lenght 0, a must be empty or is consists only of insert 
+text {* if an operation @{term a} has input lenght 0, a must be empty or is consists only of insert 
         actions *}
 
 lemma emptyInputInsert [rule_format]: "inputLength a = 0 \<longrightarrow> a = [] \<or> (\<exists>as c. a = Insert c#as)"
@@ -64,13 +64,13 @@ fun outputLength :: "'char operation \<Rightarrow> nat" where
 | "outputLength (Insert _#as) = Suc (outputLength as)"
 | "outputLength (Delete#as)   = outputLength as"
 
-text {* if an operation $a$ has output lenght 0, a must be empty or is consists only of delete 
+text {* if an operation @{term a} has output lenght 0, a must be empty or is consists only of delete 
         actions *}
 
 lemma emptyOutputDelete [rule_format]: "outputLength a = 0 \<longrightarrow> a = [] \<or> (\<exists>as. a = Delete#as)"
   apply (induct_tac a, auto) by (case_tac a, auto)+  
 
-text {* if an operation $a$ has output and input lenght of 0, the operation must be empty *}
+text {* if an operation @{term a} has output and input lenght of 0, the operation must be empty *}
 
 lemma emptyInOutOp [rule_format]: "inputLength a = 0 \<and> outputLength a = 0 \<longrightarrow> a = []"
   apply (induct_tac a, auto) by (case_tac a, auto)+ 
@@ -148,8 +148,8 @@ lemma applicationDomain [rule_format]:
   apply (metis length_Suc_conv)
   done
   
-text {* if an operation $a$ is a valid operation on any document $d$ the length of the resulting 
-        document $d'$ is equal to the output lenght of $a$ *}
+text {* if an operation @{term a} is a valid operation on any document @{term d} the length of the 
+        resulting document @{term d'} is equal to the output lenght of @{term a} *}
 
 lemma validOutputLength: "((a,d),d') \<in> application \<Longrightarrow> outputLength a = length d'"
   by (erule application.induct, auto)
@@ -167,7 +167,7 @@ where
 | "applyOp (Insert c#next) (d)         = Option.map (\<lambda>d. c#d)    (applyOp next d)"
 | "applyOp (Delete#next)   (_#tail)    = applyOp next tail"
 | "applyOp _               _           = None"
- 
+
 text {* We need to show the equality of the inductively defined set @{term application} and the partial
         function @{term applyOp} in order to use the inductive set for further correctness proofs
         involving @{term applyOp} *}
@@ -232,7 +232,7 @@ where
 text {* Again we define an inductive set describing the composition relation *}
 
 inductive_set composition :: "(('char operation \<times> 'char operation) \<times> 'char operation) set" where
-  nil[intro!]:  "(([],[]),[]) \<in> composition"
+  empty[intro!]:  "(([],[]),[]) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Delete#a,b),addDeleteOp ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((a,Insert c#b),Insert c#ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Retain#a,Retain#b),Retain#ab) \<in> composition"
@@ -272,22 +272,8 @@ lemma composeDomain2: "outputLength a = inputLength b \<Longrightarrow> (\<exist
 lemma composeDomain: "(\<exists>ab. compose a b = Some ab) \<longleftrightarrow> outputLength a = inputLength b"
   by (auto intro: composeDomain1 composeDomain2)
 
-(*lemma compositionDomain2 [rule_format]: 
-  "\<forall>b. outputLength a = inputLength b \<longrightarrow> (a,b) \<in> Domain composition"
-  apply (induct_tac a)
-  apply (clarify, simp)
-  sorry (* TODO! *)
-  
-lemma compositionDomain: "(a,b) \<in> Domain composition \<longleftrightarrow> outputLength a = inputLength b"
-  by (force intro: compositionDomain1 compositionDomain2)*)
-
-
-
 text {* Every operation $ab$ can be produced in its normalized form by composition of two 
         operations  *}
-
-(*TODO*)
-
 
 section {* Operation Transformation *}
 
@@ -325,11 +311,35 @@ lemma transformDomain2 [rule_format]:
   "inputLength a = inputLength b \<Longrightarrow> \<exists>a' b'. transform a b = Some (a',b')"
   apply (erule contrapos_pp)
   apply (drule notSome)
-  apply (rule transformDomain21, simp)
-  done
+  by (rule transformDomain21, simp)  
 
 lemma transformDomain: "(\<exists>ab. transform a b = Some ab) \<longleftrightarrow> inputLength a = inputLength b"  
-  by (auto intro: transformDomain1 transformDomain2)
+  by (force intro: transformDomain1 transformDomain2)
+
+text {* Yet again we define an inductive set to describe the transform relation *}
+
+inductive_set transformation :: "(('c operation \<times> 'c operation) \<times> ('c operation \<times> 'c operation)) set" where
+  empty[intro!]: "(([],[]),([],[])) \<in> transformation"
+| [intro!]: "((a,b),(a',b')) \<in> transformation \<Longrightarrow> ((Insert c#a,b),(Insert c#a',Retain#b')) \<in> transformation"
+| [intro!]: "(([],b),(a',b')) \<in> transformation \<Longrightarrow> (([],Insert c#b),(Retain#a',Insert c#b')) \<in> transformation"
+| [intro!]: "((Retain#a,b),(a',b')) \<in> transformation \<Longrightarrow> ((Retain#a,Insert c#b),(Retain#a',Insert c#b')) \<in> transformation"
+| [intro!]: "((Delete#a,b),(a',b')) \<in> transformation \<Longrightarrow> ((Delete#a,Insert c#b),(Retain#a',Insert c#b')) \<in> transformation"
+| [intro!]: "((a,b),(a',b')) \<in> transformation \<Longrightarrow> ((Retain#a,Retain#b),(Retain#a',Retain#b')) \<in> transformation"
+| [intro!]: "((a,b),(a',b')) \<in> transformation \<Longrightarrow> ((Delete#a,Delete#b),(a',b')) \<in> transformation"
+| [intro!]: "((a,b),(a',b')) \<in> transformation \<Longrightarrow> ((Retain#a,Delete#b),(a',addDeleteOp b')) \<in> transformation"
+| [intro!]: "((a,b),(a',b')) \<in> transformation \<Longrightarrow> ((Delete#a,Retain#b),(addDeleteOp a',b')) \<in> transformation"
+
+text {* and yet again we show the equivalence of function and set: *}
+
+lemma transformSet1: "((a,b),(a',b')) \<in> transformation \<Longrightarrow> transform a b = Some (a',b')"
+  by (erule transformation.induct, auto)
+
+lemma transformSet2 [rule_format]: 
+  "\<forall>a' b'. transform a b = Some (a',b') \<longrightarrow> ((a,b),(a',b')) \<in> transformation"
+  by (rule transform.induct, auto)
+
+lemma transformSet: "((a,b),(a',b')) \<in> transformation \<longleftrightarrow> transform a b = Some (a',b')"
+  by (force intro: transformSet1 transformSet2)
 
 (* convergence property TP1 
 lemma transform_convergence:   
