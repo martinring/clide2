@@ -81,10 +81,10 @@ text {* We define an inductive set, describing the relation of all valid pairs o
         documents and their resulting output document .*}
 
 inductive_set application :: "(('char operation \<times> 'char document) \<times> 'char document) set" where
-  empty[intro!]:    "(([],[]),[]) \<in> application"
-| retain[intro!]:   "((a,d),d') \<in> application \<Longrightarrow> ((Retain#a,c#d),c#d')   \<in> application"
-| delete[intro!]:   "((a,d),d') \<in> application \<Longrightarrow> ((Delete#a,c#d),d')     \<in> application"
-| insert[intro!]:   "((a,d),d') \<in> application \<Longrightarrow> (((Insert c)#a,d),c#d') \<in> application"
+  empty[intro!]:  "(([],[]),[]) \<in> application"
+| retain[intro!]: "((a,d),d') \<in> application \<Longrightarrow> ((Retain#a,c#d),c#d')   \<in> application"
+| delete[intro!]: "((a,d),d') \<in> application \<Longrightarrow> ((Delete#a,c#d),d')     \<in> application"
+| insert[intro!]: "((a,d),d') \<in> application \<Longrightarrow> (((Insert c)#a,d),c#d') \<in> application"
 
 text {* iff an operation @{term a} is empty it can only be applied to the empty document and the
         result is also the empty document *}
@@ -256,11 +256,21 @@ lemma composeSet2[rule_format]: "\<forall>ab. compose a b = Some ab \<longrighta
 lemma composeSet: "((a,b),ab) \<in> composition \<longleftrightarrow> compose a b = Some ab"
   by (force intro: composeSet1 composeSet2)
 
-text {* Two operations $a$ and $b$ can be composed iff the output length of $a$ matches the input 
-        length of $b$ *}
+text {* The operations @{term a} and @{term b} can be composed iff the output length of @{term a} 
+        matches the input length of @{term b} *}
 
-lemma compositionDomain1: "(a,b) \<in> Domain composition \<Longrightarrow> outputLength a = inputLength b"
-  by (auto, erule composition.induct, auto)
+lemma composeDomain1 [rule_format]: "(\<exists>ab. compose a b = Some ab) \<longrightarrow> outputLength a = inputLength b"
+  by (rule compose.induct, auto)
+
+lemma composeDomain21 [rule_format]: "compose a b = None \<longrightarrow> outputLength a \<noteq> inputLength b"
+  by (rule compose.induct, auto)
+
+lemma composeDomain2: "outputLength a = inputLength b \<Longrightarrow> (\<exists>ab. compose a b = Some ab)"
+  apply (erule contrapos_pp)
+  by (auto simp add: composeDomain21)
+
+lemma composeDomain: "(\<exists>ab. compose a b = Some ab) \<longleftrightarrow> outputLength a = inputLength b"
+  by (auto intro: composeDomain1 composeDomain2)
 
 (*lemma compositionDomain2 [rule_format]: 
   "\<forall>b. outputLength a = inputLength b \<longrightarrow> (a,b) \<in> Domain composition"
@@ -281,6 +291,12 @@ text {* Every operation $ab$ can be produced in its normalized form by compositi
 
 section {* Operation Transformation *}
 
+text {* The transformation function is the basis of operational transformation. For a pair of 
+        operations @{term "(a,b)"} it computes an output pair of transformed operations 
+        @{term "(a',b')"}. The convergence property @{term "compose a b' = compose b a'"} enables
+        the OT system to execute operations in different order at different sites while the 
+        documents do not diverge *}
+
 fun transform :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> ('char operation \<times> 'char operation) option"
 where
   "transform []             []             = Some ([],[])"
@@ -293,15 +309,33 @@ where
 | "transform _              _              = None"
 
 text {* the transformation of two operations yields a result iff they have an equal input length *}
-lemma transform_complete: "(transform a b) = None \<longleftrightarrow> lengthBeforeOp a \<noteq> lengthBeforeOp b"
-  oops
+
+lemma transformDomain1 [rule_format]: 
+  "(\<exists>ab. (transform a b) = Some ab) \<longrightarrow> inputLength a = inputLength b"
+  by (rule transform.induct, auto)
+
+lemma transformDomain21 [rule_format]: 
+  "(transform a b) = None \<longrightarrow> inputLength a \<noteq> inputLength b"
+  by (rule transform.induct, auto)
+
+lemma notSome: "\<not>(\<exists>b c. a = Some (b,c)) \<Longrightarrow> a = None"
+  by (metis option.exhaust surj_pair)
+
+lemma transformDomain2 [rule_format]:
+  "inputLength a = inputLength b \<Longrightarrow> \<exists>a' b'. transform a b = Some (a',b')"
+  apply (erule contrapos_pp)
+  apply (drule notSome)
+  apply (rule transformDomain21, simp)
+  done
+
+lemma transformDomain: "(\<exists>ab. transform a b = Some ab) \<longleftrightarrow> inputLength a = inputLength b"  
+  by (auto intro: transformDomain1 transformDomain2)
 
 (* convergence property TP1 
 lemma transform_convergence:   
   shows "Option.bind (transform a b) (\<lambda>(at,bt). compose a bt)
        = Option.bind (transform a b) (\<lambda>(at,bt). compose b at)"
   sorry *)
-  
 
 export_code applyOp addDeleteOp compose transform in JavaScript
   module_name Operation
