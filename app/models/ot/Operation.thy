@@ -198,7 +198,7 @@ lemma addDeleteOpValid11: "((a,d),d') \<in> application \<Longrightarrow> \<fora
 lemma addDeleteOpValid1: "((Delete#as,d),d') \<in> application \<Longrightarrow> ((addDeleteOp as,d),d') \<in> application"
   by (smt action.distinct(3) action.distinct(5) addDeleteOpValid11 application.cases list.distinct(1) list.inject)
 
-lemma addDelteOpValid21: "\<forall> c d d'. applyOp (addDeleteOp a) (c#d) = Some d' \<longrightarrow> applyOp a d = Some d'"  
+(*lemma addDelteOpValid21: "\<forall> c d d'. applyOp (addDeleteOp a) (c#d) = Some d' \<longrightarrow> applyOp a d = Some d'"  
   sorry  
 
 lemma addDeleteOpValid2 [rule_format]: "((addDeleteOp as,d),d') \<in> application \<Longrightarrow> ((Delete#as,d),d') \<in> application"
@@ -209,7 +209,7 @@ lemma addDeleteOpValid2 [rule_format]: "((addDeleteOp as,d),d') \<in> applicatio
 lemma addDeleteOpValid: "((Delete#as,d),d') \<in> application \<longleftrightarrow> ((addDeleteOp as,d),d') \<in> application"
   apply (auto intro: addDeleteOpValid1)
   apply (auto intro: addDeleteOpValid2)
-  done
+  done*)
 
 lemma addDeleteOutputLenght[simp]: "outputLength (addDeleteOp as) = outputLength as"
   by (rule addDeleteOp.induct, auto)
@@ -237,9 +237,6 @@ lemma normalizeValid: "((a,d),d') \<in> application \<Longrightarrow> ((normaliz
   apply (auto intro: addDeleteOpValid1)
   done
 
-lemma normalizeExhaustive: "((a,d),d') \<in> application \<Longrightarrow> ((b,d),d') \<in> application \<Longrightarrow> normalized a = normalized b"
-  oops
-
 text {* if @{term addDeleteOp} is called on a normalized operation the resulting operation is also
         normalized *}
 
@@ -254,7 +251,6 @@ lemma normalizeAddDeleteOp2[rule_format]: "normalize a = a \<longrightarrow> add
   apply (simp)
   apply (case_tac a, simp_all)
   done
-
 
 section {* Composition of Operations *}
 
@@ -312,7 +308,7 @@ lemma composeSet2 [rule_format]: "\<forall>ab. compose a b = Some ab \<longright
   done
 
 lemma composeSet: "((a,b),ab) \<in> composition \<longleftrightarrow> compose a b = Some (ab)"
-  by (auto intro: composeSet1 composeSet2)    
+  by (auto intro: composeSet1 composeSet2)
 
 subsection {* Domain *}
 
@@ -347,7 +343,7 @@ text {* Finally we show that the @{term compose} function does actually compose 
 lemma compositionInv: "((a,b),ab) \<in> composition \<Longrightarrow> \<forall>d d' d''. ((a,d),d') \<in> application \<longrightarrow> ((b,d'),d'') \<in> application \<longrightarrow> ((ab,d),d'') \<in> application"
   apply (erule composition.induct)
   apply (simp add: emptyInput)
-  sorry
+  oops
 
 section {* Operation Transformation *}
 
@@ -364,8 +360,8 @@ where
 | "transform a              (Insert(c)#bs) = Option.map (\<lambda>(at,bt). (Retain#at,Insert(c)#bt)) (transform a bs)"
 | "transform (Retain#as)    (Retain#bs)    = Option.map (\<lambda>(at,bt). (Retain#at,Retain#bt)) (transform as bs)"
 | "transform (Delete#as)    (Delete#bs)    = transform as bs"
-| "transform (Retain#as)    (Delete#bs)    = Option.map (\<lambda>(at,bt). (at,addDeleteOp(bt))) (transform as bs)"
-| "transform (Delete#as)    (Retain#bs)    = Option.map (\<lambda>(at,bt). (addDeleteOp(at),bt)) (transform as bs)"
+| "transform (Retain#as)    (Delete#bs)    = Option.map (\<lambda>(at,bt). (at,Delete#bt)) (transform as bs)"
+| "transform (Delete#as)    (Retain#bs)    = Option.map (\<lambda>(at,bt). (Delete#at,bt)) (transform as bs)"
 | "transform _              _              = None"
 
 text {* the transformation of two operations yields a result iff they have an equal input length *}
@@ -408,7 +404,7 @@ text {* we need to show, that the above relation is a superset of the @{term tra
 
 lemma transformSubset[rule_format]: "\<forall>a' b'. transform a b = Some (a',b') \<longrightarrow> ((a,b),(a',b')) \<in> transformation"
   apply (rule transform.induct, auto)
-  sorry
+  done 
 
 text {* And finally the convergence property :) *}
 
