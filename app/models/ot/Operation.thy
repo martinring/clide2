@@ -126,7 +126,7 @@ lemma remDelete: "((Delete # list, d) \<in> Domain application) =
           list.distinct(1) 
           list.inject)
 
-text {* every possible output document can be reached by the application of operations to documents *}
+text {* every document can be produced by the application of an operation to a document *}
 
 lemma applicationRange: "d' \<in> Range application"  
   apply (induct_tac d')
@@ -172,16 +172,16 @@ text {* We need to show the equality of the inductively defined set @{term appli
         function @{term applyOp} in order to use the inductive set for further correctness proofs
         involving @{term applyOp} *}
 
-lemma applyOpApplication1 [rule_format]: 
+lemma applyOpSet1 [rule_format]: 
   "\<forall>d'. applyOp a d = Some d' \<longrightarrow> ((a,d),d') \<in> application"
   by (rule applyOp.induct, auto)
 
-lemma applyOpApplication2: 
+lemma applyOpSet2: 
   "((a,d),d') \<in> application \<Longrightarrow> applyOp a d = Some d'"
   by (erule application.induct, auto)
 
-lemma applyOpApplication: "applyOp a d = Some d' \<longleftrightarrow> ((a,d),d') \<in> application"
-  by (force intro: applyOpApplication1 applyOpApplication2)
+lemma applyOpSet: "applyOp a d = Some d' \<longleftrightarrow> ((a,d),d') \<in> application"
+  by (force intro: applyOpSet1 applyOpSet2)
 
 text {* this also implicitly proves that the relation @{term application} is deterministic *}
 
@@ -192,14 +192,26 @@ where
   "addDeleteOp (Insert c#next) = (Insert c)#(addDeleteOp next)"
 | "addDeleteOp as = Delete#as"
 
-lemma addDeleteOpValid: "((a,d),d') \<in> application \<Longrightarrow> \<forall>c. ((addDeleteOp a,c#d),d') \<in> application"
+lemma addDeleteOpValid11: "((a,d),d') \<in> application \<Longrightarrow> \<forall>c. ((addDeleteOp a,c#d),d') \<in> application"
   by (rule application.induct, auto)
 
-lemma addDeleteOpValid2: "((Delete#as,d),d') \<in> application \<Longrightarrow> ((addDeleteOp as,d),d') \<in> application"
-  by (smt action.distinct(3) action.distinct(5) addDeleteOpValid application.cases list.distinct(1) list.inject)
+lemma addDeleteOpValid1: "((Delete#as,d),d') \<in> application \<Longrightarrow> ((addDeleteOp as,d),d') \<in> application"
+  by (smt action.distinct(3) action.distinct(5) addDeleteOpValid11 application.cases list.distinct(1) list.inject)
+
+lemma addDeleteOpValid2 [rule_format]: "\<forall> d d'. ((addDeleteOp as,d),d') \<in> application \<longrightarrow> ((Delete#as,d),d') \<in> application"
+  apply (induct_tac as)
+  apply (force)
+  sorry  
+
+lemma addDeleteOpValid: "((Delete#as,d),d') \<in> application \<longleftrightarrow> ((addDeleteOp as,d),d') \<in> application"
+  by (force intro: addDeleteOpValid1 addDeleteOpValid2)
 
 lemma addDeleteOutputLenght[simp]: "outputLength (addDeleteOp as) = outputLength as"
   by (rule addDeleteOp.induct, auto)
+
+text {* The @{term normalize} function sorts all sequences within an operation that do not contain
+        {@term Retain} actions, such that all @{term Insert} actions occur before the @{term Delete}
+        actions *}
 
 fun normalize :: "'char operation \<Rightarrow> 'char operation" where
   "normalize [] = []"
@@ -207,16 +219,24 @@ fun normalize :: "'char operation \<Rightarrow> 'char operation" where
 | "normalize (Insert c#a) = Insert c#(normalize a)"
 | "normalize (Delete#a) = addDeleteOp (normalize a)"
 
-text {* if an operation $a$ can be applied to a document $d$ yielding the resulting document $d'$,
+value "normalize [Delete, Insert a, Delete, Insert b, Retain, Insert c]"
+
+text {* For @{term normalize} to be useful it must not change the effect of an operation:
+
+        if an operation $a$ can be applied to a document $d$ yielding the resulting document $d'$,
         the normalized operation $a$ can also be applied to the document $d$ yielding the same 
         result *}
 
 lemma normalizeValid: "((a,d),d') \<in> application \<Longrightarrow> ((normalize a,d),d') \<in> application"
   apply (erule application.induct)
-  apply (auto intro: addDeleteOpValid2)
+  apply (auto intro: addDeleteOpValid1)
   done
 
 section {* Composition of Operations *}
+
+text {* The @{term compose} function composes two operations @{term a} and @{term b}, in such a way
+        that the composed operation @{term ab} has the same effect upon application as operations
+        @{term a} and @{term b} executed sequentially. *}
 
 fun compose :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation option"
 where
@@ -229,14 +249,17 @@ where
 | "compose (Insert(_)#as) (Delete#bs)   = compose as bs"
 | "compose _              _             = None"
 
-text {* Again we define an inductive set describing the composition relation *}
+subsection {* Inductive Set *}
+
+text {* Again we define an inductive set describing the composition relation. For simplicity we 
+        do not build the normalized output (i.e. we do not apply @{term addDeleteOp})*}
 
 inductive_set composition :: "(('char operation \<times> 'char operation) \<times> 'char operation) set" where
   empty[intro!]:  "(([],[]),[]) \<in> composition"
-| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Delete#a,b),addDeleteOp ab) \<in> composition"
+| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Delete#a,b),Delete#ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((a,Insert c#b),Insert c#ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Retain#a,Retain#b),Retain#ab) \<in> composition"
-| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Retain#a,Delete#b),addDeleteOp ab) \<in> composition"
+| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Retain#a,Delete#b),Delete#ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Insert c#a,Retain#b),Insert c#ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Insert _#a,Delete#b),ab) \<in> composition"
 
@@ -247,14 +270,17 @@ lemma composeSet11 [rule_format]:
   "\<forall>ab c. compose a b = Some ab \<longrightarrow> compose a (Insert c # b) = Some (Insert c # ab)"
   by (rule compose.induct, auto)
 
-lemma composeSet1: "((a,b),ab) \<in> composition \<Longrightarrow> compose a b = Some ab"
+lemma composeSet1: "((a,b),ab) \<in> composition \<Longrightarrow> compose a b = Some (normalize ab)"
   by (erule composition.induct, auto intro: composeSet11)
 
-lemma composeSet2[rule_format]: "\<forall>ab. compose a b = Some ab \<longrightarrow> ((a,b),ab) \<in> composition"
-  by (rule compose.induct, auto)
+lemma composeSet2[rule_format]: "\<forall>ab. compose a b = Some (normalize ab) \<longrightarrow> ((a,b),ab) \<in> composition"
+  apply (rule compose.induct, auto)
+  sorry
 
-lemma composeSet: "((a,b),ab) \<in> composition \<longleftrightarrow> compose a b = Some ab"
+lemma composeSet: "((a,b),ab) \<in> composition \<longleftrightarrow> compose a b = Some (normalize ab)"
   by (force intro: composeSet1 composeSet2)
+
+subsection {* Domain *}
 
 text {* The operations @{term a} and @{term b} can be composed iff the output length of @{term a} 
         matches the input length of @{term b} *}
@@ -272,8 +298,36 @@ lemma composeDomain2: "outputLength a = inputLength b \<Longrightarrow> (\<exist
 lemma composeDomain: "(\<exists>ab. compose a b = Some ab) \<longleftrightarrow> outputLength a = inputLength b"
   by (auto intro: composeDomain1 composeDomain2)
 
+subsection {* Range *}
+
 text {* Every operation $ab$ can be produced in its normalized form by composition of two 
         operations  *}
+
+lemma compositionRange: "(normalize ab) \<in> Range composition"  
+  apply (rule normalize.induct)
+  apply (auto)
+  oops
+
+subsection {* Invariant of the composition *}
+
+text {* Finally we show that the @{term compose} function does actually compose operations *}
+
+lemma compositionInv11: "((a,b),ab) \<in> composition \<Longrightarrow> \<exists>d d' d''. ((a,d),d') \<in> application
+                                                              \<and> ((b,d'),d'') \<in> application
+                                                              \<and> ((ab,d),d'') \<in> application"
+  apply (erule composition.induct)
+  apply (auto)
+  apply (metis application.insert)
+  apply (metis application.retain)
+  apply (metis application.insert application.retain)
+  done
+
+lemma compositionInv: "((a,b),ab) \<in> composition \<Longrightarrow> \<forall>d. applyOp ab d = Option.bind (applyOp a d) (applyOp b)"
+  apply (erule composition.induct)
+  defer    
+  apply (clarify)
+  
+  sorry
 
 section {* Operation Transformation *}
 
@@ -341,12 +395,14 @@ lemma transformSet2 [rule_format]:
 lemma transformSet: "((a,b),(a',b')) \<in> transformation \<longleftrightarrow> transform a b = Some (a',b')"
   by (force intro: transformSet1 transformSet2)
 
-(* convergence property TP1 
-lemma transform_convergence:   
-  shows "Option.bind (transform a b) (\<lambda>(at,bt). compose a bt)
-       = Option.bind (transform a b) (\<lambda>(at,bt). compose b at)"
-  sorry *)
+text {* And finally the convergence property :) *}
 
+lemma transformationConvergence1: "((a,b),(a',b')) \<in> transformation \<Longrightarrow>
+                                   (\<exists>ab. ((a,b'),ab) \<in> composition \<and> ((b,a'),ab) \<in> composition)"
+  apply (erule transformation.induct)
+  apply (auto)
+  oops
+  
 export_code applyOp addDeleteOp compose transform in JavaScript
   module_name Operation
 
