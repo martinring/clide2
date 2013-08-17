@@ -1,0 +1,28 @@
+input {
+  border: none;
+  outline: none;         
+  background-color: rgba(205,205,205,.3);
+  &.ng-dirty.ng-invalid {
+    background-color: rgba(205,155,105,.3)
+  }
+} 
+input[type="checkbox"] {  
+  display: none;
+}
+input[type="checkbox"]+label {  
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 16px;
+  &:before{
+    vertical-align: middle;
+    padding-right: 6px;
+    line-height: 16px;    
+    font-family: 'icon';
+    content: '\E0A7';
+  }
+}
+input[type="checkbox"]:checked + label {
+  &:before {        
+    content: '\E0A6';
+  }
+}

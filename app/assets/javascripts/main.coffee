@@ -29,10 +29,8 @@ require.config
   ]
 
 require ['typekit', 'angular', 'app'], (Typekit, angular, app) -> 
-  console.log 'initializing typekit fonts' 
+  console.log 'initializing typekit fonts'
   Typekit.load()
   angular.element(document).ready ->
-    console.log 'bootstrapping clide'
     angular.bootstrap document, ['clide']
-    console.log 'clide is ready'
     $('#loading').remove()

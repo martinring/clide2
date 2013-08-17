@@ -3,12 +3,14 @@
     <div class='dialogContainer2'>
     <div class='dialog'>
       <div class='content' ng-controller='LoginController'>
-        <h1>welcome to clide</h1>
+        <h1>Welcome to clide</h1>
         <form name='loginForm' id='loginForm'>
         <p class='error' ng-bind='loginForm.error' ng-show='loginForm.error'/>
-        username: <input type='text' name='username' ng-model='username' required autofocus/>
-        password: <input type='password' name='password' ng-model='password' required/>
+        <label for='username'>username:</label><input type='text' name='username' id='username' ng-model='username' required autofocus/>
+        <label for='password'>password:</label><input type='password' id='password' name='password' ng-model='password' required/>
+        <input type='checkbox' name='staySignedIn' ng-model='staySignedIn' id='staySignedIn' placeholder='password'/><label for='staySignedIn'>keep me signed in</label>
         <div class='buttons'>
+          <a href='http://martinring.github.io/clide' class='left'>What is this?</a>
           <a href='/signup'>Sign Up</a>
           <button type='submit' class='default' ng-click='login()' ng-disabled='!loginForm.$valid || app.wait'>Login</button>
         </div>

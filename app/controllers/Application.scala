@@ -21,6 +21,7 @@ import play.api.libs.concurrent.Akka.system
 import play.api.Play.current
 import play.api.libs.json.Json
 import play.api.libs.Crypto
+import views.html.defaultpages.badRequest
 
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>    
@@ -56,8 +57,8 @@ object Application extends Controller with Secured {
   /**
    * Handle login form submission.
    */
-  def login = Action { implicit request =>
-    loginForm.bindFromRequest.fold(
+  def login = Action { implicit request =>    
+    loginForm.bindFromRequest.fold(        
       formWithErrors => BadRequest("Invalid username or password"),
       user => Ok(f"you successfully logged in as '${user._1}'").withSession("name" -> user._1)
     )
