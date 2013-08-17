@@ -16,3 +16,6 @@ dist
 /.target
 .project
 .ensime
+.cache
+/bin
+/data.trace.db
