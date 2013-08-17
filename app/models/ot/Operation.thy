@@ -198,19 +198,6 @@ lemma addDeleteOpValid11: "((a,d),d') \<in> application \<Longrightarrow> \<fora
 lemma addDeleteOpValid1: "((Delete#as,d),d') \<in> application \<Longrightarrow> ((addDeleteOp as,d),d') \<in> application"
   by (smt action.distinct(3) action.distinct(5) addDeleteOpValid11 application.cases list.distinct(1) list.inject)
 
-(*lemma addDelteOpValid21: "\<forall> c d d'. applyOp (addDeleteOp a) (c#d) = Some d' \<longrightarrow> applyOp a d = Some d'"  
-  sorry  
-
-lemma addDeleteOpValid2 [rule_format]: "((addDeleteOp as,d),d') \<in> application \<Longrightarrow> ((Delete#as,d),d') \<in> application"
-  apply (erule application.induct)
-  apply (auto)
-  sorry
-
-lemma addDeleteOpValid: "((Delete#as,d),d') \<in> application \<longleftrightarrow> ((addDeleteOp as,d),d') \<in> application"
-  apply (auto intro: addDeleteOpValid1)
-  apply (auto intro: addDeleteOpValid2)
-  done*)
-
 lemma addDeleteOutputLenght[simp]: "outputLength (addDeleteOp as) = outputLength as"
   by (rule addDeleteOp.induct, auto)
 
@@ -340,10 +327,23 @@ subsection {* Invariant of the composition *}
 
 text {* Finally we show that the @{term compose} function does actually compose operations *}
 
-lemma compositionInv: "((a,b),ab) \<in> composition \<Longrightarrow> \<forall>d d' d''. ((a,d),d') \<in> application \<longrightarrow> ((b,d'),d'') \<in> application \<longrightarrow> ((ab,d),d'') \<in> application"
-  apply (erule composition.induct)
-  apply (simp add: emptyInput)
-  oops
+inductive_set composed :: "('char operation \<times> 'char operation \<times> 'char operation \<times> 'char document \<times> 'char document \<times> 'char document) set" where
+  "([],[],[],[],[],[]) \<in> composed"
+| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Delete#a,b,Delete#ab,c#d,d',d'') \<in> composed"
+| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (a,Insert c#b,Insert c#ab,d,d',c#d'') \<in> composed"
+| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Retain#a,Retain#b,Retain#ab,c#d,c#d',c#d'') \<in> composed"
+| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Retain#a,Delete#b,Delete#ab,c#d,c#d',d'') \<in> composed"
+| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Insert c#a,Retain#b,Insert c#ab,d,c#d',c#d'') \<in> composed"
+| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Insert c#a,Delete#b,ab,d,c#d',d'') \<in> composed"
+
+lemma composedInv: "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> ((a,d),d') \<in> application \<and> 
+                                                     ((b,d'),d'') \<in> application \<and> 
+                                                     ((ab,d),d'') \<in> application"
+  apply (erule composed.induct, auto)  
+  done
+
+text {* The above lemma basically shows that composition is correct but it needs to be connected to
+        @{term composition} and @{term application}... *}  
 
 section {* Operation Transformation *}
 
