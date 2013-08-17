@@ -13,10 +13,8 @@ object Angular {
   
   val settings = Seq(moduleDirs,otherModules)
   
-  val boilerplateGenerator = (resourceManaged in Compile, sourceDirectory in Compile, cacheDirectory, name) map { (outDir,sourceDir,cache,appName) =>         
-    val dirs = moduleDirs
-    val mods = otherModules    
-    val bps = dirs.map { case (what,(ngf,postfix,capitalize)) =>
+  val boilerplateGenerator = (resourceManaged in Compile, sourceDirectory in Compile, cacheDirectory, name) map { (outDir,sourceDir,cache,appName) =>                    
+    val bps = moduleDirs.map { case (what,(ngf,postfix,capitalize)) =>
       val inFiles = ((sourceDir / "assets" / "javascripts" / what) * "*.coffee").get
       val names = SortedSet(inFiles.map(_.getName.dropRight(7)) :_*)
       val outFile = outDir / "public" / "javascripts" / (what+".js")
@@ -41,12 +39,12 @@ object Angular {
       previous(configDir) = configs
       val builder = new StringBuilder("define(['angular'")
   	  builder ++= configs.map(file => ",'"+configDir+"/"+file+"'").mkString    
-      builder ++= mods.keys.map(file => ",'"+file+"'").mkString
-      builder ++= dirs.keys.map(file => ",'"+file+"'").mkString 
+      builder ++= otherModules.keys.map(file => ",'"+file+"'").mkString
+      builder ++= moduleDirs.keys.map(file => ",'"+file+"'").mkString 
       builder ++= "],function(angular,"
       builder ++= configs.mkString(",")
       builder ++= "){var app=angular.module('"+appName+"',["
-      builder ++= (dirs.keys.map(f=>"'clide."+f+"'") ++ mods.values.map(f=>"'"+f+"'")).mkString(",") 
+      builder ++= (dirs.keys.map(f=>"'clide."+f+"'") ++ otherModules.values.map(f=>"'"+f+"'")).mkString(",") 
       builder ++= "]);"
       builder ++= configs.map(f=>"app.config("+f+");").mkString
       builder ++= "})"      
