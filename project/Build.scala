@@ -1,11 +1,11 @@
 import sbt._
 import Keys._
 import play.Project._
+import scala.collection.mutable.StringBuilder
 
-object ApplicationBuild extends Build {
-  val appName         = "clide2"
-  val appVersion      = "1.0-SNAPSHOT"   
-
+object ApplicationBuild extends Build  {
+  val appName         = "clide"
+  val appVersion      = "2.0-SNAPSHOT"    
   val appDependencies = Seq(    
     "com.typesafe.slick" %% "slick" % "1.0.0",
     "com.typesafe.play" %% "play-slick" % "0.3.2",   
@@ -21,6 +21,13 @@ object ApplicationBuild extends Build {
     "com.typesafe.akka" %% "akka-testkit"  % "2.2.0"% "test",
     jdbc
   )
+  
+  Angular.otherModules += "angular-cookies" -> "ngCookies"
+  Angular.moduleDirs += "services" -> ("service","",true)
+  Angular.moduleDirs += "directives" -> ("directive","",false)
+  Angular.moduleDirs += "filters" -> ("filter","",false)
+  Angular.moduleDirs += "controllers" -> ("controller", "Controller", true)
+  Angular.configDir = "config"
 
   val main = play.Project(appName, appVersion, appDependencies).settings(    
     scalaVersion := "2.10.2",
@@ -28,6 +35,7 @@ object ApplicationBuild extends Build {
     resolvers += Resolver.url("Objectify Play Snapshot Repository", url("http://schaloner.github.com/snapshots/"))(Resolver.ivyStylePatterns),    
     lessEntryPoints <<= baseDirectory(d => (d / "app" / "assets" / "stylesheets" ** "main.less")),
     requireJs += "main.js",
-    requireJsShim += "main.js"
-  ) //dependsOn RootProject(file("../play-js"))
+    requireJsShim += "main.js",    
+    resourceGenerators in Compile <+= Angular.boilerplateGenerator   
+  )
 }

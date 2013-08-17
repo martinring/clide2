@@ -1,4 +1,6 @@
 define [], () -> () ->
+  console.log 'initializing dialog service'
+  
   queue = []
 
   state = {}

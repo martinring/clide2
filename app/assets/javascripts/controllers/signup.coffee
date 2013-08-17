@@ -1,4 +1,5 @@
 define ['routes'], (routes) -> ($scope,$location,App,Console,Toasts) ->
+  console.log 'initializing signup controller'
   $scope.username = ''
   $scope.email = ''
   $scope.password = ''  

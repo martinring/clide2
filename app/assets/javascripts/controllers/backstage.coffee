@@ -1,4 +1,5 @@
 define () -> ($scope, $location, App, Projects, Console) ->
+  console.log 'initializing backstage controller'
   $scope.projects = Projects
   $scope.start = () ->
     Console.write "preparing project '#{Projects.projects[Projects.current].name}'"    

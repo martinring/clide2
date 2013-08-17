@@ -1,6 +1,8 @@
 define [], () -> ($routeProvider, $locationProvider) ->
   $locationProvider.html5Mode(true)
 
+  console.log 'configuring routes'
+
   $routeProvider.when '/'      
     redirectTo: '/login'
   $routeProvider.when '/collab'      

@@ -1,4 +1,6 @@
-define ['underscore', 'routes', 'config/roles'], (_,routes,roles) -> ($http, $cookieStore) ->
+define ['underscore', 'routes', 'config/access/roles'], (_,routes,roles) -> ($http, $cookieStore) ->
+  console.log 'initializing auth service'
+
   accessLevels = roles.accessLevels
   userRoles = roles.userRoles
 

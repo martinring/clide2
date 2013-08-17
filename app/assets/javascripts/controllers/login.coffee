@@ -1,4 +1,5 @@
 define ['routes'], (routes) -> ($scope,$location,App,Console,Toasts) ->
+  console.log 'initializing login controller'
   $scope.username = ''
   $scope.password = ''
   $scope.login = () ->    

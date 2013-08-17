@@ -15,7 +15,7 @@ case class Document(content: String) {
             Failure(new Exception("operation can't be applied to the document: operation is longer than the text"))
           else {
             val (before,after) = it.splitAt(r)
-            loop(ops,after,ot ++ before)
+            loop(ops,after,ot ++ before)            
           }        
         case Insert(i) => loop(ops,it,ot + i)
         case Delete(d) => if (d > it.length)

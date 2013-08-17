@@ -1,5 +1,7 @@
-define () -> 
+define () ->   
   (Projects) ->
+    console.log 'initializing files service'
+    
     tree = [
       name: "foolder"
       type: 'dir'

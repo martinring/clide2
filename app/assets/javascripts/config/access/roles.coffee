@@ -46,6 +46,7 @@ define ->
           title:   decl[role]
     return accessLevels    
   
+  console.log 'setting up user roles'
   userRoles = buildRoles(config.roles)
 
   return (

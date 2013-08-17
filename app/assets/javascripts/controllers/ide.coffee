@@ -1,5 +1,5 @@
 define () -> ($scope, Files) ->
-  console.log 'initialize ide'
+  console.log 'initializing ide controller'  
   $scope.start = () ->
     $scope.state = 'ide'
   $scope.state = 'login'

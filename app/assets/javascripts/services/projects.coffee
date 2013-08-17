@@ -1,4 +1,6 @@
 define ['routes'], (routes) -> () ->
+  console.log 'initializing projects service'
+
   routes.controllers.Projects.index().ajax    
     success: (e) -> console.log e
     failure: (e) -> console.log e

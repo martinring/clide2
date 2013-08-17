@@ -1,4 +1,6 @@
 define () -> ($rootScope) ->
+  console.log 'initializing toast service'
+
   toasts = []
   push = (type, message) ->
     toast = 
