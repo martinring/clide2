@@ -329,17 +329,17 @@ text {* Finally we show that the @{term compose} function does actually compose 
 
 inductive_set composed :: "('char operation \<times> 'char operation \<times> 'char operation \<times> 'char document \<times> 'char document \<times> 'char document) set" where
   "([],[],[],[],[],[]) \<in> composed"
-| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Delete#a,b,Delete#ab,c#d,d',d'') \<in> composed"
+| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Delete#a,b,addDeleteOp ab,c#d,d',d'') \<in> composed"
 | "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (a,Insert c#b,Insert c#ab,d,d',c#d'') \<in> composed"
 | "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Retain#a,Retain#b,Retain#ab,c#d,c#d',c#d'') \<in> composed"
-| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Retain#a,Delete#b,Delete#ab,c#d,c#d',d'') \<in> composed"
+| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Retain#a,Delete#b,addDeleteOp ab,c#d,c#d',d'') \<in> composed"
 | "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Insert c#a,Retain#b,Insert c#ab,d,c#d',c#d'') \<in> composed"
 | "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Insert c#a,Delete#b,ab,d,c#d',d'') \<in> composed"
 
 lemma composedInv: "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> ((a,d),d') \<in> application \<and> 
                                                      ((b,d'),d'') \<in> application \<and> 
                                                      ((ab,d),d'') \<in> application"
-  apply (erule composed.induct, auto)  
+  apply (erule composed.induct, auto simp add: addDeleteOpValid11)
   done
 
 text {* The above lemma basically shows that composition is correct but it needs to be connected to
