@@ -1,3 +1,5 @@
+### @service services:Auth ###
+### @import ngCookies from angular-cookies ###
 define ['underscore', 'routes', 'config/access/roles'], (_,routes,roles) -> ($http, $cookieStore) ->
   console.log 'initializing auth service'
 

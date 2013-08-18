@@ -1,3 +1,4 @@
+### @config ###
 define [], () -> ($routeProvider, $locationProvider) ->
   $locationProvider.html5Mode(true)
 

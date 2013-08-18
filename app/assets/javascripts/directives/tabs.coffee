@@ -1,3 +1,4 @@
+### @directive directives:tabs ###
 define ['angular'], (angular) -> () ->   
   restrict: 'E'
   transclude: true

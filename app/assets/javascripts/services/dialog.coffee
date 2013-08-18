@@ -1,3 +1,4 @@
+### @service services:Dialog ###
 define [], () -> () ->
   console.log 'initializing dialog service'
   

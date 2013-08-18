@@ -1,3 +1,4 @@
+### @directive directives:tab ###
 define () -> () ->      
   require: '^tabs'
   restrict: 'E'

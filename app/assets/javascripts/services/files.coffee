@@ -1,3 +1,4 @@
+### @service services:Files ###
 define () ->   
   (Projects) ->
     console.log 'initializing files service'

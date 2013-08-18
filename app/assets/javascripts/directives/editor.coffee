@@ -1,3 +1,4 @@
+### @directive directives:editor ###
 define ['codemirror','routes','concurrency/Client','concurrency/CodeMirrorAdapter'], (CodeMirror,routes,Client,CMAdapter) -> () -> 
   restrict: 'E'
   transclude: true

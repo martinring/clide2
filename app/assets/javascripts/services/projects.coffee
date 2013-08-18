@@ -1,3 +1,4 @@
+### @service services:Projects ###
 define ['routes'], (routes) -> () ->
   console.log 'initializing projects service'
 

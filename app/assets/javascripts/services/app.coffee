@@ -1,3 +1,4 @@
+### @service services:App ###
 define () -> ($rootScope) ->  
 
   class App 

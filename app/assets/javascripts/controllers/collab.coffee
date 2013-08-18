@@ -1,4 +1,3 @@
-#>module
-#>import routes
-#>inject $scope
-console.log 'initializing collab controller'
+### @controller controllers:CollabController ###
+define -> ->
+  console.log 'initializing collab controller'
