@@ -1,3 +1,4 @@
-define ['routes'], (routes) -> ($scope) ->
-  console.log 'initializing collab controller'
-  # nothin
+#>module
+#>import routes
+#>inject $scope
+console.log 'initializing collab controller'

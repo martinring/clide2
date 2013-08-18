@@ -1,6 +1,6 @@
 define () -> () ->
   console.log 'initializing console service'
-  
+   
   class Console 
     lines: []
     write: (line,type='info') =>

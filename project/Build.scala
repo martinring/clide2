@@ -3,7 +3,7 @@ import Keys._
 import play.Project._
 import scala.collection.mutable.StringBuilder
 
-object ApplicationBuild extends Build  {
+object ApplicationBuild extends Build with Angular {
   val appName         = "clide"
   val appVersion      = "2.0-SNAPSHOT"    
   val appDependencies = Seq(    
@@ -21,21 +21,21 @@ object ApplicationBuild extends Build  {
     "com.typesafe.akka" %% "akka-testkit"  % "2.2.0"% "test",
     jdbc
   )
-  
-  Angular.otherModules += "angular-cookies" -> "ngCookies"
-  Angular.moduleDirs += "services" -> ("service","",true)
-  Angular.moduleDirs += "directives" -> ("directive","",false)
-  Angular.moduleDirs += "filters" -> ("filter","",false)
-  Angular.moduleDirs += "controllers" -> ("controller", "Controller", true)
-  Angular.configDir = "config"
-
-  val main = play.Project(appName, appVersion, appDependencies).settings(    
+    
+  val main = play.Project(appName, appVersion, appDependencies).settings(ngDefaultSettings:_*).settings(    
     scalaVersion := "2.10.2",
     resolvers += Resolver.url("Objectify Play Repository", url("http://schaloner.github.com/releases/"))(Resolver.ivyStylePatterns),
     resolvers += Resolver.url("Objectify Play Snapshot Repository", url("http://schaloner.github.com/snapshots/"))(Resolver.ivyStylePatterns),    
     lessEntryPoints <<= baseDirectory(d => (d / "app" / "assets" / "stylesheets" ** "main.less")),
     requireJs += "main.js",
-    requireJsShim += "main.js",    
-    resourceGenerators in Compile <+= Angular.boilerplateGenerator   
+    requireJsShim += "main.js",
+    ngOtherModules +="angular-cookies" -> "ngCookies",
+    ngModuleDirs += "services" -> ("service","",true),
+    ngModuleDirs += "directives" -> ("directive","",false),
+    ngModuleDirs += "filters" -> ("filter","",false),
+    ngModuleDirs += "controllers" -> ("controller", "Controller", true),    
+    resourceGenerators in Compile <+= ngBoilerplateGenerator,
+    resourceGenerators in Compile <+= LessCompiler,
+    resourceGenerators in Compile <+= ngModuleCompiler    
   )
 }

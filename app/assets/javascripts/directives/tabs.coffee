@@ -1,5 +1,3 @@
-# usage:
-# <tabs><tab title="{title}"></tab></tabs>
 define ['angular'], (angular) -> () ->   
   restrict: 'E'
   transclude: true
