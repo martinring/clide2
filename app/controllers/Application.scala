@@ -75,15 +75,54 @@ object Application extends Controller with Secured {
       }      
     ) 
   }
-    
+  
+  import models.ot.{Server,Document,Operation}
+  
+  val server = Akka.system.actorOf(Server.props(Document("Test")))
+  
+  var id = 0
+  
   def collab = WebSocket.using[JsValue] { implicit request =>
     implicit val sys = system
     implicit val timeout = 5 seconds
     val (out,channel) = Concurrent.broadcast[JsValue]
-    val in = Iteratee.foreach[JsValue]{ println }        
+    val client = actor(new Act {      
+      id += 1
+      become {
+        case json: JsValue   =>
+          (json \ "type").as[String] match {
+            case "change" =>
+              val rev = (json \ "rev").as[Int]
+	          val op = (json \ "op").as[models.ot.Operation]
+	          server ! Server.Change(rev,op)
+            case "register" =>
+              println (f"client #$id registered")
+              server ! Server.Register("client"+id)
+          }
+        case Server.Initialize(rev, doc) =>
+          println("hallo")
+          channel.push(Json.obj(
+            "type" -> "init",
+            "rev" -> rev,
+            "doc" -> doc.content))
+        case Server.Acknowledgement => 
+          channel.push(Json.obj(
+            "type" -> "ack"))
+        case Server.Change(rev,op) =>
+          channel.push(Json.obj(
+            "type" -> "change",
+            "rev" -> rev,
+            "op" -> op))
+        case e: Exception =>
+          channel.push(Json.obj(
+            "type" -> "error",
+            "msg" -> e.getMessage(),
+            "ss" -> e.getStackTraceString))
+      }
+    })
+    val in = Iteratee.foreach[JsValue] { client ! _ }        
     (in,out)
   }
-
   /**
    * Logout and clean the session.
    */

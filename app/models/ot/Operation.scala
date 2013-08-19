@@ -18,19 +18,13 @@ sealed trait Action {
 }
 /** Skip the next `n` positions */
 case class Retain(n: Int) extends Action { assume(n>=0) }
-/** Skip the next `n` linefeeds */
-case class RetainLines(n: Int) extends Action { assume(n>=0) }
 /** Insert the given text at the current position */
 case class Insert(s: String) extends Action
-/** Insert linefeed */
-object     InsertLine extends Action
 /** Delete the next `n` characters */
 case class Delete(n: Int) extends Action { assume(n>=0) }
-/** Delete linefeed */
-object     DeleteLine extends Action
 
 /** Annotate out of band */
-case class Annotate(starting: List[String], ending: List[String], attributes: List[Map[String,String]]) extends Action
+/*case class Annotate(starting: List[String], ending: List[String], attributes: List[Map[String,String]]) extends Action*/
 
 object Action {    
   implicit object ActionFormat extends Format[Action] {
@@ -76,10 +70,6 @@ object Operation {
     case Delete(m)::xs => Delete(n+m)::xs
     case xs            => Delete(n)::xs
   }    
-  
-  private def addAnnotate(a: Annotate, ops: List[Action]): List[Action] = ops match {
-    case Delete(m)::xs => a::ops    
-  }
   
   private def canonicalize(ops: List[Action]): List[Action] = { 
     @tailrec

@@ -1,5 +1,5 @@
 ### @directive directives:editor ###
-define ['codemirror','routes','concurrency/Client','concurrency/CodeMirrorAdapter'], (CodeMirror,routes,Client,CMAdapter) -> () -> 
+define ['codemirror','routes','concurrency/TextOperation','concurrency/CodeMirrorAdapter','concurrency/Client'], (CodeMirror,routes,TextOperation,CodeMirrorAdapter,Client) -> () -> 
   restrict: 'E'
   transclude: true
   controller: ($scope, $element) ->
@@ -19,36 +19,27 @@ define ['codemirror','routes','concurrency/Client','concurrency/CodeMirrorAdapte
     socket.onmessage = (e) -> 
       msg = JSON.parse(e.data)
       switch msg.type
-        when 'registered'
-          console.log "successfully registerd as client #{msg.id}"
-          doc = new Document
-          client = new Client(msg.id, doc)
-          client.registerCallbacks
-            insert: (e) -> 
-              console.log e
-            hide: (e) -> 
-              console.log e          
-          cm.setOption('readOnly',false)
-          cm.on "beforeChange", (cm, change) ->
-            index = cm.indexFromPos(change.from)
-            text = change.text.join '\n'
-            if change.from isnt change.to
-              console.log "user deleted letter at #{index}"
-              del = client.generateHide(index)
-              client.applyOperation(del)
-            else if text.length > 0
-              console.log "user inserted letter '#{text}' at #{index}"
-              ins = client.generateInsert(index,text)                        
-              client.applyOperation(ins)
-              socket.send JSON.stringify(ins)                
+        when 'init'
+          console.log 'initialized'
+          cm.setValue(msg.doc)          
+          client = new Client(msg.rev)
+          adapter = new CodeMirrorAdapter(cm)
+          client.sendOperation = (revision, operation) ->
+            socket.send JSON.stringify
+              type: 'change'
+              rev: revision
+              op: operation
+          client.applyOperation = adapter.applyOperation
+          adapter.registerCallbacks            
+            change: (op) -> client.applyClient(op)
+          cm.setOption 'readOnly', false
+        when 'ack'
+          client.serverAck()
+        when 'change'
+          client.applyServer(msg.rev, TextOperation.fromJSON(msg.op))
         when 'error'
-          alert(msg.msg)
-        else 
-          console.log 'server: ', msg
-          if client.canApplyOperation(msg)
-            client.applyOperation(msg)
-          else 
-            alert('preconditions unfulfilled')
+          console.log msg.msg
+          console.log msg.ss
 
     socket.onopen = ->
       socket.send JSON.stringify

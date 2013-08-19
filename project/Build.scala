@@ -36,6 +36,6 @@ object ApplicationBuild extends Build with Angular {
     ngModuleDirs += "controllers" -> ("controller", "Controller", true),    
     resourceGenerators in Compile <+= ngBoilerplateGenerator,
     resourceGenerators in Compile <+= LessCompiler,
-    resourceGenerators in Compile <+= ngModuleCompiler    
+    resourceGenerators in Compile <+= ngModuleCompiler
   )
 }

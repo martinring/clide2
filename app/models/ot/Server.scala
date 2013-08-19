@@ -10,10 +10,12 @@ class Server(initialState: Document) extends Actor {
   var state: Document = initialState
   var clients: Map[String,ActorRef] = Map.empty
   def receive = {
-    case Register(name) =>
+    case Server.Register(name) =>
+      println("registering "+name)
       clients += name -> sender
-      sender ! Initialize(revision,state)
-    case Change(rev, op) =>
+      println("answering")
+      sender ! Server.Initialize(revision,state)
+    case Server.Change(rev, op) =>
       val res = for {
 	    concurrentOps <- Try{ require(revision >= rev,"unknown revision"); history.take(revision - rev).reverse }
 	    newOp <- concurrentOps.foldRight(Success(op): Try[Operation]) {
@@ -25,8 +27,8 @@ class Server(initialState: Document) extends Actor {
 	      state = newState
 	      revision += 1
 	      history ::= newOp	      
-	      clients.values.filter(_ != sender).foreach(_ ! Change(revision,newOp))
-	      sender ! Acknowledgement
+	      clients.values.filter(_ != sender).foreach(_ ! Server.Change(revision,newOp))
+	      sender ! Server.Acknowledgement
 	    case Failure(e) =>
 	      sender ! e
 	  }
