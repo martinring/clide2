@@ -94,33 +94,30 @@ lemma emptyInputDomain: "([],d) \<in> Domain application \<longleftrightarrow> d
 lemma emptyDocInsert: "(a#as,[]) \<in> Domain application \<Longrightarrow> \<exists>c. a = Insert c"
   by (clarify, erule application.cases, auto)
 
-lemma remRetain: "((Retain # list, d) \<in> Domain application) = 
-                  (\<exists>c cs. d = c#cs \<and> (list,cs) \<in> Domain application)"  
+lemma remRetain: "((Retain#as,d) \<in> Domain application) = 
+                  (\<exists>c cs. d = c#cs \<and> (as,cs) \<in> Domain application)"  
   apply (auto)
-  by (smt Domain.DomainI 
-          action.distinct(1) 
-          application.simps 
-          list.distinct(1) 
-          list.inject)
+  by (smt Domain.DomainI action.distinct(1) application.simps list.distinct(1) list.inject)
   
+lemma remRetain2: "(((Retain#as,d),d') \<in> application) =
+                   (\<exists>c cs cs'. d = c#cs \<and> d'=c#cs' \<and> ((as,cs),cs') \<in> application)"
+  apply (auto)
+  by (smt action.distinct(3) application.cases inputLength.simps(2) inputLength.simps(4) list.distinct(1) list.inject)
+
 lemma remInsert: "((Insert c#list,d) \<in> Domain application) =
                   ((list,d) \<in> Domain application)"
   apply (auto)
-  by (smt Domain.simps 
-          action.distinct(1) 
-          action.distinct(5) 
-          application.simps 
-          list.distinct(1) 
-          list.inject)
+  by (smt Domain.simps action.distinct(1) action.distinct(5) application.simps list.distinct(1) list.inject)
 
-lemma remDelete: "((Delete # list, d) \<in> Domain application) = 
-                  (\<exists>c cs. d = c#cs \<and> (list,cs) \<in> Domain application)"  
+lemma remInsert2: "(((Insert c# as, d),d') \<in> application) =
+                   (\<exists>cs. d' = c#cs \<and> ((as,d),cs) \<in> application)"
   apply (auto)
-  by (smt Domain.DomainI 
-          action.distinct(5) 
-          application.simps 
-          list.distinct(1) 
-          list.inject)
+  by (smt action.distinct(1) action.distinct(5) action.inject application.simps list.distinct(1) list.inject)
+
+lemma remDelete: "((Delete#as, d) \<in> Domain application) = 
+                  (\<exists>c cs. d = c#cs \<and> (as,cs) \<in> Domain application)"  
+  apply (auto)
+  by (smt Domain.DomainI action.distinct(5) application.simps list.distinct(1) list.inject)
 
 lemma remDelete2: "(((Delete # list, d),d') \<in> application) = 
                   (\<exists>c cs. d = c#cs \<and> ((list,cs),d') \<in> application)"  
@@ -267,8 +264,7 @@ lemma composeNormalized[rule_format]: "\<forall>ab. compose a b = Some ab \<long
 
 subsection {* Inductive Set *}
 
-text {* Again we define an inductive set describing the composition relation. For simplicity we 
-        do not build the normalized output (i.e. we do not apply @{term addDeleteOp})*}
+text {* Again we define an inductive set describing the composition relation. *}
 
 inductive_set composition :: "(('char operation \<times> 'char operation) \<times> 'char operation) set" where
   empty[intro!]:  "(([],[]),[]) \<in> composition"
@@ -327,23 +323,23 @@ subsection {* Invariant of the composition *}
 
 text {* Finally we show that the @{term compose} function does actually compose operations *}
 
-inductive_set composed :: "('char operation \<times> 'char operation \<times> 'char operation \<times> 'char document \<times> 'char document \<times> 'char document) set" where
-  "([],[],[],[],[],[]) \<in> composed"
-| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Delete#a,b,addDeleteOp ab,c#d,d',d'') \<in> composed"
-| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (a,Insert c#b,Insert c#ab,d,d',c#d'') \<in> composed"
-| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Retain#a,Retain#b,Retain#ab,c#d,c#d',c#d'') \<in> composed"
-| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Retain#a,Delete#b,addDeleteOp ab,c#d,c#d',d'') \<in> composed"
-| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Insert c#a,Retain#b,Insert c#ab,d,c#d',c#d'') \<in> composed"
-| "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> (Insert c#a,Delete#b,ab,d,c#d',d'') \<in> composed"
-
-lemma composedInv: "(a,b,ab,d,d',d'') \<in> composed \<Longrightarrow> ((a,d),d') \<in> application \<and> 
-                                                     ((b,d'),d'') \<in> application \<and> 
-                                                     ((ab,d),d'') \<in> application"
-  apply (erule composed.induct, auto simp add: addDeleteOpValid11)
+lemma compositionInv [rule_format]: "((a,b),ab) \<in> composition \<Longrightarrow> \<forall>d d' d''. ((a,d),d') \<in> application \<longrightarrow> ((b,d'),d'') \<in> application \<longrightarrow> ((ab,d),d'') \<in> application"
+  apply (erule composition.induct)
+  apply (auto simp add: emptyInput addDeleteOpValid1)
+  apply (metis addDeleteOpValid11 remDelete2)
+  apply (metis remInsert2)  
+  apply (metis (lifting, no_types) Domain.DomainI list.inject remRetain remRetain2)
+  apply (metis (lifting, no_types) addDeleteOpValid1 list.inject remDelete2 remRetain2)
+  apply (metis (hide_lams, no_types) list.inject remInsert2 remRetain2)  
+  apply (metis list.inject remDelete2 remInsert2)
   done
-
-text {* The above lemma basically shows that composition is correct but it needs to be connected to
-        @{term composition} and @{term application}... *}  
+  
+lemma composeInv: "compose a b = Some ab \<Longrightarrow> applyOp a d = Some d' \<Longrightarrow> applyOp b d' = Some d'' \<Longrightarrow> applyOp ab d = Some d''"
+  apply (drule composeSet2)
+  apply (drule applyOpSet1)+
+  apply (rule applyOpSet2)
+  apply (simp add: compositionInv)
+  done
 
 section {* Operation Transformation *}
 
