@@ -1,5 +1,5 @@
 ### @directive directives:editor ###
-define ['codemirror','routes','concurrency/TextOperation','concurrency/CodeMirrorAdapter','concurrency/Client'], (CodeMirror,routes,TextOperation,CodeMirrorAdapter,Client) -> () -> 
+define ['codemirror','routes','concurrency/Operation','concurrency/CodeMirror','concurrency/Client'], (CodeMirror,routes,Operation,CMAdapter,Client) -> () -> 
   restrict: 'E'
   transclude: true
   controller: ($scope, $element) ->
@@ -23,7 +23,7 @@ define ['codemirror','routes','concurrency/TextOperation','concurrency/CodeMirro
           console.log 'initialized'
           cm.setValue(msg.doc)          
           client = new Client(msg.rev)
-          adapter = new CodeMirrorAdapter(cm)
+          adapter = new CMAdapter(cm)
           client.sendOperation = (revision, operation) ->
             socket.send JSON.stringify
               type: 'change'
@@ -36,7 +36,7 @@ define ['codemirror','routes','concurrency/TextOperation','concurrency/CodeMirro
         when 'ack'
           client.serverAck()
         when 'change'
-          client.applyServer(msg.rev, TextOperation.fromJSON(msg.op))
+          client.applyServer(msg.rev, Operation.fromJSON(msg.op))
         when 'error'
           console.log msg.msg
           console.log msg.ss

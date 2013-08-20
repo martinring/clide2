@@ -20,7 +20,7 @@ define ->
       @setState @state.serverAck(this)
 
     serverReconnect: ->
-      @state.resend this  if typeof @state.resend is "function"
+      @state.resend? this
 
     transformCursor: (cursor) ->
       @state.transformCursor cursor
@@ -58,8 +58,7 @@ define ->
         client.applyOperation pair[1]
         new AwaitingConfirm(pair[0])
 
-      serverAck: (client) ->
-        new Synchronized
+      serverAck: (client) -> new Synchronized
 
       transformCursor: (cursor) ->
         cursor.transform @outstanding
