@@ -3,7 +3,7 @@
  * @see https://github.com/Operational-Transformation/ot.hs
  * @author Martin Ring
  */
-package models.ot
+package models.collab
 
 import play.api.libs.json._
 import play.api.libs.functional.syntax._

@@ -1,0 +1,20 @@
+theory Operation
+imports Main SimpleOperation
+begin
+
+datatype action = Retain nat | Insert string | Delete nat
+type_synonym operation = "action list"
+type_synonym document = string
+
+fun applyOp :: "operation \<Rightarrow> document \<Rightarrow> document option" where
+  "applyOp []            [] = Some []"
+| "applyOp (Retain n#as) d  = Option.map (\<lambda>d'. (take n d)@d') (applyOp as (drop n d))"
+| "applyOp (Insert s#as) d  = Option.map (\<lambda>d'. s@d') (applyOp as d)"
+| "applyOp (Delete n#as) d  = applyOp as (drop n d)"
+| "applyOp _             _  = None"
+
+fun compose :: "operation \<Rightarrow> operation \<Rightarrow> operation option" where
+  "compose [] [] = Some []"
+| "compose 
+
+end

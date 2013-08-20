@@ -1,4 +1,4 @@
-package models.ot
+package models.collab
 
 import scala.reflect.ClassTag
 import akka.actor.{Actor,ActorRef,Props}

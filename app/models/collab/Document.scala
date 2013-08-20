@@ -1,4 +1,4 @@
-package models.ot
+package models.collab
 
 import scala.util.{Try,Success,Failure}
 import scala.reflect.ClassTag

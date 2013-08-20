@@ -1,4 +1,4 @@
-package models.ot
+package models.collab
 
 trait Request
 case class Register(name: String) extends Request
