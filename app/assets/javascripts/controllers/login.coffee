@@ -1,32 +1,20 @@
 ### @controller controllers:LoginController ###
-define ['routes'], (routes) -> ($scope, $location, App, Console, Toasts) ->
+define ['routes'], (routes) -> ($scope, $location, Auth, Toasts) ->
   console.log 'initializing login controller'
-  $scope.username = ''
-  $scope.password = ''
+  $scope.data =
+    username: null
+    password: null
   $scope.login = () ->
-    $scope.loginForm.error = null    
-    App.wait = true
-    Console.write "logging in as '#{$scope.username}'..."    
-    routes.controllers.Application.login().ajax
-      data: $('#loginForm').serialize()
-      success: (data) ->
-        App.loggedIn = true
-        App.user = $scope.username
-        Console.write data, 'success'
-        $location.path "/#{$scope.username}/backstage"
-        Toasts.push('success',"You have been successfully logged in as #{$scope.username}!")
-        App.wait = false
-        $scope.$apply()
-      error: (data) -> switch data.status
-        when 400          
-          App.loggedIn = false
-          $scope.loginForm.error = data.responseText
-          Console.write data.responseText, 'failure'
-          App.wait = false
-          $scope.$apply()
-        when 404
-          App.loggedIn = false
-          $scope.loginForm.error = 'The server did not respond'
-          Console.write 'The server did not respont', 'failure'
-          App.wait = false
-          $scope.$apply()
+    console.log $scope.loginForm
+    $scope.loginForm.error = null        
+    Auth.login $scope.data,
+      success: ->
+        $location.path "/#{Auth.user}/backstage"
+        Toasts.push('success',"You have been successfully logged in as #{Auth.user}!")
+      error: (data,status) ->
+        console.log data['']
+        switch status
+          when 401
+            $scope.loginForm.error = data['']
+          when 404
+            $scope.loginForm.error = 'The server did not respond'

@@ -45,7 +45,7 @@ object Application extends Controller with Secured {
   // -- Signup
   val signupForm = Form(
     tuple(
-      "name" -> text.verifying("name is already taken", name => 
+      "username" -> text.verifying("name is already taken", name => 
         !Seq("login","logout","signup","assets").contains(name) &&
         withSession { implicit session => !models.Users.getByName(name).firstOption.isDefined }),
       "email" -> email.verifying("email is already taken", email =>
@@ -57,26 +57,26 @@ object Application extends Controller with Secured {
   /**
    * Handle login form submission.
    */
-  def login = Action { implicit request =>    
-    loginForm.bindFromRequest.fold(        
-      formWithErrors => BadRequest("Invalid username or password"),
-      user => Ok(f"you successfully logged in as '${user._1}'").withSession("name" -> user._1)
+  def login = Action(parse.json) { implicit request =>    
+    loginForm.bind(request.body).fold(        
+      formWithErrors => BadRequest(formWithErrors.errorsAsJson),
+      user => Ok(user._1)
     )
   }
   
-  def signup = Action { implicit request =>
-    signupForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(formWithErrors.errorsAsJson.toString),
+  def signup = Action(parse.json) { implicit request =>
+    signupForm.bind(request.body).fold(
+      formWithErrors => BadRequest(formWithErrors.errorsAsJson),
       user => withSession { implicit session =>        
         if (models.Users.insert(models.User(user._1, user._2, Crypto.sign(user._1 + user._3))) > 0)
-          Ok(f"you successfully signed up as '${user._1}'").withSession("name" -> user._1)
+          Ok(user._1)
         else
           BadRequest("Signup failed")
       }      
     ) 
   }
   
-  import models.ot.{Server,Document,Operation}
+  import models.collab.{Server,Document,Operation}
   
   val server = Akka.system.actorOf(Server.props(Document("Test")))
   
@@ -93,7 +93,7 @@ object Application extends Controller with Secured {
           (json \ "type").as[String] match {
             case "change" =>
               val rev = (json \ "rev").as[Int]
-	          val op = (json \ "op").as[models.ot.Operation]
+	          val op = (json \ "op").as[Operation]
 	          server ! Server.Change(rev,op)
             case "register" =>
               println (f"client #$id registered")

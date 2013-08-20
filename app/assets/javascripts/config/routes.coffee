@@ -1,9 +1,6 @@
 ### @config ###
-define [], () -> ($routeProvider, $locationProvider) ->
+define [], () -> ($routeProvider, $locationProvider, $httpProvider) ->
   $locationProvider.html5Mode(true)
-
-  console.log 'configuring routes'
-
   $routeProvider.when '/'      
     redirectTo: '/login'
   $routeProvider.when '/collab'      
@@ -24,5 +21,15 @@ define [], () -> ($routeProvider, $locationProvider) ->
   $routeProvider.when '/:user/:project/:file',
     templateUrl: '/assets/partials/ide.html'
     controller:  'IdeController'
+  $routeProvider.when '/404',
+    templateUrl: '/assets/partials/404.html'    
   $routeProvider.otherwise
-    redirectTo: '/'
+    redirectTo: '/404'
+
+  $httpProvider.responseInterceptors.push ($location, $q) -> 
+    success = (response) -> response
+    error = (response) ->
+      if response.status = 401
+        $location.path('/login')
+      $q.reject(response)      
+    (promise) -> promise.then success, error

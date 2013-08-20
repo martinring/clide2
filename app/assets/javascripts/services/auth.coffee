@@ -1,53 +1,37 @@
 ### @service services:Auth ###
 ### @import ngCookies from angular-cookies ###
-define ['underscore', 'routes', 'config/access/roles'], (_,routes,roles) -> ($http, $cookieStore) ->
+define ['routes'], (routes) -> ($http, $cookieStore) ->  
   console.log 'initializing auth service'
+  application = routes.controllers.Application
 
-  accessLevels = roles.accessLevels
-  userRoles = roles.userRoles
-
-  currentUser = $cookieStore.get('user') or { 
-    username: ""
-    role: userRoles['public']
+  result = {
+    user: $cookieStore.get('user') or null
   }
 
   $cookieStore.remove('user')
 
   changeUser = (user) ->
-    _.extend(currentUser,user)
-  
-  return (
-    authorize: (accessLevel, role) ->
-      if role is undefined
-        role = currentUser.role
-      return accessLevel.bitMask & role.bitMask
+    result.user = user
 
-    isLoggedIn: (user) ->
-      if (user is undefined)
-        user = currentUser
-      return user.role.title is userRoles.user.title or 
-             user.role.title is userRoles.admin.title
+  result.signup = (credentials,callbacks) ->
+    $http.post(application.signup().url, credentials)
+      .success (res) ->
+        changeUser res        
+        callbacks.success(res)
+      .error callbacks.error  
 
-    signup: (user,success,error) ->
-      routes.controllers.Application.signup().ajax
-        data: user
-        success: success
-        error: error
+  result.login = (credentials,callbacks) ->
+    $http.post(application.login().url, credentials)
+      .success (res) ->
+        changeUser res        
+        callbacks.success(res)
+      .error callbacks.error
 
-    login: (user,success,error) ->      
-      routes.controllers.Application.login().ajax
-        data: user
-        success: success
-        error: error
+  result.logout = (callbacks) ->
+    $http.post(application.logout().url)
+      .success ->
+        changeUser ''
+        callbacks.success()
+      .error callbacks.error      
 
-    logout: (success, error) ->
-      routes.controllers.Application.logout().ajax
-        success: success
-        errror: error
-
-    accessLevels: accessLevels
-
-    userRoles: userRoles
-
-    user: currentUser
-  )
+  result

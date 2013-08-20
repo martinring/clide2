@@ -1,5 +1,5 @@
 ### @directive directives:editor ###
-define ['codemirror','routes','concurrency/Operation','concurrency/CodeMirror','concurrency/Client'], (CodeMirror,routes,Operation,CMAdapter,Client) -> () -> 
+define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client'], (CodeMirror,routes,Operation,CMAdapter,Client) -> () -> 
   restrict: 'E'
   transclude: true
   controller: ($scope, $element) ->
