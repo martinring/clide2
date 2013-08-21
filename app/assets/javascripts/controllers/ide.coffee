@@ -5,4 +5,4 @@ define -> ($scope, Files) ->
     $scope.state = 'ide'
   $scope.state = 'login'
   $scope.sidebar = true
-  $scope.files = Files 
+  $scope.files = Files  

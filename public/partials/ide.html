@@ -10,7 +10,7 @@
       </ul>
       <div id="sidebarButton" ng-click='sidebar=!sidebar'>&#xE093;</div>
     </nav>
-    <div id="sidebarContainer" ng->
+    <div id="sidebarContainer">
       <div id="search">
         <div id="searchButton" ng-click='sidebar=true'>&#xE041;</div>
         <input id="searchBox" ng-model='search.name'></input>
@@ -40,9 +40,34 @@
           </li>
           <li class="section" ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
             <h1>Edit</h1>   
-            <div class='content'>
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-            </div>         
+            <ul class='treeview'>
+              <li>
+                <div class='icon'></div>
+                <div class='title'>
+                  <span class='name'>Clipboard</span>
+                </div>
+                <ul class='treeview'>
+                  <li>
+                    <div class='icon'></div>
+                    <div class='title'>
+                      <span class='name'>Cut</span>
+                    </div>
+                  </li>
+                  <li>
+                    <div class='icon'></div>
+                    <div class='title'>
+                      <span class='name'>Copy</span>
+                    </div>
+                  </li>
+                  <li>
+                    <div class='icon'></div>
+                    <div class='title'>
+                      <span class='name'>Paste</span>
+                    </div>
+                  </li>              
+                </ul>
+              </li>
+            </ul>
           </li>
           <li class="section" ng-class='{active: sidebarSection=="view"}' ng-click='sidebarSection="view"'>
             <h1>View</h1>            
