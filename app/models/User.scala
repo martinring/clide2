@@ -6,8 +6,14 @@ import play.api.libs.iteratee.Concurrent
 import play.api.libs.iteratee.Iteratee
 import akka.actor.Actor
 import play.api.libs.Crypto
+import java.sql.Date
 
-case class User(name: String, email: String, password: String) {  
+case class User(
+    name: String, 
+    email: String, 
+    password: String,
+    session: Option[String],
+    timeout: Option[Date]) {  
   lazy val socket = {
     val (out,channel) = Concurrent.broadcast[String]
     val in = Iteratee.foreach[String] { message =>
@@ -20,7 +26,9 @@ object Users extends Table[User]("users") {
   def name     = column[String]("name", O.PrimaryKey)
   def email    = column[String]("email")
   def password = column[String]("password")
-  def *        = name ~ email ~ password <> (User.apply _, User.unapply _)
+  def session  = column[Option[String]]("session")
+  def timeout  = column[Option[Date]]("timeout")
+  def *        = name ~ email ~ password ~ session ~ timeout <> (User.apply _, User.unapply _)
   
   val getByName = for {
     name <- Parameters[String]
@@ -35,5 +43,5 @@ object Users extends Table[User]("users") {
   val authenticate = for {
     (name,password) <- Parameters[(String,String)]
     user <- Users if user.name === name && user.password === password
-  } yield user.*  
+  } yield user.session
 }

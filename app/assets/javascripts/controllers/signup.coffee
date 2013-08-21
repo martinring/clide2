@@ -11,7 +11,7 @@ define ['routes','underscore'], (routes,_) -> ($scope, $location, Console, Toast
     Auth.signup $scope.data,
       success: ->
         $location.path "/#{Auth.user.username}/backstage"
-        Toasts.push('success',"You have been successfully logged in as #{Auth.user}!")
+        Toasts.push('success',"You have been successfully logged in as #{Auth.user.username}!")
       error: (data,status) ->
         console.log data        
         switch status          

@@ -1,5 +1,8 @@
 ### @controller controllers:BackstageController ###
-define -> ($scope, $location, Projects, Console, Auth) ->
+define -> ($scope, $location, $routeParams, Projects, Console, Auth, Toasts) ->
+  if $routeParams.user isnt Auth.user?.username
+    $location.path '/login'
+    Toasts.push 'warn', 'The requested resource does not belong to you!'
   console.log 'initializing backstage controller'
   $scope.projects = Projects
   $scope.start = () ->
@@ -15,4 +18,4 @@ define -> ($scope, $location, Projects, Console, Auth) ->
       Console.write "loaded project structure"
       $scope.$apply()
       setTimeout(done2,1000)
-    setTimeout(done,1500)    
+    setTimeout(done,1500)

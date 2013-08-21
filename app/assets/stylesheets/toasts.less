@@ -5,7 +5,7 @@
   width: 400px;
   bottom: 0px;
   background: transparent;
-  z-index: 10000000;
+  z-index: 200000000000;
   pointer-events: none;
 }
 
@@ -14,11 +14,31 @@
   display: block;
   margin: 8px;
   padding: 8px 16px;
-  width: 100%;
+  padding-right: 30px;
   background-color: @accent;
   color: white;  
   pointer-events: auto;
+  &.error {
+    background-color: @red;
+  }
+  &.warn {
+    background-color: @orange;
+  }
+  .close {
+    position: absolute;
+    right: 0;
+    top: 6px;
+    font-size: 10px;
+    bottom: 0;
+    margin-right: 16px;
+    line-height: 24px;
+    vertical-align: middle;
+    color: white;
+    float: right;
+    font-family: icon;
+  }
 }
+
 
 .toasts-enter, 
 .toasts-leave

@@ -3,6 +3,10 @@ define () -> ($rootScope) ->
   console.log 'initializing toast service'
 
   toasts = []
+
+  config = 
+    timeout: 20000
+
   push = (type, message) ->
     toast = 
       type: type
@@ -13,11 +17,13 @@ define () -> ($rootScope) ->
       if (!$rootScope.$$phase)
         $rootScope.$apply()
     toast.reset = () ->      
-      toast.timeout = window.setTimeout(toast.remove, 5000) # TODO: move to settings
+      toast.timeout = window.setTimeout(toast.remove, config.timeout) # TODO: move to settings
     toast.reset()
     if (!$rootScope.$$phase)
       $rootScope.$apply()    
+
   return (
     toasts: toasts
+    config: config
     push: push
   )

@@ -22,6 +22,7 @@ import play.api.Play.current
 import play.api.libs.json.Json
 import play.api.libs.Crypto
 import views.html.defaultpages.badRequest
+import java.util.UUID
 
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>    
@@ -60,7 +61,10 @@ object Application extends Controller with Secured {
   def login = Action(parse.json) { implicit request =>    
     loginForm.bind(request.body).fold(        
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
-      user => Ok(user._1)
+      { user => 
+        val sessionKey = UUID.randomUUID() // TODO: Store Session        
+        Ok(sessionKey.toString())
+      }
     )
   }
   
@@ -68,7 +72,7 @@ object Application extends Controller with Secured {
     signupForm.bind(request.body).fold(
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
       user => withSession { implicit session =>        
-        if (models.Users.insert(models.User(user._1, user._2, Crypto.sign(user._1 + user._3))) > 0)
+        if (models.Users.insert(models.User(user._1, user._2, Crypto.sign(user._1 + user._3),None,None)) > 0)
           Ok(user._1)
         else
           BadRequest("Signup failed")

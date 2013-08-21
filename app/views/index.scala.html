@@ -33,8 +33,8 @@
     </div>
     <div id='toasts' ng-show='toasts.length > 0' style="display:none">
       <div ng-repeat='toast in toasts track by $index' class='toast' ng-class='toast.type' ng-animate="'toasts'">
-        <span ng-bind='toast.message'/>
-        <a class='close' ng-click='toast.remove()'>x</a>
+        <span ng-bind='toast.message'></span>
+        <a class='close' ng-click='toast.remove()'></a>
       </div>
     </div>
     <div id='console' ng-show="app.wait" ng-animate="{show: 'fadeIn', hide:'fadeOut'}" style="display:none">
