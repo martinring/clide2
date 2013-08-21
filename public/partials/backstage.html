@@ -1,11 +1,11 @@
 <div id='backstage'>
   <div>
-    <h1 class='title'>{{app.auth.user}}'s backstage</h1>    
+    <h1 class='title'>{{auth.user.username}}'s backstage</h1>    
     <div class='panes'>
       <div class='section'>
         <h1>projects</h1>
         <ul id='projectList'>
-          <li ng-repeat='project in projects.projects' ng-class='{ current: $index==projects.current }' ng-click='projects.current=$index'>           
+          <li ng-repeat='project in projects.projects' ng-class='{ current: $index==projects.current }' ng-click='projects.current=$index'>
             <span ng-bind='project.name'/>
           </li>
         </ul>
@@ -16,9 +16,6 @@
         <h2>description</h2>
         <span ng-bind='projects.projects[projects.current].description' contenteditable style='-webkit-user-select: auto'/>
       </div>
-      <!--div class='section'>
-        <h1>settings</h1>
-      </div-->
       <div class='section'>
         <h1>about clide</h1>
         <p>copyright 2011-2013 by <a href='http://github.com/martinring'>Martin Ring</a>.</p>

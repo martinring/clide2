@@ -16,21 +16,21 @@ define ['routes'], (routes) -> ($http, $cookieStore) ->
   result.signup = (credentials,callbacks) ->
     $http.post(application.signup().url, credentials)
       .success (res) ->
-        changeUser res        
+        changeUser credentials        
         callbacks.success(res)
       .error callbacks.error  
 
   result.login = (credentials,callbacks) ->
     $http.post(application.login().url, credentials)
       .success (res) ->
-        changeUser res        
+        changeUser credentials        
         callbacks.success(res)
       .error callbacks.error
 
   result.logout = (callbacks) ->
     $http.post(application.logout().url)
       .success ->
-        changeUser ''
+        changeUser null
         callbacks.success()
       .error callbacks.error      
 

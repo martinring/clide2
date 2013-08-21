@@ -16,8 +16,17 @@
     background-color: white;
     text-align: center;
     .content{      
-      .error {
+      p.error {
         color: red;        
+        &:before {
+          font-family: icon;
+          content: '\E088';
+          margin-right: 4px;      
+        }
+      }
+      span.error {
+        float: right;
+        color: red;       
         &:before {
           font-family: icon;
           content: '\E088';

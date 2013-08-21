@@ -5,6 +5,5 @@ define -> ($scope, $location, Console, Toasts, Dialog, Auth) ->
   $scope.toasts = Toasts.toasts
   $scope.dialog = Dialog
   $scope.auth = Auth
-  $scope.cm = 
   $scope.goBack = () ->
     window.history.back();

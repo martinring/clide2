@@ -9,8 +9,8 @@ define ['routes'], (routes) -> ($scope, $location, Auth, Toasts) ->
     $scope.loginForm.error = null        
     Auth.login $scope.data,
       success: ->
-        $location.path "/#{Auth.user}/backstage"
-        Toasts.push('success',"You have been successfully logged in as #{Auth.user}!")
+        $location.path "/#{Auth.user.username}/backstage"
+        Toasts.push('success',"You have been successfully logged in as #{Auth.user.username}!")
       error: (data,status) ->
         console.log data['']
         switch status

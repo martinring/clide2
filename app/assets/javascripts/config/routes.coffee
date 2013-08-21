@@ -1,6 +1,7 @@
 ### @config ###
 define [], () -> ($routeProvider, $locationProvider, $httpProvider) ->
   $locationProvider.html5Mode(true)
+
   $routeProvider.when '/'      
     redirectTo: '/login'
   $routeProvider.when '/collab'      
@@ -26,10 +27,10 @@ define [], () -> ($routeProvider, $locationProvider, $httpProvider) ->
   $routeProvider.otherwise
     redirectTo: '/404'
 
-  $httpProvider.responseInterceptors.push ($location, $q) -> 
-    success = (response) -> response
-    error = (response) ->
-      if response.status = 401
-        $location.path('/login')
-      $q.reject(response)      
-    (promise) -> promise.then success, error
+  #$httpProvider.responseInterceptors.push ($location, $q) -> 
+  #  success = (response) -> response
+  #  error = (response) ->
+  #    if response.status = 401
+  #      $location.path('/login')
+  #    $q.reject(response)      
+  #  (promise) -> promise.then success, error

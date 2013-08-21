@@ -1,11 +1,11 @@
 ### @controller controllers:BackstageController ###
-define -> ($scope, $location, Projects, Console) ->
+define -> ($scope, $location, Projects, Console, Auth) ->
   console.log 'initializing backstage controller'
   $scope.projects = Projects
   $scope.start = () ->
     Console.write "preparing project '#{Projects.projects[Projects.current].name}'"    
     done3 = () ->    
-      $location.path "/#{App.username}/#{Projects.projects[Projects.current]}/"
+      $location.path "/#{Auth.user.username}/#{Projects.projects[Projects.current].name}/"
       $scope.$apply()
     done2 = () -> 
       Console.write "Welcome to Isabelle/HOL (Isabelle2012: May 2012)"
