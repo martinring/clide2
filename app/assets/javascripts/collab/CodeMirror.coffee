@@ -21,7 +21,7 @@ define ['collab/Operation'], (Operation) ->
     @applyOperationToCodeMirror: (operation, cm) -> cm.operation ->
       index = 0
       for a in operation.actions
-        switch Operation.type(a)
+        switch Operation.actionType(a)
           when 'retain'        
             index += a
           when 'insert'

@@ -102,11 +102,11 @@ define ->
     @fromJSON: (actions) ->
       result = new Operation()
       for a in actions
-        switch a 
+        switch actionType(a)
           when 'retain' then result.retain a
           when 'insert' then result.insert a
           when 'delete' then result.delete a
-          else throw new Error("unknown operation: "+JSON.stringify(op))
+          else throw new Error("unknown operation: "+JSON.stringify(a))
       return result
 
     compose: (operation2) ->

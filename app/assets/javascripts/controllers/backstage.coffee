@@ -6,16 +6,16 @@ define -> ($scope, $location, $routeParams, Projects, Console, Auth, Toasts) ->
   console.log 'initializing backstage controller'
   $scope.projects = Projects
   $scope.start = () ->
-    Console.write "preparing project '#{Projects.projects[Projects.current].name}'"    
+    Toasts.push 'info', "preparing project '#{Projects.projects[Projects.current].name}'"    
     done3 = () ->    
       $location.path "/#{Auth.user.username}/#{Projects.projects[Projects.current].name}/"
       $scope.$apply()
     done2 = () -> 
-      Console.write "Welcome to Isabelle/HOL (Isabelle2012: May 2012)"
+      Toasts.push 'info', "Welcome to Isabelle/HOL (Isabelle2012: May 2012)"
       $scope.$apply()
       setTimeout(done3,500)
     done = () -> 
-      Console.write "loaded project structure"
+      Toasts.push 'info', "loaded project structure"
       $scope.$apply()
       setTimeout(done2,1000)
     setTimeout(done,1500)

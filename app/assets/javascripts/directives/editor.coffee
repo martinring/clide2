@@ -1,10 +1,10 @@
 ### @directive directives:editor ###
-define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client'], (CodeMirror,routes,Operation,CMAdapter,Client) -> () -> 
+define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations'], (CodeMirror,routes,Operation,CMAdapter,Client,Annotations) -> () -> 
   restrict: 'E'
   transclude: true
   controller: ($scope, $element) ->
     null
-  template: '<textarea ng-transclude></textarea>'
+  template: '<textarea></textarea>'
   replace: true
   link: (scope, iElem, iAttrs, controller) ->    
     cm = CodeMirror.fromTextArea iElem[0],
@@ -15,13 +15,14 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
     socket = new WebSocket(routes.controllers.Application.collab().webSocketURL())
 
     client = null
+    annotations = new Annotations
 
     socket.onmessage = (e) -> 
       msg = JSON.parse(e.data)
       switch msg.type
         when 'init'
           console.log 'initialized'
-          cm.setValue(msg.doc)          
+          cm.setValue(msg.doc)
           client = new Client(msg.rev)
           adapter = new CMAdapter(cm)
           client.sendOperation = (revision, operation) ->
@@ -30,7 +31,7 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
               rev: revision
               op: operation
           client.applyOperation = adapter.applyOperation
-          adapter.registerCallbacks            
+          adapter.registerCallbacks
             change: (op) -> client.applyClient(op)
           cm.setOption 'readOnly', false
         when 'ack'

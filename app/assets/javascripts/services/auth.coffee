@@ -1,37 +1,37 @@
 ### @service services:Auth ###
 ### @import ngCookies from angular-cookies ###
-define ['routes'], (routes) -> ($http, $cookieStore) ->  
+define ['routes'], (routes) -> ($http, $cookieStore) ->
   console.log 'initializing auth service'
   application = routes.controllers.Application
 
-  result = {
+  service = {
     user: $cookieStore.get('user') or null
   }
 
   $cookieStore.remove('user')
 
   changeUser = (user) ->
-    result.user = user
+    service.user = user
 
-  result.signup = (credentials,callbacks) ->
+  service.signup = (credentials,callbacks) ->
     $http.post(application.signup().url, credentials)
       .success (res) ->
-        changeUser credentials        
-        callbacks.success(res)
-      .error callbacks.error  
-
-  result.login = (credentials,callbacks) ->
-    $http.post(application.login().url, credentials)
-      .success (res) ->
-        changeUser credentials        
+        changeUser credentials
         callbacks.success(res)
       .error callbacks.error
 
-  result.logout = (callbacks) ->
+  service.login = (credentials,callbacks) ->
+    $http.post(application.login().url, credentials)
+      .success (res) ->
+        changeUser credentials
+        callbacks.success(res)
+      .error callbacks.error
+
+  service.logout = (callbacks) ->
     $http.post(application.logout().url)
       .success ->
         changeUser null
         callbacks.success()
-      .error callbacks.error      
+      .error callbacks.error
 
-  result
+  service
