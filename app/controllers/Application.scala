@@ -24,6 +24,7 @@ import play.api.libs.json.Json
 import play.api.libs.Crypto
 import views.html.defaultpages.badRequest
 import java.util.UUID
+import views.html.defaultpages.unauthorized
 
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>    
@@ -45,10 +46,10 @@ object Application extends Controller with Secured {
   // -- Signup
   val signupForm = Form(
     tuple(
-      "username" -> text.verifying("name is already taken", name => 
+      "username" -> text.verifying("name is already in use", name => 
         !Seq("login","logout","signup","assets").contains(name) &&
         withSession { implicit session => !models.Users.getByName(name).firstOption.isDefined }),
-      "email" -> email.verifying("email is already taken", email =>
+      "email" -> email.verifying("email is already registered", email =>
         withSession { implicit session => !models.Users.getByEmail(email).firstOption.isDefined }),
       "password" -> text(minLength=8)
     )
@@ -62,9 +63,9 @@ object Application extends Controller with Secured {
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
       { case (name,password) => withSession { implicit session =>                 
         models.Users.getByName(name).firstOption match {
-          case None => BadRequest(Json.obj("username" -> "we don't know anybody with that username"))
+          case None => Status(401)(Json.obj("username" -> Json.arr("we don't know anybody with that username")))
           case Some(user) if (user.password != Crypto.sign(name+password)) => 
-            BadRequest(Json.obj("password" -> "invalid password"))            
+            Status(401)(Json.obj("password" -> Json.arr("invalid password")))            
           case Some(user) => 
             val sessionKey = UUID.randomUUID().toString()
             val u = user.copy(session = Some(sessionKey))

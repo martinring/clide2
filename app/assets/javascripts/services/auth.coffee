@@ -36,7 +36,7 @@ define ['routes'], (routes) -> ($http, $cookieStore, $location) ->
       .success (res) ->                
         changeUser res
         callbacks.success?(res)
-      .error (d) -> callbacks.error?(d)
+      .error (d...) -> callbacks.error?(d...)
 
   service.validateSession = (callbacks) ->
     $http.post(application.validateSession().url, service.user)
@@ -44,17 +44,17 @@ define ['routes'], (routes) -> ($http, $cookieStore, $location) ->
         console.log 'user validated'
         changeUser res
         callbacks.success?(res)
-      .error (e) ->            
+      .error (e...) ->            
         console.log 'validation failed'
         changeUser null
-        callbacks.error?(e)
+        callbacks.error?(e...)
 
   service.login = (credentials,callbacks) ->
     $http.post(application.login().url, credentials)
       .success (res) ->
         changeUser res
         callbacks.success?(res)
-      .error (d) -> callbacks.error?(d)
+      .error (d...) -> callbacks.error?(d...)
 
   service.logout = (callbacks) ->
     changeUser null

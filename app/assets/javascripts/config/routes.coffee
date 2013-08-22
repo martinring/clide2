@@ -24,6 +24,8 @@ define [], () -> ($routeProvider, $locationProvider, $httpProvider) ->
     controller:  'IdeController'
   $routeProvider.when '/404',
     templateUrl: '/assets/partials/404.html'    
+  $routeProvider.when '/401',
+    templateUrl: '/assets/partials/401.html'        
   $routeProvider.otherwise
     redirectTo: '/404'
 

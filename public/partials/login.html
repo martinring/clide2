@@ -5,9 +5,9 @@
       <div class='content' ng-controller='LoginController'>
         <h1>Welcome to clide</h1>
         <form name='loginForm' id='loginForm'>
-        <p class='error' ng-bind="loginForm.error['']" ng-show="loginForm.error['']"/>
-        <label for='username'>username:</label><input type='text' name='username' id='username' ng-model='data.username' required autofocus/>
-        <label for='password'>password:</label><input type='password' id='password' name='password' ng-model='data.password' required/>
+        <p class='error' ng-bind="loginForm.error['']" ng-show="loginForm.error['']"/>        
+        <label for='username'>username:</label><span class='error' ng-bind="loginForm.error['username']" ng-show="loginForm.error['username']"/><input type='text' name='username' id='username' ng-model='data.username' required autofocus/>
+        <label for='password'>password:</label><span class='error' ng-bind="loginForm.error['password']" ng-show="loginForm.error['password']"/><input type='password' id='password' name='password' ng-model='data.password' required/>
         <input type='checkbox' name='staySignedIn' ng-model='data.staySignedIn' id='staySignedIn'/><label for='staySignedIn'>keep me signed in</label>
         <div class='buttons'>
           <a href='http://martinring.github.io/clide' class='left'>What is this?</a>

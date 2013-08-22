@@ -15,7 +15,13 @@
     box-shadow: 0 0 16px #000;
     background-color: white;
     text-align: center;
-    .content{      
+    .gravatar {
+      position: absolute;
+      top: 16px;
+      left: -116px;
+    }
+    .content{
+      position: relative;
       p.error {
         color: red;        
         &:before {
@@ -45,7 +51,7 @@
           margin-top: 0;  
           margin-bottom: 8px;
         }
-        input[type="password"], input[type="text"], input[type="email"] {
+        input[type="password"], input[type="text"], input[type="email"] {          
           display: block;
           width: 100%;
           margin: 8px 0;
