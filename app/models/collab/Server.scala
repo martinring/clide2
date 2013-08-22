@@ -31,7 +31,7 @@ class Server(initialState: Document) extends Actor {
 	      clients.values.filter(_ != sender).foreach(_ ! Server.Change(revision,newOp))
 	      sender ! Server.Acknowledgement
 	    case Failure(e) =>
-	      sender ! e
+	      sender ! Server.Error(e.getMessage())
 	  }
   }
 }
@@ -41,11 +41,11 @@ object Server {
     Props(() => new Server(initialState))
     
   trait Request
-  case class Register(name: String) extends Request
-  case class Initialize(revision: Int, document: Document) extends Request
-  case class Change(revision: Int, operation: Operation) extends Request
-  case class Error(message: String) extends Request
+  case class Register(name: String) extends Request  
+  case class Change(revision: Int, operation: Operation) extends Request  
 	
   trait Reply  
-  case object Acknowledgement extends Reply
+  case class Initialize(revision: Int, document: Document) extends Reply
+  case class Error(message: String) extends Reply
+  case object Acknowledgement extends Reply  
 }

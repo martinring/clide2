@@ -13,6 +13,7 @@ import akka.actor.Actor
 import akka.actor.Props
 import akka.actor.ActorDSL._
 import scala.concurrent.duration._
+import scala.slick.driver.BasicProfile._
 import scala.slick.driver.H2Driver.simple._
 import play.api.libs.json.JsString
 import play.api.libs.concurrent.Execution.Implicits._
@@ -38,9 +39,7 @@ object Application extends Controller with Secured {
     tuple(
       "username" -> text,
       "password" -> text
-    ) verifying ("Invalid name or password", result => result match {
-      case (name,password) => withSession { implicit session => models.Users.authenticate(name,Crypto.sign(name+password)).firstOption.isDefined }
-    })
+    ) 
   )
   
   // -- Signup
@@ -61,11 +60,29 @@ object Application extends Controller with Secured {
   def login = Action(parse.json) { implicit request =>    
     loginForm.bind(request.body).fold(        
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
-      { user => 
-        val sessionKey = UUID.randomUUID() // TODO: Store Session        
-        Ok(sessionKey.toString())
+      { case (name,password) => withSession { implicit session =>                 
+        models.Users.getByName(name).firstOption match {
+          case None => BadRequest(Json.obj("username" -> "we don't know anybody with that username"))
+          case Some(user) if (user.password != Crypto.sign(name+password)) => 
+            BadRequest(Json.obj("password" -> "invalid password"))            
+          case Some(user) => 
+            val sessionKey = UUID.randomUUID().toString()
+            val u = user.copy(session = Some(sessionKey))
+            models.Users.getByName(name).update(u)
+            Ok(Json.obj("username" -> u.name, "email" -> u.email, "session" -> u.session))
+    } } })               
+  }
+  
+  def validateSession = Action(parse.json) { implicit request =>    
+    val session = (request.body \ "session").as[Option[String]]
+    val q = for (user <- models.Users if user.session === session)
+      yield user.*
+    withSession { implicit session =>
+      q.firstOption match {
+        case Some(u) => Ok(Json.obj("username" -> u.name, "email" -> u.email, "session" -> u.session))
+        case None => BadRequest("Invalid session")
       }
-    )
+    }        
   }
   
   def signup = Action(parse.json) { implicit request =>
@@ -125,22 +142,22 @@ object Application extends Controller with Secured {
     val in = Iteratee.foreach[JsValue] { client ! _ }        
     (in,out)
   }
+  
   /**
    * Logout and clean the session.
-   */
-  def logout = Action {
-    Redirect(routes.Application.index("")).withNewSession.flashing(
-      "success" -> "You've been logged out"
-    )
-  }
+   TODO!
+  def logout = Action { withSession =>
+    
+  }*/
 
   // -- Javascript routing
   def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
     Ok(
       Routes.javascriptRouter("jsRoutes")(
-        routes.javascript.Application.index,   
-        routes.javascript.Application.login,
+        routes.javascript.Application.index,        
+        routes.javascript.Application.login,        
+        routes.javascript.Application.validateSession,
         routes.javascript.Application.signup,
         routes.javascript.Application.collab,
         routes.javascript.Projects.index

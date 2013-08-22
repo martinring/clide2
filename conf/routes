@@ -1,7 +1,8 @@
 # Authentication
-POST    /login                              controllers.Application.login
-POST    /signup                             controllers.Application.signup
-GET     /logout                             controllers.Application.logout
+POST    /api/auth/login                     controllers.Application.login
+POST    /api/auth/validateSession           controllers.Application.validateSession
+POST    /api/auth/signup                    controllers.Application.signup
+#GET     /api/auth/logout                    controllers.Application.logout
 
 # Javascript routing
 GET     /assets/javascripts/routes.js       controllers.Application.javascriptRoutes
@@ -16,7 +17,7 @@ GET     /assets/javascripts/lib/*file       controllers.WebJarAssets.at(file)
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                       controllers.Assets.at(path="/public", file)
 
-GET     /collab                             controllers.Application.collab
+GET     /api/demo/collab                    controllers.Application.collab
 
 # Home page
 GET     /                                   controllers.Application.index(path="")
