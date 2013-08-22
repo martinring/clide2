@@ -31,8 +31,9 @@ define -> ($scope, $location, $routeParams, Projects, Console, Auth, Toasts, Dia
       error: ->
         Toasts.push 'warn', 'There was an error while loggin out!'
 
-  $scope.createProject = (name,description) ->
+  $scope.createProject = (name,description,error) ->
     Dialog.create
+      error: error
       title: 'new project'
       queries: [
         name: 'name'
@@ -48,7 +49,11 @@ define -> ($scope, $location, $routeParams, Projects, Console, Auth, Toasts, Dia
       buttons: [
         text: 'Ok'
         action: (result) ->
-          console.log "create project #{result.name}"
+          wait = result.wait()
+          if result.name == 'clide2'
+            wait.success()
+          else
+            wait.error('This project allready exits')
       ,
         text: 'Cancel'
         action: () -> console.log 'project creation cancelled'
