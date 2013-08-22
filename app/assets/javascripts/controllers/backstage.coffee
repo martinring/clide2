@@ -15,7 +15,10 @@ define -> ($scope, $location, $routeParams, Projects, Console, Auth, Toasts) ->
       $location.path '/login'
       Toasts.push 'warn', 'Sorry, your login session has expired! Please enter your credentials once again.'
   
-  $scope.currentProject = null
+  $scope.selectedProject = null
+
+  $scope.change = (project) ->     
+    $scope.selectedProject = project
 
   Projects.update user, (projects) ->    
     $scope.projects = projects    

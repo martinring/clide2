@@ -1,28 +1,33 @@
 <div id='backstage'>
   <div>  
-    <div class='logout'><a ng-click='logout()'></a></div>
+    <div class='logout'><a title='log out' ng-click='logout()'><i class='icon-power-off'></i></a></div>
     <h1 class='title'>{{auth.user.username}}'s backstage</h1>        
     <div class='panes'>
       <div class='section'>
         <h1>profile</h1>
         <img class='gravatar' src='{{auth.user.gravatar}}&s=400'/>
         <p>username: {{auth.user.username}}</p>
-        <p>email: {{auth.user.email}}</p>
-        <a ng-click='logout()'>logout</a>    
+        <p>email: {{auth.user.email}}</p>        
       </div>
       <div class='section'>
+        <a class='command' title='create a project'>
+          <i class='icon-plus'></i>
+        </a>
         <h1>projects</h1>
-        <ul id='projectList'>
-          <li ng-repeat='project in projects' ng-class='{ current: project===currentProject }' ng-click='currentProject=project'>
+        <ul id='projectList' ng-show='projects.length > 0'>
+          <li ng-repeat='project in projects' ng-class='{ current: project==selectedProject }' ng-click='change(project)'>
             <span ng-bind='project.name'/>
           </li>
         </ul>
+        <p ng-show='projects.length == 0'>
+          You don't have any projects associated with your account yet. Get started by creating a new project.
+        </p>
       </div>
-      <div class='section' ng-hide='currentProject==null'>
-        <h1>project '{{currentProject.name}}'</h1>
+      <div class='section' ng-hide='selectedProject==null'>
+        <h1>project '{{selectedProject.name}}'</h1>
         <a ng-click='start()'>start coding</a>
         <h2>description</h2>
-        <span ng-bind='currentProject.description' contenteditable style='-webkit-user-select: auto'/>
+        <span ng-bind='selectedProject.description' contenteditable style='-webkit-user-select: auto'/>
       </div>
       <div class='section'>
         <h1>about clide</h1>

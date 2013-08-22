@@ -9,9 +9,20 @@
   cursor: default;
   overflow-y: auto;
   .section {
+    .command {
+      margin-top: 20px;
+      font-size: 150%;
+      float: right;
+      color: black;
+      opacity: 0.6;
+      &:hover {
+        opacity: 1;
+      }
+    }
     display: table-cell;
     padding-right: 30px;
     min-width: 200px;
+    max-height: 300px;
   }
   h1 {
     color: #000;
