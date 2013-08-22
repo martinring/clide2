@@ -45,14 +45,32 @@
         <div class='dialog'>
           <div class='content'>
             <h1 ng-bind='dialog.title'></h1>
-            <span ng-bind='dialog.message'></span>          
-            <div ng-repeat='query in dialog.queries'>
-              <span ng-bind='query.text'></span>
-              <input placehoder='{{query.placeholder}}' ng-model='query.value'></input>
-            </div>
+            <form>
+            <span ng-bind='dialog.message'></span>
+            <span ng-repeat='query in dialog.queries' ng-switch='query.type'>
+              <span ng-switch-when='text'>
+                <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+                <input id='dialog-{{query.name}}' ng-if='$index==0' type='text' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
+                <input id='dialog-{{query.name}}' ng-if='$index>0' type='text' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+              </span>
+              <span ng-switch-when='email'>
+                <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+                <input id='dialog-{{query.name}}' ng-if='$index==0' type='email' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
+                <input id='dialog-{{query.name}}' ng-if='$index>0' type='email' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+              </span>              
+              <span ng-switch-when='checkbox'>                                
+                <input id='dialog-{{query.name}}' type='checkbox' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+                <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+              </span>
+              <span ng-switch-when='textarea'>
+                <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+                <textarea id='dialog-{{query.name}}' ng-model='query.value'></textarea>                
+              </span>              
+            </span>
             <div class='buttons'>
-              <button ng-repeat='button in dialog.buttons' ng-bind='button.text' ng-class='{ default: $index == 0 }'/>
+              <button type='{{button.type}}' ng-repeat='button in dialog.buttons' ng-bind='button.text' ng-class='{ default: $index == 0 }' ng-click='dialog.next(button.action)'/>
             </div>
+            </form>
           </div>
         </div>
       </div>

@@ -6,8 +6,13 @@ define [], () -> () ->
 
   state = {}
   
-  next = () ->
-    if queue.length > 0
+  next = (action) ->
+    if state.show
+      result = {}
+      for q in state.queries
+        result[q.name] = q.value
+      action(result)
+    if queue.length > 0            
       config = queue.shift()
       state.show = true
       state.title = config.title
@@ -23,7 +28,7 @@ define [], () -> () ->
 
   create = (config) ->    
     queue.unshift config
-    next()
+    next()  
 
   state.create = create
   state.next = next

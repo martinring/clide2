@@ -1,7 +1,7 @@
 <div id='backstage'>
   <div>  
     <div class='logout'><a title='log out' ng-click='logout()'><i class='icon-power-off'></i></a></div>
-    <h1 class='title'>{{auth.user.username}}'s backstage</h1>        
+    <h1 class='title'>{{auth.user.username}}'s backstage area</h1>        
     <div class='panes'>
       <div class='section'>
         <h1>profile</h1>
@@ -10,7 +10,7 @@
         <p>email: {{auth.user.email}}</p>        
       </div>
       <div class='section'>
-        <a class='command' title='create a project'>
+        <a class='command' ng-click='createProject()' title='create a project'>
           <i class='icon-plus'></i>
         </a>
         <h1>projects</h1>
