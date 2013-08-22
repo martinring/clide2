@@ -21,6 +21,19 @@ case class User(
       println(message)
     }
   }
+  
+  lazy val gravatar = {                      
+    val md5 = java.security.MessageDigest.getInstance("MD5")
+    
+    val bytes = md5.digest(email.trim.toLowerCase.getBytes("CP1252"))
+    
+    val sb = new StringBuffer
+    
+    for (byte <- bytes) sb.append(
+      Integer.toHexString(byte & 0xFF | 0x100).substring(1,3))
+    
+    f"http://www.gravatar.com/avatar/${sb.toString}?d=identicon"
+  }
 }
 
 object Users extends Table[User]("users") {  

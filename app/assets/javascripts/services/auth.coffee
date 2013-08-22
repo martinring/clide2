@@ -9,6 +9,7 @@ define ['routes'], (routes) -> ($http, $cookieStore, $location) ->
       session: localStorage['session']
       username: localStorage['username']
       email: localStorage['email']
+      gravatar: localStorage['gravatar']
   }
 
 
@@ -17,13 +18,16 @@ define ['routes'], (routes) -> ($http, $cookieStore, $location) ->
       localStorage['session'] = user.session
       localStorage['username'] = user.name
       localStorage['email'] = user.email
+      localStorage['gravatar'] = user.gravatar
     else
       localStorage.removeItem 'session'
       localStorage.removeItem 'username'
       localStorage.removeItem 'email'
+      localStorage.removeItem 'gravatar'
     service.user.session = user?.session or null
     service.user.username = user?.username or null
     service.user.email = user?.email or null
+    service.user.gravatar = user?.gravatar or null
 
   service.loggedIn = () -> service.user.session?
 

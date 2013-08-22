@@ -4,6 +4,13 @@
     <h1 class='title'>{{auth.user.username}}'s backstage</h1>        
     <div class='panes'>
       <div class='section'>
+        <h1>profile</h1>
+        <img class='gravatar' src='{{auth.user.gravatar}}&s=300'/>
+        <p>username: {{auth.user.username}}</p>
+        <p>email: {{auth.user.email}}</p>
+        <a ng-click='logout()'>logout</a>    
+      </div>
+      <div class='section'>
         <h1>projects</h1>
         <ul id='projectList'>
           <li ng-repeat='project in projects' ng-class='{ current: project===currentProject }' ng-click='currentProject=project'>

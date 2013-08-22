@@ -69,7 +69,7 @@ object Application extends Controller with Secured {
             val sessionKey = UUID.randomUUID().toString()
             val u = user.copy(session = Some(sessionKey))
             models.Users.getByName(name).update(u)
-            Ok(Json.obj("username" -> u.name, "email" -> u.email, "session" -> u.session))
+            Ok(Json.obj("username" -> u.name, "email" -> u.email, "session" -> u.session, "gravatar" -> u.gravatar))
     } } })               
   }
   
@@ -79,7 +79,7 @@ object Application extends Controller with Secured {
       yield user.*
     withSession { implicit session =>
       q.firstOption match {
-        case Some(u) => Ok(Json.obj("username" -> u.name, "email" -> u.email, "session" -> u.session))
+        case Some(u) => Ok(Json.obj("username" -> u.name, "email" -> u.email, "session" -> u.session, "gravatar" -> u.gravatar))
         case None => BadRequest("Invalid session")
       }
     }        
