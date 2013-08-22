@@ -82,7 +82,7 @@ object Application extends Controller with Secured {
   
   import models.collab.{Server,Document,Operation}
   
-  val server = Akka.system.actorOf(Server.props(Document("Test")))
+  val server = Akka.system.actorOf(Server.props(Document("Test")),"collab_demo_doc_server")
   
   var id = 0
   
@@ -99,12 +99,10 @@ object Application extends Controller with Secured {
               val rev = (json \ "rev").as[Int]
 	          val op = (json \ "op").as[Operation]
 	          server ! Server.Change(rev,op)
-            case "register" =>
-              println (f"client #$id registered")
+            case "register" =>                            
               server ! Server.Register("client"+id)
           }
-        case Server.Initialize(rev, doc) =>
-          println("hallo")
+        case Server.Initialize(rev, doc) =>          
           channel.push(Json.obj(
             "type" -> "init",
             "rev" -> rev,

@@ -3,6 +3,7 @@ package models.collab
 import scala.reflect.ClassTag
 import akka.actor.{Actor,ActorRef,Props}
 import scala.util.{Try,Success,Failure}
+import play.Logger
 
 class Server(initialState: Document) extends Actor {
   var revision: Int = 0  
@@ -10,12 +11,12 @@ class Server(initialState: Document) extends Actor {
   var state: Document = initialState
   var clients: Map[String,ActorRef] = Map.empty
   def receive = {
-    case Server.Register(name) =>
-      println("registering "+name)
-      clients += name -> sender
-      println("answering")
+    case Server.Register(name) => 
+      Logger.info(f"client '$name' requested registration")           
+      clients += name -> sender      
       sender ! Server.Initialize(revision,state)
-    case Server.Change(rev, op) =>
+      Logger.info(f"client '$name' is successfully registerd")
+    case Server.Change(rev, op) =>      
       val res = for {
 	    concurrentOps <- Try{ require(revision >= rev,"unknown revision"); history.take(revision - rev).reverse }
 	    newOp <- concurrentOps.foldRight(Success(op): Try[Operation]) {
