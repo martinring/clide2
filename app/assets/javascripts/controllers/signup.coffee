@@ -13,8 +13,8 @@ define ['routes','underscore','util/md5'], (routes,_,md5) -> ($scope, $location,
     Console.write "signing up as '#{$scope.username}'..."
     Auth.signup $scope.data,
       success: ->
-        $location.path "/#{Auth.user.username}/backstage"
-        Toasts.push('success',"You have been successfully logged in as #{Auth.user.username}!")
+        $location.path "/login"
+        Toasts.push('success',"Welcome, your account has been created! :)")
       error: (data,status) ->
         console.log data
         switch status          

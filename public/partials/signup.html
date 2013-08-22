@@ -8,7 +8,7 @@
           <p class='error' ng-bind="signupForm.error['']" ng-show="signupForm.error['']"/>
           username: <span class='error' ng-bind='signupForm.error.username' ng-show='signupForm.error.username'/><input type='text' ng-model='data.username' name='name' required autofocus/>          
           email address: <span class='error' ng-bind='signupForm.error.email' ng-show='signupForm.error.email'/><input type='email' ng-model='data.email' name='email' required ng-change='updateGravatar()'/>
-          <img ng-show='gravatar' class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=blank&s=100'/>
+          <img ng-show='gravatar' class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=100'/>
           password: <span class='error' ng-bind='signupForm.error.password' ng-show='signupForm.error.password'/><input type='password' ng-model='data.password' name='password' ng-minlength='8' required/>
           <div class='buttons'>
             <button type='submit' class='default' ng-click='signup()' ng-disabled='!signupForm.$valid || app.wait'>Sign Up</button>
