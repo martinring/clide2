@@ -1,0 +1,103 @@
+.outerSpinnerContainer {
+  display: table;
+  position: absolute;
+  top: 0;  
+  left: 0;
+  height: 100%;
+  width: 100%;
+  .innerSpinnerContainer {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    .spinner {
+      position: relative;
+      width: 64px;
+      height:64px;
+      margin: auto;
+      .wBall {
+        position: absolute;
+        width: 61px;
+        height: 61px;
+        opacity: 0;
+        -webkit-transform: rotate(225deg);
+        -webkit-animation: orbit 7.15s infinite;
+      }    
+      .wBall .wInnerBall{
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: @accent;
+        left:0px;
+        top:0px;
+        -webkit-border-radius: 8px;
+      }
+    
+      #wBall_1 {
+        -webkit-animation-delay: 1.56s;
+      }
+      
+      #wBall_2 {
+        -webkit-animation-delay: 0.31s;
+      }
+      
+      #wBall_3 {
+        -webkit-animation-delay: 0.62s;
+      }
+      
+      #wBall_4 {
+        -webkit-animation-delay: 0.94s;
+      }
+      
+      #wBall_5 {
+        -webkit-animation-delay: 1.25s;
+      }
+    }
+    
+    @-webkit-keyframes orbit {
+      0% {
+        opacity: 1;
+        z-index:99;
+        -webkit-transform: rotate(180deg);
+        -webkit-animation-timing-function: ease-out;
+      }
+      7% {
+        opacity: 1;
+        -webkit-transform: rotate(300deg);
+        -webkit-animation-timing-function: linear;
+        -webkit-origin:0%;
+      }
+      30% {
+        opacity: 1;
+        -webkit-transform:rotate(410deg);
+        -webkit-animation-timing-function: ease-in-out;
+        -webkit-origin:7%;
+      }
+      39% {
+        opacity: 1;
+        -webkit-transform: rotate(645deg);
+        -webkit-animation-timing-function: linear;
+        -webkit-origin:30%;
+      }
+      70% {
+        opacity: 1;
+        -webkit-transform: rotate(770deg);
+        -webkit-animation-timing-function: ease-out;
+        -webkit-origin:39%;
+      }
+      75% {
+        opacity: 1;
+        -webkit-transform: rotate(900deg);
+        -webkit-animation-timing-function: ease-out;
+        -webkit-origin:70%;
+      }
+      76% {
+        opacity: 0;
+        -webkit-transform:rotate(900deg);
+      }
+      100% {
+        opacity: 0;
+        -webkit-transform: rotate(900deg);
+      }
+    }
+  }
+}
