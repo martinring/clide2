@@ -1,8 +1,9 @@
 <div id='dialog' class='dialogContainer' style="display:none" ng-show='dialog.show'>
   <div class='dialogContainer2'>
     <div class='dialog'>      
-      <div class='grayOut' ng-show='dialog.wait'>
-        <spinner></spinner> 
+      <div class='grayOut' ng-show='dialog.wait'>      
+        <span ng-bind='dialog.task'></span>
+        <spinner></spinner>
       </div>
       <div class='content'>                              
         <h1 ng-bind='dialog.title'></h1>        

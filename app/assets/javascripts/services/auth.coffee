@@ -1,12 +1,11 @@
 ### @service services:Auth ###
 ### @import ngCookies from angular-cookies ###
-define ['routes'], (routes) -> ($http, $cookieStore, $location) ->
+define ['routes'], (routes) -> ($http, $cookies, $location) ->
   console.log 'initializing auth service'
   application = routes.controllers.Application  
 
   service = {
-    user:
-      session: localStorage['session']
+    user:      
       username: localStorage['username']
       email: localStorage['email']
       gravatar: localStorage['gravatar']
@@ -15,54 +14,55 @@ define ['routes'], (routes) -> ($http, $cookieStore, $location) ->
 
   changeUser = (user) ->    
     if user?
-      localStorage['session'] = user.session
       localStorage['username'] = user.name
       localStorage['email'] = user.email
       localStorage['gravatar'] = user.gravatar
     else
-      localStorage.removeItem 'session'
       localStorage.removeItem 'username'
       localStorage.removeItem 'email'
       localStorage.removeItem 'gravatar'
-    service.user.session = user?.session or null
     service.user.username = user?.username or null
     service.user.email = user?.email or null
     service.user.gravatar = user?.gravatar or null
 
-  service.loggedIn = () -> service.user.session?
+  service.loggedIn = $cookies['PLAY_SESSION']?
 
   service.signup = (credentials,callbacks) ->
     $http.post(application.signup().url, credentials)
-      .success (res) ->                
+      .success (res) ->
         changeUser res
         callbacks.success?(res)
       .error (d...) -> callbacks.error?(d...)
 
   service.validateSession = (callbacks) ->
-    $http.post(application.validateSession().url, service.user)
+    $http.get(application.validateSession().url)
       .success (res) ->
-        console.log 'user validated'
+        service.loggedIn = true        
         changeUser res
         callbacks.success?(res)
-      .error (e...) ->            
-        console.log 'validation failed'
+      .error (e...) ->
+        delete $cookies['PLAY_SESSION']
+        service.loggedIn = false        
         changeUser null
         callbacks.error?(e...)
 
   service.login = (credentials,callbacks) ->
     $http.post(application.login().url, credentials)
       .success (res) ->
+        service.loggedIn = true        
         changeUser res
         callbacks.success?(res)
-      .error (d...) -> callbacks.error?(d...)
+      .error (d...) -> 
+        service.loggedIn = false
+        callbacks.error?(d...)
 
-  service.logout = (callbacks) ->
-    changeUser null
-    callbacks.success?()
-    #$http.post(application.logout().url)
-    #  .success ->
-    #    changeUser null
-    #    callbacks.success()
-    #  .error callbacks.error  
+  service.logout = (callbacks) ->    
+    $http.get(application.logout().url)
+      .success ->
+        service.loggedIn = false
+        changeUser null
+        callbacks.success?()
+      .error (d...) ->
+        callbacks.error?(d...)
 
   return service 

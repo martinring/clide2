@@ -2,13 +2,14 @@
 define -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, Toasts, Dialog) ->
   user = $routeParams.user
 
-  unless Auth.loggedIn()
+  unless Auth.loggedIn
     $location.path '/login'
     Toasts.push 'warn', 'You need to log in to view the requested resource!'
     return
 
   Auth.validateSession
     success: -> if user isnt Auth.user?.username
+      console.log user, Auth.user
       $location.path '/login'
       Toasts.push 'warn', 'The requested resource is not associated with your user account!'
     error: ->
@@ -32,39 +33,26 @@ define -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, T
         Toasts.push 'warn', 'There was an error while loggin out!'
 
   $scope.createProject = (name,description,error) ->
-    Dialog.create
+    submit = (result) ->      
+      promise = result.$wait('your project is beeing created')
+      Projects.create Auth.user.username, result,
+        success: promise.success
+        error: promise.error
+    Dialog.push
       error: error
       title: 'new project'
       queries: [
-        name: 'name'
-        text: 'name:'
-        type: 'text'
-        value: name
-      ,
-        name: 'description'
-        text: 'description:'
-        type: 'textarea'
-        value: description
+        { name: 'name', value: name }
+          name: 'description'
+          type: 'textarea'
+          value: description
       ]
-      buttons: [
-        text: 'Ok'
-        action: (result) ->
-          promise = result.$wait()
-          fn = ->
-            if result.name == 'clide2'
-              promise.success()
-            else            
-              promise.error('This project allready exits')
-          $timeout(fn,20000)
-      ,
-        text: 'Cancel'
-        action: () -> console.log 'project creation cancelled'
-      ]
+      buttons: [ { 'Ok': submit }, 'Cancel' ]
 
   $scope.start = () ->
-    Toasts.push 'info', "preparing project '#{Projects.projects[Projects.current].name}'"
+    Toasts.push 'info', "preparing project '#{$scope.selectedProject.name}'"
     done3 = () ->    
-      $location.path "/#{Auth.user.username}/#{Projects.projects[Projects.current].name}/"
+      $location.path "/#{Auth.user.username}/#{$scope.selectedProject.name}/"
       $scope.$apply()
     done2 = () -> 
       Toasts.push 'info', "Welcome to Isabelle/HOL (Isabelle2012: May 2012)"

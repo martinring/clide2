@@ -26,26 +26,50 @@ define [], () -> () ->
         state.error = null
         state.wait = false
     if state.show
-      result = {}
+      result = { }
       state.wait = false
-      for q in state.queries
-        result[q.name] = q.value
-      result.$wait = () ->
-        state.wait = true
-        return (
-          success: done
-          error: (e) -> 
-            state.error = e
-            state.wait = false
-        )
-      action(result)
+      switch typeof action
+        when 'string' then switch action
+          when 'Cancel' 
+            done()
+            return
+          else console.error 'unrecognized action'
+        else 
+          for q in state.queries
+            result[q.name] = q.value
+          result.$wait = (task) ->            
+            state.wait = true
+            state.task = task
+            return (
+              success: done
+              error: (e) -> 
+                state.error = e
+                state.wait = false
+            )
+          action(result)
     done() unless state.wait
 
-  create = (config) ->    
+  push = (config) ->
+    for q in config.queries      
+      q.type = q.type or 'text'
+      q.text = q.text or q.name+':'
+    config.buttons = config.buttons.map (button) -> 
+      switch typeof button
+        when 'string'
+          switch button
+            when 'Cancel'
+              return { text: 'Cancel', action: () ->  }
+        when 'object'
+          unless button.action?
+            for name, action of button
+              button.text = name 
+              button.action = action
+          return button
+
     queue.unshift config
     next()  
 
-  state.create = create
+  state.push = push
   state.next = next
 
   return state

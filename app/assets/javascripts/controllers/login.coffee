@@ -1,10 +1,6 @@
 ### @controller controllers:LoginController ###
 define ['routes','underscore'], (routes,underscore) -> ($scope, $location, Auth, Toasts) ->
   console.log 'initializing login controller'
-  if Auth.loggedIn() # check if the user is already logged in
-    Auth.validateSession 
-      success: ->
-        $location.path "/#{Auth.user.username}/backstage"  
   $scope.data =
     username: null
     password: null

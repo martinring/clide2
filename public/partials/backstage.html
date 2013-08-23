@@ -20,7 +20,7 @@
           </li>
         </ul>
         <p ng-show='projects.length == 0'>
-          You don't have any projects associated with your account yet. Get started by creating a new project.
+          You don't have any projects associated with your account yet. Get started by <a ng-click='createProject()'>creating a new project</a>.
         </p>
       </div>
       <div class='section' ng-hide='selectedProject==null'>

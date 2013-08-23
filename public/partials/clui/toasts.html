@@ -1,5 +1,5 @@
 <div id='toasts' ng-show='toasts.length > 0'>
-  <div ng-repeat='toast in toasts track by $index' ng-class='{ toast: true }' ng-class='toast.type' ng-animate="'toasts'">
+  <div ng-repeat='toast in toasts track by $index' ng-class='{ toast: true }' class='{{toast.type}}' ng-animate="'toasts'">
     <span ng-bind='toast.message'></span>
     <a class='close' ng-click='toast.remove()'><i class='icon-remove'></i></a>
   </div>

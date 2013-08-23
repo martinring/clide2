@@ -29,6 +29,30 @@ define [], () -> ($routeProvider, $locationProvider, $httpProvider) ->
   $routeProvider.otherwise
     redirectTo: '/404'
 
+  #$httpProvider.defaults.transformRequest.unshift (data) ->
+  #  console.log data    
+  #  console.log 'request augmented with session key ' + localStorage['session']
+  #  if data?
+  #    if typeof data is 'string'
+  #      data =
+  #        $sessionKey: localStorage['session']
+  #        data: data
+  #    else
+  #      data.$sessionKey = localStorage['session']
+  #  else        
+  #    data =
+  #      $sessionKey: localStorage['session']
+  #  console.log data
+  #  return data
+
+  #$httpProvider.interceptors.push ($q, $location, Toasts) ->
+  #  responseError: (rejection) ->      
+  #    switch rejection.status 
+  #      when 400
+  #        Toasts.push 'error', 'a communication error occured!'
+  #    $q.reject(rejection)
+
+
   #$httpProvider.responseInterceptors.push ($location, $q) -> 
   #  success = (response) -> response
   #  error = (response) ->
