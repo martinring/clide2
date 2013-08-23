@@ -2,17 +2,17 @@
   <div ng-class='{extendedStatusbar:output}'>    
     <nav id="ribbon">
       <ul class="nav menu" ng-init='sidebarSection="files"'>
-        <li title='Files' ng-click='sidebarSection="files";sidebar=true' ng-class='{active: sidebarSection=="files"}'>&#xe011;</li>
-        <li title='Edit' ng-click='sidebarSection="edit";sidebar=true' ng-class='{active: sidebarSection=="edit"}'>&#xe002;</li>
-        <li title='View' ng-click='sidebarSection="view";sidebar=true' ng-class='{active: sidebarSection=="view"}'>&#xe062;</li>
-        <li title='Settings' ng-click='sidebarSection="settings";sidebar=true' ng-class='{active: sidebarSection=="settings"}'>&#xe04A;</li>
-        <li title='Help' ng-click='sidebarSection="help";sidebar=true' ng-class='{active: sidebarSection=="help"}'>&#xe085;</li>        
+        <li title='Files' ng-click='sidebarSection="files";sidebar=true' ng-class='{active: sidebarSection=="files"}'><i class='icon-list-ul'></i></li>
+        <li title='Edit' ng-click='sidebarSection="edit";sidebar=true' ng-class='{active: sidebarSection=="edit"}'><i class='icon-pencil'></i></li>
+        <li title='View' ng-click='sidebarSection="view";sidebar=true' ng-class='{active: sidebarSection=="view"}'><i class='icon-eye-open'></i></li>
+        <li title='Settings' ng-click='sidebarSection="settings";sidebar=true' ng-class='{active: sidebarSection=="settings"}'><i class='icon-gear'></i></li>
+        <li title='Help' ng-click='sidebarSection="help";sidebar=true' ng-class='{active: sidebarSection=="help"}'><i class='icon-question-sign'></i></li>        
       </ul>
-      <div id="sidebarButton" ng-click='sidebar=!sidebar'>&#xE093;</div>
+      <div id="sidebarButton" ng-click='sidebar=!sidebar'><i class='icon-expand'></i></div>
     </nav>
     <div id="sidebarContainer">
       <div id="search">
-        <div id="searchButton" ng-click='sidebar=true'>&#xE041;</div>
+        <div id="searchButton" ng-click='sidebar=true'><i class='icon-search'></i></div>
         <input id="searchBox" ng-model='search.name'></input>
       </div>
       <nav id="sidebar">
@@ -20,7 +20,7 @@
           <li class="section" ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>
             <h1>Files</h1>
             <script type='text/ng-template' id='file.html'>
-              <div class='icon' ng-bind='file.icon' ng-bind='file.icon' ng-class='{folder: file.files, opened: file.expand}'/>
+              <div class='icon' ng-class='{folder: file.files, opened: file.expand}'><i ng-class='file.icon'></i></div>
               <div class='title' ng-click='file.expand=!file.expand'>
                 <span class='name' ng-bind='file.name'/>
                 <div class="progress">
@@ -106,7 +106,7 @@
         <ul class="statusMessages">
           <li id="syslog"></li>
           <li id="sessionLogic"></li>
-          <li id="sessionStatus" class="phase">&#xE118;</li>
+          <li id="sessionStatus" class="phase"><i class='icon-cloud'></i></li>
         </ul>        
         <div id="output"></div>
       </div>  
