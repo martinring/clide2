@@ -4,18 +4,20 @@ import scala.slick.driver.H2Driver.simple._
 import Database.{threadLocalSession => session}
 import play.api.libs.json._
 
-case class Project(id: Long, name: String, description: String, owner: String)
+case class Project(id: Option[Long], name: String, description: Option[String], owner: String)
 /* Json (de)serialization */
 object Project { implicit val json = Json.format[Project] }
 
 object Projects extends Table[Project]("projects") {
   def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def name         = column[String]("name")
-  def description  = column[String]("description")
+  def description  = column[Option[String]]("description")
   def ownerName    = column[String]("owner")  
   def owner        = foreignKey("fk_project_user", ownerName, Users)(_.name)  
-  def *            = id ~ name ~ description ~ ownerName <> (Project.apply _, Project.unapply _)
+  def *            = id.? ~ name ~ description ~ ownerName <> (Project.apply _, Project.unapply _)
  
+  def autoinc = id.? ~ name ~ description ~ ownerName <> (Project.apply _, Project.unapply _) returning id
+  
   def getForOwner = for {
     name <- Parameters[String]
     projects <- Projects if projects.ownerName === name
