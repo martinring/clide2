@@ -27,8 +27,24 @@ import java.util.UUID
 import views.html.defaultpages.unauthorized
 
 object Application extends Controller with Secured {
-  def index(path: String) = Action { implicit request =>    
-    Ok(views.html.index(path))
+  def index(path: String) = Action { implicit request =>
+    def unauthorized = path match {
+      case "login" => Ok(views.html.index(path)).withNewSession
+      case _ => Redirect("/login").withNewSession
+    }
+    request.session.get("session") match {
+      case None => unauthorized
+      case Some(session) => withSession { implicit dbsession =>
+        val q = for (user <- models.Users if user.session === session)
+          yield user.*
+        q.firstOption match {
+          case None => unauthorized
+          case Some(u) => 
+            if (path.isEmpty) Redirect(f"/${u.name}/backstage")            
+            else Ok(views.html.index(path))           
+        }             
+      }
+    }    
   }
   
   def session = WebSocket.async[String] { request =>
@@ -58,7 +74,7 @@ object Application extends Controller with Secured {
   /**
    * Handle login form submission.
    */
-  def login = Action(parse.json) { implicit request =>    
+  def login = Action(parse.json) { implicit request =>
     loginForm.bind(request.body).fold(        
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
       { case (name,password) => withSession { implicit session =>                 
@@ -67,21 +83,46 @@ object Application extends Controller with Secured {
           case Some(user) if (user.password != Crypto.sign(name+password)) => 
             Status(401)(Json.obj("password" -> Json.arr("invalid password")))            
           case Some(user) => 
-            val sessionKey = UUID.randomUUID().toString()
+            val sessionKey = UUID.randomUUID().toString()                       
             val u = user.copy(session = Some(sessionKey))
             models.Users.getByName(name).update(u)
-            Ok(Json.obj("username" -> u.name, "email" -> u.email, "session" -> u.session, "gravatar" -> u.gravatar))
+            Ok(Json.obj(
+                "username" -> u.name, 
+                "email" -> u.email,  
+                "gravatar" -> u.gravatar)).withSession("session" -> sessionKey)            
     } } })               
   }
   
-  def validateSession = Action(parse.json) { implicit request =>    
-    val session = (request.body \ "session").as[Option[String]]
-    val q = for (user <- models.Users if user.session === session)
-      yield user.*
-    withSession { implicit session =>
-      q.firstOption match {
-        case Some(u) => Ok(Json.obj("username" -> u.name, "email" -> u.email, "session" -> u.session, "gravatar" -> u.gravatar))
-        case None => BadRequest("Invalid session")
+  def validateSession = Action { implicit request =>
+    request.session.get("session") match {
+      case None => 
+        Status(401)
+      case Some(session) =>
+        val q = for (user <- models.Users if user.session === session)
+	      yield user.*
+	    withSession { implicit session =>
+	      q.firstOption match {
+	        case Some(u) =>
+	          Ok(Json.obj("username" -> u.name, "email" -> u.email, "gravatar" -> u.gravatar))
+	        case None => Status(401)
+	      }
+	    }
+    }        
+  }
+  
+  def logout = Action { implicit request =>
+    request.session.get("session") match {
+      case None =>
+        Ok.withNewSession
+      case Some(session) => withSession { implicit dbsession =>
+        val q = for (user <- models.Users if user.session === session)
+          yield user.*
+        q.firstOption match {
+          case None => Ok.withNewSession
+          case Some(u) => 
+            models.Users.getByName(u.name).update(u.copy(session = None))
+            Ok.withNewSession
+        }
       }
     }
   }
@@ -157,11 +198,13 @@ object Application extends Controller with Secured {
     Ok(
       Routes.javascriptRouter("jsRoutes")(
         routes.javascript.Application.index,        
-        routes.javascript.Application.login,        
+        routes.javascript.Application.login,
+        routes.javascript.Application.logout,   
         routes.javascript.Application.validateSession,
         routes.javascript.Application.signup,
         routes.javascript.Application.collab,
-        routes.javascript.Projects.index
+        routes.javascript.Projects.index,
+        routes.javascript.Projects.create
       )
     ).as("text/javascript") 
   }

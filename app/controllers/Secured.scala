@@ -1,12 +1,18 @@
 package controllers
 
 import play.api.mvc._
+import play.api.mvc.BodyParsers._
+import play.api.libs.json.JsValue
+import models.{Users,User}
+import scala.slick.driver.H2Driver.simple._
+import Database.{threadLocalSession => session}
+import play.api.db.slick.DB.withSession
+import play.api.Play.current
 
 /**
  * Provide security features
  */
-trait Secured {
-  
+trait Secured { this: Controller =>  
   /**
    * Retrieve the connected user email.
    */
@@ -22,9 +28,22 @@ trait Secured {
   /** 
    * Action for authenticated users.
    */
-  def IsAuthenticated(f: => String => Request[AnyContent] => Result) = Security.Authenticated(username, onUnauthorized) { user =>
-    Action(request => f(user)(request))
+  def Authenticated[T](parser: BodyParser[T])(f: => User => Request[T] => Result) = Action(parser) { request =>
+    request.session.get("session") match {
+      case None => Results.Unauthorized
+      case session =>
+        val q = for (user <- Users if user.session === session) yield user.*
+        withSession { implicit session =>
+          q.firstOption match {
+            case None => Results.Unauthorized
+            case Some(user) => f(user)(request)
+          }
+        }
+    }    
   }
+  
+  def Authenticated(f: => User => Request[AnyContent] => Result): Action[AnyContent] = 
+    Authenticated(parse.anyContent)(f) 
 
   /**
    * Check if the connected user is a member of this project.
