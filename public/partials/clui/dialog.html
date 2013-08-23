@@ -1,0 +1,167 @@
+<div id='dialog' class='dialogContainer' style="display:none" ng-show='dialog.show'>
+  <div class='dialogContainer2'>
+    <div class='dialog'>
+      <div class='grayOut' ng-show='dialog.wait' style='display:none'>
+        <style>
+        .windows8 {
+        position: relative;
+        width: 64px;
+        height:64px;
+        }
+
+        .windows8 .wBall {
+        position: absolute;
+        width: 61px;
+        height: 61px;
+        opacity: 0;
+        -webkit-transform: rotate(225deg);
+        -webkit-animation: orbit 7.15s infinite;
+        }
+
+        .windows8 .wBall .wInnerBall{
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: #fff;
+        left:0px;
+        top:0px;
+        -webkit-border-radius: 8px;
+        }
+
+        .windows8 #wBall_1 {
+        -webkit-animation-delay: 1.56s;
+        }
+
+        .windows8 #wBall_2 {
+        -webkit-animation-delay: 0.31s;
+        }
+
+        .windows8 #wBall_3 {
+        -webkit-animation-delay: 0.62s;
+        }
+
+        .windows8 #wBall_4 {
+        -webkit-animation-delay: 0.94s;
+        }
+
+        .windows8 #wBall_5 {
+        -webkit-animation-delay: 1.25s;
+        }
+
+        @-webkit-keyframes orbit {
+        0% {
+        opacity: 1;
+        z-index:99;
+        -webkit-transform: rotate(180deg);
+        -webkit-animation-timing-function: ease-out;
+        }
+
+        7% {
+        opacity: 1;
+        -webkit-transform: rotate(300deg);
+        -webkit-animation-timing-function: linear;
+        -webkit-origin:0%;
+        }
+
+        30% {
+        opacity: 1;
+        -webkit-transform:rotate(410deg);
+        -webkit-animation-timing-function: ease-in-out;
+        -webkit-origin:7%;
+        }
+
+        39% {
+        opacity: 1;
+        -webkit-transform: rotate(645deg);
+        -webkit-animation-timing-function: linear;
+        -webkit-origin:30%;
+        }
+
+        70% {
+        opacity: 1;
+        -webkit-transform: rotate(770deg);
+        -webkit-animation-timing-function: ease-out;
+        -webkit-origin:39%;
+        }
+
+        75% {
+        opacity: 1;
+        -webkit-transform: rotate(900deg);
+        -webkit-animation-timing-function: ease-out;
+        -webkit-origin:70%;
+        }
+
+        76% {
+        opacity: 0;
+        -webkit-transform:rotate(900deg);
+        }
+
+        100% {
+        opacity: 0;
+        -webkit-transform: rotate(900deg);
+        }
+
+        }
+
+        </style>
+        <div class="windows8">
+        <div class="wBall" id="wBall_1">
+        <div class="wInnerBall">
+        </div>
+        </div>
+        <div class="wBall" id="wBall_2">
+        <div class="wInnerBall">
+        </div>
+        </div>
+        <div class="wBall" id="wBall_3">
+        <div class="wInnerBall">
+        </div>
+        </div>
+        <div class="wBall" id="wBall_4">
+        <div class="wInnerBall">
+        </div>
+        </div>
+        <div class="wBall" id="wBall_5">
+        <div class="wInnerBall">
+        </div>
+        </div>
+        </div>
+      </div>
+      <div class='content'>
+        <h1 ng-bind='dialog.title'></h1>        
+        <form>
+        <p class='error' ng-show='dialog.error' ng-bind='dialog.error'></p>
+        <span ng-bind='dialog.message'></span>
+        <span ng-repeat='query in dialog.queries' ng-switch='query.type'>
+          <span ng-switch-when='text'>
+            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+            <input ng-disabled='dialog.wait' id='dialog-{{query.name}}' ng-if='$index==0' type='text' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
+            <input ng-disabled='dialog.wait' id='dialog-{{query.name}}' ng-if='$index>0' type='text' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+          </span>
+          <span ng-switch-when='email'>
+            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+            <input ng-disabled='dialog.wait' id='dialog-{{query.name}}' ng-if='$index==0' type='email' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
+            <input ng-disabled='dialog.wait' id='dialog-{{query.name}}' ng-if='$index>0' type='email' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+          </span>  
+          <span ng-switch-when='password'>
+            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+            <input ng-disabled='dialog.wait' id='dialog-{{query.name}}' ng-if='$index==0' type='password' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
+            <input ng-disabled='dialog.wait' id='dialog-{{query.name}}' ng-if='$index>0' type='password' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+          </span>                              
+          <span ng-switch-when='checkbox'>                                
+            <input ng-disabled='dialog.wait' id='dialog-{{query.name}}' type='checkbox' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+          </span>
+          <span ng-switch-when='textarea'>
+            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+            <textarea ng-disabled='dialog.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>                
+          </span>              
+        </span>
+        <div class='buttons'>
+          <button ng-disabled='dialog.wait' type='{{button.type}}' ng-repeat='button in dialog.buttons' ng-bind='button.text' ng-class='{ default: $index == 0 }' ng-click='dialog.next(button.action)'/>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

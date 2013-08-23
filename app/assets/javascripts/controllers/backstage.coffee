@@ -1,5 +1,5 @@
 ### @controller controllers:BackstageController ###
-define -> ($scope, $location, $routeParams, Projects, Console, Auth, Toasts, Dialog) ->
+define -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, Toasts, Dialog) ->
   user = $routeParams.user
 
   unless Auth.loggedIn()
@@ -49,11 +49,13 @@ define -> ($scope, $location, $routeParams, Projects, Console, Auth, Toasts, Dia
       buttons: [
         text: 'Ok'
         action: (result) ->
-          wait = result.wait()
-          if result.name == 'clide2'
-            wait.success()
-          else
-            wait.error('This project allready exits')
+          promise = result.$wait()
+          fn = ->
+            if result.name == 'clide2'
+              promise.success()
+            else            
+              promise.error('This project allready exits')
+          $timeout(fn,20000)
       ,
         text: 'Cancel'
         action: () -> console.log 'project creation cancelled'

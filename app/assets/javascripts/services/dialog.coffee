@@ -30,11 +30,13 @@ define [], () -> () ->
       state.wait = false
       for q in state.queries
         result[q.name] = q.value
-      result.wait = () ->
+      result.$wait = () ->
         state.wait = true
         return (
           success: done
-          error: (e) -> state.error = e
+          error: (e) -> 
+            state.error = e
+            state.wait = false
         )
       action(result)
     done() unless state.wait

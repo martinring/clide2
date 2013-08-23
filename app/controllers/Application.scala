@@ -83,7 +83,7 @@ object Application extends Controller with Secured {
         case Some(u) => Ok(Json.obj("username" -> u.name, "email" -> u.email, "session" -> u.session, "gravatar" -> u.gravatar))
         case None => BadRequest("Invalid session")
       }
-    }        
+    }
   }
   
   def signup = Action(parse.json) { implicit request =>
