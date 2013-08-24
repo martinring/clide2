@@ -19,12 +19,6 @@ define [], () -> () ->
         state.wait = false
       else
         state.show = false
-        state.title = null
-        state.message = null
-        state.buttons = []
-        state.queries = []
-        state.error = null
-        state.wait = false
     if state.show
       result = { }
       state.wait = false
