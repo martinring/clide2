@@ -8,7 +8,7 @@ define [], () -> () ->
   
   next = (action) ->
     done = -> 
-      if queue.length > 0            
+      if queue.length > 0
         config = queue.shift()
         state.show = true
         state.title = config.title

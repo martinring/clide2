@@ -33,7 +33,11 @@
           <span ng-switch-when='textarea'>
             <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
             <textarea ng-disabled='dialog.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>                
-          </span>              
+          </span>
+          <span ng-switch-default>
+            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+            <input type="{{query.type}}" ng-disabled='dialog.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>
+          </span>
         </span>
         <div class='buttons'>
           <button ng-disabled='dialog.wait' type='{{button.type}}' ng-repeat='button in dialog.buttons' ng-bind='button.text' ng-class='{ default: $index == 0 }' ng-click='dialog.next(button.action)'/>
