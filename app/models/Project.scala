@@ -1,36 +1,54 @@
 package models
 
 import scala.slick.driver.H2Driver.simple._
+import play.api.Play.current
+import play.api.db.slick.DB.withSession
 import Database.{threadLocalSession => session}
 import play.api.libs.json._
 
-case class Project(id: Option[Long], name: String, description: Option[String], owner: String)
+case class Project(id: Option[Long], name: String, owner: String, description: Option[String] = None)
 /* Json (de)serialization */
 object Project { implicit val json = Json.format[Project] }
 
 object Projects extends Table[Project]("projects") {
   def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def name         = column[String]("name")
+  def ownerName    = column[String]("owner")
+  def root         = column[Long]("root")
   def description  = column[Option[String]]("description")
-  def ownerName    = column[String]("owner")  
-  def owner        = foreignKey("fk_project_user", ownerName, Users)(_.name)  
-  def *            = id.? ~ name ~ description ~ ownerName <> (Project.apply _, Project.unapply _)
+  def owner        = foreignKey("fk_project_user", ownerName, Users)(_.name)
+  def rootFolder   = foreignKey("fk_project_folder", root, Folders)(_.id)
+  def *            = id.? ~ name ~ ownerName ~ description <> (Project.apply _, Project.unapply _)
  
-  def autoinc = id.? ~ name ~ description ~ ownerName <> (Project.apply _, Project.unapply _) returning id
+  def autoinc = id.? ~ name ~ ownerName ~ description <> (Project.apply _, Project.unapply _) returning id
   
-  def getForOwner = for {
-    name <- Parameters[String]
+  val forOwner = for {
+	name <- Parameters[String]
     projects <- Projects if projects.ownerName === name
-  } yield projects
+  } yield projects 
+  
+  def getForOwner(owner: String) = withSession { implicit session =>
+    forOwner(owner).elements
+  }
+    
+  def create(project: Project) = withSession { implicit session =>
+    val id = autoinc.insert(project)
+    // Create Directory
+    project.copy(id=Some(id)) 
+  }
 }
 
-object Rights extends Table[(Long,String,Boolean,Boolean)]("rights") {
+object Rights extends Table[(Long,String,Int)]("rights") {  
   def projectId = column[Long]("project")
   def userName  = column[String]("user")
   def project   = foreignKey("fk_right_project", projectId, Projects)(_.id)
   def user      = foreignKey("fk_right_user", userName, Users)(_.name)
   def pk        = primaryKey("pk_right", (projectId,userName))
-  def read      = column[Boolean]("read")
-  def write     = column[Boolean]("write")
-  def *         = projectId ~ userName ~ read ~ write
+  def policy    = column[Int]("policy")  
+  def *         = projectId ~ userName ~ policy
+  
+  val None = 0
+  val Read = 1
+  val Write = 2
+  val Admin = 3
 }

@@ -12,7 +12,7 @@ object Projects extends Controller with Secured {
   def index(username: String) = Authenticated { user => implicit request => withSession { implicit session =>
     if (user.name != username) Results.Unauthorized
     else
-      Ok(Json.toJson(models.Projects.getForOwner(username).elements.toSeq))
+      Ok(Json.toJson(models.Projects.getForOwner(username).toSeq))
   } }
   
   def create(username: String) = Authenticated(parse.json) { user => implicit request => withSession { implicit session =>
@@ -21,9 +21,8 @@ object Projects extends Controller with Secured {
       (request.body \ "name").asOpt[String] match {
         case Some(name) => withSession { implicit session =>
           val descr = (request.body \ "description").asOpt[String]
-          val project = Project(None,name,descr,username)
-          val id = models.Projects.autoinc.insert(Project(None,name,descr,username))
-          Ok(Json.toJson(project.copy(id = Some(id))))          
+          val project = Project(None,name,username,descr)
+          Ok(Json.toJson(models.Projects.create(project)))          
         }
         case None => BadRequest("Malformed Project")
       }
