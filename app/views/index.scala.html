@@ -10,17 +10,7 @@
     @helper.requireJs(core = routes.WebJarAssets.at(WebJarAssets.locate("require.js")).url, module=routes.Assets.at("javascripts/main").url)
     <script>var path='@path'</script>
   </head>
-  <body ng-controller='AppController' ng-class='{wait: app.wait}'>
-    <noscript>
-      <div class='dialogContainer2'>
-        <div class='dialog'>
-          <div class='content'>
-            <h1>JavaScript is Disabled :(</h1>
-            Your browser does not seem to execute JavaScript. Please enable and reload.
-          </div>
-        </div>
-      </div>
-    </noscript>            
+  <body ng-controller='AppController' ng-class='{wait: app.wait}'>           
     <div id='loading' class='dialogContainer'>
       <div class='dialogContainer2'>
         <div class='dialog'>
@@ -31,6 +21,18 @@
         </div>
       </div>
     </div>
+    <noscript>
+      <div class='dialogContainer'>
+        <div class='dialogContainer2'>
+          <div class='dialog'>
+            <div class='content'>
+              <h1>JavaScript is Disabled :(</h1>
+              Your browser does not seem to execute JavaScript. Please enable and reload.
+            </div>
+          </div>
+        </div>
+      </div>
+    </noscript>     
     <div ng-include='"/assets/partials/clui/toasts.html"'></div>
     <div ng-include='"/assets/partials/clui/dialog.html"'></div>
     <div id='root' ng-view ng-animate='{enter: "view-enter", leave: "view-leave"}'>      
