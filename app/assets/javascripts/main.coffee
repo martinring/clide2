@@ -1,28 +1,32 @@
 # RequireJS configuration
 require.config
   paths:    
-    angular:           'lib/angularjs/1.1.5/angular'
-    'angular-cookies': 'lib/angularjs/1.1.5/angular-cookies'
-    codemirror:        'lib/codemirror/3.15/lib/codemirror'
-    jquery:            'lib/jquery/2.0.2/jquery'
-    typekit:           '//use.typekit.net/bzl6miy'
-    underscore:        'lib/underscorejs/1.5.1/underscore'    
+    'angular':         'lib/angularjs/1.2.0rc1/angular'
+    'angular-route':   'lib/angularjs/1.2.0rc1/angular-route'
+    'angular-cookies': 'lib/angularjs/1.2.0rc1/angular-cookies'
+    'jquery':          'lib/jquery/2.0.3/jquery'
+    'codemirror':      'lib/codemirror/3.16/lib/codemirror'
+    'typekit':         '//use.typekit.net/bzl6miy'
+    'underscore':      'lib/underscorejs/1.5.1/underscore'    
   shim:
+    'angular':
+      exports: 'angular'
+      deps:    ['jquery']
+    'angular-route':
+      exports: 'angular'
+      deps:    ['angular']
     'angular-cookies':
       exports: 'angular'
       deps:    ['angular']
-    angular:
-      exports: 'angular'
-      deps:    ['jquery']
-    jquery:
+    'jquery':
       exports: 'jQuery'
-    codemirror: 
+    'codemirror':
       exports: 'CodeMirror'
-    typekit:    
+    'typekit':
       exports: 'Typekit'
-    underscore: 
+    'underscore':
       exports: '_'
-    routes:     
+    'routes':
       exports: 'jsRoutes'
   priority: [
     'angular'

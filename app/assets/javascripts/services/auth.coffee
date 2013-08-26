@@ -8,8 +8,7 @@ define ['routes'], (routes) -> ($http, $cookies, $location) ->
     user:      
       username: localStorage['username']
       email: localStorage['email']
-  }
-
+  }  
 
   changeUser = (user) ->    
     if user?

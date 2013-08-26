@@ -11,7 +11,7 @@ import models._
 object Projects extends Controller with Secured {
   def index(username: String) = Authenticated { user => implicit request => withSession { implicit session =>
     if (user.name != username) Results.Unauthorized
-    else
+    else     
       Ok(Json.toJson(models.Projects.getForOwner(username).toSeq))
   } }
   

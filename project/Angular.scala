@@ -22,7 +22,7 @@ trait Angular {
     ngModuleDirs := Map()
   )
   
-  val ngBoilerplateGenerator = (resourceManaged in Compile, sourceDirectory in Compile, cacheDirectory, name, ngModuleDirs, ngOtherModules, ngConfigDir) map { (outDir,sourceDir,cache,appName,moduleDirs,otherModules,configDir) =>                    
+  val ngBoilerplateGenerator = (resourceManaged in Compile, sourceDirectory in Compile, cacheDirectory, name, version, ngModuleDirs, ngOtherModules, ngConfigDir) map { (outDir,sourceDir,cache,appName,appVersion,moduleDirs,otherModules,configDir) =>                    
     val bps = moduleDirs.map { case (what,(ngf,postfix,capitalize)) =>
       val inFiles = ((sourceDir / "assets" / "javascripts" / what) * "*.coffee").get
       val names = SortedSet(inFiles.map(_.getName.dropRight(7)) :_*)
@@ -54,6 +54,7 @@ trait Angular {
       builder ++= (moduleDirs.keys.map(f=>"'clide."+f+"'") ++ otherModules.values.map(f=>"'"+f+"'")).mkString(",") 
       builder ++= "]);"
       builder ++= configs.map(f=>"app.config("+f+");").mkString
+      builder ++= "app.value('version','"+appVersion+"');"
       builder ++= "})"
       IO.write(appFile, builder.toString)    
     }

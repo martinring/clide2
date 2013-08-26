@@ -1,30 +1,39 @@
 package controllers
 
-import play.api._
+import java.util.UUID
+
+import scala.concurrent.duration.DurationInt
+import scala.slick.driver.H2Driver.simple.columnBaseToInsertInvoker
+import scala.slick.driver.H2Driver.simple.optionColumnExtensionMethods
+import scala.slick.driver.H2Driver.simple.productQueryToUpdateInvoker
+import scala.slick.driver.H2Driver.simple.queryToQueryInvoker
+import scala.slick.driver.H2Driver.simple.tableToQuery
+import scala.slick.driver.H2Driver.simple.valueToConstColumn
+
+import akka.actor.ActorDSL.Act
+import akka.actor.ActorDSL.actor
+import akka.actor.actorRef2Scala
+import models.collab.Document
+import models.collab.Operation
+import models.collab.Server
 import play.api.Play.current
-import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
+import play.api.Routes
+import play.api.data.Form
+import play.api.data.Forms.email
+import play.api.data.Forms.text
+import play.api.data.Forms.tuple
 import play.api.db.slick.DB.withSession
-import play.api.libs.json.JsValue
-import play.api.libs.iteratee.Concurrent
-import play.api.libs.iteratee.Iteratee
-import akka.actor.Actor
-import akka.actor.Props
-import akka.actor.ActorDSL._
-import scala.concurrent.duration._
-import scala.slick.driver.BasicProfile._
-import scala.slick.driver.H2Driver.simple._
-import play.api.libs.json.JsString
-import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.Crypto
 import play.api.libs.concurrent.Akka
 import play.api.libs.concurrent.Akka.system
-import play.api.Play.current
+import play.api.libs.iteratee.Concurrent
+import play.api.libs.iteratee.Iteratee
+import play.api.libs.json.JsValue
 import play.api.libs.json.Json
-import play.api.libs.Crypto
-import views.html.defaultpages.badRequest
-import java.util.UUID
-import views.html.defaultpages.unauthorized
+import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import play.api.mvc.Action
+import play.api.mvc.Controller
+import play.api.mvc.WebSocket
 
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>
