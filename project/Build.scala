@@ -6,9 +6,11 @@ import scala.collection.mutable.StringBuilder
 object ApplicationBuild extends Build with Angular {
   val appName         = "clide"
   val appVersion      = "2.0-SNAPSHOT"    
-  val appDependencies = Seq(    
-    "com.typesafe.slick" %% "slick" % "1.0.0",
-    "com.typesafe.play" %% "play-slick" % "0.3.2",   
+  val appDependencies = Seq(
+    "org.scalacheck" %% "scalacheck" % "1.10.1" % "test",
+    "com.typesafe.akka" %% "akka-testkit"  % "2.2.0"% "test",
+    "com.typesafe.play" %% "play-slick" % "0.3.2",
+    "com.typesafe.slick" %% "slick" % "1.0.0",       
     "com.typesafe" %% "play-plugins-mailer" % "2.1.0",
     "org.webjars" % "angularjs" % "1.1.5-1",
     "org.webjars" % "codemirror" % "3.15",
@@ -17,8 +19,6 @@ object ApplicationBuild extends Build with Angular {
     "org.webjars" % "marked" % "0.2.9",
     "org.webjars" % "webjars-play" % "2.1.0-1",
     "org.webjars" % "underscorejs" % "1.5.1",
-    "org.scalacheck" %% "scalacheck" % "1.10.1" % "test",
-    "com.typesafe.akka" %% "akka-testkit"  % "2.2.0"% "test",
     jdbc
   )
     
