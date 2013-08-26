@@ -1,13 +1,13 @@
 <div id='backstage'>
   <div>  
     <div class='logout'><a title='log out' ng-click='logout()'><i class='icon-signout'></i></a></div>
-    <h1 class='title'>{{auth.user.username}}'s backstage area</h1>        
+    <h1 class='title'>{{user}}'s backstage area</h1>        
     <div class='panes'>
       <div class='section'>
         <h1>profile</h1>
-        <img class='gravatar' src='{{auth.user.gravatar}}&s=400'/>
-        <p>username: {{auth.user.username}}</p>
-        <p>email: {{auth.user.email}}</p>        
+        <img class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=400'/>
+        <p>username: {{user}}</p>
+        <p>email: {{email}}</p>        
       </div>
       <div class='section'>
         <a class='command' ng-click='createProject()' title='create a project'>
@@ -25,9 +25,8 @@
       </div>
       <div class='section' ng-hide='selectedProject==null'>
         <h1>project '{{selectedProject.name}}'</h1>
-        <a ng-click='start()'>start coding</a>
-        <h2>description</h2>
         <span ng-bind='selectedProject.description' contenteditable style='-webkit-user-select: auto'/>
+        <p><a ng-click='start()'>start coding...</a></p>
       </div>
       <div class='section'>
         <h1>about clide</h1>
