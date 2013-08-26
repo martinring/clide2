@@ -1,6 +1,6 @@
 ### @controller controllers:BackstageController ###
-define -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, Toasts, Dialog) ->
-  user = $routeParams.user
+define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, Toasts, Dialog) ->
+  $scope.user = $routeParams.user
 
   unless Auth.loggedIn
     $location.path '/login'
@@ -8,10 +8,13 @@ define -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, T
     return
 
   Auth.validateSession
-    success: -> if user isnt Auth.user?.username
-      console.log user, Auth.user
-      $location.path '/login'
-      Toasts.push 'warn', 'The requested resource is not associated with your user account!'
+    success: -> 
+      if $scope.user isnt Auth.user?.username
+        $location.path '/login'
+        Toasts.push 'warn', 'The requested resource is not associated with your user account!'
+      else
+        $scope.email = Auth.user.email
+        $scope.gravatar = md5(Auth.user.email)
     error: ->
       $location.path '/login'
       Toasts.push 'warn', 'Sorry, your login session has expired! Please enter your credentials once again.'
@@ -21,7 +24,7 @@ define -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, T
   $scope.change = (project) ->     
     $scope.selectedProject = project
 
-  Projects.update user, (projects) ->    
+  Projects.update $scope.user, (projects) ->    
     $scope.projects = projects    
 
   $scope.logout = () ->

@@ -88,8 +88,7 @@ object Application extends Controller with Secured {
             models.Users.getByName(name).update(u)
             Ok(Json.obj(
                 "username" -> u.name, 
-                "email" -> u.email,  
-                "gravatar" -> u.gravatar)).withSession("session" -> sessionKey)            
+                "email" -> u.email)).withSession("session" -> sessionKey)            
     } } })               
   }
   
@@ -103,7 +102,7 @@ object Application extends Controller with Secured {
 	    withSession { implicit session =>
 	      q.firstOption match {
 	        case Some(u) =>
-	          Ok(Json.obj("username" -> u.name, "email" -> u.email, "gravatar" -> u.gravatar))
+	          Ok(Json.obj("username" -> u.name, "email" -> u.email))
 	        case None => Status(401)
 	      }
 	    }

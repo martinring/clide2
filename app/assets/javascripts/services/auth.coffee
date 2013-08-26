@@ -8,22 +8,18 @@ define ['routes'], (routes) -> ($http, $cookies, $location) ->
     user:      
       username: localStorage['username']
       email: localStorage['email']
-      gravatar: localStorage['gravatar']
   }
 
 
   changeUser = (user) ->    
     if user?
       localStorage['username'] = user.name
-      localStorage['email'] = user.email
-      localStorage['gravatar'] = user.gravatar
+      localStorage['email'] = user.email      
     else
       localStorage.removeItem 'username'
       localStorage.removeItem 'email'
-      localStorage.removeItem 'gravatar'
     service.user.username = user?.username or null
     service.user.email = user?.email or null
-    service.user.gravatar = user?.gravatar or null
 
   service.loggedIn = $cookies['PLAY_SESSION']?
 
