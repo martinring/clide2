@@ -84,3 +84,112 @@
   -o-animation-name: bounceInLeft;
   animation-name: bounceInLeft;
 }
+
+
+#backstage.view-enter, #backstage.view-leave {
+  -webkit-transition: -webkit-transform ease 0.5s;
+  -moz-transition: -moz-transform ease 0.5s;
+  -o-transition: -o-transform ease 0.5s;
+  transition: transform ease 0.5s;
+}
+
+#backstage.view-enter {
+  -webkit-transform: translate(0,-100%)
+}
+#backstage.view-enter#backstage.view-enter-active {
+  -webkit-transform: translate(0,0);
+}
+
+#backstage.view-leave {
+  -webkit-transform: translate(0,0);
+}
+#backstage.view-leave#backstage.view-leave-active {
+  -webkit-transform: translate(0,-100%)
+}
+
+#ide.view-enter, #ide.view-leave {
+  -webkit-transition: opacity ease 0.5s;
+  -moz-transition: opacity ease 0.5s;
+  -o-transition: opacity ease 0.5s;
+  transition: opacity ease 0.5s;
+}
+
+#ide.view-enter {
+  opacity: 0;
+}
+#ide.view-enter#ide.view-enter-active {
+  opacity: 1;
+}
+
+#ide.view-leave {
+  opacity: 1;
+}
+#ide.view-leave#ide.view-leave-active {
+  opacity: 0;
+}
+
+
+.fadeIn,.fadeOut {
+  -webkit-transition: opacity ease 0.3s;
+  -moz-transition: opacity ease 0.3s;
+  -o-transition: opacity ease 0.3s;
+  transition: opacity ease 0.3s;
+}
+.fadeIn{
+  opacity:0;
+}
+.fadeOut{
+  opacity:1;
+}
+.fadeIn.fadeIn-active {
+  opacity: 1;
+}
+.fadeOut.fadeOut-active{
+    opacity:0;
+}
+
+.expand,.collapse {
+  -webkit-transition: -webkit-transform ease 0.2s;  
+}
+.expand{
+  -webkit-transform: scaleY(0.0);
+}
+.collapse{
+  -webkit-transform: scaleY(1.0);
+}
+.expand.expand-active {
+  -webkit-transform: scaleY(1.0);
+}
+.collapse.collapse-active{
+  -webkit-transform: scaleY(0.0);
+}
+
+#login.view-enter, #login.view-leave {
+  -webkit-transition: opacity ease 0.2s;
+  -moz-transition: opacity ease 0.2s;
+  -o-transition: opacity ease 0.2s;
+  transition: opacity ease 0.2s;
+}
+
+#login.view-enter {
+  opacity:0;
+}
+#login.view-enter#login.view-enter-active {
+  opacity: 1;
+}
+
+#login.view-leave {
+  opacity:1;
+}
+#login.view-leave#login.view-leave-active {
+  opacity:0;
+}
+
+a, .clickDown {
+  -webkit-transition: -webkit-transform ease 0.1s;
+  -webkit-transform-origin: 0.5 0.5;
+  -webkit-transform: scale(1);
+  &:active {    
+    -webkit-transform: scale(0.95);
+  }
+}

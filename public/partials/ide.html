@@ -30,7 +30,7 @@
                   <div class="failed"></div>
                 </div>
               </div>
-              <ul ng-show='file.files && file.expand' ng-animate="{show: 'expand', hide:'collapse'}" class='treeview'>
+              <ul ng-show='file.files && file.expand' class='treeview'>
                 <li ng-repeat='file in file.files' ng-include="'file.html'" ng-class='file.type'/>
               </ul>
             </script>

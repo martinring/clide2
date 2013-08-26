@@ -1,0 +1,22 @@
+.progress {
+  font-size: 0;
+  height: 3px;
+  overflow: hidden;
+  background-color: #ccc;
+  div {          
+    display: inline;
+    height: 3px;
+  }
+  .finished {
+    background-color: @accent;
+  }
+  .running {
+    background-color: white;
+  }
+  .warned {
+    background-color: yellow;    
+  }
+  .failed {
+    background-color: red;
+  }
+}

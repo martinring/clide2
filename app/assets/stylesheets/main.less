@@ -1,20 +1,24 @@
 @import 'reset.less';
 @import 'variables.less';
-@import 'fonts.less';
-@import 'tabs.less';
-@import 'modal.less';
+
+@import 'clui/dialog.less';
+@import 'clui/progress.less';
+@import 'clui/spinner.less';
+@import 'clui/tabs.less';
+@import 'clui/toasts.less';
+
 @import 'codemirror/codemirror.less';
 @import 'codemirror/dialog.less';
 @import 'codemirror/show-hint.less';
+
+@import 'fonts.less';
+@import 'icons.less';
+
+@import 'buttons.less';
+@import 'inputs.less';
+@import 'backstage.less';
 @import 'sidebar.less';
 @import 'statusbar.less';
-@import 'buttons.less';
-@import 'dialog.less';
-@import 'backstage.less';
-@import 'toasts.less';
-@import 'inputs.less';
-@import 'icons.less';
-@import 'spinner.less';
 
 body {
   background-color: #ccc;
@@ -30,14 +34,7 @@ a {
   &:hover {
     color: lighten(@accent, 5%);
   }
-  -webkit-transition: -webkit-transform ease 0.1s;
-  -webkit-transform-origin: 0.5 0.5;
-  -webkit-transform: scale(1);
-  &:active {    
-    -webkit-transform: scale(0.95);
-  }
 }
-
 
 h1 {
   font-weight: 100;
@@ -59,28 +56,6 @@ p {
   margin-bottom: 0.5em;
 }
 
-#console {  
-  position: fixed;  
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;  
-  background-color: rgba(0,0,0,0.6);
-  padding: 8px;
-  font-family: 'inconsolata';
-  color: white;
-  z-index: 100001;    
-  div {
-    white-space: pre;
-    &.failure {
-      color: red;
-    }
-    &.success {
-      color: lightgreen;
-    }
-  }
-}
-
 #backstage {
   position: fixed;
   top: 0;
@@ -93,81 +68,20 @@ p {
   z-index: 1000;
 }
 
-#login.view-enter, #login.view-leave {
-  -webkit-transition: opacity ease 0.2s;
-  -moz-transition: opacity ease 0.2s;
-  -o-transition: opacity ease 0.2s;
-  transition: opacity ease 0.2s;
-}
-
-#login.view-enter {
-  opacity:0;
-}
-#login.view-enter#login.view-enter-active {
-  opacity: 1;
-}
-
-#login.view-leave {
-  opacity:1;
-}
-#login.view-leave#login.view-leave-active {
-  opacity:0;
-}
-
-.fadeIn,.fadeOut {
-  -webkit-transition: opacity ease 0.3s;
-  -moz-transition: opacity ease 0.3s;
-  -o-transition: opacity ease 0.3s;
-  transition: opacity ease 0.3s;
-}
-.fadeIn{
-  opacity:0;
-}
-.fadeOut{
-  opacity:1;
-}
-.fadeIn.fadeIn-active {
-  opacity: 1;
-}
-.fadeOut.fadeOut-active{
-    opacity:0;
-}
-
-.expand,.collapse {
-  -webkit-transition: -webkit-transform ease 0.2s;  
-}
-.expand{
-  -webkit-transform: scaleY(0.0);
-}
-.collapse{
-  -webkit-transform: scaleY(1.0);
-}
-.expand.expand-active {
-  -webkit-transform: scaleY(1.0);
-}
-.collapse.collapse-active{
-  -webkit-transform: scaleY(0.0);
-}
-
-.progress {
-  font-size: 0;
-  height: 3px;
-  overflow: hidden;
-  background-color: #ccc;
-  div {          
-    display: inline;
-    height: 3px;
+.touchScroll {
+  ::-webkit-scrollbar {
+    width: 4px;
   }
-  .finished {
-    background-color: @accent;
+
+  ::-webkit-scrollbar-button {
+    visibility: hidden;
   }
-  .running {
-    background-color: white;
-  }
-  .warned {
-    background-color: yellow;    
-  }
-  .failed {
-    background-color: red;
+
+  ::-webkit-scrollbar-thumb {  
+    background: #ccc;
+    opacity: 0;
+    &:hover {
+      opacity: 1;
+    }
   }
 }

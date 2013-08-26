@@ -31,13 +31,15 @@ object ApplicationBuild extends Build with Angular {
     requireJs += "main.js",
     requireJsShim += "main.js",
     ngOtherModules ++= Map(
+        "angular-animate" -> "ngAnimate",
         "angular-cookies" -> "ngCookies",
-        "angular-route" -> "ngRoute"),
+        "angular-route" -> "ngRoute",
+        "angular-resource" -> "ngResource"),
     ngModuleDirs ++= Map(
-        "services" -> ("service","",true),
+        "controllers" -> ("controller", "Controller", true),
         "directives" -> ("directive","",false),
         "filters" -> ("filter","",false),
-        "controllers" -> ("controller", "Controller", true)),    
+        "services" -> ("service","",true)),    
     resourceGenerators in Compile <+= ngBoilerplateGenerator,
     resourceGenerators in Compile <+= LessCompiler,
     resourceGenerators in Compile <+= ngModuleCompiler
