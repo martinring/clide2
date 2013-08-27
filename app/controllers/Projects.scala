@@ -25,5 +25,5 @@ object Projects extends Controller with Secured {
         }
         case None => BadRequest("Malformed Project")
       }
-  } }
+  } }    
 }

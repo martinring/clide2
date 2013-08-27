@@ -10,13 +10,14 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
 
     cm = CodeMirror.fromTextArea iElem[0],
       lineNumbers: true
-      readOnly: true
+      #readOnly: true
       undoDepth: 0 # disable
       placeholder: 'content loading...'
 
     scope.$watch (-> scope.$eval(iAttrs.file)), (n,o) -> if n?
       unless o?
         $timeout((-> cm.refresh()),0)
+      cm.focus()
       unless n.doc?
         n.doc = CodeMirror.Doc('content loading...')
       cm.swapDoc(n.doc)
