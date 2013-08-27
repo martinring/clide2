@@ -2,7 +2,7 @@ package models
 
 import scala.slick.driver.H2Driver.simple._
 import play.api.Play.current
-import play.api.db.slick.DB.withSession
+import play.api.db.slick.DB
 import Database.{threadLocalSession => session}
 import play.api.libs.json._
 
@@ -27,11 +27,11 @@ object Projects extends Table[Project]("projects") {
     projects <- Projects if projects.ownerName === name
   } yield projects 
   
-  def getForOwner(owner: String) = withSession { implicit session =>
+  def getForOwner(owner: String) = DB.withSession { implicit session: Session =>
     forOwner(owner).elements
   }
     
-  def create(project: Project) = withSession { implicit session =>
+  def create(project: Project) = DB.withSession { implicit session: Session =>
     val id = autoinc.insert(project)
     // Create Directory
     project.copy(id=Some(id)) 

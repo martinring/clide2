@@ -6,7 +6,7 @@ import play.api.libs.json.JsValue
 import models.{Users,User}
 import scala.slick.driver.H2Driver.simple._
 import Database.{threadLocalSession => session}
-import play.api.db.slick.DB.withSession
+import play.api.db.slick.DB
 import play.api.Play.current
 
 /**
@@ -33,7 +33,7 @@ trait Secured { this: Controller =>
       case None => Results.Unauthorized
       case session =>
         val q = for (user <- Users if user.session === session) yield user.*
-        withSession { implicit session =>
+        DB.withSession { implicit session =>
           q.firstOption match {
             case None => Results.Unauthorized
             case Some(user) => f(user)(request)

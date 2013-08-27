@@ -3,7 +3,7 @@ import Keys._
 import play.Project._
 import scala.collection.mutable.StringBuilder
 
-object ApplicationBuild extends Build with Angular {
+object ApplicationBuild extends Build {
   val appName         = "clide"
   val appVersion      = "2.0-SNAPSHOT"   
     
@@ -11,8 +11,8 @@ object ApplicationBuild extends Build with Angular {
     "org.scalacheck" %% "scalacheck" % "1.10.1" % "test",
     "com.typesafe" %% "play-plugins-mailer" % "2.1.0",
     "com.typesafe.akka" %% "akka-testkit"  % "2.2.0"% "test",
-    "com.typesafe.play" %% "play-slick" % "0.3.2",
-    "com.typesafe.slick" %% "slick" % "1.0.0",           
+    "com.typesafe.play" %% "play-slick" % "0.4.0",
+    "com.typesafe.slick" %% "slick" % "1.0.1",           
     "org.webjars" % "angularjs" % "1.2.0rc1",
     "org.webjars" % "codemirror" % "3.16",
     "org.webjars" % "jquery" % "2.0.3",
@@ -23,25 +23,25 @@ object ApplicationBuild extends Build with Angular {
     jdbc
   )
     
-  val main = play.Project(appName, appVersion, appDependencies).settings(ngDefaultSettings:_*).settings(    
+  val main = play.Project(appName, appVersion, appDependencies).settings(Angular.defaultSettings:_*).settings(    
     scalaVersion := "2.10.2",
     resolvers += Resolver.url("Objectify Play Repository", url("http://schaloner.github.com/releases/"))(Resolver.ivyStylePatterns),
     resolvers += Resolver.url("Objectify Play Snapshot Repository", url("http://schaloner.github.com/snapshots/"))(Resolver.ivyStylePatterns),    
     lessEntryPoints <<= baseDirectory(d => (d / "app" / "assets" / "stylesheets" ** "main.less")),
     requireJs += "main.js",
     requireJsShim += "main.js",
-    ngOtherModules ++= Map(
+    Angular.otherModules ++= Map(
         "angular-animate" -> "ngAnimate",
         "angular-cookies" -> "ngCookies",
         "angular-route" -> "ngRoute",
         "angular-resource" -> "ngResource"),
-    ngModuleDirs ++= Map(
+    Angular.moduleDirs ++= Map(
         "controllers" -> ("controller", "Controller", true),
         "directives" -> ("directive","",false),
         "filters" -> ("filter","",false),
         "services" -> ("service","",true)),    
-    resourceGenerators in Compile <+= ngBoilerplateGenerator,
     resourceGenerators in Compile <+= LessCompiler,
-    resourceGenerators in Compile <+= ngModuleCompiler
+    resourceGenerators in Compile <+= Angular.ModuleCompiler,
+    resourceGenerators in Compile <+= Angular.BoilerplateGenerator
   )
 }

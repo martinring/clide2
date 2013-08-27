@@ -22,7 +22,7 @@ import play.api.data.Form
 import play.api.data.Forms.email
 import play.api.data.Forms.text
 import play.api.data.Forms.tuple
-import play.api.db.slick.DB.withSession
+import play.api.db.slick.DB
 import play.api.libs.Crypto
 import play.api.libs.concurrent.Akka
 import play.api.libs.concurrent.Akka.system
@@ -43,7 +43,7 @@ object Application extends Controller with Secured {
     }
     request.session.get("session") match {
       case None => unauthorized
-      case Some(session) => withSession { implicit dbsession =>
+      case Some(session) => DB.withSession { implicit dbsession =>
         val q = for (user <- models.Users if user.session === session)
           yield user.*
         q.firstOption match {
@@ -73,9 +73,9 @@ object Application extends Controller with Secured {
     tuple(
       "username" -> text.verifying("name is already in use", name => 
         !Seq("login","logout","signup","assets").contains(name) &&
-        withSession { implicit session => !models.Users.getByName(name).firstOption.isDefined }),
+       DB.withSession { implicit session => !models.Users.getByName(name).firstOption.isDefined }),
       "email" -> email.verifying("email is already registered", email =>
-        withSession { implicit session => !models.Users.getByEmail(email).firstOption.isDefined }),
+       DB.withSession { implicit session => !models.Users.getByEmail(email).firstOption.isDefined }),
       "password" -> text(minLength=8)
     )
   )
@@ -86,7 +86,7 @@ object Application extends Controller with Secured {
   def login = Action(parse.json) { implicit request =>
     loginForm.bind(request.body).fold(        
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
-      { case (name,password) => withSession { implicit session =>                 
+      { case (name,password) =>DB.withSession { implicit session =>                 
         models.Users.getByName(name).firstOption match {
           case None => Status(401)(Json.obj("username" -> Json.arr("we don't know anybody with that username")))
           case Some(user) if (user.password != Crypto.sign(name+password)) => 
@@ -108,7 +108,7 @@ object Application extends Controller with Secured {
       case Some(session) =>
         val q = for (user <- models.Users if user.session === session)
 	      yield user.*
-	    withSession { implicit session =>
+	   DB.withSession { implicit session =>
 	      q.firstOption match {
 	        case Some(u) =>
 	          Ok(Json.obj("username" -> u.name, "email" -> u.email))
@@ -122,7 +122,7 @@ object Application extends Controller with Secured {
     request.session.get("session") match {
       case None =>
         Ok.withNewSession
-      case Some(session) => withSession { implicit dbsession =>
+      case Some(session) =>DB.withSession { implicit dbsession =>
         val q = for (user <- models.Users if user.session === session)
           yield user.*
         q.firstOption match {
@@ -138,7 +138,7 @@ object Application extends Controller with Secured {
   def signup = Action(parse.json) { implicit request =>
     signupForm.bind(request.body).fold(
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
-      user => withSession { implicit session =>        
+      user =>DB.withSession { implicit session =>        
         if (models.Users.insert(models.User(user._1, user._2, Crypto.sign(user._1 + user._3),None,None)) > 0)
           Ok(user._1)
         else
@@ -196,7 +196,7 @@ object Application extends Controller with Secured {
   /**
    * Logout and clean the session.
    TODO!
-  def logout = Action { withSession =>
+  def logout = Action {DB.withSession =>
     
   }*/
 

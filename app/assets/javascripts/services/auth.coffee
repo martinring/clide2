@@ -1,5 +1,5 @@
 ### @service services:Auth ###
-### @import ngCookies from angular-cookies ###
+### @require ngCookies from angular-cookies ###
 define ['routes'], (routes) -> ($http, $cookies, $location) ->
   console.log 'initializing auth service'
   application = routes.controllers.Application  

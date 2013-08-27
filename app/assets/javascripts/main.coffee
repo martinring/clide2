@@ -37,7 +37,7 @@ require.config
     'routes':
       exports: 'jsRoutes'
   priority: [
-    'angular'
+    'angular' 
   ]
 
 require ['typekit', 'angular', 'app'], (Typekit, angular, app) -> 

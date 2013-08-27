@@ -1,13 +1,13 @@
-### @controller controllers:BackstageController ###
+### @controller clide.controllers:BackstageController ###
 define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, Toasts, Dialog) ->
-  $scope.user = $routeParams.user
+  $scope.user = $routeParams.user 
 
   unless Auth.loggedIn
     $location.path '/login'
     Toasts.push 'warn', 'You need to log in to view the requested resource!'
     return
 
-  Auth.validateSession
+  Auth.validateSession 
     success: -> 
       if $scope.user isnt Auth.user?.username
         $location.path '/login'
@@ -15,7 +15,7 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
       else
         $scope.email = Auth.user.email
         $scope.gravatar = md5(Auth.user.email)
-    error: ->
+    error: -> 
       $location.path '/login'
       Toasts.push 'warn', 'Sorry, your login session has expired! Please enter your credentials once again.'
   
@@ -28,7 +28,7 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
     $scope.projects = projects    
 
   $scope.logout = () ->
-    Auth.logout
+    Auth.logout 
       success: ->
         $location.path '/login'
         Toasts.push 'success', 'You have been logged out!'
