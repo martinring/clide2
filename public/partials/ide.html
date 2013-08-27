@@ -33,7 +33,7 @@
               <ul ng-show='file.files && file.expand' class='treeview'>
                 <li ng-repeat='file in file.files' 
                     ng-include="'file.html'" 
-                    ng-class='file.type'
+                    ng-class='{ selected: file==currentFile }'
                     ng-click='selectFile(file)'>
                 </li>                
               </ul>

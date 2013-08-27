@@ -2,10 +2,9 @@
 define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations'], (CodeMirror,routes,Operation,CMAdapter,Client,Annotations) -> (Dialog,$timeout) -> 
   restrict: 'E'
   transclude: true
-  controller: ($scope, $element) ->
-    console.log $element
   template: '<textarea></textarea>'
   replace: true
+
   link: (scope, iElem, iAttrs, controller) ->
     window.countMe = (window.countMe or 0) + 1
 
@@ -13,12 +12,17 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
       lineNumbers: true
       readOnly: true
       undoDepth: 0 # disable
+      placeholder: 'content loading...'
 
-    scope.$watch (-> scope.$eval(iAttrs.file)), (n,o) ->
-      $timeout((-> cm.refresh()),50)
-      console.log n
+    scope.$watch (-> scope.$eval(iAttrs.file)), (n,o) -> if n?
+      unless o?
+        $timeout((-> cm.refresh()),0)
+      unless n.doc?
+        n.doc = CodeMirror.Doc('content loading...')
+      cm.swapDoc(n.doc)
 
-    socket = new WebSocket(routes.controllers.Application.collab().webSocketURL())
+    #socket = new WebSocket(routes.controllers.Application.collab().webSocketURL())
+    socket = {}
 
     client = null
     annotations = new Annotations
@@ -26,7 +30,7 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
     socket.onmessage = (e) -> 
       msg = JSON.parse(e.data)
       switch msg.type
-        when 'init'          
+        when 'init'
           cm.setValue(msg.doc)
           client = new Client(msg.rev)
           adapter = new CMAdapter(cm)
