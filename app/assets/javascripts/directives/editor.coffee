@@ -53,11 +53,10 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
 
     f = () -> Dialog.push
       title: 'connection lost'
-      text: 'The connection to the server has been lost. All changes you make to the document now are only local and might get lost.'
-      buttons: ['Ok','Again']
-      done: (what) -> switch what
-        when 'Again'
-          f()
+      text: 'The connection to the server has been lost. ' +
+            'All changes you make to the document now are ' +
+            'only local and might get lost.'
+      buttons: ['Ok']
 
     socket.onclose = () -> scope.$apply f
       
