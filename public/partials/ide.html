@@ -31,7 +31,10 @@
                 </div>
               </div>
               <ul ng-show='file.files && file.expand' class='treeview'>
-                <li ng-repeat='file in file.files' ng-include="'file.html'" ng-class='file.type'>
+                <li ng-repeat='file in file.files' 
+                    ng-include="'file.html'" 
+                    ng-class='file.type'
+                    ng-click='selectFile(file)'>
                 </li>                
               </ul>
             </script>
@@ -103,8 +106,8 @@
                 ng-class='{active: currentFile==file}'>
             </li>
           </ul>
-          <div class="content" ng-repeat='file in openFiles' ng-show='file===currentFile'>
-            <editor></editor>
+          <div class="content" ng-show='currentFile'>
+            <editor file='currentFile'></editor>
           </div>
         </div>
       </div>

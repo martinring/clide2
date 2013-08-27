@@ -1,16 +1,22 @@
 ### @directive directives:editor ###
-define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations'], (CodeMirror,routes,Operation,CMAdapter,Client,Annotations) -> () -> 
+define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations'], (CodeMirror,routes,Operation,CMAdapter,Client,Annotations) -> (Dialog,$timeout) -> 
   restrict: 'E'
   transclude: true
   controller: ($scope, $element) ->
-    null
+    console.log $element
   template: '<textarea></textarea>'
   replace: true
-  link: (scope, iElem, iAttrs, controller) ->    
+  link: (scope, iElem, iAttrs, controller) ->
+    window.countMe = (window.countMe or 0) + 1
+
     cm = CodeMirror.fromTextArea iElem[0],
       lineNumbers: true
       readOnly: true
       undoDepth: 0 # disable
+
+    scope.$watch (-> scope.$eval(iAttrs.file)), (n,o) ->
+      $timeout((-> cm.refresh()),50)
+      console.log n
 
     socket = new WebSocket(routes.controllers.Application.collab().webSocketURL())
 
@@ -43,7 +49,16 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
 
     socket.onopen = ->
       socket.send JSON.stringify
-        type: 'register'
+        type: 'register'   
 
-    socket.onclose = ->
-      console.log 'connection lost'
+    f = () -> Dialog.push
+      title: 'connection lost'
+      text: 'The connection to the server has been lost. All changes you make to the document now are only local and might get lost.'
+      buttons: ['Ok','Again']
+      done: (what) -> switch what
+        when 'Again'
+          f()
+
+    socket.onclose = () -> scope.$apply f
+      
+
