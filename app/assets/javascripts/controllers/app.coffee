@@ -1,6 +1,5 @@
 ### @controller controllers:AppController ###
-define -> ($scope, $location, Console, Toasts, Dialog, Auth, version) ->
-  console.log 'initializing app controller'  
+define -> ($scope, $location, Console, Toasts, Dialog, Auth, version) ->  
   $scope.console = Console
   $scope.toasts = Toasts.toasts
   $scope.dialog = Dialog

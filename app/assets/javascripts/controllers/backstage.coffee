@@ -53,16 +53,4 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
       buttons: [ { 'Ok': submit }, 'Cancel' ]
 
   $scope.start = () ->
-    Toasts.push 'info', "preparing project '#{$scope.selectedProject.name}'"
-    done3 = () ->    
-      $location.path "/#{Auth.user.username}/#{$scope.selectedProject.name}/"
-      $scope.$apply()
-    done2 = () -> 
-      Toasts.push 'info', "Welcome to Isabelle/HOL (Isabelle2012: May 2012)"
-      $scope.$apply()
-      setTimeout(done3,500)
-    done = () -> 
-      Toasts.push 'info', "loaded project structure"
-      $scope.$apply()
-      setTimeout(done2,1000)
-    setTimeout(done,1500)
+    $location.path "/#{Auth.user.username}/#{$scope.selectedProject.name}/"    

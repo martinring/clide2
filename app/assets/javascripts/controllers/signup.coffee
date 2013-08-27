@@ -1,6 +1,5 @@
 ### @controller controllers:SignupController ###
 define ['routes','underscore','util/md5'], (routes,_,md5) -> ($scope, $location, Console, Toasts, Auth) ->
-  console.log 'initializing signup controller'
   $scope.gravatar = null
   $scope.data =
     username: null

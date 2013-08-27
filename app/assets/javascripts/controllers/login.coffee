@@ -1,6 +1,5 @@
 ### @controller controllers:LoginController ###
 define ['routes','underscore'], (routes,underscore) -> ($scope, $location, Auth, Toasts) ->
-  console.log 'initializing login controller'
   $scope.data =
     username: null
     password: null

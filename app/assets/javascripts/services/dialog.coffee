@@ -1,7 +1,5 @@
 ### @service services:Dialog ###
-define [], () -> () ->
-  console.log 'initializing dialog service'
-  
+define [], () -> () ->  
   queue = []
 
   state = {}
@@ -10,6 +8,7 @@ define [], () -> () ->
     done = -> 
       if queue.length > 0
         config = queue.shift()
+        console.log config
         state.show = true
         state.title = config.title
         state.message = config.message
@@ -61,6 +60,7 @@ define [], () -> () ->
           return button
 
     queue.unshift config
+
     next()  
 
   state.push = push

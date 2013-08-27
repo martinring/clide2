@@ -2,11 +2,11 @@
   <div ng-class='{extendedStatusbar:output}'>    
     <nav id="ribbon">
       <ul class="nav menu" ng-init='sidebarSection="files"'>
-        <li title='Files' ng-click='sidebarSection="files";sidebar=true' ng-class='{active: sidebarSection=="files"}'><i class='icon-list-ul'></i></li>
-        <li title='Edit' ng-click='sidebarSection="edit";sidebar=true' ng-class='{active: sidebarSection=="edit"}'><i class='icon-pencil'></i></li>
-        <li title='View' ng-click='sidebarSection="view";sidebar=true' ng-class='{active: sidebarSection=="view"}'><i class='icon-eye-open'></i></li>
-        <li title='Settings' ng-click='sidebarSection="settings";sidebar=true' ng-class='{active: sidebarSection=="settings"}'><i class='icon-gear'></i></li>
-        <li title='Help' ng-click='sidebarSection="help";sidebar=true' ng-class='{active: sidebarSection=="help"}'><i class='icon-question-sign'></i></li>        
+        <li title='Files' ng-click='select("files")' ng-class='{active: sidebarSection=="files"}'><i class='icon-list-ul'></i></li>
+        <li title='Edit' ng-click='select("edit")' ng-class='{active: sidebarSection=="edit"}'><i class='icon-pencil'></i></li>
+        <li title='View' ng-click='select("view")' ng-class='{active: sidebarSection=="view"}'><i class='icon-eye-open'></i></li>
+        <li title='Settings' ng-click='select("settings")' ng-class='{active: sidebarSection=="settings"}'><i class='icon-gear'></i></li>
+        <li title='Help' ng-click='select("help")' ng-class='{active: sidebarSection=="help"}'><i class='icon-question-sign'></i></li        
       </ul>
       <div id="sidebarButton" ng-click='sidebar=!sidebar'><i class='icon-expand'></i></div>
     </nav>
@@ -16,8 +16,8 @@
         <input id="searchBox" ng-model='search.name'></input>
       </div>
       <nav id="sidebar">
-        <ul id="sidebarContent">
-          <li class="section" ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>
+        <ul id="sidebarContent" class='touchScroll'>
+          <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>
             <h1>Files</h1>
             <script type='text/ng-template' id='file.html'>
               <div class='icon' ng-class='{folder: file.files, opened: file.expand}'><i ng-class='file.icon'></i></div>
@@ -38,7 +38,7 @@
               <li ng-repeat='file in files.files' ng-class='file.type' ng-include="'file.html'"/>
             </ul>
           </li>
-          <li class="section" ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
+          <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
             <h1>Edit</h1>   
             <ul class='treeview'>
               <li>
@@ -69,19 +69,19 @@
               </li>
             </ul>
           </li>
-          <li class="section" ng-class='{active: sidebarSection=="view"}' ng-click='sidebarSection="view"'>
+          <li class="section" id='section-view' ng-class='{active: sidebarSection=="view"}' ng-click='sidebarSection="view"'>
             <h1>View</h1>            
             <div class='content'>
             Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
             </div>         
           </li>
-          <li class="section" ng-class='{active: sidebarSection=="settings"}' ng-click='sidebarSection="settings"'>
+          <li class="section" id='section-settings' ng-class='{active: sidebarSection=="settings"}' ng-click='sidebarSection="settings"'>
             <h1>Settings</h1>            
             <div class='content'>
             Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
             </div>         
           </li>
-          <li class="section" ng-class='{active: sidebarSection=="help"}' ng-click='sidebarSection="help"'>
+          <li class="section" id='section-help' ng-class='{active: sidebarSection=="help"}' ng-click='sidebarSection="help"'>
             <h1>Help</h1>  
             <div class='content'>
             Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.

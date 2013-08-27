@@ -1,14 +1,13 @@
 ### @service services:Auth ###
 ### @require ngCookies from angular-cookies ###
 define ['routes'], (routes) -> ($http, $cookies, $location) ->
-  console.log 'initializing auth service'
   application = routes.controllers.Application  
 
   service = {
     user:      
       username: localStorage['username']
       email: localStorage['email']
-  }  
+  }
 
   changeUser = (user) ->    
     if user?

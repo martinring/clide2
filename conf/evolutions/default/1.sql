@@ -10,15 +10,15 @@ alter table "rights" add constraint "pk_right" primary key("project","user");
 create table "users" ("name" VARCHAR NOT NULL PRIMARY KEY,"email" VARCHAR NOT NULL,"password" VARCHAR NOT NULL,"session" VARCHAR,"timeout" DATE);
 alter table "projects" add constraint "fk_project_user" foreign key("owner") references "users"("name") on update NO ACTION on delete NO ACTION;
 alter table "projects" add constraint "fk_project_folder" foreign key("root") references "folders"("id") on update NO ACTION on delete NO ACTION;
-alter table "rights" add constraint "fk_right_user" foreign key("user") references "users"("name") on update NO ACTION on delete NO ACTION;
 alter table "rights" add constraint "fk_right_project" foreign key("project") references "projects"("id") on update NO ACTION on delete NO ACTION;
+alter table "rights" add constraint "fk_right_user" foreign key("user") references "users"("name") on update NO ACTION on delete NO ACTION;
 
 # --- !Downs
 
 alter table "projects" drop constraint "fk_project_user";
 alter table "projects" drop constraint "fk_project_folder";
-alter table "rights" drop constraint "fk_right_user";
 alter table "rights" drop constraint "fk_right_project";
+alter table "rights" drop constraint "fk_right_user";
 drop table "folders";
 drop table "projects";
 alter table "rights" drop constraint "pk_right";

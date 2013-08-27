@@ -5,6 +5,7 @@ import PlayKeys._
 import PlayExceptions._
 import java.io.File
 import java.io.FileReader
+import scala.collection.SortedSet
 
 object Angular {   
   val moduleOptions = SettingKey[Seq[String]]("angular-module-options")
@@ -21,10 +22,13 @@ object Angular {
   )
     
   // (moduleName -> (path,name)*)*  
-  //private val previous = scala.collection.mutable.Map[String,SortedMap[String,String]]()
+  private val previous = scala.collection.mutable.Map[String,SortedSet[String]]()
 
-  private var previous = Map[String,Seq[ModuleDeclaration]]()
-  private var next     = Map[String,Seq[ModuleDeclaration]]
+  private object State {
+    var changed = false
+    var baseDependencies = Set[String]()
+    var modules = Map[String,Seq[ModuleDeclaration]]()
+  }
   
   private trait HeaderLine
   
@@ -47,7 +51,7 @@ object Angular {
       
     def req: Parser[HeaderLine] =       
       ("@require".r ~! (identifier ~ opt("from".r ~> path))) ^^ 
-      { case _ ~ what ~ where => RequireStatement(what,where) }
+      { case _ ~ (what ~ where) => RequireStatement(what,where) }
     
     def identifier: Parser[String] = """([\-a-zA-Z]+)""".r ^^ ( _.toString )
     
@@ -85,10 +89,9 @@ object Angular {
       val r = ModuleHeaderParser.parse(ModuleHeaderParser.header,handle)
       r match {
         case ModuleHeaderParser.Success(v,_) => handle.close(); v match {
-          case Some((ModuleDeclaration(kind,module,name),others)) =>            
-            if (state.modules.contains(module))
-            else
-              state.modules += (module -> )
+          case Some((ModuleDeclaration(kind,module,name),others)) =>
+            println(v.get)
+          case None => // nothing            
         }          
         case ModuleHeaderParser.NoSuccess(msg,next) => 
           handle.close()          
@@ -103,44 +106,44 @@ object Angular {
     coffeescriptOptions
   )
   
-  val BoilerplateGenerator = (resourceManaged in Compile, sourceDirectory in Compile, cacheDirectory, name, version, moduleDirs, otherModules, configDir) map { (outDir,sourceDir,cache,appName,appVersion,moduleDirs,otherModules,configDir) =>
-    println("boilerplate generation triggered")
-//    val bps = moduleDirs.map { case (what,(ngf,postfix,capitalize)) =>
-//      val inFiles = ((sourceDir / "assets" / "javascripts" / what) * "*.coffee").get
-//      val names = SortedSet(inFiles.map(_.getName.dropRight(7)) :_*)
-//      val outFile = outDir / "public" / "javascripts" / (what+".js")
-//      if (previous.get(what).map(_ != names).getOrElse(true)) {        
-//        previous(what) = names			 
-//		val builder = new StringBuilder("define(['angular'")
-//		builder ++= names.map(file => ",'"+what+"/"+file+"'").mkString
-//		builder ++= "],function(angular"
-//		builder ++= names.map(f=>","+f).mkString
-//		builder ++= "){var module=angular.module('"+appName+"."+what+"',[]);"
-//		builder ++= names.map(file => "module."+ngf+"('"+(if(capitalize)file.capitalize else file)+postfix+"',"+file+")").mkString(";")
-//		builder ++= "})"	
-//		IO.write(outFile, builder.toString)
-//      } 
-//      outFile
-//	}    
-//    val configs = SortedSet(((sourceDir /"assets"/"javascripts"/configDir) * "*.coffee").get.map(_.getName.dropRight(7)) :_*)
-//    val appFile = outDir / "public" / "javascripts" / "app.js"
-//    if (previous.get(configDir).map(_ != configs).getOrElse(true)) {      
-//      previous(configDir) = configs
-//      val builder = new StringBuilder("define(['angular'")
-//  	  builder ++= configs.map(file => ",'"+configDir+"/"+file+"'").mkString    
-//      builder ++= otherModules.keys.map(file => ",'"+file+"'").mkString
-//      builder ++= moduleDirs.keys.map(file => ",'"+file+"'").mkString 
-//      builder ++= "],function(angular,"
-//      builder ++= configs.mkString(",")
-//      builder ++= "){var app=angular.module('"+appName+"',["
-//      builder ++= (moduleDirs.keys.map(f=>"'clide."+f+"'") ++ otherModules.values.map(f=>"'"+f+"'")).mkString(",") 
-//      builder ++= "]);"
-//      builder ++= configs.map(f=>"app.config("+f+");").mkString
-//      builder ++= "app.value('version','"+appVersion+"');return app"
-//      builder ++= "})"
-//      IO.write(appFile, builder.toString)    
-//    }
-//    Seq(appFile) ++ bps.toSeq
-      Seq[File]()
+  val BoilerplateGenerator = (resourceManaged in Compile, sourceDirectory in Compile, cacheDirectory, name, version, moduleDirs, otherModules, configDir) map { (outDir,sourceDir,cache,appName,appVersion,moduleDirs,otherModules,configDir) =>    
+    val bps = moduleDirs.map { case (what,(ngf,postfix,capitalize)) =>
+      val inFiles = ((sourceDir / "assets" / "javascripts" / what) * "*.coffee").get
+      val names = SortedSet(inFiles.map(_.getName.dropRight(7)) :_*)
+      val outFile = outDir / "public" / "javascripts" / (what+".js")
+      if (previous.get(what).map(_ != names).getOrElse(true)) {
+        println("generating " + outFile)
+        previous(what) = names			 
+		val builder = new StringBuilder("define(['angular'")
+		builder ++= names.map(file => ",'"+what+"/"+file+"'").mkString
+		builder ++= "],function(angular"
+		builder ++= names.map(f=>","+f).mkString
+		builder ++= "){var module=angular.module('"+appName+"."+what+"',[]);"
+		builder ++= names.map(file => "module."+ngf+"('"+(if(capitalize)file.capitalize else file)+postfix+"',"+file+")").mkString(";")
+		builder ++= "})"	
+		IO.write(outFile, builder.toString)
+      } 
+      outFile
+	}    
+    val configs = SortedSet(((sourceDir /"assets"/"javascripts"/configDir) * "*.coffee").get.map(_.getName.dropRight(7)) :_*)
+    val appFile = outDir / "public" / "javascripts" / "app.js"
+    if (previous.get(configDir).map(_ != configs).getOrElse(true)) {
+      println("generating " + appFile)
+      previous(configDir) = configs
+      val builder = new StringBuilder("define(['angular'")
+  	  builder ++= configs.map(file => ",'"+configDir+"/"+file+"'").mkString    
+      builder ++= otherModules.keys.map(file => ",'"+file+"'").mkString
+      builder ++= moduleDirs.keys.map(file => ",'"+file+"'").mkString 
+      builder ++= "],function(angular,"
+      builder ++= configs.mkString(",")
+      builder ++= "){var app=angular.module('"+appName+"',["
+      builder ++= (moduleDirs.keys.map(f=>"'clide."+f+"'") ++ otherModules.values.map(f=>"'"+f+"'")).mkString(",") 
+      builder ++= "]);"
+      builder ++= configs.map(f=>"app.config("+f+");").mkString
+      builder ++= "app.value('version','"+appVersion+"');return app"
+      builder ++= "})"
+      IO.write(appFile, builder.toString)    
+    }
+    Seq(appFile) ++ bps.toSeq
   }
 }

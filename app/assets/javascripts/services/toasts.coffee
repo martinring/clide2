@@ -1,7 +1,5 @@
 ### @service services:Toasts ###
 define () -> ($rootScope) ->
-  console.log 'initializing toast service'
-
   toasts = []
 
   config = 
