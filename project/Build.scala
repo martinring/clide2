@@ -13,7 +13,7 @@ object ApplicationBuild extends Build {
     "com.typesafe.akka" %% "akka-testkit"  % "2.2.0"% "test",
     "com.typesafe.play" %% "play-slick" % "0.4.0",
     "com.typesafe.slick" %% "slick" % "1.0.1",           
-    "org.webjars" % "angularjs" % "1.2.0rc1",
+    "org.webjars" % "angularjs" % "1.1.5-1",
     "org.webjars" % "codemirror" % "3.16",
     "org.webjars" % "jquery" % "2.0.3",
     "org.webjars" % "marked" % "0.2.9",
@@ -31,10 +31,10 @@ object ApplicationBuild extends Build {
     requireJs += "main.js",
     requireJsShim += "main.js",
     Angular.otherModules ++= Map(
-        "angular-animate" -> "ngAnimate",
-        "angular-cookies" -> "ngCookies",
-        "angular-route" -> "ngRoute",
-        "angular-resource" -> "ngResource"),
+        //"angular-animate" -> "ngAnimate",
+        "angular-cookies" -> "ngCookies"),
+        //"angular-route" -> "ngRoute",
+        //"angular-resource" -> "ngResource"),
     Angular.moduleDirs ++= Map(
         "controllers" -> ("controller", "Controller", true),
         "directives" -> ("directive","",false),

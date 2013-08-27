@@ -20,7 +20,7 @@
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>
             <h1>Files</h1>
             <script type='text/ng-template' id='file.html'>
-              <div class='icon' ng-class='{folder: file.files, opened: file.expand}'><i ng-class='file.icon'></i></div>
+              <i ng-class='file.icon' ng-class='{folder: file.files, opened: file.expand}'></i>
               <div class='title' ng-click='file.expand=!file.expand'>
                 <span class='name' ng-bind='file.name'/>
                 <div class="progress">
@@ -31,36 +31,39 @@
                 </div>
               </div>
               <ul ng-show='file.files && file.expand' class='treeview'>
-                <li ng-repeat='file in file.files' ng-include="'file.html'" ng-class='file.type'/>
+                <li ng-repeat='file in file.files' ng-include="'file.html'" ng-class='file.type'>
+                </li>                
               </ul>
             </script>
             <ul class="treeview">
-              <li ng-repeat='file in files.files' ng-class='file.type' ng-include="'file.html'"/>
+              <li ng-repeat='file in files.files' ng-include='"file.html"' ng-class='file.type'>
+                test            
+              </li>
             </ul>
           </li>
           <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
             <h1>Edit</h1>   
             <ul class='treeview'>
               <li>
-                <div class='icon'></div>
+                <div class='icon'><i class='icon-angle-right'></i></div>
                 <div class='title'>
                   <span class='name'>Clipboard</span>
                 </div>
                 <ul class='treeview'>
                   <li>
-                    <div class='icon'></div>
+                    <i class='icon-cut'></i>
                     <div class='title'>
                       <span class='name'>Cut</span>
                     </div>
                   </li>
                   <li>
-                    <div class='icon'></div>
+                    <i class='icon-copy'></i>
                     <div class='title'>
                       <span class='name'>Copy</span>
                     </div>
                   </li>
                   <li>
-                    <div class='icon'></div>
+                    <i class='icon-paste'></i>
                     <div class='title'>
                       <span class='name'>Paste</span>
                     </div>

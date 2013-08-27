@@ -20,8 +20,7 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
     socket.onmessage = (e) -> 
       msg = JSON.parse(e.data)
       switch msg.type
-        when 'init'
-          console.log 'initialized'
+        when 'init'          
           cm.setValue(msg.doc)
           client = new Client(msg.rev)
           adapter = new CMAdapter(cm)
