@@ -111,8 +111,7 @@ object Angular {
       val inFiles = ((sourceDir / "assets" / "javascripts" / what) * "*.coffee").get
       val names = SortedSet(inFiles.map(_.getName.dropRight(7)) :_*)
       val outFile = outDir / "public" / "javascripts" / (what+".js")
-      if (previous.get(what).map(_ != names).getOrElse(true)) {
-        println("generating " + outFile)
+      if (previous.get(what).map(_ != names).getOrElse(true)) {        
         previous(what) = names			 
 		val builder = new StringBuilder("define(['angular'")
 		builder ++= names.map(file => ",'"+what+"/"+file+"'").mkString
@@ -127,8 +126,7 @@ object Angular {
 	}    
     val configs = SortedSet(((sourceDir /"assets"/"javascripts"/configDir) * "*.coffee").get.map(_.getName.dropRight(7)) :_*)
     val appFile = outDir / "public" / "javascripts" / "app.js"
-    if (previous.get(configDir).map(_ != configs).getOrElse(true)) {
-      println("generating " + appFile)
+    if (previous.get(configDir).map(_ != configs).getOrElse(true)) {      
       previous(configDir) = configs
       val builder = new StringBuilder("define(['angular'")
   	  builder ++= configs.map(file => ",'"+configDir+"/"+file+"'").mkString    

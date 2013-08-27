@@ -45,6 +45,8 @@ define () -> (Projects) ->
     icon: 'icon-file-alt'  
     ] 
   ]
+
   return (  
     files: tree
+    opened: []
   )

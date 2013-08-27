@@ -36,8 +36,10 @@
               </ul>
             </script>
             <ul class="treeview">
-              <li ng-repeat='file in files.files' ng-include='"file.html"' ng-class='file.type'>
-                test            
+              <li ng-repeat='file in files' 
+                  ng-include='"file.html"' 
+                  ng-class='{ selected: file==currentFile }'
+                  ng-click='selectFile(file)'>
               </li>
             </ul>
           </li>
@@ -95,21 +97,31 @@
       <div id='content'>
         <div class="tabs">
           <ul class="headers">
-            <li ng-repeat='file in files.flat() | filter:{opened: true}' ng-bind='file.name'/>
+            <li ng-repeat='file in openFiles' 
+                ng-bind='file.name' 
+                ng-click='selectFile(file)' 
+                ng-class='{active: currentFile==file}'>
+            </li>
           </ul>
-          <div class="content">
-            <editor>Test</editor>
+          <div class="content" ng-repeat='file in openFiles' ng-show='file===currentFile'>
+            <editor></editor>
           </div>
         </div>
       </div>
       <div id="statusbar">
         <ul class="buttons">
-          <li id="consoleButton" ng-click="output=!output" ng-class="{active:output}">Output</li>          
+          <li id="consoleButton" 
+              ng-click="output=!output" 
+              ng-class="{active:output}">
+              Output
+          </li>          
         </ul>
         <ul class="statusMessages">
           <li id="syslog"></li>
           <li id="sessionLogic"></li>
-          <li id="sessionStatus" class="phase"><i class='icon-cloud'></i></li>
+          <li id="sessionStatus" class="phase">
+            <i class='icon-cloud'></i>
+          </li>
         </ul>        
         <div id="output"></div>
       </div>  

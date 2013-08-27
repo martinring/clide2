@@ -4,9 +4,17 @@ define ['jquery'], ($) -> ($scope, $timeout, Files) ->
     $scope.state = 'ide'
   $scope.state = 'login'
   $scope.sidebar = true
-  $scope.files = Files
+  $scope.files = Files.files
+  $scope.openFiles = []
+  $scope.currentFile = null
 
-  to = null
+  $scope.selectFile = (file) -> unless file.files
+    $scope.currentFile = file
+    for f in $scope.openFiles
+      return false if file is f
+    $scope.openFiles.push(file)
+    console.log($scope.openFiles)
+    return true
 
   # This is very hacky and should be moved to a sidebar directive
   # in the future!

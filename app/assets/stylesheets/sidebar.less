@@ -327,12 +327,21 @@ ul.treeview {
           -webkit-transform: rotate(45deg);
         }
       }
-    }
+    }    
     .title {
       cursor: pointer;
       padding: 0px 16px 2px 36px;
       &:hover {
         background-color: #ddd;
+      }
+    }
+    &.selected {
+      border-left: 8px solid @accent;
+      i {
+        padding-left: 8px;
+      }
+      .title {
+        padding-left: 28px;
       }
     }
     .treeview {
