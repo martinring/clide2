@@ -1,5 +1,21 @@
 ### @controller controllers:IdeController ###
-define ['jquery'], ($) -> ($scope, $timeout, Files, Dialog) ->
+define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, Toasts) ->
+  $scope.user = $routeParams.user
+
+  unless Auth.loggedIn
+    $location.path '/login'
+    Toasts.push 'warn', 'You need to log in to view the requested resource!'
+    return
+
+  Auth.validateSession 
+    success: -> 
+      if $scope.user isnt Auth.user?.username
+        $location.path '/login'
+        Toasts.push 'warn', 'The requested resource is not associated with your user account!'      
+    error: -> 
+      $location.path '/login'
+      Toasts.push 'warn', 'Sorry, your login session has expired! Please enter your credentials once again.'    
+
   $scope.start = () ->
     $scope.state = 'ide'
   $scope.state = 'login'

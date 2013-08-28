@@ -15,6 +15,7 @@
         <div id="searchButton" ng-click='sidebar=true'><i class='icon-search'></i></div>
         <input id="searchBox" ng-model='search.name'></input>
       </div>
+      <a id='backstageButton' title='Backstage' href='/{{user}}/backstage'><i class='icon-arrow-right'></i></a>
       <nav id="sidebar">
         <ul id="sidebarContent" class='touchScroll'>
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>

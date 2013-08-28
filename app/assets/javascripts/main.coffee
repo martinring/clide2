@@ -42,6 +42,9 @@ require.config
 
 require ['typekit', 'angular', 'app'], (Typekit, angular, app) ->   
   Typekit.load()
+  app.run ($location, $rootScope) ->
+    $rootScope.$on '$routeChangeSuccess', (e,n,o) ->
+      $rootScope.title = n.$$route.title
   angular.element(document).ready ->
     angular.bootstrap document, ['clide']
     $('#loading').remove()

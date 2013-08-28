@@ -4,7 +4,7 @@
   <head>
     <base href='/'/>
     <meta charset="utf-8"/>
-    <title>Clide 2</title>
+    <title ng-bind="'clide - ' + title">clide</title>
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
     @helper.requireJs(core = routes.WebJarAssets.at(WebJarAssets.locate("require.js")).url, module=routes.Assets.at("javascripts/main").url)
