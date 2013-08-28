@@ -1,0 +1,6 @@
+<ul id='contextmenu' ng-controller='ContextMenuController' tabindex='-1'>
+  <li ng-repeat='item in contextmenu.current' ng-click='done(item.action)'>
+    <i class='icon-{{item.icon}}'></i>
+    <span ng-bind='item.text'></span>
+  </li>
+</ul>
