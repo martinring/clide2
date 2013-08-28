@@ -102,7 +102,8 @@
           <ul class="headers">
             <li ng-repeat='file in openFiles' 
                 ng-bind='file.name' 
-                ng-click='selectFile(file)' 
+                ng-click='selectFile(file)'
+                context-menu='fileContextMenu(file)'
                 ng-class='{active: currentFile==file}'>
             </li>
           </ul>

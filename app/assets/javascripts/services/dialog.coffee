@@ -52,7 +52,7 @@ define [], () -> () ->
 
     config.buttons = config.buttons.map (button) -> 
       switch typeof button
-        when 'string'          
+        when 'string'
           return { text: button, action: () -> config.done?(button) }
         when 'object'
           unless button.action?

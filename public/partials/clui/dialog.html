@@ -34,6 +34,12 @@
             <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
             <textarea ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>                
           </span>
+          <span ng-switch-when='select'>
+            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+            <select ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'
+                    ng-options='option.text for option in query.options'>
+            </select>
+          </span>
           <span ng-switch-default>
             <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
             <input type="{{query.type}}" ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>
