@@ -1,8 +1,8 @@
 # Authentication
-POST    /api/auth/login                     controllers.Application.login
-GET     /api/auth/validateSession           controllers.Application.validateSession
-POST    /api/auth/signup                    controllers.Application.signup
-GET     /api/auth/logout                    controllers.Application.logout
+POST    /api/auth/login                     controllers.Authentication.login
+GET     /api/auth/validateSession           controllers.Authentication.validateSession
+POST    /api/auth/signup                    controllers.Authentication.signup
+GET     /api/auth/logout                    controllers.Authentication.logout
 
 # Projects
 GET     /api/projects/:user                 controllers.Projects.index(user)

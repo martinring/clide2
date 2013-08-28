@@ -1,7 +1,7 @@
 ### @service services:Auth ###
 ### @require ngCookies from angular-cookies ###
 define ['routes'], (routes) -> ($http, $cookies, $location) ->
-  application = routes.controllers.Application  
+  authentication = routes.controllers.Authentication  
 
   service = {
     user:      
@@ -22,14 +22,14 @@ define ['routes'], (routes) -> ($http, $cookies, $location) ->
   service.loggedIn = $cookies['PLAY_SESSION']?
 
   service.signup = (credentials,callbacks) ->
-    $http.post(application.signup().url, credentials)
+    $http.post(authentication.signup().url, credentials)
       .success (res) ->
         changeUser res
         callbacks.success?(res)
       .error (d...) -> callbacks.error?(d...)
 
   service.validateSession = (callbacks) ->
-    $http.get(application.validateSession().url)
+    $http.get(authentication.validateSession().url)
       .success (res) ->
         service.loggedIn = true        
         changeUser res
@@ -41,7 +41,7 @@ define ['routes'], (routes) -> ($http, $cookies, $location) ->
         callbacks.error?(e...)
 
   service.login = (credentials,callbacks) ->
-    $http.post(application.login().url, credentials)
+    $http.post(authentication.login().url, credentials)
       .success (res) ->
         service.loggedIn = true        
         changeUser res
@@ -51,7 +51,7 @@ define ['routes'], (routes) -> ($http, $cookies, $location) ->
         callbacks.error?(d...)
 
   service.logout = (callbacks) ->    
-    $http.get(application.logout().url)
+    $http.get(authentication.logout().url)
       .success ->
         service.loggedIn = false
         changeUser null

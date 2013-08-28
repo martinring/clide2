@@ -28,13 +28,11 @@ object Users extends Table[User]("users") {
     user <- Users; if user.name === name
   } yield user
   
-  val getByEmail = for {
-    email <- Parameters[String]
-    user  <- Users if user.email === email
+  def getByEmail(email: String) = for {    
+    user <- Users if user.email === email
   } yield user
   
-  val authenticate = for {
-    (name,password) <- Parameters[(String,String)]
-    user <- Users if user.name === name && user.password === password
-  } yield user.session
+  def getBySession(session: String) = for {
+    user <- Users if user.session === session
+  } yield user
 }

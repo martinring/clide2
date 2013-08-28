@@ -12,59 +12,30 @@ import play.api.Play.current
 /**
  * Provide security features
  */
-trait Secured { this: Controller =>  
-  /**
-   * Retrieve the connected user email.
-   */
-  private def username(request: RequestHeader) = request.session.get("email")
-
-  /**
-   * Redirect to login if the user in not authorized.
-   */
-  private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.index(""))
+trait Secured { this: Controller =>
+  trait RefuseReason
+  case object TimedOut extends RefuseReason
+  case object NoSession extends RefuseReason
   
-  // --
+  /**
+   * Looks up the current user in the database and returns it.
+   */  
+  def getSessionUser[T](implicit request: Request[T]): Either[RefuseReason,User] =
+    request.session.get("session").toRight(NoSession).right.flatMap { session => 
+      DB.withSession { implicit s => Users.getBySession(session).firstOption.toRight(TimedOut) }
+    }
   
   /** 
    * Action for authenticated users.
    */
-  def Authenticated[T](parser: BodyParser[T])(f: => User => Request[T] => Result) = Action(parser) { request =>
-    request.session.get("session") match {
-      case None => Results.Unauthorized
-      case session =>
-        val q = for (user <- Users if user.session === session) yield user.*
-        DB.withSession { implicit session =>
-          q.firstOption match {
-            case None => Results.Unauthorized
-            case Some(user) => f(user)(request)
-          }
-        }
-    }    
+  def Authenticated[T](parser: BodyParser[T])(f: => User => Request[T] => Result) = Action(parser) { implicit request =>
+    getSessionUser match {
+      case Left(TimedOut) =>  Results.Unauthorized
+      case Left(NoSession) => Results.Forbidden
+      case Right(user) => f(user)(request)
+    }
   }
   
   def Authenticated(f: => User => Request[AnyContent] => Result): Action[AnyContent] = 
     Authenticated(parse.anyContent)(f) 
-
-  /**
-   * Check if the connected user is a member of this project.
-   *
-  def IsMemberOf(project: Long)(f: => String => Request[AnyContent] => Result) = IsAuthenticated { user => request =>
-    if(Project.isMember(project, user)) {
-      f(user)(request)
-    } else {
-      Results.Forbidden
-    }
-  }*/
-
-  /**
-   * Check if the connected user is a owner of this task.
-   *
-  def IsOwnerOf(task: Long)(f: => String => Request[AnyContent] => Result) = IsAuthenticated { user => request =>
-    if(Task.isOwner(task, user)) {
-      f(user)(request)
-    } else {
-      Results.Forbidden
-    }
-  }*/
-
 }

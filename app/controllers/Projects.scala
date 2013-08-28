@@ -7,6 +7,7 @@ import scala.slick.driver.H2Driver.simple._
 import play.api.Play.current
 import play.api.libs.json._
 import models._
+import controllers.Secured
 
 object Projects extends Controller with Secured {
   def index(username: String) = Authenticated { user => implicit request => DB.withSession { implicit session =>
