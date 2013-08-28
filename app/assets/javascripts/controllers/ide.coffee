@@ -18,9 +18,10 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
 
   $scope.start = () ->
     $scope.state = 'ide'
+
   $scope.state = 'login'
   $scope.sidebar = true
-  $scope.files = Files.files
+  $scope.root = Files.root
   $scope.openFiles = []
   $scope.currentFile = null
 
@@ -43,7 +44,18 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
           $scope.currentFile = null
       $scope.openFiles.splice(i,1)
 
+  $scope.flatFiles = (prefix, where) ->
+    result = []
+    for file in where.files
+      if file.files?
+        flat = $scope.flatFiles("#{prefix}#{file.name}/",file)
+        result.push flat...
+      else
+        file.prefix = prefix
+        result.push file
+
   removeFile = (file) ->
+    $scope.closeFile(file)
     #recursive remove
     remove = (list) ->
       for f, i in list
@@ -54,9 +66,9 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
           if remove(f.files)
             return true
       return false
-    remove($scope.files)
+    remove($scope.root.files)
 
-  $scope.deleteFile = (file) -> 
+  $scope.deleteFile = (file) ->    
     if file.files?
       Dialog.push
         title: "delete '#{file.name}'"

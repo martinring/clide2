@@ -19,6 +19,9 @@
       <nav id="sidebar">
         <ul id="sidebarContent" class='touchScroll'>
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>
+            <a class='command' ng-click='createFile(root)' title='create a project'>
+              <i class='icon-plus'></i>
+            </a>
             <h1>Files</h1>
             <script type='text/ng-template' id='file.html'>
               <i ng-class='file.icon' ng-class='{folder: file.files, opened: file.expand}'></i>
@@ -32,7 +35,7 @@
                 </div>
               </div>
               <ul ng-show='file.files.length > 0 && file.expand' class='treeview'>
-                <li ng-repeat='file in file.files' 
+                <li ng-repeat='file in file.files | filter:search' 
                     ng-include="'file.html'" 
                     ng-class='{ selected: file==currentFile }'
                     ng-click='selectFile(file)'>
@@ -42,12 +45,15 @@
                 This folder is empty. Create a <a ng-click='createFile(file)'>new file</a>
               </div>
             </script>
-            <ul class="treeview">
-              <li ng-repeat='file in files' 
-                  ng-include='"file.html"' 
+            <ul class="treeview" ng-hide='serach.name.length>0'>
+              <li ng-repeat='file in root.files'
+                  ng-include='"file.html"'
                   ng-class='{ selected: file==currentFile }'
                   ng-click='selectFile(file)'>
               </li>
+              <div class='placeholder' ng-show='root.files.length == 0'>
+                This project is empty. Create a <a ng-click='createFile(root)'>new file</a>.
+              </div>
             </ul>
           </li>
           <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>

@@ -9,11 +9,9 @@ define () -> (Projects) ->
       name: "foolder"
       type: 'dir'
       icon: 'icon-angle-right'
-      collapsed: true
       files: [
           name: "baz"
-          type: 'thy'
-          opened: true
+          type: 'thy'          
           icon: 'icon-file-alt'
         ,
           name: "zap"
@@ -22,8 +20,7 @@ define () -> (Projects) ->
       ]
     ,
       name: "baz"
-      type: 'thy'
-      opened: true
+      type: 'thy'      
       icon: 'icon-file-alt'
     ,
       name: "zap"
@@ -35,18 +32,17 @@ define () -> (Projects) ->
     icon: 'icon-file-alt'
   ,
     name: "bar"
-    type: 'thy'
-    opened: true
+    type: 'thy'    
     icon: 'icon-file-alt'
   ,
     name: "baz"
-    type: 'thy'
-    opened: true
+    type: 'thy'    
     icon: 'icon-file-alt'  
     ] 
   ]
 
-  return (  
-    files: tree
-    opened: []
+  return (
+    root: 
+      name: "__ROOT"
+      files: tree
   )
