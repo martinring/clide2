@@ -13,7 +13,7 @@ import play.api.Play.current
  * Provide security features
  */
 trait Secured { this: Controller =>
-  trait RefuseReason
+  sealed trait RefuseReason
   case object TimedOut extends RefuseReason
   case object NoSession extends RefuseReason
   
