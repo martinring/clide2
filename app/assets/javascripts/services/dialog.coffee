@@ -1,4 +1,5 @@
 ### @service services:Dialog ###
+
 define [], () -> () ->  
   queue = []
 
@@ -33,10 +34,22 @@ define [], () -> () ->
     if state.current?
       queue.unshift state.current
       state.current = null
-    if config.queries
-      for q in config.queries
-        q.type = q.type or 'text'
-        q.text = q.text or q.name+':'
+
+    config.queries = config.queries?.map (q) ->
+      switch typeof q
+        when 'string'
+          return (
+            type: 'text'
+            text: q+':'
+            name: q
+          )
+        when 'object'          
+          q.type = q.type or 'text'
+          q.text = q.text or q.name+':'
+          return q
+
+    config.buttons = config.buttons or ['Ok']
+
     config.buttons = config.buttons.map (button) -> 
       switch typeof button
         when 'string'          
@@ -46,7 +59,7 @@ define [], () -> () ->
             for name, action of button
               button.text = name
               button.action = action
-          return button
+          return button    
 
     queue.unshift config
 

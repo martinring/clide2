@@ -21,7 +21,7 @@
             <h1>Files</h1>
             <script type='text/ng-template' id='file.html'>
               <i ng-class='file.icon' ng-class='{folder: file.files, opened: file.expand}'></i>
-              <div class='title' ng-click='file.expand=!file.expand'>
+              <div class='title' ng-click='file.expand=!file.expand' context-menu='fileContextMenu(file)'>
                 <span class='name' ng-bind='file.name'/>
                 <div class="progress">
                   <div class="finished"></div>
