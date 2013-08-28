@@ -31,13 +31,16 @@
                   <div class="failed"></div>
                 </div>
               </div>
-              <ul ng-show='file.files && file.expand' class='treeview'>
+              <ul ng-show='file.files.length > 0 && file.expand' class='treeview'>
                 <li ng-repeat='file in file.files' 
                     ng-include="'file.html'" 
                     ng-class='{ selected: file==currentFile }'
                     ng-click='selectFile(file)'>
                 </li>                
               </ul>
+              <div class='placeholder' ng-show='file.files.length == 0 && file.expand'>
+                This folder is empty. Create a <a ng-click='createFile(file)'>new file</a>
+              </div>
             </script>
             <ul class="treeview">
               <li ng-repeat='file in files' 

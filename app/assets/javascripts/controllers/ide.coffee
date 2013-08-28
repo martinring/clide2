@@ -43,6 +43,37 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
           $scope.currentFile = null
       $scope.openFiles.splice(i,1)
 
+  removeFile = (file) ->
+    #recursive remove
+    remove = (list) ->
+      for f, i in list
+        if f is file
+          list.splice(i,1)
+          return true
+        if f.files?
+          if remove(f.files)
+            return true
+      return false
+    remove($scope.files)
+
+  $scope.deleteFile = (file) -> 
+    if file.files?
+      Dialog.push
+        title: "delete '#{file.name}'"
+        text: "Do you really want to delete the folder '#{file.name}' and all of its content? This can not be undone!"
+        buttons: ['Yes','No']
+        done: (answer) -> if (answer is 'Yes')
+          console.log 'delete'
+          removeFile(file)
+    else
+      Dialog.push
+        title: "delete '#{file.name}'"
+        text: "Do you really want to delete '#{file.name}'? This can not be undone!"
+        buttons: ['Yes','No']
+        done: (answer) -> if (answer is 'Yes')
+          console.log 'delete'
+          removeFile(file)
+
   types = [
     { text: 'Isabelle Theory', ext: 'thy' }
     { text: 'Scala Class', ext: 'scala' }
@@ -68,6 +99,10 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
         icon: 'plus'
         text: 'New File'
         action: -> $scope.createFile(file)
+      ,
+        icon: 'remove'
+        text: 'Delete'
+        action: -> $scope.deleteFile(file)
       ]
     else 
       openOrClose = if $scope.openFiles.indexOf(file) >= 0      

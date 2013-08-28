@@ -309,9 +309,15 @@
 ul.treeview {
   list-style: none;
   padding: 0;
+  .placeholder {
+    color: #999;
+    padding: 0 16px 0 8px;
+    margin: 2px 8px;
+    border-left: 1px dashed #ccc;
+  }
   li {    
     position: relative;    
-    display: block;    
+    display: block;
     i {
       position: absolute;
       padding-left: 16px;      
@@ -327,7 +333,7 @@ ul.treeview {
           -webkit-transform: rotate(45deg);
         }
       }
-    }    
+    }
     .title {
       cursor: pointer;
       padding: 0px 16px 2px 36px;
