@@ -15,7 +15,7 @@
         </a>
         <h1>projects</h1>
         <ul id='projectList' ng-show='projects.length > 0'>
-          <li ng-repeat='project in projects' ng-class='{ current: project==selectedProject }' ng-click='change(project)'>
+          <li ng-repeat='project in projects' context-menu="projectContextMenu(project)" ng-class='{ current: project==selectedProject }' ng-click='change(project)'>
             <span ng-bind='project.name'/>
           </li>
         </ul>

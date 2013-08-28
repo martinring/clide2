@@ -35,6 +35,21 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
       error: ->
         Toasts.push 'warn', 'There was an error while loggin out!'
 
+  $scope.projectContextMenu = (project) ->
+    [
+      icon: 'remove'
+      text: "delete '#{project.name}'"
+      action: -> alert('Deleting')
+    ,  
+      icon: 'print'
+      text: "print '#{project.name}'"
+      action: -> alert('Printing')
+    ,
+      icon: null
+      text: "do something else..."
+      action: -> alert('Commiting Suicide')    
+    ]
+
   $scope.createProject = (name,description,error) ->
     submit = (result) ->      
       promise = result.$wait('your project is beeing created')
