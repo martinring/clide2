@@ -100,11 +100,11 @@
       <div id='content'>
         <div class="tabs">
           <ul class="headers">
-            <li ng-repeat='file in openFiles' 
-                ng-bind='file.name' 
+            <li ng-repeat='file in openFiles'                 
                 ng-click='selectFile(file)'
                 context-menu='fileContextMenu(file)'
                 ng-class='{active: currentFile==file}'>
+              {{file.name}} <i class='icon-remove' ng-click='closeFile(file)'></i>
             </li>
           </ul>
           <div class="content" ng-show='currentFile'>
