@@ -1,5 +1,5 @@
 ### @controller controllers:LoginController ###
-define ['routes','underscore'], (routes,underscore) -> ($scope, $location, Auth, Toasts) ->
+define ['routes'], (routes) -> ($scope, $location, Auth, Toasts) ->
   $scope.data =
     username: null
     password: null
@@ -15,7 +15,7 @@ define ['routes','underscore'], (routes,underscore) -> ($scope, $location, Auth,
         console.log data, status
         switch status
           when 401
-            _.extend($scope.loginForm.error,data)
+            $scope.loginForm.error = data
           when 404
             $scope.loginForm.error[''] = 'the server did not respond'
           else

@@ -30,7 +30,7 @@ object Projects extends Controller with Secured {
         case Some("") => BadRequest("project name must not be empty!")
         case Some(name) => 
           val descr = (request.body \ "description").asOpt[String]
-          val project = models.Project(None,name,username,None,descr)
+          val project = models.Project(None,name,username,descr)
           try {
             Ok(Json.toJson(models.Projects.create(project)))
           } catch {

@@ -6,7 +6,6 @@ GET     /api/auth/logout                    controllers.Authentication.logout
 
 # Projects
 GET     /api/projects/:user                 controllers.Projects.index(user)
-GET     /api/projects/:user/:project        controllers.Projects.details(user,project)
 PUT     /api/projects/:user                 controllers.Projects.put(user)
 DELETE  /api/projects/:user/:project        controllers.Projects.delete(user,project)
 
@@ -14,8 +13,8 @@ DELETE  /api/projects/:user/:project        controllers.Projects.delete(user,pro
 GET     /api/demo/collab                    controllers.Application.collab
 
 # File System
-GET     /api/files/:id                      controllers.Files.getFiles(id: Long)
-PUT     /api/files/:id/:name                controllers.Files.newFolder(id: Long,name)   
+GET     /api/projects/:user/:project        controllers.Files.getTree(user,project)
+PUT     /api/projects/:user/:project/*path  controllers.Files.newFolder(user,project,path)   
 
 # Javascript routing
 GET     /assets/javascripts/routes.js       controllers.Application.javascriptRoutes

@@ -14,18 +14,9 @@ require.config
     'angular':
       exports: 'angular'
       deps:    ['jquery']
-    #'angular-animate':
-    #  exports: 'angular'
-    #  deps:    ['angular']            
     'angular-cookies':
       exports: 'angular'
       deps:    ['angular']
-    #'angular-resource':
-    #  exports: 'angular'
-    #  deps:    ['angular']
-    #'angular-route':
-    #  exports: 'angular'
-    #  deps:    ['angular']
     'jquery':
       exports: 'jQuery'
     'codemirror':

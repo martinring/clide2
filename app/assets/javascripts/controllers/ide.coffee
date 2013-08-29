@@ -25,11 +25,9 @@ define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Projects, Files, 
   $scope.openFiles = []
   $scope.currentFile = null
 
-  Projects.get($routeParams.user, $routeParams.project).then (p) ->
-    $scope.project = p
-    Files.get(p.root).then (root) ->      
-      $scope.root = root
-      console.log root
+  Files.get($routeParams.user, $routeParams.project).then (root) ->      
+    $scope.root = root
+    console.log root
 
   $scope.selectFile = (file) -> unless file.files
     $scope.currentFile = file
@@ -123,7 +121,7 @@ define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Projects, Files, 
       queries: ['name']
       buttons: ['Ok','Cancel']
       done: (answer,result) -> if answer is 'Ok'        
-        Files.put(folder,result.name).then (n) ->
+        Files.put($routeParams.user,$routeParams.project,folder.path,result.name).then (n) ->
           console.log n
           n.expand = true
           n.files = []

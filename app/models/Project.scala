@@ -5,13 +5,18 @@ import play.api.Play.current
 import play.api.db.slick.DB
 import Database.{threadLocalSession => session}
 import play.api.libs.json._
+import play.api.libs.Crypto
+import java.util.UUID
+import java.io.File
+import play.api.Play
 
 case class Project(
     id: Option[Long], 
     name: String, 
     owner: String, 
-    root: Option[Long], 
-    description: Option[String] = None)
+    description: Option[String] = None) {
+  lazy val root = f"files/$owner/$name"
+}
 /* Json (de)serialization */
 object Project { implicit val json = Json.format[Project] }
 
@@ -19,16 +24,14 @@ object Projects extends Table[Project]("projects") {
   def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def name         = column[String]("name")
   def ownerName    = column[String]("owner")
-  def root         = column[Long]("root")
   def description  = column[Option[String]]("description")
-  def owner        = foreignKey("fk_project_user", ownerName, Users)(_.name)
-  def rootFolder   = foreignKey("fk_project_folder", root, Folders)(_.id)
-  def *            = id.? ~ name ~ ownerName ~ root.? ~ description <> (Project.apply _, Project.unapply _)
+  def owner        = foreignKey("fk_project_user", ownerName, Users)(_.name)  
+  def *            = id.? ~ name ~ ownerName ~ description <> (Project.apply _, Project.unapply _)
   
   // for every owner, the names of all his projects must be unique
   // which means, that project names alone don't have to be.
   def ownerProject = index("idx_owner_project", (ownerName, name), unique = true) 
-  def autoinc = id.? ~ name ~ ownerName ~ root.? ~ description <> (Project.apply _, Project.unapply _) returning id
+  def autoinc = id.? ~ name ~ ownerName ~ description <> (Project.apply _, Project.unapply _) returning id
   
   def byOwner(owner: String) = 	
     for(project <- Projects if project.ownerName === owner)
@@ -44,11 +47,10 @@ object Projects extends Table[Project]("projects") {
   def get(owner: String, name: String)(implicit session: Session) =
     byOwnerAndName(owner,name).firstOption
     
-  def create(project: Project)(implicit session: Session) = {
-    val folder = Folders.create(Folder(None,project.name,None))    
-    val id = autoinc.insert(project.copy(root = folder.id))
-    // Create Directory
-    project.copy(id=Some(id)) 
+  def create(project: Project)(implicit session: Session) = {    
+    Play.getFile(project.root).mkdirs()
+    val id = autoinc.insert(project)
+    project.copy(id=Some(id))
   }
 }
 

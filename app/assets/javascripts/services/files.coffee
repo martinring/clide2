@@ -2,16 +2,17 @@
 define ['routes'], (routes) -> ($q,$http) ->
   fc = routes.controllers.Files
 
-  get = (id) ->
+  get = (user,project) ->
     result = $q.defer()
-    $http.get(fc.getFiles(id).url)
+    $http.get(fc.getTree(user,project).url)
       .success(result.resolve)
       .error(result.reject)
     result.promise
 
-  put = (folder,name) ->
+  put = (user,project,path,name) ->    
+    path = "" if path is "/"
     result = $q.defer()
-    $http.put(fc.newFolder(folder.id,name).url)
+    $http.put(fc.newFolder(user,project,path).url,name)
       .success(result.resolve)
       .error(result.resolve)
     result.promise
