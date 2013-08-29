@@ -6,7 +6,12 @@ import play.api.db.slick.DB
 import Database.{threadLocalSession => session}
 import play.api.libs.json._
 
-case class Project(id: Option[Long], name: String, owner: String, description: Option[String] = None)
+case class Project(
+    id: Option[Long], 
+    name: String, 
+    owner: String, 
+    root: Option[Long], 
+    description: Option[String] = None)
 /* Json (de)serialization */
 object Project { implicit val json = Json.format[Project] }
 
@@ -18,12 +23,12 @@ object Projects extends Table[Project]("projects") {
   def description  = column[Option[String]]("description")
   def owner        = foreignKey("fk_project_user", ownerName, Users)(_.name)
   def rootFolder   = foreignKey("fk_project_folder", root, Folders)(_.id)
-  def *            = id.? ~ name ~ ownerName ~ description <> (Project.apply _, Project.unapply _)
+  def *            = id.? ~ name ~ ownerName ~ root.? ~ description <> (Project.apply _, Project.unapply _)
   
   // for every owner, the names of all his projects must be unique
   // which means, that project names alone don't have to be.
   def ownerProject = index("idx_owner_project", (ownerName, name), unique = true) 
-  def autoinc = id.? ~ name ~ ownerName ~ description <> (Project.apply _, Project.unapply _) returning id
+  def autoinc = id.? ~ name ~ ownerName ~ root.? ~ description <> (Project.apply _, Project.unapply _) returning id
   
   val forOwner = for {
 	name <- Parameters[String]
@@ -34,8 +39,9 @@ object Projects extends Table[Project]("projects") {
     forOwner(owner).elements
   }
     
-  def create(project: Project) = DB.withSession { implicit session: Session =>
-    val id = autoinc.insert(project)
+  def create(project: Project)(implicit session: Session) = {
+    val folder = Folders.create(Folder(None,project.name,None))    
+    val id = autoinc.insert(project.copy(root = folder.id))
     // Create Directory
     project.copy(id=Some(id)) 
   }
