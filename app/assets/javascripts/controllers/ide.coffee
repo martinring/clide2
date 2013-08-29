@@ -1,5 +1,5 @@
 ### @controller controllers:IdeController ###
-define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, Toasts) ->
+define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Files, Dialog, Auth, Toasts) ->
   $scope.user = $routeParams.user
 
   unless Auth.loggedIn
@@ -32,8 +32,8 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
     $scope.openFiles.push(file)
     return true
 
-  $scope.closeFile = (file) -> unless file.files
-    i = $scope.openFiles.indexOf(file)    
+  removeFromOpened = (file) ->
+    i = $scope.openFiles.indexOf(file)
     if i >= 0
       if (file is $scope.currentFile)
         if i > 0
@@ -43,6 +43,10 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
         else
           $scope.currentFile = null
       $scope.openFiles.splice(i,1)
+
+  $scope.closeFile = (file) ->
+    file.close('confirm').then ->
+      removeFromOpened(file)
 
   $scope.flatFiles = (prefix, where) ->
     result = []
@@ -54,8 +58,12 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
         file.prefix = prefix
         result.push file
 
-  removeFile = (file) ->
-    $scope.closeFile(file)
+  removeFile = (file) -> if file?
+    if file.files?      
+      removeFile(f) for f in file.files
+    else if file.close?
+      file.close()
+      removeFromOpened(file)
     #recursive remove
     remove = (list) ->
       for f, i in list
@@ -67,6 +75,7 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
             return true
       return false
     remove($scope.root.files)
+    
 
   $scope.deleteFile = (file) ->    
     if file.files?
@@ -76,7 +85,7 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
         buttons: ['Yes','No']
         done: (answer) -> if (answer is 'Yes')
           console.log 'delete'
-          removeFile(file)
+          () -> removeFile(file)
     else
       Dialog.push
         title: "delete '#{file.name}'"
@@ -84,7 +93,7 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
         buttons: ['Yes','No']
         done: (answer) -> if (answer is 'Yes')
           console.log 'delete'
-          removeFile(file)
+          () -> removeFile(file)
 
   types = [
     { text: 'Isabelle Theory', ext: 'thy' }
@@ -101,6 +110,19 @@ define ['jquery'], ($) -> ($scope, $timeout, $routeParams, Files, Dialog, Auth, 
       $scope.selectFile(nfile)
     Dialog.push
       title: 'new file'
+      queries: [{ name: 'type', type: 'select', options: types, value: types[0] }, 'name']
+      buttons: [{ 'Ok': submit },'Cancel']
+
+  $scope.createFolder = (folder) ->
+    submit = (result) ->
+      nfile = 
+        name: result.name
+        type: result.type.ext
+        icon: 'icon-file-alt'          
+      folder.files.push nfile
+      $scope.selectFile(nfile)
+    Dialog.push
+      title: 'new folder'
       queries: [{ name: 'type', type: 'select', options: types, value: types[0] }, 'name']
       buttons: [{ 'Ok': submit },'Cancel']
   

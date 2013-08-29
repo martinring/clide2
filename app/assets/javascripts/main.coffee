@@ -42,7 +42,8 @@ require.config
 
 require ['typekit', 'angular', 'app'], (Typekit, angular, app) ->   
   Typekit.load()
-  app.run ($location, $rootScope) ->
+  app.run ($location, $rootScope, $q) ->
+    console.log(($q.defer().promise))
     $rootScope.$on '$routeChangeSuccess', (e,n,o) ->
       $rootScope.title = n.$$route.title
   angular.element(document).ready ->

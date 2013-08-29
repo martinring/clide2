@@ -1,33 +1,30 @@
 ### @service services:Projects ###
-define ['routes'], (routes) -> ($http,$timeout) ->
+define ['routes'], (routes) -> ($q,$http) ->
   pc = routes.controllers.Projects
 
-  cache = { }
-
-  get = (username,success) ->
-    unless cache[username]?
-      update(username,success)
-    else
-      success(cache[username])
-
-  update = (username, success) ->
+  get = (username) ->
+    result = $q.defer()
     $http.get(pc.index(username).url)
-      .success (res) ->
-        cache[username] = res
-        success(cache[username])  
-      .error (d) -> console.log d
+      .success(result.resolve)
+      .error(result.reject)
+    result.promise
 
-  create = (username, project, callbacks) ->    
-    $http.put(pc.create(username).url, project)
-      .success (project) -> 
-        get username, (ps) ->
-          ps.push project
-          callbacks.success()
-      .error (e) ->
-        callbacks.error(e)
+  put = (username, project) ->
+    result = $q.defer()
+    $http.put(pc.put(username).url, project)
+      .success(result.resolve)
+      .error(result.reject)
+    result.promise
+
+  del = (username, project) ->
+    result = $q.defer()
+    $http.delete(pc.delete(username, project.name).url)
+      .success(result.resolve)
+      .error(result.reject)
+    result.promise
 
   return (
-    get: get
-    update: update
-    create: create
+    get: get    
+    put: put
+    delete: del
   )

@@ -24,22 +24,14 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
   $scope.change = (project) ->     
     $scope.selectedProject = project
 
-  Projects.update $scope.user, (projects) ->    
-    $scope.projects = projects    
-
-  $scope.logout = () ->
-    Auth.logout 
-      success: ->
-        $location.path '/login'
-        Toasts.push 'success', 'You have been logged out!'
-      error: ->
-        Toasts.push 'warn', 'There was an error while loggin out!'
+  Projects.get($scope.user).then (projects) ->
+    $scope.projects = projects
 
   $scope.projectContextMenu = (project) ->
     [
       icon: 'remove'
       text: "delete '#{project.name}'"
-      action: -> alert('Deleting')
+      action: -> $scope.deleteProject(project)
     ,  
       icon: 'print'
       text: "print '#{project.name}'"
@@ -50,22 +42,32 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
       action: -> alert('Commiting Suicide')    
     ]
 
-  $scope.createProject = (name,description,error) ->
-    submit = (result) ->      
-      promise = result.$wait('your project is beeing created')
-      Projects.create Auth.user.username, result,
-        success: promise.success
-        error: promise.error
-    Dialog.push
-      error: error
-      title: 'new project'
-      queries: [
-        { name: 'name', value: name }
-          name: 'description'
-          type: 'textarea'
-          value: description
-      ]
-      buttons: [ { 'Ok': submit }, 'Cancel' ]
+  $scope.createProject = (name,description,error) -> Dialog.push
+    error: error
+    title: 'new project'
+    queries: [
+      { name: 'name', value: name }
+        name: 'description'
+        type: 'textarea'
+        value: description
+    ]
+    buttons: [ 'Ok', 'Cancel' ]
+    done: (answer,result) -> if answer is 'Ok'
+      Projects.put($scope.user,result).then (project) -> 
+        $scope.projects.push(project) 
+
+  $scope.deleteProject = (project) -> Dialog.push
+    title: "Delete project"    
+    text:  "Do you really want to delete project '#{project.name}'? " +
+           "This can not be undone!"
+    buttons: ['Yes','No']
+    done: (answer) -> if answer is 'Yes'
+      Projects.delete($scope.user,project).then () ->
+        i = $scope.projects.indexOf(project)
+        if i >= 0
+          $scope.projects.splice(i,1)
+          if $scope.selectedProject is project
+            $scope.selectedProject = null
 
   $scope.start = () ->
-    $location.path "/#{Auth.user.username}/#{$scope.selectedProject.name}/"    
+    $location.path "/#{Auth.user.username}/#{$scope.selectedProject.name}/"

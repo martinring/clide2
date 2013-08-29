@@ -1,5 +1,5 @@
 ### @directive directives:editor ###
-define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations'], (CodeMirror,routes,Operation,CMAdapter,Client,Annotations) -> (Dialog,$timeout) -> 
+define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations'], (CodeMirror,routes,Operation,CMAdapter,Client,Annotations) -> (Dialog,$timeout,$q) -> 
   restrict: 'E'
   transclude: true
   template: '<textarea></textarea>'
@@ -20,6 +20,28 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
       cm.focus()
       unless n.doc?
         n.doc = CodeMirror.Doc('content loading...')
+        n.close = (a) ->
+          if a is 'confirm'
+            result = $q.defer()
+            if n.doc.isClean()
+              result.resolve(true)                        
+            else Dialog.push
+              title: 'content changed'
+              text: 'the file has been modified. do you want to save your changes'
+              buttons: ['Yes','No','Cancel']
+              done: (answer) -> switch answer
+                when 'Yes' then () ->
+                  # TODO: SAVE
+                  n.close()
+                  result.resolve(true)
+                when 'No' then () ->
+                  n.close()
+                  result.resolve(true)
+                when 'Cancel' then () ->                
+                  result.reject(false)
+            return result.promise
+          else
+            n.doc = null
       cm.swapDoc(n.doc)
 
     #socket = new WebSocket(routes.controllers.Application.collab().webSocketURL())
