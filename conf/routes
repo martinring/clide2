@@ -6,7 +6,8 @@ GET     /api/auth/logout                    controllers.Authentication.logout
 
 # Projects
 GET     /api/projects/:user                 controllers.Projects.index(user)
-PUT     /api/projects/:user                 controllers.Projects.create(user)
+PUT     /api/projects/:user                 controllers.Projects.put(user)
+DELETE  /api/projects/:user/:project        controllers.Projects.delete(user,project)
 GET     /api/demo/collab                    controllers.Application.collab
 
 # Javascript routing

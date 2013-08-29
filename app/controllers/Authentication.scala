@@ -55,7 +55,7 @@ object Authentication extends Controller with Secured {
   def signup = Action(parse.json) { implicit request =>
     signupForm.bind(request.body).fold(
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
-      user =>DB.withSession { implicit session =>        
+      user => DB.withSession { implicit session =>        
         if (models.Users.insert(models.User(user._1, user._2, Crypto.sign(user._1 + user._3),None,None)) > 0)
           Ok(user._1)
         else
