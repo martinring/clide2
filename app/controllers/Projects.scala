@@ -16,6 +16,13 @@ object Projects extends Controller with Secured {
       Ok(Json.toJson(models.Projects.getByOwner(username).toSeq))
   } }
   
+  def details(username: String, project: String) = Authenticated { user => implicit request =>
+    if (user.name != username) Results.Unauthorized
+    else DB.withSession { implicit session =>
+      Ok(Json.toJson(models.Projects.get(username,project)))
+    }
+  }
+  
   def put(username: String) = Authenticated(parse.json) { user => implicit request => 
     if (user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>

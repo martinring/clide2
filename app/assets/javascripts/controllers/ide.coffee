@@ -1,5 +1,5 @@
 ### @controller controllers:IdeController ###
-define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Files, Dialog, Auth, Toasts) ->
+define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Projects, Files, Dialog, Auth, Toasts) ->
   $scope.user = $routeParams.user
 
   unless Auth.loggedIn
@@ -18,15 +18,18 @@ define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Files, Dialog, Au
 
   $scope.start = () ->
     $scope.state = 'ide'
-
+  
   $scope.state = 'login'
   $scope.sidebar = true
   $scope.root = null
   $scope.openFiles = []
   $scope.currentFile = null
 
-  Files.get($routeParams.user,$routeParams.project).then (root) ->
-    $scope.root = root
+  Projects.get($routeParams.user, $routeParams.project).then (p) ->
+    $scope.project = p
+    Files.get(p.root).then (root) ->      
+      $scope.root = root
+      console.log root
 
   $scope.selectFile = (file) -> unless file.files
     $scope.currentFile = file
@@ -103,32 +106,30 @@ define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Files, Dialog, Au
     { text: 'Scala Class', ext: 'scala' }
   ]
 
-  $scope.createFile = (folder) ->
-    submit = (result) ->
-      nfile = 
-        name: result.name
-        type: result.type.ext
-        icon: 'icon-file-alt'          
-      folder.files.push nfile
-      $scope.selectFile(nfile)
+  $scope.createFile = (folder) ->    
     Dialog.push
       title: 'new file'
       queries: [{ name: 'type', type: 'select', options: types, value: types[0] }, 'name']
-      buttons: [{ 'Ok': submit },'Cancel']
+      buttons: ['Ok','Cancel']
+      done: (answer,result) -> if answer is 'Ok'
+        nfile = 
+          name: result.name
+        folder.files.push nfile
+        $scope.selectFile(nfile)
 
   $scope.createFolder = (folder) ->
-    submit = (result) ->
-      nfile = 
-        name: result.name
-        type: result.type.ext
-        icon: 'icon-file-alt'          
-      folder.files.push nfile
-      $scope.selectFile(nfile)
     Dialog.push
       title: 'new folder'
-      queries: [{ name: 'type', type: 'select', options: types, value: types[0] }, 'name']
-      buttons: [{ 'Ok': submit },'Cancel']
-  
+      queries: ['name']
+      buttons: ['Ok','Cancel']
+      done: (answer,result) -> if answer is 'Ok'        
+        Files.put(folder,result.name).then (n) ->
+          console.log n
+          n.expand = true
+          n.files = []
+          console.log n
+          folder.files.push n
+
   $scope.fileContextMenu = (file) ->
     if (file.files?) 
       file.expand = true
@@ -136,6 +137,10 @@ define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Files, Dialog, Au
         icon: 'plus'
         text: 'New File'
         action: -> $scope.createFile(file)
+      ,
+        icon: 'plus-sign-alt'
+        text: 'New Folder'
+        action: -> $scope.createFolder(file)
       ,
         icon: 'remove'
         text: 'Delete'

@@ -103,9 +103,11 @@ object Application extends Controller with Secured {
         routes.javascript.Authentication.validateSession,
         routes.javascript.Authentication.signup,
         routes.javascript.Projects.index,
+        routes.javascript.Projects.details,
         routes.javascript.Projects.put,
         routes.javascript.Projects.delete,
-        routes.javascript.Project.fileTree
+        routes.javascript.Files.getFiles,
+        routes.javascript.Files.newFolder
       )
     ).as("text/javascript") 
   }

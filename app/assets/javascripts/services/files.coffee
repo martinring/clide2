@@ -1,14 +1,22 @@
 ### @service services:Files ###
 define ['routes'], (routes) -> ($q,$http) ->
-  pc = routes.controllers.Project
+  fc = routes.controllers.Files
 
-  get = (user,project) ->
+  get = (id) ->
     result = $q.defer()
-    $http.get(pc.fileTree(user,project).url)
+    $http.get(fc.getFiles(id).url)
       .success(result.resolve)
       .error(result.reject)
     result.promise
 
+  put = (folder,name) ->
+    result = $q.defer()
+    $http.put(fc.newFolder(folder.id,name).url)
+      .success(result.resolve)
+      .error(result.resolve)
+    result.promise
+
   return (
     get: get
+    put: put
   )

@@ -2,11 +2,16 @@
 define ['routes'], (routes) -> ($q,$http) ->
   pc = routes.controllers.Projects
 
-  get = (username) ->
+  get = (username, project) ->
     result = $q.defer()
-    $http.get(pc.index(username).url)
-      .success(result.resolve)
-      .error(result.reject)
+    if project?
+      $http.get(pc.details(username,project).url)
+        .success(result.resolve)
+        .error(result.reject)
+    else
+      $http.get(pc.index(username).url)
+        .success(result.resolve)
+        .error(result.reject)
     result.promise
 
   put = (username, project) ->
@@ -24,7 +29,7 @@ define ['routes'], (routes) -> ($q,$http) ->
     result.promise
 
   return (
-    get: get    
+    get: get
     put: put
     delete: del
   )

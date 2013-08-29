@@ -19,12 +19,17 @@
       <nav id="sidebar">
         <ul id="sidebarContent" class='touchScroll'>
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>
-            <a class='command' ng-click='createFile(root)' title='create a project'>
+            <a class='command' ng-click='createFolder(root)' title='create a file'>
+              <i class='icon-plus-sign-alt'></i>
+            </a>
+            <a class='command' ng-click='createFile(root)' title='create a file'>
               <i class='icon-plus'></i>
             </a>
             <h1>Files</h1>
             <script type='text/ng-template' id='file.html'>
-              <i ng-class='file.icon' ng-class='{folder: file.files, opened: file.expand}'></i>
+              <i ng-class="{ 'icon-folder-close': file.files && !file.expand,
+                             'icon-folder-open':  file.files && file.expand,
+                             'icon-file':        !file.files }"></i>
               <div class='title' ng-click='file.expand=!file.expand' context-menu='fileContextMenu(file)'>
                 <span class='name' ng-bind='file.name'/>
                 <div ng-show='file.open' class="progress">
@@ -42,7 +47,7 @@
                 </li>                
               </ul>
               <div class='placeholder' ng-show='file.files.length == 0 && file.expand'>
-                This folder is empty. Create a <a ng-click='createFile(file)'>new file</a>
+                This folder is empty. Create a <a ng-click='createFile(file)'>new file</a> or <a ng-click='createFolder(file)'>folder</a>.
               </div>
             </script>
             <ul class="treeview" ng-hide='serach.name.length>0'>
@@ -51,8 +56,11 @@
                   ng-class='{ selected: file==currentFile, open: file.doc!=null }'
                   ng-click='selectFile(file)'>
               </li>
+              <div class='placeholder' ng-show='root==null'>
+                loading...
+              </div>
               <div class='placeholder' ng-show='root.files.length == 0'>
-                This project is empty. Create a <a ng-click='createFile(root)'>new file</a>.
+                This project is empty. Create a <a ng-click='createFile(root)'>new file</a> or <a ng-click='createFolder(root)'>folder</a>.
               </div>
             </ul>
           </li>

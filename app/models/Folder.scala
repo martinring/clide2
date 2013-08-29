@@ -20,6 +20,8 @@ object Folders extends Table[Folder]("folders") {
   def parentId     = column[Option[Long]]("parent")
   def parent       = foreignKey("fk_folder_parent", parentId, Folders)(_.id)
   
+  def parentName   = index("idx_parent_name", (parentId, name), unique = true) 
+  
   def * = id.? ~ name ~ parentId <> (Folder.apply _ , Folder.unapply _)
   def autoinc = id.? ~ name ~ parentId <> (Folder.apply _ , Folder.unapply _) returning id
   
