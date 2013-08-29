@@ -47,11 +47,9 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
     title: 'new project'
     queries: [
       { name: 'name', value: name }
-        name: 'description'
-        type: 'textarea'
-        value: description
+      { name: 'description', type: 'textarea', value: description } 
     ]
-    buttons: [ 'Ok', 'Cancel' ]
+    buttons: ['Ok','Cancel']
     done: (answer,result) -> if answer is 'Ok'
       Projects.put($scope.user,result).then (project) -> 
         $scope.projects.push(project) 

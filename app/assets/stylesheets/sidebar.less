@@ -351,6 +351,15 @@ ul.treeview {
         background-color: #ddd;
       }
     }
+    &.open {
+      border-left: 8px solid #ddd;
+      i {
+        padding-left: 8px;
+      }
+      .title {
+        padding-left: 28px;
+      }
+    }    
     &.selected {
       border-left: 8px solid @accent;
       i {
@@ -372,7 +381,17 @@ ul.treeview {
         }
         .treeview {
           margin-left: 8px;
-        }
+        }   
+        &.open {
+          margin-left: -9px;
+          border-left: 8px solid #ddd;
+          i {
+            padding-left: 7px;
+          }
+          .title {
+            padding-left: 29px;
+          }
+        }     
         &.selected {
           margin-left: -9px;
           border-left: 8px solid @accent;

@@ -18,12 +18,12 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
       unless o?
         $timeout((-> cm.refresh()),0)
       cm.focus()
-      unless n.doc?
-        n.doc = CodeMirror.Doc('content loading...')
+      unless n.open        
         n.close = (a) ->
           if a is 'confirm'
             result = $q.defer()
             if n.doc.isClean()
+              n.close()
               result.resolve(true)                        
             else Dialog.push
               title: 'content changed'
@@ -41,7 +41,10 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
                   result.reject(false)
             return result.promise
           else
+            n.open = false
             n.doc = null
+        n.doc = CodeMirror.Doc('content loading...')            
+        n.open = true
       cm.swapDoc(n.doc)
 
     #socket = new WebSocket(routes.controllers.Application.collab().webSocketURL())

@@ -27,7 +27,7 @@
               <i ng-class='file.icon' ng-class='{folder: file.files, opened: file.expand}'></i>
               <div class='title' ng-click='file.expand=!file.expand' context-menu='fileContextMenu(file)'>
                 <span class='name' ng-bind='file.name'/>
-                <div class="progress">
+                <div ng-show='file.open' class="progress">
                   <div class="finished"></div>
                   <div class="running"></div>
                   <div class="warned"></div>
@@ -37,7 +37,7 @@
               <ul ng-show='file.files.length > 0 && file.expand' class='treeview'>
                 <li ng-repeat='file in file.files | filter:search' 
                     ng-include="'file.html'" 
-                    ng-class='{ selected: file==currentFile }'
+                    ng-class='{ selected: file==currentFile, open: file.open }'
                     ng-click='selectFile(file)'>
                 </li>                
               </ul>
@@ -48,7 +48,7 @@
             <ul class="treeview" ng-hide='serach.name.length>0'>
               <li ng-repeat='file in root.files'
                   ng-include='"file.html"'
-                  ng-class='{ selected: file==currentFile }'
+                  ng-class='{ selected: file==currentFile, open: file.doc!=null }'
                   ng-click='selectFile(file)'>
               </li>
               <div class='placeholder' ng-show='root.files.length == 0'>
