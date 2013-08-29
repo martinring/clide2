@@ -19,7 +19,10 @@ object Projects extends Table[Project]("projects") {
   def owner        = foreignKey("fk_project_user", ownerName, Users)(_.name)
   def rootFolder   = foreignKey("fk_project_folder", root, Folders)(_.id)
   def *            = id.? ~ name ~ ownerName ~ description <> (Project.apply _, Project.unapply _)
- 
+  
+  // for every owner, the names of all his projects must be unique
+  // which means, that project names alone don't have to be.
+  def ownerProject = index("idx_owner_project", (ownerName, name), unique = true) 
   def autoinc = id.? ~ name ~ ownerName ~ description <> (Project.apply _, Project.unapply _) returning id
   
   val forOwner = for {
