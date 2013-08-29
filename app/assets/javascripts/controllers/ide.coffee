@@ -21,9 +21,12 @@ define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Files, Dialog, Au
 
   $scope.state = 'login'
   $scope.sidebar = true
-  $scope.root = Files.root
+  $scope.root = null
   $scope.openFiles = []
   $scope.currentFile = null
+
+  Files.get($routeParams.user,$routeParams.project).then (root) ->
+    $scope.root = root
 
   $scope.selectFile = (file) -> unless file.files
     $scope.currentFile = file

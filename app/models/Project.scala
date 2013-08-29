@@ -30,14 +30,19 @@ object Projects extends Table[Project]("projects") {
   def ownerProject = index("idx_owner_project", (ownerName, name), unique = true) 
   def autoinc = id.? ~ name ~ ownerName ~ root.? ~ description <> (Project.apply _, Project.unapply _) returning id
   
-  val forOwner = for {
-	name <- Parameters[String]
-    projects <- Projects if projects.ownerName === name
-  } yield projects 
+  def byOwner(owner: String) = 	
+    for(project <- Projects if project.ownerName === owner)
+      yield project
   
-  def getForOwner(owner: String) = DB.withSession { implicit session: Session =>
-    forOwner(owner).elements
-  }
+  def byOwnerAndName(owner: String, name: String) =
+    for(project <- byOwner(owner) if project.name === name)
+      yield project
+  
+  def getByOwner(owner: String)(implicit session: Session) = 
+    byOwner(owner).elements  
+  
+  def get(owner: String, name: String)(implicit session: Session) =
+    byOwnerAndName(owner,name).firstOption
     
   def create(project: Project)(implicit session: Session) = {
     val folder = Folders.create(Folder(None,project.name,None))    

@@ -13,7 +13,15 @@ object Project extends Controller with Secured {
   def fileTree(username: String, project: String) = Authenticated { user => request =>
     if (username != user.name) Unauthorized
     else DB.withSession { implicit session =>
-      Ok 
+      models.Projects.get(username, project) match {
+        case Some(project) =>
+          val root = for {
+            root <- project.root
+            it <- models.Folders.get(root)
+          } yield it          
+          Ok(Json.toJson(root.get.toJsonTree))
+        case None => NotFound
+      }      
     }           
   }
 }

@@ -8,7 +8,12 @@ GET     /api/auth/logout                    controllers.Authentication.logout
 GET     /api/projects/:user                 controllers.Projects.index(user)
 PUT     /api/projects/:user                 controllers.Projects.put(user)
 DELETE  /api/projects/:user/:project        controllers.Projects.delete(user,project)
+
+# Demo
 GET     /api/demo/collab                    controllers.Application.collab
+
+# File System
+GET     /api/projects/:user/:project/       controllers.Project.fileTree(user,project)
 
 # Javascript routing
 GET     /assets/javascripts/routes.js       controllers.Application.javascriptRoutes
