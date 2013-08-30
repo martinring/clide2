@@ -50,4 +50,6 @@ object Projects extends Controller with Secured {
       if (q.delete > 0) Ok
       else NotFound
   } }
+  
+  def session(username: String, project: String) = WebSocket.
 }

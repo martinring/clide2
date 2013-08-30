@@ -37,5 +37,5 @@ trait Secured { this: Controller =>
   }
   
   def Authenticated(f: => User => Request[AnyContent] => Result): Action[AnyContent] = 
-    Authenticated(parse.anyContent)(f) 
+    Authenticated(parse.anyContent)(f)       
 }

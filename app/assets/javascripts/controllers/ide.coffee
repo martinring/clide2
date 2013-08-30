@@ -88,16 +88,16 @@ define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Projects, Files, 
         text: "Do you really want to delete the folder '#{file.name}' and all of its content? This can not be undone!"
         buttons: ['Yes','No']
         done: (answer) -> if (answer is 'Yes')
-          console.log 'delete'
-          () -> removeFile(file)
+          Files.delete($routeParams.user,$routeParams.project,file.path).then ->            
+            removeFile(file)
     else
       Dialog.push
         title: "delete '#{file.name}'"
         text: "Do you really want to delete '#{file.name}'? This can not be undone!"
         buttons: ['Yes','No']
         done: (answer) -> if (answer is 'Yes')
-          console.log 'delete'
-          () -> removeFile(file)
+          Files.delete($routeParams.user,$routeParams.project,file.path).then ->            
+            removeFile(file)
 
   types = [
     { text: 'Isabelle Theory', ext: 'thy' }
@@ -110,22 +110,22 @@ define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Projects, Files, 
       queries: [{ name: 'type', type: 'select', options: types, value: types[0] }, 'name']
       buttons: ['Ok','Cancel']
       done: (answer,result) -> if answer is 'Ok'
-        nfile = 
+        file = 
           name: result.name
-        folder.files.push nfile
-        $scope.selectFile(nfile)
+        Files.put($routeParams.user,$routeParams.project,folder.path,file).then (n) ->
+          folder.files.push n        
+          $scope.selectFile(n)
 
   $scope.createFolder = (folder) ->
     Dialog.push
       title: 'new folder'
       queries: ['name']
       buttons: ['Ok','Cancel']
-      done: (answer,result) -> if answer is 'Ok'        
-        Files.put($routeParams.user,$routeParams.project,folder.path,result.name).then (n) ->
-          console.log n
-          n.expand = true
-          n.files = []
-          console.log n
+      done: (answer,result) -> if answer is 'Ok'
+        file =
+          name: result.name
+          files: []
+        Files.put($routeParams.user,$routeParams.project,folder.path,file).then (n) ->                              
           folder.files.push n
 
   $scope.fileContextMenu = (file) ->

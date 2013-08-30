@@ -106,7 +106,8 @@ object Application extends Controller with Secured {
         routes.javascript.Projects.put,
         routes.javascript.Projects.delete,
         routes.javascript.Files.getTree,
-        routes.javascript.Files.newFolder
+        routes.javascript.Files.newFile,
+        routes.javascript.Files.deleteFile
       )
     ).as("text/javascript") 
   }

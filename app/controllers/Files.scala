@@ -10,12 +10,13 @@ import models._
 import org.h2.jdbc.JdbcSQLException
 import java.io.File
 import play.api.Play
+import views.html.defaultpages.unauthorized
 
 
 /**
  * TODO: User rights are ignored right now!!!
  */
-object Files extends Controller with Secured {
+object Files extends Controller with Secured {    
   def getTree(username: String, project: String) = Authenticated { user => request =>
     if (user.name != username) Unauthorized
     else DB.withSession { implicit session =>
@@ -41,22 +42,61 @@ object Files extends Controller with Secured {
     }
   }
     
-  def newFolder(username: String, project: String, path: String) = Authenticated { user => request =>
+  def newFile(username: String, project: String, path: String = "") = Authenticated(parse.json) { user => request =>
     if (user.name != username) Unauthorized
     else DB.withSession { implicit session =>
-      models.Projects.get(username,project) match {
-        case None => NotFound
-        case Some(p) =>
-          val file = Play.getFile(p.root + path + "/" + request.body.asText.get)
-          if (file.exists())
-            BadRequest("allready exists!")
-          else {
-            if (file.mkdir())
-              Ok
-            else
-              BadRequest("could not create folder")
-          }
+      val folder = ( request.body \ "files" ).asOpt[Array[JsValue]].isDefined
+      ( request.body \ "name" ).asOpt[String] match {
+        case None => BadRequest("please enter a name")
+        case Some("") => BadRequest("name must not be empty")
+        case Some(name) => models.Projects.get(username,project) match {
+          case None => NotFound("invalid project")
+          case Some(p) =>   
+            val l = Play.getFile(p.root).getAbsolutePath().length()    
+	        val file = Play.getFile(p.root + path + "/" + name)
+	        if (file.exists())
+	          BadRequest("a file with that name already exists here")
+	        else if (folder){
+	          if (file.mkdir()) Ok(Json.obj("name" -> file.getName(), 
+	                                        "path" -> file.getAbsolutePath().drop(l), 
+	                                        "files" -> Array[String]()))
+	          else BadRequest("could not create folder")
+	        } else {
+	          if (file.createNewFile()) Ok(Json.obj("name" -> file.getName(),
+	                                                "path" -> file.getAbsolutePath().drop(l)))    
+	          else BadRequest("could not create file")
+  } } } } }
+  
+  def deleteFile(username: String, project: String, path: String) = Authenticated { user => request =>
+    if (user.name != username) Unauthorized
+    else DB.withSession { implicit session => models.Projects.get(username,project) match {
+      case None => NotFound("invalid project")
+      case Some(p) =>
+        val file = Play.getFile(p.root + path)
+        if (!file.exists())
+          NotFound("no such file")
+        else {
+          if (file.delete()) Ok
+          else BadRequest(f"could not delete '$path'") 
+        }
       }
     }
+  }
+  
+  def connect(username: String, project: String, path: String) = Authenticated { user => request =>
+    if (user.name != username) Unauthorized
+    else DB.withSession { implicit session => models.Projects.get(username,project) match {
+      case None => NotFound("invalid project")
+      case Some(p) =>
+        val file = Play.getFile(p.root + path)
+        if (!file.exists())
+          NotFound("no such file")
+        else {
+          
+        }
+    }
+      
+    }
+    
   }
 }

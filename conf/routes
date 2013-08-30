@@ -14,7 +14,9 @@ GET     /api/demo/collab                    controllers.Application.collab
 
 # File System
 GET     /api/projects/:user/:project        controllers.Files.getTree(user,project)
-PUT     /api/projects/:user/:project/*path  controllers.Files.newFolder(user,project,path)   
+PUT     /api/projects/:user/:project        controllers.Files.newFile(user,project,path="")
+PUT     /api/projects/:user/:project/*path  controllers.Files.newFile(user,project,path)
+DELETE  /api/projects/:user/:project/*path  controllers.Files.deleteFile(user,project,path)
 
 # Javascript routing
 GET     /assets/javascripts/routes.js       controllers.Application.javascriptRoutes
