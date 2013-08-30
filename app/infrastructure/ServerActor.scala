@@ -1,43 +1,37 @@
 package infrastructure
 
-import akka.actor.Actor
-import models.GenericUser
-import akka.actor.ActorRef
-import models.Project
-import akka.actor.ActorLogging
-import play.api.Logger
 import scala.collection.mutable.Map
+import akka.actor.Actor
+import akka.actor.ActorLogging
+import akka.actor.ActorRef
+import akka.actor.Props
+import models.GenericUser
+import models.Project
 
 /** 
  * @author Martin Ring <martin.ring@dfki.de>
  */
 class ServerActor extends Actor with ActorLogging {
-  import ServerActor._
-  
-  val projects = Map[Long,ActorRef]()
+  import Messages._
+  val projectActors = Map[Long,ActorRef]()
   
   def createProjectActor(project: Project): ActorRef = {
-    null
+    projectActors(project.id.get) = context.actorOf(Props(new ProjectActor(project)),project.id.get.toString)
+    projectActors(project.id.get)
   }
   
   def receive = {
-    case OpenSession(user,project) =>
-      log.info(f"user '${user.name}' requested a session for project '${project.name}'")     
-      //projects.getOrElseUpdate(project., op)
-      val selection = context.actorSelection(project.uniqueName)
-      
-      SessionOpened(self)
+    case OpenSession(user,project) =>      
+      log.info(f"user '${user.name}' requested a session for project '${project.name}'")      
+      val pa = projectActors.get(project.id.get) match {
+        case None => createProjectActor(project)
+        case Some(ref) if (ref.isTerminated) => createProjectActor(project)
+        case Some(ref) => ref
+      }
+      pa.forward(OpenSession(user,project))
   }
   
   override def preStart() {    
     log.info("infrastructure server started")
   }
-}
-
-object ServerActor {
-  trait ServerRequest
-  case class OpenSession(user: GenericUser, project: Project) extends ServerRequest  
-  
-  trait ServerReply
-  case class SessionOpened(session: ActorRef) extends ServerReply    
 }

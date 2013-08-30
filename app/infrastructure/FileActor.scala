@@ -11,10 +11,3 @@ class FileActor extends Actor {
     case _ =>
   }
 }
-
-object FileActor {
-  sealed trait FileRequest  
-    
-  sealed trait FileReply
-  
-}

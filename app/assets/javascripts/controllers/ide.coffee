@@ -1,5 +1,5 @@
 ### @controller controllers:IdeController ###
-define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Projects, Files, Dialog, Auth, Toasts) ->
+define ['jquery','routes'], ($,routes) -> ($q, $scope, $timeout, $routeParams, Projects, Files, Dialog, Auth, Toasts) ->
   $scope.user = $routeParams.user
 
   unless Auth.loggedIn
@@ -8,13 +8,16 @@ define ['jquery'], ($) -> ($q, $scope, $timeout, $routeParams, Projects, Files, 
     return
 
   Auth.validateSession 
-    success: -> 
-      if $scope.user isnt Auth.user?.username
+    success: (user) -> 
+      if $routeParams.user isnt user.username
         $location.path '/login'
-        Toasts.push 'warn', 'The requested resource is not associated with your user account!'      
+        Toasts.push 'warn', 'The requested resource is not associated with your user account!'
     error: -> 
       $location.path '/login'
       Toasts.push 'warn', 'Sorry, your login session has expired! Please enter your credentials once again.'    
+  
+  url = routes.controllers.Projects.session($routeParams.user,$routeParams.project).webSocketURL()
+  ws = new WebSocket(url)
 
   $scope.start = () ->
     $scope.state = 'ide'

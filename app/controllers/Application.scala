@@ -53,7 +53,7 @@ object Application extends Controller with Secured {
   
   var id = 0
   
-  def collab(path: String) = WebSocket.using[JsValue] { implicit request =>
+  def collab(path: String) = WebSocket.using[JsValue] { implicit request =>    
     val server = servers.getOrElseUpdate(path,Akka.system.actorOf(Server.props(Document(""))))
     implicit val sys = system
     implicit val timeout = 5 seconds
@@ -108,6 +108,7 @@ object Application extends Controller with Secured {
         routes.javascript.Projects.index,        
         routes.javascript.Projects.put,
         routes.javascript.Projects.delete,
+        routes.javascript.Projects.session,
         routes.javascript.Files.getTree,
         routes.javascript.Files.newFile,
         routes.javascript.Files.deleteFile

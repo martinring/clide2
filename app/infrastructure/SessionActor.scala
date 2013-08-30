@@ -2,6 +2,7 @@ package infrastructure
 
 import akka.actor.Actor
 import models._
+import akka.actor.ActorLogging
 
 /**
  * The SessionActor coordinates a client session and provides the 
@@ -9,15 +10,12 @@ import models._
  * generic client.
  * @author Martin Ring <martin.ring@dfki.de>
  */
-class SessionActor(project: Project, user: GenericUser) extends Actor {
+class SessionActor(user: GenericUser, project: Project) extends Actor with ActorLogging {
   def receive = {
     case msg => println(msg)
   }
-}
-
-object SessionActor {
-  sealed trait SessionRequest
   
-  sealed trait SessionReply
-  
+  override def preStart() {
+    log.info(f"session started for ${user.name}")
+  }
 }
