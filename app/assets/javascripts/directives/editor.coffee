@@ -43,51 +43,38 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
           else
             n.open = false
             n.doc = null
-        n.doc = CodeMirror.Doc('content loading...')            
+        n.doc = CodeMirror.Doc('content loading...')
+        n.socket = new WebSocket(routes.controllers.Application.collab(n.path).webSocketURL())
         n.open = true
+        n.socket.onmessage = (e) -> 
+          msg = JSON.parse(e.data)
+          switch msg.type
+            when 'init'
+              n.doc.setValue(msg.doc)
+              n.client = new Client(msg.rev)
+              adapter = new CMAdapter(cm, n.doc)
+              n.client.sendOperation = (revision, operation) ->
+                n.socket.send JSON.stringify
+                  type: 'change'
+                  rev: revision
+                  op: operation
+              n.client.applyOperation = adapter.applyOperation
+              adapter.registerCallbacks
+                change: (op) -> n.client.applyClient(op)
+            when 'ack'
+              n.client.serverAck()
+            when 'change'
+              n.client.applyServer(msg.rev, Operation.fromJSON(msg.op))
+            when 'error'
+              console.log msg.msg
+              console.log msg.ss
+
+        n.socket.onopen = ->
+          n.socket.send JSON.stringify
+            type: 'register'
+
+        n.socket.onclose = ->
+          alert('connection lost!')
+
       cm.swapDoc(n.doc)
-
-    #socket = new WebSocket(routes.controllers.Application.collab().webSocketURL())
-    socket = {}
-
-    client = null
-    annotations = new Annotations
-
-    socket.onmessage = (e) -> 
-      msg = JSON.parse(e.data)
-      switch msg.type
-        when 'init'
-          cm.setValue(msg.doc)
-          client = new Client(msg.rev)
-          adapter = new CMAdapter(cm)
-          client.sendOperation = (revision, operation) ->
-            socket.send JSON.stringify
-              type: 'change'
-              rev: revision
-              op: operation
-          client.applyOperation = adapter.applyOperation
-          adapter.registerCallbacks
-            change: (op) -> client.applyClient(op)
-          cm.setOption 'readOnly', false
-        when 'ack'
-          client.serverAck()
-        when 'change'
-          client.applyServer(msg.rev, Operation.fromJSON(msg.op))
-        when 'error'
-          console.log msg.msg
-          console.log msg.ss
-
-    socket.onopen = ->
-      socket.send JSON.stringify
-        type: 'register'   
-
-    f = () -> Dialog.push
-      title: 'connection lost'
-      text: 'The connection to the server has been lost. ' +
-            'All changes you make to the document now are ' +
-            'only local and might get lost.'
-      buttons: ['Ok']
-
-    socket.onclose = () -> scope.$apply f
-      
-
+    

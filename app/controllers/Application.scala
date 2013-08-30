@@ -1,7 +1,6 @@
 package controllers
 
 import java.util.UUID
-
 import scala.concurrent.duration.DurationInt
 import scala.slick.driver.H2Driver.simple._
 import akka.actor.ActorDSL._
@@ -17,6 +16,7 @@ import play.api.libs.concurrent.Akka.system
 import play.api.libs.iteratee._
 import play.api.libs.json._
 import play.api.mvc._
+import akka.actor.ActorRef
 
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>
@@ -46,12 +46,15 @@ object Application extends Controller with Secured {
 
   
   import models.collab.{Server,Document,Operation}
+      
+  val servers = scala.collection.mutable.Map[String,ActorRef]()
   
-  val server = Akka.system.actorOf(Server.props(Document("Test")),"collab_demo_doc_server")
+  //val server = 
   
   var id = 0
   
-  def collab = WebSocket.using[JsValue] { implicit request =>
+  def collab(path: String) = WebSocket.using[JsValue] { implicit request =>
+    val server = servers.getOrElseUpdate(path,Akka.system.actorOf(Server.props(Document(""))))
     implicit val sys = system
     implicit val timeout = 5 seconds
     val (out,channel) = Concurrent.broadcast[JsValue]

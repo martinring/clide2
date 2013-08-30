@@ -10,7 +10,7 @@ PUT     /api/projects/:user                 controllers.Projects.put(user)
 DELETE  /api/projects/:user/:project        controllers.Projects.delete(user,project)
 
 # Demo
-GET     /api/demo/collab                    controllers.Application.collab
+GET     /api/demo/collab/*path              controllers.Application.collab(path)
 
 # File System
 GET     /api/projects/:user/:project        controllers.Files.getTree(user,project)
