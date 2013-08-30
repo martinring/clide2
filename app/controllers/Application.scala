@@ -31,10 +31,10 @@ object Application extends Controller with Secured {
           yield user.*
         q.firstOption match {
           case None => unauthorized
-          case Some(u) => 
+          case Some(u) =>
             if (path.isEmpty) Redirect(f"/${u.name}/backstage")            
             else Ok(views.html.index(path))           
-        }             
+        }
       }
     }    
   }

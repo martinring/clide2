@@ -83,7 +83,7 @@ object Files extends Controller with Secured {
     }
   }
   
-  def connect(username: String, project: String, path: String) = Authenticated { user => request =>
+  /*def connect(username: String, project: String, path: String) = Authenticated { user => request =>
     if (user.name != username) Unauthorized
     else DB.withSession { implicit session => models.Projects.get(username,project) match {
       case None => NotFound("invalid project")
@@ -98,5 +98,5 @@ object Files extends Controller with Secured {
       
     }
     
-  }
+  }*/
 }

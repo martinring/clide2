@@ -51,5 +51,5 @@ object Projects extends Controller with Secured {
       else NotFound
   } }
   
-  def session(username: String, project: String) = WebSocket.
+  //def session(username: String, project: String) = WebSocket.
 }

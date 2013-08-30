@@ -4,9 +4,6 @@ define [], () -> ($routeProvider, $locationProvider, $httpProvider) ->
 
   $routeProvider.when '/'  
     redirectTo: '/login'
-  $routeProvider.when '/collab'
-    templateUrl: '/assets/partials/collab.html'    
-    controller:  'CollabController'
   $routeProvider.when '/login'
     title:       'login'
     templateUrl: '/assets/partials/login.html'
@@ -52,12 +49,12 @@ define [], () -> ($routeProvider, $locationProvider, $httpProvider) ->
   #  console.log data
   #  return data
 
-  #$httpProvider.interceptors.push ($q, $location, Toasts) ->
-  #  responseError: (rejection) ->      
-  #    switch rejection.status 
-  #      when 400
-  #        Toasts.push 'error', 'a communication error occured!'
-  #    $q.reject(rejection)
+  $httpProvider.interceptors.push ($q, $location, Toasts) ->
+    responseError: (rejection) ->      
+      switch rejection.status 
+        when 404
+          $location.path '/404'
+      $q.reject(rejection)
 
 
   #$httpProvider.responseInterceptors.push ($location, $q) -> 

@@ -14,7 +14,7 @@ case class User(
     email: String, 
     password: String,
     session: Option[String],
-    timeout: Option[Date])
+    timeout: Option[Date]) extends GenericUser
     
 object Users extends Table[User]("users") {  
   def name     = column[String]("name", O.PrimaryKey)

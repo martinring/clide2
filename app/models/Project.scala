@@ -16,6 +16,7 @@ case class Project(
     owner: String, 
     description: Option[String] = None) {
   lazy val root = f"files/$owner/$name"
+  lazy val uniqueName = f"$owner/$name"
 }
 /* Json (de)serialization */
 object Project { implicit val json = Json.format[Project] }
