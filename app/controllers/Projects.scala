@@ -15,6 +15,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.iteratee.Concurrent
 import play.api.libs.iteratee.Iteratee
 import play.Logger
+import akka.actor.PoisonPill
+import akka.actor.ActorDSL._
+import akka.actor.ActorRefFactory
 
 object Projects extends Controller with Secured {  
   def index(username: String) = Authenticated { user => implicit request => 
@@ -72,9 +75,19 @@ object Projects extends Controller with Secured {
             for {              
               reply <- akka.pattern.ask(server,OpenSession(user,project))
             } yield reply match {
-              case Welcome(ref) =>                
+              case Welcome(ref) =>
+                implicit val sys = Akka.system                
                 val (out,channel) = Concurrent.broadcast[JsValue]
-                val in = Iteratee.foreach[JsValue] { ref ! _ }
+                val dolmetcher = actor(new Act {
+                  become {
+                    case json: JsValue =>
+                      ref ! Json.fromJson[Request](json)
+                    case reply: Reply =>
+                      channel.push(Json.toJson(reply))
+                  }
+                }) 
+                val in = Iteratee.foreach[JsValue]{ dolmetcher ! _ }
+                                 .mapDone{ Unit => dolmetcher ! PoisonPill; ref ! PoisonPill }
                 (in,out)
             }
         }

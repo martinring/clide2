@@ -18,4 +18,8 @@ class SessionActor(user: GenericUser, project: Project) extends Actor with Actor
   override def preStart() {
     log.info(f"session started for ${user.name}")
   }
+  
+  override def postStop() {
+    log.info(f"session closed (${user.name})")
+  }
 }
