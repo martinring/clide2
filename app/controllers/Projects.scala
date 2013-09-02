@@ -30,8 +30,7 @@ object Projects extends Controller with Secured {
     if (user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
       Ok(Json.toJson(models.Projects.get(username,project)))
-    }
-  }
+  } }  
   
   def put(username: String) = Authenticated(parse.json) { user => implicit request => 
     if (user.name != username) Results.Unauthorized
@@ -46,12 +45,10 @@ object Projects extends Controller with Secured {
           } catch {
             case e: JdbcSQLException => e.getErrorCode() match {
               case 23505 => BadRequest("A project with that name already exists")
-              case _     => BadRequest(e.getMessage())
-            }                               
-          }
-        case None => BadRequest("Malformed Project")
-      }
-  } }
+              case _     => BadRequest(e.getMessage())                                           
+          } }
+        case None => BadRequest("Malformed Project")      
+  } } }
   
   def delete(username: String, project: String) = Authenticated { user => implicit request =>
     if (user.name != username) Results.Unauthorized
@@ -69,29 +66,30 @@ object Projects extends Controller with Secured {
         case None => scala.concurrent.Future.failed("user not found")
         case Some(user) => models.Projects.get(user.name, project) match {
           case None => scala.concurrent.Future.failed("project not found")
-          case Some(project) =>            
+          case Some(project) => 
             val server = Akka.system.actorFor("/user/server")
-            implicit val timeout = Timeout(5 seconds)            
-            for {              
+            implicit val timeout = Timeout(5 seconds)
+            for {
               reply <- akka.pattern.ask(server,OpenSession(user,project))
             } yield reply match {
-              case Welcome(ref) =>
-                implicit val sys = Akka.system                
+              case Welcome(ref) => // The session has been opened and we get an ActorRef to the
+                                   // actor, that is responsible for us.
+                implicit val sys = Akka.system
+                // `out` is the outbound channel of our WebSocket. Messages can be pushed via 
+                // channel.
                 val (out,channel) = Concurrent.broadcast[JsValue]
-                val dolmetcher = actor(new Act {
-                  become {
-                    case json: JsValue =>
-                      ref ! Json.fromJson[Request](json)
-                    case reply: Reply =>
-                      channel.push(Json.toJson(reply))
-                  }
-                }) 
+                // We instantiate an intermediate Actor, that translates between JSON and 
+                // Scala objects.
+                val dolmetcher = actor(new Act { become {
+                    case json: JsValue => ref ! Json.fromJson[Request](json)
+                    case reply: Reply  => channel.push(Json.toJson(reply))
+                } }) 
+                // `in` is the inbound channel of the WebSocket. Messages get forwarded to the
+                // dolmetcher actor which then passes them to the responsible session actor.
+                // when the socket is closed, we send a PoisonPill to the dolmetcher and a
+                // close notification directly to the session actor.
                 val in = Iteratee.foreach[JsValue]{ dolmetcher ! _ }
                                  .mapDone{ Unit => dolmetcher ! PoisonPill; ref ! PoisonPill }
-                (in,out)
-            }
-        }
-      }    
-    } 
-  }
+                (in,out)           
+  } } } } }
 }

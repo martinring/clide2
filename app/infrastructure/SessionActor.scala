@@ -3,6 +3,11 @@ package infrastructure
 import akka.actor.Actor
 import models._
 import akka.actor.ActorLogging
+import akka.actor.PoisonPill
+import akka.actor.Scheduler
+import play.api.Play.current
+import scala.concurrent.duration._
+import java.io.File
 
 /**
  * The SessionActor coordinates a client session and provides the 
@@ -11,8 +16,10 @@ import akka.actor.ActorLogging
  * @author Martin Ring <martin.ring@dfki.de>
  */
 class SessionActor(user: GenericUser, project: Project) extends Actor with ActorLogging {
+  import Messages._
   def receive = {
-    case msg => println(msg)
+    case CloseSession =>      
+      context.stop(self)
   }
   
   override def preStart() {

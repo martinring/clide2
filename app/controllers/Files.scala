@@ -78,25 +78,5 @@ object Files extends Controller with Secured {
         else {
           if (file.delete()) Ok
           else BadRequest(f"could not delete '$path'") 
-        }
-      }
-    }
-  }
-  
-  /*def connect(username: String, project: String, path: String) = Authenticated { user => request =>
-    if (user.name != username) Unauthorized
-    else DB.withSession { implicit session => models.Projects.get(username,project) match {
-      case None => NotFound("invalid project")
-      case Some(p) =>
-        val file = Play.getFile(p.root + path)
-        if (!file.exists())
-          NotFound("no such file")
-        else {
-          
-        }
-    }
-      
-    }
-    
-  }*/
+  } } } }
 }

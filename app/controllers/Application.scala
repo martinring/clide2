@@ -42,65 +42,13 @@ object Application extends Controller with Secured {
   def session = WebSocket.async[String] { request =>
     null
   }
-  
-
-  
-  import models.collab.{Server,Document,Operation}
-      
-  val servers = scala.collection.mutable.Map[String,ActorRef]()
-  
-  //val server = 
-  
-  var id = 0
-  
-  def collab(path: String) = WebSocket.using[JsValue] { implicit request =>    
-    val server = servers.getOrElseUpdate(path,Akka.system.actorOf(Server.props(Document(""))))
-    implicit val sys = system
-    implicit val timeout = 5 seconds
-    val (out,channel) = Concurrent.broadcast[JsValue]
-    val client = actor(new Act {      
-      id += 1
-      become {
-        case json: JsValue   =>
-          (json \ "type").as[String] match {
-            case "change" =>
-              val rev = (json \ "rev").as[Int]
-	          val op = (json \ "op").as[Operation]
-	          server ! Server.Change(rev,op)
-            case "register" =>                            
-              server ! Server.Register("client"+id)
-          }
-        case Server.Initialize(rev, doc) =>          
-          channel.push(Json.obj(
-            "type" -> "init",
-            "rev" -> rev,
-            "doc" -> doc.content))
-        case Server.Acknowledgement => 
-          channel.push(Json.obj(
-            "type" -> "ack"))
-        case Server.Change(rev,op) =>
-          channel.push(Json.obj(
-            "type" -> "change",
-            "rev" -> rev,
-            "op" -> op))
-        case e: Exception =>
-          channel.push(Json.obj(
-            "type" -> "error",
-            "msg" -> e.getMessage(),
-            "ss" -> e.getStackTraceString))
-      }
-    })
-    val in = Iteratee.foreach[JsValue] { client ! _ }        
-    (in,out)
-  }
 
   // -- Javascript routing
   def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
     Ok(
       Routes.javascriptRouter("jsRoutes")(
-        routes.javascript.Application.index,        
-        routes.javascript.Application.collab,
+        routes.javascript.Application.index,      
         routes.javascript.Authentication.login,
         routes.javascript.Authentication.logout,   
         routes.javascript.Authentication.validateSession,
