@@ -28,8 +28,10 @@ define ['routes'], (routes) -> ($q,$http) ->
       .error(result.reject)
     result.promise
 
+    
+
   return (
     get: get
     put: put
-    delete: del
+    delete: del    
   )

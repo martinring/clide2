@@ -9,6 +9,7 @@ import play.api.data.Forms._
 import play.api.libs.json._
 import play.api.libs.Crypto
 import java.util.UUID
+import play.api.cache.Cache
 
 object Authentication extends Controller with Secured {
   // -- Authentication
@@ -42,7 +43,7 @@ object Authentication extends Controller with Secured {
           case None => Status(401)(Json.obj("username" -> Json.arr("we don't know anybody with that username")))
           case Some(user) if (user.password != Crypto.sign(name+password)) => 
             Status(401)(Json.obj("password" -> Json.arr("invalid password")))            
-          case Some(user) => 
+          case Some(user) =>            
             val sessionKey = Crypto.sign(UUID.randomUUID().toString() + System.nanoTime())                       
             val u = user.copy(session = Some(sessionKey))
             models.Users.getByName(name).update(u)

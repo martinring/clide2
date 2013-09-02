@@ -30,12 +30,12 @@ object Files extends Controller with Secured {
               val sorted = folders.sortBy(_.getName()) ++
                            files.sortBy(_.getName())
               Json.obj("name" -> file.getName(),
-                       "path" -> file.getAbsolutePath().drop(l),                       
+                       "path" -> file.getAbsolutePath().drop(l).replace('\\','/'),                       
                        "files" -> sorted.map(jsonify))
             }
             else
               Json.obj("name" -> file.getName(),
-                       "path" -> file.getAbsolutePath().drop(l))
+                       "path" -> file.getAbsolutePath().drop(l).replace('\\','/'))
           }
           Ok(jsonify(Play.getFile(p.root)))
       }
@@ -58,12 +58,12 @@ object Files extends Controller with Secured {
 	          BadRequest("a file with that name already exists here")
 	        else if (folder){
 	          if (file.mkdir()) Ok(Json.obj("name" -> file.getName(), 
-	                                        "path" -> file.getAbsolutePath().drop(l), 
+	                                        "path" -> file.getAbsolutePath().drop(l).replace('\\','/'), 
 	                                        "files" -> Array[String]()))
 	          else BadRequest("could not create folder")
 	        } else {
 	          if (file.createNewFile()) Ok(Json.obj("name" -> file.getName(),
-	                                                "path" -> file.getAbsolutePath().drop(l)))    
+	                                                "path" -> file.getAbsolutePath().drop(l).replace('\\','/')))    
 	          else BadRequest("could not create file")
   } } } } }
   

@@ -1,5 +1,5 @@
 ### @directive directives:editor ###
-define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations'], (CodeMirror,routes,Operation,CMAdapter,Client,Annotations) -> (Dialog,$timeout,$q) -> 
+define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations'], (CodeMirror,routes,Operation,CMAdapter,Client,Annotations) -> (Dialog,Session,$timeout,$q) -> 
   restrict: 'E'
   transclude: true
   template: '<textarea></textarea>'
@@ -8,11 +8,9 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
   link: (scope, iElem, iAttrs, controller) ->
     window.countMe = (window.countMe or 0) + 1
 
-    cm = CodeMirror.fromTextArea iElem[0],
-      lineNumbers: true
-      #readOnly: true
-      undoDepth: 0 # disable
-      placeholder: 'content loading...'
+    cm = CodeMirror.fromTextArea iElem[0],      
+      lineNumbers: true      
+      undoDepth: 0 # disable      
 
     scope.$watch (-> scope.$eval(iAttrs.file)), (n,o) -> if n?
       unless o?
@@ -43,24 +41,25 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
           else
             n.open = false
             n.doc = null
-        n.doc = CodeMirror.Doc('content loading...')
-        n.socket = new WebSocket(routes.controllers.Application.collab(n.path).webSocketURL())
-        n.open = true
-        n.socket.onmessage = (e) -> 
-          msg = JSON.parse(e.data)
+            Session.ignore n.path            
+                
+        Session.listen n.path, (msg) ->           
           switch msg.type
-            when 'init'
-              n.doc.setValue(msg.doc)
+            when 'init'            
+              n.doc = CodeMirror.Doc(msg.text)
+              cm.swapDoc(n.doc)
               n.client = new Client(msg.rev)
               adapter = new CMAdapter(cm, n.doc)
               n.client.sendOperation = (revision, operation) ->
-                n.socket.send JSON.stringify
+                Session.send
+                  path: n.path
                   type: 'change'
                   rev: revision
                   op: operation
-              n.client.applyOperation = adapter.applyOperation
+              n.client.applyOperation = adapter.applyOperation            
               adapter.registerCallbacks
                 change: (op) -> n.client.applyClient(op)
+              console.log 'initialized'
             when 'ack'
               n.client.serverAck()
             when 'change'
@@ -69,12 +68,6 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
               console.log msg.msg
               console.log msg.ss
 
-        n.socket.onopen = ->
-          n.socket.send JSON.stringify
-            type: 'register'
-
-        n.socket.onclose = ->
-          alert('connection lost!')
-
-      cm.swapDoc(n.doc)
-    
+        Session.send
+          type: 'register'
+          path: n.path

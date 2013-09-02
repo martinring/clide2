@@ -7,31 +7,34 @@ import akka.actor.ActorRef
 import akka.actor.Props
 import models.GenericUser
 import models.Project
+import akka.actor.ActorPath
 
 /** 
  * @author Martin Ring <martin.ring@dfki.de>
  */
 class ServerActor extends Actor with ActorLogging {
-  import Messages._
-  val projectActors = Map[Long,ActorRef]()
-  
-  def createProjectActor(project: Project): ActorRef = {
-    projectActors(project.id.get) = context.actorOf(Props(new ProjectActor(project)),project.id.get.toString)
-    projectActors(project.id.get)
-  }
+  import ServerActor._  
+      
+  def getProjectActor(project: Project): ActorRef = {
+    val name = java.net.URLEncoder.encode(project.uniqueName)
+    context.child(name).getOrElse(context.actorOf(Props(new ProjectActor(project)),name))
+  }  
   
   def receive = {
-    case OpenSession(user,project) =>      
-      log.info(f"user '${user.name}' requested a session for project '${project.name}'")      
-      val pa = projectActors.get(project.id.get) match {
-        case None => createProjectActor(project)
-        case Some(ref) if (ref.isTerminated) => createProjectActor(project)
-        case Some(ref) => ref
-      }
-      pa.forward(OpenSession(user,project))
+    case OpenSession(user,project) =>
+      log.info(f"user '${user.name}' requested a session for project '${project.name}'")
+      getProjectActor(project).forward(ProjectActor.OpenSession(user))
   }
   
   override def preStart() {    
     log.info("infrastructure server started")
   }
+}
+
+object ServerActor {
+  trait Request
+  case class OpenSession(user: GenericUser, project: Project)
+  
+  trait Reply
+  case class Welcome(session: ActorPath)
 }
