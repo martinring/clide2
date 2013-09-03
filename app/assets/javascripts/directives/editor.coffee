@@ -20,7 +20,7 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
         n.close = (a) ->
           if a is 'confirm'
             result = $q.defer()
-            if n.doc.isClean()
+            if true # n.doc.isClean()
               n.close()
               result.resolve(true)                        
             else Dialog.push
@@ -85,4 +85,6 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
           path: n.path
       else
         cm.swapDoc(n.doc)
-        cm.setOption 'mode', n.mode
+        cm.setOption 'mode', 
+          name: 'remote'
+          annotations: n.as or []       

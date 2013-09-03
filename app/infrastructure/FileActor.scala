@@ -14,6 +14,11 @@ import scala.util.Success
 import scala.util.Failure
 import models.collab.AnnotationStream
 import scala.concurrent.duration._
+import play.api.Play
+import Play.current
+import models.collab.Server
+import akka.actor.Cancellable
+import akka.actor.PoisonPill
 
 /**
  * A FileActor is responsible for communicating with a File (i.e. reading and writing)
@@ -21,22 +26,39 @@ import scala.concurrent.duration._
  */
 class FileActor(project: ProjectInfo, path: String) extends Actor with ActorLogging {
   import FileActor._
+  import context.dispatcher
   
-  var server  = new Server(Document(""))
+  val file = Play.getFile(project.root + path)
+    
+  var server: Server = null
   var clients = Map[ActorRef,GenericUser]()  
   var annotations = Map[GenericUser,AnnotationStream]()
+  
+  var kill: Option[Cancellable] = None
+  
+  def nonExistent: Receive = {
+    case Create =>
+      log.info("create new file")
+      file.createNewFile()
+      server = new Server(Document(""))
+      context.unbecome()
+  }
   
   def receive = {
     case Register(user) =>
       log.info(f"user ${user.name} registered")
       clients += sender -> user
       sender ! SessionActor.Initialize(path, server.revision, server.text)
-      
-    case Leave =>
+      kill.map(_.cancel())
+      kill = None
+
+    case Leave =>      
       clients.remove(sender) match {
         case Some(user) => log.info(f"${user.name} left")
         case None => log.error("client already left")
       }
+      if (clients.isEmpty)
+        kill = Some(context.system.scheduler.scheduleOnce(5 seconds)(context.self ! PoisonPill))
       
     case Edit(rev, operation) =>
       require(clients.contains(sender), "unknown sender")
@@ -57,14 +79,34 @@ class FileActor(project: ProjectInfo, path: String) extends Actor with ActorLogg
         case Failure(e) =>
           throw e
       }
+      
+    case Save =>
+      require(clients.contains(sender), "unknown sender")
+      val writer = new java.io.FileWriter(file,false)
+	  writer.write(server.text)
+	  writer.flush()
+	  writer.close()
+	  
+    case Delete =>
+      require(clients.contains(sender), "unknown sender")
+      file.delete()
+      context.become(nonExistent)
   }    
   
-  override def preStart() {    
+  override def preStart() {
     import context.dispatcher
-    log.info("file actor starting")    
+    log.info("file actor starting")
+    if (!file.exists()) {
+      context.become(nonExistent)
+      server = new Server(Document("#FILE DOES NOT EXIST!#"))
+    } else {
+      val content = scala.io.Source.fromFile(file)
+      server = new Server(Document(content.mkString))
+      content.close()
+    }
   }
   
-  override def postStop() {
+  override def postStop() {    
     log.info("file actor stopped")
   }
 }
@@ -75,4 +117,7 @@ object FileActor {
   case object Leave extends Request
   case class Edit(revision: Int, operation: Operation) extends Request
   case class Annotate(revision: Int, annotations: AnnotationStream) extends Request
+  case object Save extends Request
+  case object Delete extends Request
+  case object Create extends Request
 }
