@@ -18,6 +18,7 @@ import scala.concurrent.Await
 import akka.actor.ActorRef
 import scala.collection.mutable.Buffer
 import models.collab._
+import akka.actor.Props
 
 /**
  * The SessionActor coordinates a client session and provides the 
@@ -25,21 +26,42 @@ import models.collab._
  * generic client.
  * @author Martin Ring <martin.ring@dfki.de>
  */
-class SessionActor(user: GenericUser, project: Project) extends Actor with ActorLogging {
+class SessionActor(user: GenericUser, project: ProjectInfo) extends Actor with ActorLogging {
   import context.dispatcher  
   import SessionActor._
   
+  private var peer: Option[ActorRef] = None 
+  
   implicit val timeout = Timeout(1 second)
+  
+  val annotator = context.actorOf(Props(new HelloAnnotator(context.self)),"annotator")
     
   def receive = {
-    case CloseSession =>
-      context.stop(self)
+    case Register =>
+      peer = Some(sender)
+      context.become(active)
+      sender ! ServerActor.WelcomeToSession(self)
+  }
+  
+  def active: Receive = {
+    case Register =>
+      sender ! ServerActor.SessionAlreadyInUse
+    case Leave =>
+      peer = None
+      context.unbecome()
     case OpenFile(path: String) =>
-      // TODO: Check Rights      
+      // TODO: Check Rights
+      if (sender != annotator)
+        annotator ! HelloAnnotator.ListenTo(path)
       context.parent.forward(ProjectActor.WithFile(path,FileActor.Register(user)))
+    case CloseFile(path: String) =>
+      context.parent.forward(ProjectActor.WithFile(path,FileActor.Leave))
     case EditFile(path, revision, operation) =>
       // TODO: Check Rights
       context.parent.forward(ProjectActor.WithFile(path,FileActor.Edit(revision, operation)))
+    case AnnotateFile(path, rev, ann) =>
+      // TODO: Check Rights
+      context.parent.forward(ProjectActor.WithFile(path,FileActor.Annotate(rev,ann)))
     case whatever => println(whatever)
   }
   
@@ -54,13 +76,17 @@ class SessionActor(user: GenericUser, project: Project) extends Actor with Actor
 
 object SessionActor {
   trait Request
-  case object CloseSession extends Request
+  case object Register extends Request
+  case object Leave    extends Request
   case class OpenFile(path: String) extends Request
+  case class CloseFile(path: String) extends Request
   case class EditFile(path: String, revision: Int, operation: Operation) extends Request
+  case class AnnotateFile(path: String, revision: Int, annotation: AnnotationStream) extends Request
   
   trait Reply
   case class Initialize(path: String, revision: Int, content: String) extends Reply
   case class Edited(path: String, operation: Operation) extends Reply
+  case class Annotated(path: String, annotation: AnnotationStream) extends Reply
   case class Acknowledgement(path: String) extends Reply  
   
   import play.api.libs.json._
@@ -71,12 +97,14 @@ object SessionActor {
       def reads(json: JsValue): JsResult[Request] = (json \ "type").asOpt[String] match {
         case Some("register") =>
           (json \ "path").validate[String].map(OpenFile)
+        case Some("leave") =>
+          (json \ "path").validate[String].map(CloseFile)
         case Some("change") => for {
           path <- (json \ "path").validate[String]
           rev  <- (json \ "rev").validate[Int]
           op   <- (json \ "op").validate[Operation]
         } yield EditFile(path, rev, op)
-        case _ => JsError("could not translate message")
+        case _ => JsError("could not translate request")
       } 
     }
   }
@@ -90,7 +118,18 @@ object SessionActor {
           "rev"  -> rev,
           "text" -> s
         )
-        case _ => JsString("could not translate message")
+        case Acknowledgement(path) => Json.obj(
+          "type" -> "ack",
+          "path" -> path)
+        case Edited(path, operation) => Json.obj (
+          "type" -> "edit",
+          "path" -> path,
+          "op"   -> operation)
+        case Annotated(path, as) => Json.obj (
+          "type" -> "ann",
+          "path" -> path,
+          "as"   -> as)          
+        case _ => JsString("could not translate reply")
       }
     }
   }  

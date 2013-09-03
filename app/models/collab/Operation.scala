@@ -23,9 +23,6 @@ case class Insert(s: String) extends Action
 /** Delete the next `n` characters */
 case class Delete(n: Int) extends Action { assume(n>=0) }
 
-/** Annotate out of band */
-/*case class Annotate(starting: List[String], ending: List[String], attributes: List[Map[String,String]]) extends Action*/
-
 object Action {    
   implicit object ActionFormat extends Format[Action] {
     def reads(json: JsValue): JsResult[Action] = json match {

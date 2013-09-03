@@ -18,6 +18,8 @@ define ['jquery','routes'], ($,routes) -> ($q, $scope, $timeout, $routeParams, P
   
   Session.open($routeParams.user, $routeParams.project)
 
+  $scope.traffic = Session.traffic
+
   $scope.start = () ->
     $scope.state = 'ide'
   

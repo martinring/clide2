@@ -10,17 +10,22 @@ import akka.actor.ActorPath
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-class ProjectActor(project: Project) extends Actor with ActorLogging {
+class ProjectActor(project: ProjectInfo) extends Actor with ActorLogging {
   import ProjectActor._
   
   def getFileActor(path: String) = {    
-    val name = java.net.URLEncoder.encode(path)
-    context.child(name).getOrElse(context.actorOf(Props(new FileActor(project,path)),name))        
+    val name = "file" + java.net.URLEncoder.encode(path)
+    context.child(name).getOrElse(context.actorOf(Props(new FileActor(project,path)),name))
+  }
+  
+  def getSessionActor(user: GenericUser) = {
+    val name = "session" + java.net.URLEncoder.encode(user.name)
+    context.child(name).getOrElse(context.actorOf(Props(new SessionActor(user,project))))
   }
   
   def receive = {
     case OpenSession(user) =>
-      sender ! ServerActor.Welcome(context.actorOf(Props(new SessionActor(user,project))).path)    
+      getSessionActor(user).forward(SessionActor.Register)         
     case WithFile(path,request) =>
       getFileActor(path).forward(request)
   }
@@ -33,7 +38,7 @@ class ProjectActor(project: Project) extends Actor with ActorLogging {
 object ProjectActor {
   trait Request
   case class OpenSession(user: GenericUser) extends Request
-  case class WithFile(path: String, request: FileActor.Request)  
+  case class WithFile(path: String, request: FileActor.Request)
   
   trait Reply  
   case class FileOpened(path: ActorPath)

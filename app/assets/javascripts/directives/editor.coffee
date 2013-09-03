@@ -1,5 +1,5 @@
 ### @directive directives:editor ###
-define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations'], (CodeMirror,routes,Operation,CMAdapter,Client,Annotations) -> (Dialog,Session,$timeout,$q) -> 
+define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/AnnotationStream'], (CodeMirror,routes,Operation,CMAdapter,Client,AnnotationStream) -> (Dialog,Session,$timeout,$q) -> 
   restrict: 'E'
   transclude: true
   template: '<textarea></textarea>'
@@ -35,19 +35,27 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
                 when 'No' then () ->
                   n.close()
                   result.resolve(true)
-                when 'Cancel' then () ->                
+                when 'Cancel' then () ->
                   result.reject(false)
             return result.promise
           else
             n.open = false
             n.doc = null
-            Session.ignore n.path            
-                
+            Session.send
+              type: 'leave'
+              path: n.path
+            Session.ignore n.path          
+        
+        n.open = true
+
         Session.listen n.path, (msg) ->           
           switch msg.type
-            when 'init'            
-              n.doc = CodeMirror.Doc(msg.text)
+            when 'init'           
+              n.doc = CodeMirror.Doc(msg.text)              
               cm.swapDoc(n.doc)
+              cm.setOption 'mode', 
+                name: 'remote'
+                annotations: n.as or []            
               n.client = new Client(msg.rev)
               adapter = new CMAdapter(cm, n.doc)
               n.client.sendOperation = (revision, operation) ->
@@ -55,19 +63,26 @@ define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Cli
                   path: n.path
                   type: 'change'
                   rev: revision
-                  op: operation
+                  op: operation.actions
               n.client.applyOperation = adapter.applyOperation            
               adapter.registerCallbacks
                 change: (op) -> n.client.applyClient(op)
               console.log 'initialized'
             when 'ack'
               n.client.serverAck()
-            when 'change'
-              n.client.applyServer(msg.rev, Operation.fromJSON(msg.op))
+            when 'edit'
+              n.client.applyServer(Operation.fromJSON(msg.op))
+            when 'ann'
+              n.as = msg.as
+              n.doc.getEditor()?.setOption 'mode',
+                name: 'remote'
+                annotations: n.as              
             when 'error'
               console.log msg.msg
-              console.log msg.ss
-
+              console.log msg.ss          
         Session.send
           type: 'register'
           path: n.path
+      else
+        cm.swapDoc(n.doc)
+        cm.setOption 'mode', n.mode

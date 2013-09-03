@@ -40,7 +40,7 @@ object Projects extends Controller with Secured {
         case Some("") => BadRequest("project name must not be empty!")
         case Some(name) => 
           val descr = (request.body \ "description").asOpt[String]
-          val project = models.Project(None,name,username,descr)
+          val project = models.ProjectInfo(None,name,username,descr)
           try {
             Ok(Json.toJson(models.Projects.create(project)))
           } catch {
@@ -73,8 +73,8 @@ object Projects extends Controller with Secured {
             for {
               reply <- akka.pattern.ask(server,ServerActor.OpenSession(user,project))
             } yield reply match {
-              case ServerActor.Welcome(ref) => // The session has been opened and we get an ActorRef to the
-                                   // actor, that is responsible for us.
+              case ServerActor.WelcomeToSession(ref) => // The session has been opened and we get an ActorRef to the
+                                   // actor, that is responsible for us.                
                 Logger.info("Connecting to WebSocket")
                 implicit val sys = Akka.system
                 // `out` is the outbound channel of our WebSocket. Messages can be pushed via 
@@ -85,7 +85,7 @@ object Projects extends Controller with Secured {
                 val dolmetcher = actor(new Act { become {
                     case json: JsValue =>
                       Json.fromJson[Request](json) match {
-                        case JsSuccess(msg,where) => sys.actorFor(ref) ! msg
+                        case JsSuccess(msg,where) => ref ! msg
                         case JsError(e)           => channel.push(Json.obj("error" -> e.toString))
                       }                      
                     case reply: Reply  =>                      
@@ -96,7 +96,7 @@ object Projects extends Controller with Secured {
                 // when the socket is closed, we send a PoisonPill to the dolmetcher and a
                 // close notification directly to the session actor.
                 val in = Iteratee.foreach[JsValue]{ dolmetcher ! _ }
-                                 .mapDone{ Unit => dolmetcher ! PoisonPill; sys.actorFor(ref) ! CloseSession }
+                                 .mapDone{ Unit => dolmetcher ! PoisonPill; ref ! Leave }
                 (in,out)           
   } } } } }
 }

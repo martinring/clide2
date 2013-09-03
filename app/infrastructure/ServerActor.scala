@@ -6,7 +6,7 @@ import akka.actor.ActorLogging
 import akka.actor.ActorRef
 import akka.actor.Props
 import models.GenericUser
-import models.Project
+import models.ProjectInfo
 import akka.actor.ActorPath
 
 /** 
@@ -15,7 +15,7 @@ import akka.actor.ActorPath
 class ServerActor extends Actor with ActorLogging {
   import ServerActor._  
       
-  def getProjectActor(project: Project): ActorRef = {
+  def getProjectActor(project: ProjectInfo): ActorRef = {
     val name = java.net.URLEncoder.encode(project.uniqueName)
     context.child(name).getOrElse(context.actorOf(Props(new ProjectActor(project)),name))
   }  
@@ -33,8 +33,9 @@ class ServerActor extends Actor with ActorLogging {
 
 object ServerActor {
   trait Request
-  case class OpenSession(user: GenericUser, project: Project)
+  case class OpenSession(user: GenericUser, project: ProjectInfo)
   
   trait Reply
-  case class Welcome(session: ActorPath)
+  case class  WelcomeToSession(session: ActorRef)
+  case object SessionAlreadyInUse
 }

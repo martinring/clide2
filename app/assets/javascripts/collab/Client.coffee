@@ -10,9 +10,8 @@ define ->
     applyClient: (operation) ->
       @setState @state.applyClient(this, operation)
 
-    applyServer: (revision, operation) ->
-      if revision isnt ++@revision
-        throw new Error("inconsistent revisions... something is broken!")
+    applyServer: (operation) ->
+      @revision++
       @setState @state.applyServer(this, operation)
 
     serverAck: ->
