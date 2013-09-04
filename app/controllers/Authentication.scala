@@ -9,7 +9,6 @@ import play.api.data.Forms._
 import play.api.libs.json._
 import play.api.libs.Crypto
 import java.util.UUID
-import play.api.cache.Cache
 
 object Authentication extends Controller with Secured {
   // -- Authentication

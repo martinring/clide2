@@ -26,7 +26,7 @@ class HelloAnnotator(session: ActorRef) extends Actor with ActorLogging {
       }
       import context.dispatcher
       if (work.isEmpty) work = Some(context.system.scheduler.scheduleOnce(100 millisecond){
-        context.self.tell(Annotate)
+        context.self ! Annotate
         work = None
       })
     case Annotate =>

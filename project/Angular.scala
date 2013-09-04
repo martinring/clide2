@@ -1,8 +1,8 @@
 import sbt._
+import sbt.Keys._
 import play.Project
-import Keys._
-import PlayKeys._
-import PlayExceptions._
+import play.Keys._
+import play.PlayExceptions._
 import java.io.File
 import java.io.FileReader
 import scala.collection.SortedSet

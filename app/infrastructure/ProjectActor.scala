@@ -14,12 +14,12 @@ class ProjectActor(project: ProjectInfo) extends Actor with ActorLogging {
   import ProjectActor._
   
   def getFileActor(path: String) = {    
-    val name = "file" + java.net.URLEncoder.encode(path)
+    val name = "file" + java.net.URLEncoder.encode(path,"UTF8")
     context.child(name).getOrElse(context.actorOf(Props(new FileActor(project,path)),name))
   }
   
   def getSessionActor(user: GenericUser) = {
-    val name = "session" + java.net.URLEncoder.encode(user.name)
+    val name = "session" + java.net.URLEncoder.encode(user.name,"UTF8")
     context.child(name).getOrElse(context.actorOf(Props(new SessionActor(user,project))))
   }
   

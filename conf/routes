@@ -17,14 +17,13 @@ PUT     /api/projects/:user/:project/*path  controllers.Files.newFile(user,proje
 DELETE  /api/projects/:user/:project/*path  controllers.Files.deleteFile(user,project,path)
 
 # Javascript routing
-GET     /assets/javascripts/routes.js       controllers.Application.javascriptRoutes
+GET     /client/javascripts/routes.js       controllers.Application.javascriptRoutes
 
 # Webjars
-GET     /assets/javascripts/lib/require.js  controllers.WebJarAssets.requirejs
-GET     /assets/javascripts/lib/*file       controllers.WebJarAssets.at(file)
+GET     /client/libs/*file                  controllers.WebJarAssets.at(file)
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file                       controllers.Assets.at(path="/public", file)
+GET     /client/*file                       controllers.Assets.at(path="C:/Users/Martin/Documents/Projects/clide2/public", file)
 
 # Home page
 GET     /                                   controllers.Application.index(path="")
