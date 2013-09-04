@@ -20,10 +20,10 @@ DELETE  /api/projects/:user/:project/*path  controllers.Files.deleteFile(user,pr
 GET     /client/javascripts/routes.js       controllers.Application.javascriptRoutes
 
 # Webjars
-GET     /client/libs/*file                  controllers.WebJarAssets.at(file)
+GET     /client/javascripts/lib/*file                  controllers.WebJarAssets.at(file)
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /client/*file                       controllers.Assets.at(path="C:/Users/Martin/Documents/Projects/clide2/public", file)
+GET     /client/*file                       controllers.Assets.at(path="/public", file)
 
 # Home page
 GET     /                                   controllers.Application.index(path="")

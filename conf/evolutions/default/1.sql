@@ -15,16 +15,16 @@ create table "users" ("name" VARCHAR NOT NULL PRIMARY KEY,"email" VARCHAR NOT NU
 alter table "openFiles" add constraint "fk_openFile_project" foreign key("projectId") references "projects"("id") on update NO ACTION on delete NO ACTION;
 alter table "projects" add constraint "fk_project_user" foreign key("owner") references "users"("name") on update NO ACTION on delete NO ACTION;
 alter table "revisions" add constraint "fk_revision_file" foreign key("fileId") references "openFiles"("id") on update NO ACTION on delete NO ACTION;
-alter table "rights" add constraint "fk_right_project" foreign key("project") references "projects"("id") on update NO ACTION on delete NO ACTION;
 alter table "rights" add constraint "fk_right_user" foreign key("user") references "users"("name") on update NO ACTION on delete NO ACTION;
+alter table "rights" add constraint "fk_right_project" foreign key("project") references "projects"("id") on update NO ACTION on delete NO ACTION;
 
 # --- !Downs
 
 alter table "openFiles" drop constraint "fk_openFile_project";
 alter table "projects" drop constraint "fk_project_user";
 alter table "revisions" drop constraint "fk_revision_file";
-alter table "rights" drop constraint "fk_right_project";
 alter table "rights" drop constraint "fk_right_user";
+alter table "rights" drop constraint "fk_right_project";
 drop table "openFiles";
 drop table "projects";
 drop table "revisions";
