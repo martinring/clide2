@@ -13,7 +13,7 @@ case class OpenFile(
     id: Option[Long],
     project: Long,
     path: String)
-    
+
 object OpenFiles extends Table[OpenFile]("openFiles") {  
   def id        = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def projectId = column[Long]("projectId")
