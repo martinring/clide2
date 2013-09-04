@@ -19,3 +19,5 @@ dist
 .cache
 /bin
 /data.trace.db
+files
+/data.*
