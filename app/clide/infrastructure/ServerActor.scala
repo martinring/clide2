@@ -1,12 +1,11 @@
-package infrastructure
+package clide.infrastructure
 
 import scala.collection.mutable.Map
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.actor.ActorRef
 import akka.actor.Props
-import models.GenericUser
-import models.ProjectInfo
+import clide.db._
 import akka.actor.ActorPath
 
 /** 

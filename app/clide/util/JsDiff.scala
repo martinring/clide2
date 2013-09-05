@@ -1,4 +1,4 @@
-package util
+package clide.util
 
 import play.api.libs.json._
 

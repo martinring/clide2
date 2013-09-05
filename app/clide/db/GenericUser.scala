@@ -1,4 +1,4 @@
-package models
+package clide.db
 
 /**
  * A GenericUser can either be a real human user (i.e. User) or some connected system,

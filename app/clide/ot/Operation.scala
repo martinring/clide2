@@ -3,7 +3,7 @@
  * @see https://github.com/Operational-Transformation/ot.hs
  * @author Martin Ring
  */
-package models.collab
+package clide.ot
 
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
@@ -11,7 +11,7 @@ import scala.util.Try
 import scala.util.Success
 import scala.util.Failure
 import scala.annotation.tailrec
-import _root_.util.compare._
+import clide.util.compare._
 
 sealed trait Action {
   override def toString = Action.ActionFormat.writes(Action.this).toString

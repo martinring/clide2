@@ -1,4 +1,4 @@
-package controllers
+package clide.web.controllers
 
 import play.api.mvc._
 import play.api.db.slick.DB
@@ -18,19 +18,21 @@ import play.Logger
 import akka.actor.PoisonPill
 import akka.actor.ActorDSL._
 import akka.actor.ActorRefFactory
-import infrastructure.ServerActor
+import clide.infrastructure.ServerActor
+import clide.infrastructure.SessionActor
+import clide.db
 
 object Projects extends Controller with Secured {  
   def index(username: String) = Authenticated { user => implicit request => 
     if (user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
-      Ok(Json.toJson(models.Projects.getByOwner(username).toSeq))
+      Ok(Json.toJson(db.Projects.getByOwner(username).toSeq))
   } }
   
   def details(username: String, project: String) = Authenticated { user => implicit request =>
     if (user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
-      Ok(Json.toJson(models.Projects.get(username,project)))
+      Ok(Json.toJson(db.Projects.get(username,project)))
   } }  
   
   def put(username: String) = Authenticated(parse.json) { user => implicit request => 
@@ -40,9 +42,9 @@ object Projects extends Controller with Secured {
         case Some("") => BadRequest("project name must not be empty!")
         case Some(name) => 
           val descr = (request.body \ "description").asOpt[String]
-          val project = models.ProjectInfo(None,name,username,descr)
+          val project = db.ProjectInfo(None,name,username,descr)
           try {
-            Ok(Json.toJson(models.Projects.create(project)))
+            Ok(Json.toJson(db.Projects.create(project)))
           } catch {
             case e: JdbcSQLException => e.getErrorCode() match {
               case 23505 => BadRequest("A project with that name already exists")
@@ -54,18 +56,18 @@ object Projects extends Controller with Secured {
   def delete(username: String, project: String) = Authenticated { user => implicit request =>
     if (user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
-      val q = for (p <- models.Projects if p.ownerName === username && p.name === project) yield p      
+      val q = for (p <- db.Projects if p.ownerName === username && p.name === project) yield p      
       if (q.delete > 0) Ok
       else NotFound
   } }
   
   def session(username: String, project: String) = WebSocket.async[JsValue] { request =>
-    import infrastructure.SessionActor._
+    import SessionActor._
     implicit def error(msg: String) = new Exception(msg)
     DB.withSession { implicit session: scala.slick.driver.H2Driver.simple.Session =>
-      Users.getByName(username).firstOption match {
+      db.Users.getByName(username).firstOption match {
         case None => scala.concurrent.Future.failed("user not found")
-        case Some(user) => models.Projects.get(user.name, project) match {
+        case Some(user) => db.Projects.get(user.name, project) match {
           case None => scala.concurrent.Future.failed("project not found")
           case Some(project) => 
             val server = Akka.system.actorFor("/user/server")

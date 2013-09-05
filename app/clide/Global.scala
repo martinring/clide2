@@ -1,12 +1,13 @@
+package clide
+
 import play.api._
 import play.api.db.DB
 import play.api.Play.current
-import scala.slick.session.{Database,Session}
-import scala.slick.session.Database.{threadLocalSession => session}
+import scala.slick.session.Database
 import scala.slick.driver.H2Driver.simple._
 import play.api.libs.concurrent.Akka
 import akka.actor.Props
-import infrastructure.ServerActor
+import clide.infrastructure.ServerActor
 
 object Global extends GlobalSettings {  
   override def onStart(app: Application) {    

@@ -1,4 +1,4 @@
-package controllers
+package clide.web.controllers
 
 import play.api.mvc._
 import play.api.db.slick.DB
@@ -11,6 +11,7 @@ import org.h2.jdbc.JdbcSQLException
 import java.io.File
 import play.api.Play
 import views.html.defaultpages.unauthorized
+import clide.db
 
 
 /**
@@ -20,7 +21,7 @@ object Files extends Controller with Secured {
   def getTree(username: String, project: String) = Authenticated { user => request =>
     if (user.name != username) Unauthorized
     else DB.withSession { implicit session =>
-      models.Projects.get(username,project) match {
+      db.Projects.get(username,project) match {
         case None => NotFound
         case Some(p) =>
           val l = Play.getFile(p.root).getAbsolutePath().length()          
@@ -49,7 +50,7 @@ object Files extends Controller with Secured {
       ( request.body \ "name" ).asOpt[String] match {
         case None => BadRequest("please enter a name")
         case Some("") => BadRequest("name must not be empty")
-        case Some(name) => models.Projects.get(username,project) match {
+        case Some(name) => db.Projects.get(username,project) match {
           case None => NotFound("invalid project")
           case Some(p) =>   
             val l = Play.getFile(p.root).getAbsolutePath().length()    
@@ -69,7 +70,7 @@ object Files extends Controller with Secured {
   
   def deleteFile(username: String, project: String, path: String) = Authenticated { user => request =>
     if (user.name != username) Unauthorized
-    else DB.withSession { implicit session => models.Projects.get(username,project) match {
+    else DB.withSession { implicit session => db.Projects.get(username,project) match {
       case None => NotFound("invalid project")
       case Some(p) =>
         val file = Play.getFile(p.root + path)

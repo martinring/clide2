@@ -1,4 +1,4 @@
-package util {
+package clide.util {
   package object compare {
 	trait ORD
 	object LT

@@ -1,7 +1,6 @@
-package infrastructure
+package clide.infrastructure
 
 import akka.actor.Actor
-import models._
 import akka.actor.ActorLogging
 import akka.actor.PoisonPill
 import akka.actor.Scheduler
@@ -17,7 +16,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Await
 import akka.actor.ActorRef
 import scala.collection.mutable.Buffer
-import models.collab._
+import clide.ot._
+import clide.db._
 import akka.actor.Props
 
 /**

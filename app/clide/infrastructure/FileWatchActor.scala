@@ -1,4 +1,4 @@
-package infrastructure
+package clide.infrastructure
 
 import akka.actor.Actor
 import java.io.File

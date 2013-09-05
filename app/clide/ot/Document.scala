@@ -1,4 +1,4 @@
-package models.collab
+package clide.ot
 
 import scala.util.{Try,Success,Failure}
 import scala.reflect.ClassTag

@@ -1,10 +1,10 @@
-package infrastructure
+package clide.infrastructure
 
 import akka.actor._
 import scala.collection.mutable.Map
 import scala.concurrent.duration._
 import scala.util._
-import models.collab._
+import clide.ot._
 
 class HelloAnnotator(session: ActorRef) extends Actor with ActorLogging {
   val docs = Map[String,(Int,Document)]()
@@ -35,8 +35,8 @@ class HelloAnnotator(session: ActorRef) extends Actor with ActorLogging {
         def parse(what: String): List[Annotation] = {
           what.toUpperCase().indexOf("HELLO") match {
 	        case -1 => Plain(what.length)::Nil
-	        case 0  => models.collab.Annotate(5,scala.collection.immutable.Map("class" -> "keyword"))::parse(what.drop(5))
-	        case n  => Plain(n)::models.collab.Annotate(5,scala.collection.immutable.Map("class" -> "keyword"))::parse(what.drop(n+5))
+	        case 0  => clide.ot.Annotate(5,scala.collection.immutable.Map("class" -> "keyword"))::parse(what.drop(5))
+	        case n  => Plain(n)::clide.ot.Annotate(5,scala.collection.immutable.Map("class" -> "keyword"))::parse(what.drop(n+5))
 	      }          
         }        
         session ! SessionActor.AnnotateFile(path,rev,AnnotationStream(parse(doc.content)))

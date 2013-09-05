@@ -1,7 +1,7 @@
-package infrastructure
+package clide.infrastructure
 
 import akka.actor.Actor
-import models._
+import clide.db._
 import akka.actor.ActorRef
 import akka.actor.Props
 import akka.actor.ActorLogging

@@ -1,22 +1,17 @@
-package infrastructure
+package clide.infrastructure
 
 import akka.actor.Actor
-import models.GenericUser
-import models.ProjectInfo
+import clide.db._
 import akka.actor.ActorLogging
-import models.collab.Document
-import models.collab.Server
+import clide.ot._
 import akka.actor.Props
 import akka.actor.ActorRef
 import scala.collection.mutable.Map
-import models.collab.Operation
 import scala.util.Success
 import scala.util.Failure
-import models.collab.AnnotationStream
 import scala.concurrent.duration._
 import play.api.Play
 import Play.current
-import models.collab.Server
 import akka.actor.Cancellable
 import akka.actor.PoisonPill
 

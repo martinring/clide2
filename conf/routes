@@ -1,30 +1,30 @@
 # Authentication
-POST    /api/auth/login                     controllers.Authentication.login
-GET     /api/auth/validateSession           controllers.Authentication.validateSession
-POST    /api/auth/signup                    controllers.Authentication.signup
-GET     /api/auth/logout                    controllers.Authentication.logout
+POST    /api/auth/login                     clide.web.controllers.Authentication.login
+GET     /api/auth/validateSession           clide.web.controllers.Authentication.validateSession
+POST    /api/auth/signup                    clide.web.controllers.Authentication.signup
+GET     /api/auth/logout                    clide.web.controllers.Authentication.logout
 
 # Projects
-GET     /api/projects/:user                 controllers.Projects.index(user)
-PUT     /api/projects/:user                 controllers.Projects.put(user)
-DELETE  /api/projects/:user/:project        controllers.Projects.delete(user,project)
-GET     /api/:user/:project/@session        controllers.Projects.session(user,project)
+GET     /api/projects/:user                 clide.web.controllers.Projects.index(user)
+PUT     /api/projects/:user                 clide.web.controllers.Projects.put(user)
+DELETE  /api/projects/:user/:project        clide.web.controllers.Projects.delete(user,project)
+GET     /api/:user/:project/@session        clide.web.controllers.Projects.session(user,project)
 
 # File System
-GET     /api/projects/:user/:project        controllers.Files.getTree(user,project)
-PUT     /api/projects/:user/:project        controllers.Files.newFile(user,project,path="")
-PUT     /api/projects/:user/:project/*path  controllers.Files.newFile(user,project,path)
-DELETE  /api/projects/:user/:project/*path  controllers.Files.deleteFile(user,project,path)
+GET     /api/projects/:user/:project        clide.web.controllers.Files.getTree(user,project)
+PUT     /api/projects/:user/:project        clide.web.controllers.Files.newFile(user,project,path="")
+PUT     /api/projects/:user/:project/*path  clide.web.controllers.Files.newFile(user,project,path)
+DELETE  /api/projects/:user/:project/*path  clide.web.controllers.Files.deleteFile(user,project,path)
 
 # Javascript routing
-GET     /client/javascripts/routes.js       controllers.Application.javascriptRoutes
+GET     /client/javascripts/routes.js       clide.web.controllers.Application.javascriptRoutes
 
 # Webjars
-GET     /client/javascripts/lib/*file                  controllers.WebJarAssets.at(file)
+GET     /client/javascripts/lib/*file       controllers.WebJarAssets.at(file)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /client/*file                       controllers.Assets.at(path="/public", file)
 
-# Home page
-GET     /                                   controllers.Application.index(path="")
-GET     /*path                              controllers.Application.index(path)
+# Home page (Has to be served last because it catches everything else)
+GET     /                                   clide.web.controllers.Application.index(path="")
+GET     /*path                              clide.web.controllers.Application.index(path)

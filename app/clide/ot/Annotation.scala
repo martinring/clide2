@@ -1,9 +1,9 @@
-package models.collab
+package clide.ot
 
 import play.api.libs.json._
 import scala.util._
 import scala.annotation.tailrec
-import _root_.util.compare._
+import clide.util.compare._
 
 sealed trait Annotation
 case class Plain(length: Int) extends Annotation
