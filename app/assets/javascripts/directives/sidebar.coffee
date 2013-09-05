@@ -1,5 +1,5 @@
 ### @directive directives:sidebar ###
-define ['angular'], (angular) -> () ->   
+define -> () ->   
   restrict: 'E'
   transclude: true
   scope: {}

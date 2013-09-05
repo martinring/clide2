@@ -106,6 +106,8 @@ object Angular {
     coffeescriptOptions
   )
   
+  private def string(any: Any) = "'" + any.toString() + "'"
+
   val BoilerplateGenerator = (resourceManaged in Compile, sourceDirectory in Compile, cacheDirectory, name, version, moduleDirs, otherModules, configDir) map { (outDir,sourceDir,cache,appName,appVersion,moduleDirs,otherModules,configDir) =>    
     val bps = moduleDirs.map { case (what,(ngf,postfix,capitalize)) =>
       val inFiles = ((sourceDir / "assets" / "javascripts" / what) * "*.coffee").get
@@ -113,10 +115,10 @@ object Angular {
       val outFile = outDir / "public" / "javascripts" / (what+".js")
       if (previous.get(what).map(_ != names).getOrElse(true)) {        
         previous(what) = names			 
-		val builder = new StringBuilder("define(['angular'")
-		builder ++= names.map(file => ",'"+what+"/"+file+"'").mkString
-		builder ++= "],function(angular"
-		builder ++= names.map(f=>","+f).mkString
+		val builder = new StringBuilder("define([")
+		builder ++= names.map(file => "'"+what+"/"+file+"'").mkString(",")
+		builder ++= "],function("
+		builder ++= names.mkString(",")
 		builder ++= "){var module=angular.module('"+appName+"."+what+"',[]);"
 		builder ++= names.map(file => "module."+ngf+"('"+(if(capitalize)file.capitalize else file)+postfix+"',"+file+")").mkString(";")
 		builder ++= "})"	
@@ -128,12 +130,10 @@ object Angular {
     val appFile = outDir / "public" / "javascripts" / "app.js"
     if (previous.get(configDir).map(_ != configs).getOrElse(true)) {      
       previous(configDir) = configs
-      val builder = new StringBuilder("define(['angular'")
-  	  builder ++= configs.map(file => ",'"+configDir+"/"+file+"'").mkString    
-      builder ++= otherModules.keys.map(file => ",'"+file+"'").mkString
-      builder ++= moduleDirs.keys.map(file => ",'"+file+"'").mkString 
-      builder ++= "],function(angular,"
-      builder ++= configs.mkString(",")
+      val builder = new StringBuilder("define([")
+  	  builder ++= (configs.map(file=>string(configDir+"/"+file)).toSeq ++ moduleDirs.keys.map(string).toSeq).mkString(",")      
+      builder ++= "],function("
+      builder ++= (configs.toSeq).mkString(",")
       builder ++= "){var app=angular.module('"+appName+"',["
       builder ++= (moduleDirs.keys.map(f=>"'clide."+f+"'") ++ otherModules.values.map(f=>"'"+f+"'")).mkString(",") 
       builder ++= "]);"

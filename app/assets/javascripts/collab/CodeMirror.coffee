@@ -1,6 +1,4 @@
-define ['collab/Operation','codemirror'], (Operation,CodeMirror) ->
-  console.log 'Define mode'
-
+define ['collab/Operation'], (Operation) ->
   skipOne = (state) ->
     if state.remaining.length > 0
       switch typeof state.remaining[0]

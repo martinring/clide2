@@ -1,20 +1,27 @@
-@(path: String)
+@()
 <!DOCTYPE html>
 <html lang='en' xmlns:ng="http://angularjs.org">
   <head>
     <base href='/'/>
     <meta charset="utf-8"/>
     <title>clide 2</title>
-    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.min.css")">
-    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-    @helper.requireJs(core = routes.WebJarAssets.at(WebJarAssets.locate("require.js")).url, module=routes.Assets.at("javascripts/main.min.js").url)
-    <script>var path='@path'</script>
+    <!--link rel='stylesheet' media='screen' href='@routes.WebJarAssets.at(WebJarAssets.locate("css/flat-ui.css"))'>-->
+    <link rel='stylesheet' media='screen' href='@routes.WebJarAssets.at(WebJarAssets.locate("bootstrap.css"))'>
+    <link rel='stylesheet' media='screen' href='@routes.Assets.at("stylesheets/main.css")'>
+    <link rel='shortcut icon' type='image/png' href='@routes.Assets.at("images/favicon.png")'>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("angular.js"))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("angular-cookies.js"))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("angular-route.js"))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("angular-animate.js"))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("angular-resource.js"))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("codemirror.js"))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("require.js"))' data-main='@routes.Assets.at("javascripts/main.js")'></script>
   </head>
   <body ng-controller='AppController' ng-class='{wait: app.wait}'>           
-    <div id='loading' class='dialogContainer'>
-      <div class='dialogContainer2'>
+    <div id='loading' class='dialogOuterContainer'>
+      <div class='dialogInnerContainer'>
         <div class='dialog'>
-          <div class='content'>
+          <div class='container'>
             <h1>loading</h1>
             please wait, while clide is getting ready for you.
           </div>
@@ -22,10 +29,10 @@
       </div>
     </div>
     <noscript>
-      <div class='dialogContainer'>
-        <div class='dialogContainer2'>
+      <div class='dialogOuterContainer'>
+        <div class='dialogInnerContainer'>
           <div class='dialog'>
-            <div class='content'>
+            <div class='container'>
               <h1>JavaScript is Disabled :(</h1>
               Your browser does not seem to execute JavaScript. Please enable and reload.
             </div>
@@ -33,10 +40,10 @@
         </div>
       </div>
     </noscript>    
-    <!--<div ng-include='"@routes.Assets.at("partials/clui/toasts.html")"'></div>
+    <div ng-include='"@routes.Assets.at("partials/clui/toasts.html")"'></div>
     <div ng-include='"@routes.Assets.at("partials/clui/dialog.html")"'></div>
-    <div ng-include='"@routes.Assets.at("partials/clui/contextmenu.html")"'></div>-->
-    <div id='root' ng-view>      
+    <div ng-include='"@routes.Assets.at("partials/clui/contextmenu.html")"'></div>
+    <div id='root' ng-view>
     </div>
   </body>
 </html>

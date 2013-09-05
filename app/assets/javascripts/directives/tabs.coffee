@@ -1,5 +1,5 @@
 ### @directive directives:tabs ###
-define ['angular'], (angular) -> () ->   
+define -> () ->   
   restrict: 'E'
   transclude: true
   scope: {}

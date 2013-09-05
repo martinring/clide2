@@ -21,7 +21,7 @@ import clide.db.Users
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>
     def unauthorized = path match {
-      case "login" => Ok(clide.web.views.html.index(path)).withNewSession
+      case "login" => Ok(clide.web.views.html.index()).withNewSession
       case _ => Redirect("/login").withNewSession
     }
     request.session.get("session") match {
@@ -33,7 +33,7 @@ object Application extends Controller with Secured {
           case None => unauthorized
           case Some(u) =>
             if (path.isEmpty) Redirect(f"/${u.name}/backstage")            
-            else Ok(clide.web.views.html.index(path))           
+            else Ok(clide.web.views.html.index())           
         }
       }
     }

@@ -1,5 +1,5 @@
 ### @directive directives:editor ###
-define ['codemirror','routes','collab/Operation','collab/CodeMirror','collab/Client','collab/AnnotationStream'], (CodeMirror,routes,Operation,CMAdapter,Client,AnnotationStream) -> (Dialog,Session,$timeout,$q) -> 
+define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/AnnotationStream'], (routes,Operation,CMAdapter,Client,AnnotationStream) -> (Dialog,Session,$timeout,$q) -> 
   restrict: 'E'
   transclude: true
   template: '<textarea></textarea>'

@@ -1,4 +1,3 @@
-@import 'reset.less';
 @import 'variables.less';
 
 @import 'clui/dialog.less';
@@ -12,48 +11,21 @@
 @import 'codemirror/dialog.less';
 @import 'codemirror/show-hint.less';
 
-/*@import 'fonts.less';*/
-
-@import 'buttons.less';
-@import 'inputs.less';
 @import 'backstage.less';
 @import 'sidebar.less';
 @import 'statusbar.less';
 
 body {
-  background-color: #ccc;
-  user-select: none;
   -webkit-user-select: none;
-  font-family: 'myriad-pro', 'Segoe UI', 'Helvetica';
+  background-image: url('/client/images/clouds.svg');
+  background-color: #2980B9;
 }
 
-a {
-  text-decoration: none;
-  color: @accent;
-  cursor: pointer;
+a {  
+  color: @accent;  
   &:hover {
     color: lighten(@accent, 5%);
   }
-}
-
-h1 {
-  font-weight: 100;
-  font-size: 26;
-  margin: 0;
-  margin-bottom: 12px;
-}
-
-h2 {
-  font-weight: 100;
-  font-size: 20;
-  margin: 0;
-  margin-top: 0px;
-  margin-bottom: 12px;
-}
-
-p {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
 }
 
 #backstage {

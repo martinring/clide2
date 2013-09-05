@@ -1,5 +1,5 @@
 <div id='backstage'>
-  <div>  
+  <div>
     <div class='logout'><a title='log out' ng-click='logout()'><i class='icon-signout'></i></a></div>
     <div class='title'>      
       <h1 class='title'>{{user}}'s backstage area</h1>
@@ -7,7 +7,7 @@
     <div class='panes'>
       <div class='section'>
         <h1>profile</h1>
-        <img class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=400'/>
+        <img class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=400'></img>
         <p>username: {{user}}</p>
         <p>email: {{email}}</p>        
       </div>
@@ -18,7 +18,7 @@
         <h1>projects</h1>
         <ul id='projectList' ng-show='projects.length > 0'>
           <li ng-repeat='project in projects' context-menu="projectContextMenu(project)" ng-class='{ current: project==selectedProject }' ng-click='change(project)'>
-            <span ng-bind='project.name'/>
+            <span ng-bind='project.name'></span>
           </li>
         </ul>
         <p ng-show='projects.length == 0'>
@@ -27,7 +27,7 @@
       </div>
       <div class='section' ng-hide='selectedProject==null'>
         <h1>project '{{selectedProject.name}}'</h1>
-        <span ng-bind='selectedProject.description' contenteditable style='-webkit-user-select: auto'/>
+        <span ng-bind='selectedProject.description' contenteditable style='-webkit-user-select: auto'></span>
         <p><a ng-click='start()'>start coding...</a></p>
       </div>
       <div class='section'>

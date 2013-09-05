@@ -1,4 +1,4 @@
-.dialogContainer {  
+.dialogOuterContainer {  
   display: table;
   background-color: rgba(0,0,0,0.2);
   z-index: 1000000000;  
@@ -7,13 +7,11 @@
   left: 0;
   height: 100%;
   width: 100%;
-  .dialogContainer2 {
+  .dialogInnerContainer {
     display: table-cell;
     vertical-align: middle;     
-    .dialog {    
-      box-shadow: 0 0 16px #000;
-      background-color: white;
-      text-align: center;   
+    .dialog {      
+      background-color: white;      
       position: relative; 
       .grayOut {
         z-index: 20;
@@ -21,59 +19,7 @@
         width: 100%;
         height: 100%;
         background-color: rgba(255,255,255,0.5);                      
-      }
-      .gravatar {
-        border: 4px solid white;
-        box-shadow: 0 0 4px #000;
-        position: absolute;
-        top: 16px;
-        left: -124px;
-      }
-      .content{
-        position: relative;
-        p.error {
-          color: red;        
-          &:before {
-            font-family: icon;
-            content: '\f057';
-            margin-right: 4px;      
-          }
-        }
-        span.error {
-          float: right;
-          color: red;       
-          &:before {
-            font-family: icon;
-            content: '\f057';
-            margin-right: 4px;      
-          }
-        }
-        text-align: left;
-        width: 400px;
-        margin: auto;
-        padding: 16px 0 20px 0;
-          h1 {
-            font-family: "myriad-pro", "Segoe UI Light";
-            margin: 0 0px;
-            font-weight: 100;
-            font-size: 30px;
-            margin-top: 0;  
-            margin-bottom: 8px;
-          }
-          input[type="password"], input[type="text"], input[type="email"] {          
-            display: block;
-            width: 100%;
-            margin: 8px 0;
-          }
-           .buttons {
-            width: 100%;
-            margin-top: 16px;
-            text-align: right;
-            .left {
-              float:left;
-            }
-          }     
-      }
+      }  
     }
   }
 }

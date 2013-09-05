@@ -1,5 +1,5 @@
 ### @controller controllers:SignupController ###
-define ['routes','underscore','util/md5'], (routes,_,md5) -> ($scope, $location, Console, Toasts, Auth) ->
+define ['routes','util/md5'], (routes,md5) -> ($scope, $location, Console, Toasts, Auth) ->
   $scope.gravatar = null
   $scope.data =
     username: null
@@ -18,7 +18,7 @@ define ['routes','underscore','util/md5'], (routes,_,md5) -> ($scope, $location,
         console.log data
         switch status          
           when 400
-            _.extend($scope.signupForm.error,data)
+            $scope.signupForm.error = data
           when 404
             $scope.signupForm.error[''] = 'the server did not respond'
           else

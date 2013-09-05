@@ -1,35 +1,38 @@
 ### @config ### 
-define [], () -> ($routeProvider, $locationProvider, $httpProvider) ->
+define ['routes'], (routes) -> ($routeProvider, $locationProvider) ->
   $locationProvider.html5Mode(true)
+
+  # DEBUG
+  window.routes = routes
 
   $routeProvider.when '/'  
     redirectTo: '/login'
   $routeProvider.when '/login'
     title:       'login'
-    templateUrl: '/assets/partials/login.html'
+    templateUrl: '/client/partials/login.html'
     controller:  'LoginController'
   $routeProvider.when '/signup'
     title:       'signup'
-    templateUrl: '/assets/partials/signup.html'
+    templateUrl: '/client/partials/signup.html'
     controller:  'SignupController'
   $routeProvider.when '/:user/backstage'
     title:       'backstage'
-    templateUrl: '/assets/partials/backstage.html'
+    templateUrl: '/client/partials/backstage.html'
     controller:  'BackstageController'
   $routeProvider.when '/:user/:project/',
     title:       'coding'
-    templateUrl: '/assets/partials/ide.html'
+    templateUrl: '/client/partials/ide.html'
     controller:  'IdeController'
   $routeProvider.when '/:user/:project/:file',
     title:       'coding'
-    templateUrl: '/assets/partials/ide.html'
+    templateUrl: '/client/partials/ide.html'
     controller:  'IdeController'
   $routeProvider.when '/404',
     title:       'not found'
-    templateUrl: '/assets/partials/404.html'    
+    templateUrl: '/client/partials/404.html'    
   $routeProvider.when '/401',
     title:       'not authorized'
-    templateUrl: '/assets/partials/401.html'        
+    templateUrl: '/client/partials/401.html'        
   $routeProvider.otherwise
     redirectTo: '/404'
 
@@ -49,12 +52,12 @@ define [], () -> ($routeProvider, $locationProvider, $httpProvider) ->
   #  console.log data
   #  return data
 
-  $httpProvider.interceptors.push ($q, $location, Toasts) ->
-    responseError: (rejection) ->      
-      switch rejection.status 
-        when 404
-          $location.path '/404'
-      $q.reject(rejection)
+  #$httpProvider.interceptors.push ($q, $location, Toasts) ->
+  #  responseError: (rejection) ->      
+  #    switch rejection.status 
+  #      when 404
+  #        $location.path '/404'
+  #    $q.reject(rejection)
 
 
   #$httpProvider.responseInterceptors.push ($location, $q) -> 

@@ -1,22 +1,37 @@
-<div id='login'>
-  <div class='dialogContainer'>
-    <div class='dialogContainer2'>
-    <div class='dialog'>
-      <div class='content' ng-controller='LoginController'>
-        <h1 title='version {{version}}'>welcome to clide</h1>
-        <form name='loginForm' id='loginForm'>
-        <p class='error' ng-bind="loginForm.error['']" ng-show="loginForm.error['']"/>        
-        <label for='username'>username:</label><span class='error' ng-bind="loginForm.error['username']" ng-show="loginForm.error['username']"/><input type='text' name='username' id='username' ng-model='data.username' required autofocus/>
-        <label for='password'>password:</label><span class='error' ng-bind="loginForm.error['password']" ng-show="loginForm.error['password']"/><input type='password' id='password' name='password' ng-model='data.password' required/>
-        <input type='checkbox' name='staySignedIn' ng-model='data.staySignedIn' id='staySignedIn'/><label for='staySignedIn'>keep me signed in</label>
-        <div class='buttons'>
-          <a href='http://martinring.github.io/clide' class='left'>What is this?</a>
-          <a href='/signup'>Sign Up</a>
-          <button type='submit' class='default' ng-click='login()' ng-disabled='!loginForm.$valid || app.wait'>Login</button>
+<dialog>  
+  <div class='row'>
+    <div class='col-md-7'>
+      <h1 class='title' title='version {{version}}'>Welcome to clide</h1>
+      <form role='form' name='loginForm' id='loginForm'>
+        <p class='error' ng-bind="loginForm.error['']" ng-show="loginForm.error['']"></p>
+        <div class="form-group">
+          <label for='username'>username:</label>
+          <span class='error' ng-bind="loginForm.error['username']" ng-show="loginForm.error['username']"></span>
+          <input class='form-control' type='text' name='username' id='username' ng-model='data.username' required autofocus>
         </div>
-        </form>
+        <div class="form-group">
+          <label for='password'>password:</label>
+          <span class='error' ng-bind="loginForm.error['password']" ng-show="loginForm.error['password']"></span>
+          <input class='form-control' type='password' id='password' name='password' ng-model='data.password' required>
+        </div>
+        <div class="checkbox">
+          <label>        
+            <input type='checkbox' name='staySignedIn' ng-model='data.staySignedIn' id='staySignedIn'> keep me signed in
+          </label>            
+        </div>        
+        <div class='form-group pull-right'>
+          <a class='btn' href='/signup'>Sign Up</a>
+          <button type='submit' class='btn btn-primary' ng-click='login()' ng-disabled='!loginForm.$valid || app.wait'>Login</button>
+        </div>
+      </form>
+    </div>
+    <div class='col-md-5'>
+      <div class='banner'>
+        <h1 class='title'>What is clide?</h1>
+        Clide has been developed by Martin Ring at the German Research Center for
+        Artificial Intelligence (DFKI) in Bremen, Germany.<br/>
+        
       </div>
     </div>
-    </div>
   </div>
-</div>
+</dialog>

@@ -1,5 +1,5 @@
 ### @service services:Dialog ###
-define [], () -> () ->  
+define -> () ->  
   queue = []
 
   state = { current: null }

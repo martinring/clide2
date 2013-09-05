@@ -1,5 +1,5 @@
 ### @controller controllers:IdeController ###
-define ['jquery','routes'], ($,routes) -> ($q, $scope, $timeout, $routeParams, Projects, Files, Dialog, Auth, Toasts, Session) ->  
+define ['routes'], (routes) -> ($q, $scope, $timeout, $routeParams, Projects, Files, Dialog, Auth, Toasts, Session) ->  
   $scope.user = $routeParams.user  
 
   unless Auth.loggedIn
@@ -168,7 +168,7 @@ define ['jquery','routes'], ($,routes) -> ($q, $scope, $timeout, $routeParams, P
   $scope.select = (section) ->    
     $scope.sidebar = true
     $scope.sidebarSection = section
-    top = $("#section-#{section}").position().top - 8
-    currentST = $('#sidebarContent').scrollTop()    
-    $('#sidebarContent').animate
-      scrollTop: currentST + top
+    #top = $("#section-#{section}").position().top - 8
+    #currentST = $('#sidebarContent').scrollTop()    
+    #$('#sidebarContent').animate
+    #  scrollTop: currentST + top
