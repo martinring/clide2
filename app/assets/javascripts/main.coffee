@@ -1,11 +1,11 @@
 # RequireJS configuration
 require.config
   paths:    
-    'angular':          'lib/angularjs/1.1.5/angular'
-    'angular-animate':  'lib/angularjs/1.1.5/angular-animate'
-    'angular-cookies':  'lib/angularjs/1.1.5/angular-cookies'
-    'angular-resource': 'lib/angularjs/1.1.5/angular-resource'
-    'angular-route':    'lib/angularjs/1.1.5/angular-route'        
+    'angular':          'lib/angularjs/1.2.0rc1/angular'
+    'angular-animate':  'lib/angularjs/1.2.0rc1/angular-animate'
+    'angular-cookies':  'lib/angularjs/1.2.0rc1/angular-cookies'
+    'angular-resource': 'lib/angularjs/1.2.0rc1/angular-resource'
+    'angular-route':    'lib/angularjs/1.2.0rc1/angular-route'        
     'jquery':           'lib/jquery/2.0.3/jquery'
     'codemirror':       'lib/codemirror/3.16/lib/codemirror'
     'typekit':          '//use.typekit.net/bzl6miy'
