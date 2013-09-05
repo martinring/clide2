@@ -1,6 +1,6 @@
 ### @service services:Files ###
 define ['routes'], (routes) -> ($q,$http) ->
-  fc = routes.controllers.Files
+  fc = routes.clide.web.controllers.Files
 
   get = (user,project) ->
     result = $q.defer()

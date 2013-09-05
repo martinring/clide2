@@ -4,7 +4,7 @@
   <head>
     <base href='/'/>
     <meta charset="utf-8"/>
-    <title ng-bind="'clide - ' + title">clide</title>
+    <title>clide 2</title>
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.min.css")">
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
     @helper.requireJs(core = routes.WebJarAssets.at(WebJarAssets.locate("require.js")).url, module=routes.Assets.at("javascripts/main.min.js").url)
@@ -33,9 +33,9 @@
         </div>
       </div>
     </noscript>    
-    <div ng-include='"/assets/partials/clui/toasts.html"'></div>
-    <div ng-include='"/assets/partials/clui/dialog.html"'></div>
-    <div ng-include='"/assets/partials/clui/contextmenu.html"'></div>
+    <!--<div ng-include='"@routes.Assets.at("partials/clui/toasts.html")"'></div>
+    <div ng-include='"@routes.Assets.at("partials/clui/dialog.html")"'></div>
+    <div ng-include='"@routes.Assets.at("partials/clui/contextmenu.html")"'></div>-->
     <div id='root' ng-view>      
     </div>
   </body>

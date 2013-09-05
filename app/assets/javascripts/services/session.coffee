@@ -1,6 +1,6 @@
 ### @service services:Session ###
 define ['routes'], (routes) -> ($q,$http,$timeout) ->
-  pc = routes.controllers.Projects
+  pc = routes.clide.web.controllers.Projects
   
   current   = undefined
   listeners = undefined

@@ -28,6 +28,7 @@ object ApplicationBuild extends Build {
     requireJsShim += "main.js",
     Angular.otherModules ++= Map(
         "angular-animate"  -> "ngAnimate",
+        "angular-cookies"  -> "ngCookies",
         "angular-route"    -> "ngRoute",
         "angular-resource" -> "ngResource"),
     Angular.moduleDirs ++= Map(

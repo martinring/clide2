@@ -1,7 +1,7 @@
 ### @service services:Auth ###
 ### @require ngCookies from angular-cookies ###
 define ['routes'], (routes) -> ($http, $cookies, $location) ->
-  authentication = routes.controllers.Authentication  
+  authentication = routes.clide.web.controllers.Authentication  
 
   service = {
     user:      

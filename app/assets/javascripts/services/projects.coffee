@@ -1,6 +1,6 @@
 ### @service services:Projects ###
 define ['routes'], (routes) -> ($q,$http) ->
-  pc = routes.controllers.Projects
+  pc = routes.clide.web.controllers.Projects
 
   get = (username, project) ->
     result = $q.defer()
