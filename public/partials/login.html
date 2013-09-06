@@ -2,7 +2,7 @@
   <div class='row'>
     <div class='col-md-7'>
       <h1 class='title' title='version {{version}}'>Welcome to clide</h1>
-      <form role='form' name='loginForm' id='loginForm'>
+      <form name='loginForm' role='form'>
         <p class='error' ng-bind="loginForm.error['']" ng-show="loginForm.error['']"></p>
         <div class="form-group">
           <label for='username'>username:</label>
@@ -13,12 +13,14 @@
           <label for='password'>password:</label>
           <span class='error' ng-bind="loginForm.error['password']" ng-show="loginForm.error['password']"></span>
           <input class='form-control' type='password' id='password' name='password' ng-model='data.password' required>
-        </div>
-        <div class="checkbox">
-          <label>        
-            <input type='checkbox' name='staySignedIn' ng-model='data.staySignedIn' id='staySignedIn'> keep me signed in
-          </label>            
         </div>        
+        <label for='staySignedIn' class='checkbox'>
+          <span class="icons">
+            <span class="first-icon fui-checkbox-unchecked"></span>
+            <span class="second-icon fui-checkbox-checked"></span>
+          </span>
+          <input type='checkbox' name='staySignedIn' data-toggle='checkbox' ng-model='data.staySignedIn' id='staySignedIn'> keep me signed in
+        </label>                        
         <div class='form-group pull-right'>
           <a class='btn' href='/signup'>Sign Up</a>
           <button type='submit' class='btn btn-primary' ng-click='login()' ng-disabled='!loginForm.$valid || app.wait'>Login</button>
@@ -27,10 +29,17 @@
     </div>
     <div class='col-md-5'>
       <div class='banner'>
-        <h1 class='title'>What is clide?</h1>
-        Clide has been developed by Martin Ring at the German Research Center for
-        Artificial Intelligence (DFKI) in Bremen, Germany.<br/>
-        
+        <h1 class='title'>What is clide?</h1>        
+        Clide has initially been developed as a proof of concept of a web 
+        interface for the interactive thorem proover 
+        <a href='http://isabelle.in.tum.de/'>Isabelle</a>. Currently it is 
+        extended into a language agnostic, collaborative IDE running completely 
+        in the cloud at your service.<br/>
+        Clide is maintained by <a href='http://github.com/martinring'>Martin 
+        Ring</a> at the <a href='http://www.dfki.de'>German Research Center for 
+        Artificial Intelligence (DFKI)</a> in Bremen, Germany.<br/>
+        If you want to know what is running under the hood, feel free to explore
+        the <a href='http://github.com/martinring/clide2'>github project</a>.
       </div>
     </div>
   </div>

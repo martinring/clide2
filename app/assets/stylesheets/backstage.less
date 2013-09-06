@@ -3,9 +3,7 @@
   background-color: #fff;      
   color: #333;
   padding: 30px;
-  margin: 30px;
-  margin-top: 0;
-  box-shadow: 0 0 16px #000;
+  margin: 0;
   cursor: default;
   overflow-y: auto;
   .section {
@@ -31,7 +29,7 @@
     line-height: 64px;
   }
   .logout {    
-    position: absolute;
+    position: fixed;
     bottom: 30px;
     right: 30px;        
     font-size: 24px;
@@ -74,14 +72,7 @@
 #backstage .title {
   font-size: 60px;
   color: @accent;
-  vertical-align: middle;
-  .logo {
-    float: left;
-    line-height: 64px;
-  }
-  .title {
-    line-height: 64px;
-  }
+  margin: 0;
 }
 
 .panes {    

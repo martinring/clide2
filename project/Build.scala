@@ -10,13 +10,7 @@ object ApplicationBuild extends Build {
     "com.typesafe.akka"  %% "akka-testkit"        % "2.2.0"    % "test",
     "com.typesafe"       %% "play-plugins-mailer" % "2.1.0",    
     "com.typesafe.play"  %% "play-slick"          % "0.5.0.2-SNAPSHOT",
-    "com.typesafe.slick" %% "slick"               % "1.0.1",
-    "org.webjars"        %% "webjars-play"        % "2.2.0-SNAPSHOT",
-    "org.webjars" % "angularjs"    % "1.2.0rc1",
-    "org.webjars" % "requirejs"    % "2.1.8",
-    "org.webjars" % "codemirror"   % "3.16",
-    "org.webjars" % "bootstrap"    % "3.0.0",
-    "org.webjars" % "flat-ui"      % "bcaf2de95e"      
+    "com.typesafe.slick" %% "slick"               % "1.0.1"   
   )
     
   val main = play.Project(appName, appVersion, appDependencies).settings(Angular.defaultSettings:_*).settings(    

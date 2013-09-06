@@ -1,5 +1,5 @@
 ### @controller controllers:IdeController ###
-define ['routes'], (routes) -> ($q, $scope, $timeout, $routeParams, Projects, Files, Dialog, Auth, Toasts, Session) ->  
+define ['routes'], (routes) -> ($scope, $location, $routeParams, Files, Dialog, Auth, Toasts, Session) ->  
   $scope.user = $routeParams.user  
 
   unless Auth.loggedIn

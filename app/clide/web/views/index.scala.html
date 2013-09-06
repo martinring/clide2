@@ -4,26 +4,30 @@
   <head>
     <base href='/'/>
     <meta charset="utf-8"/>
-    <title>clide 2</title>
-    <!--link rel='stylesheet' media='screen' href='@routes.WebJarAssets.at(WebJarAssets.locate("css/flat-ui.css"))'>-->
-    <link rel='stylesheet' media='screen' href='@routes.WebJarAssets.at(WebJarAssets.locate("bootstrap.css"))'>
+    <title>clide 2</title>    
+    <link rel='stylesheet' media='screen' href='//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/codemirror.min.css'>
     <link rel='stylesheet' media='screen' href='@routes.Assets.at("stylesheets/main.css")'>
     <link rel='shortcut icon' type='image/png' href='@routes.Assets.at("images/favicon.png")'>
-    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("angular.js"))'></script>
-    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("angular-cookies.js"))'></script>
-    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("angular-route.js"))'></script>
-    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("angular-animate.js"))'></script>
-    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("angular-resource.js"))'></script>
-    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("codemirror.js"))'></script>
-    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("require.js"))' data-main='@routes.Assets.at("javascripts/main.js")'></script>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+    <script type="text/javascript" src="//use.typekit.net/bzl6miy.js"></script>
+    <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+    <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.min.js'></script>
+    <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-cookies.js'></script>
+    <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-route.js'></script>
+    <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-animate.js'></script>
+    <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-resource.js'></script>
+    <script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/codemirror.min.js'></script>
+    @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url)
   </head>
   <body ng-controller='AppController' ng-class='{wait: app.wait}'>           
     <div id='loading' class='dialogOuterContainer'>
       <div class='dialogInnerContainer'>
         <div class='dialog'>
           <div class='container'>
-            <h1>loading</h1>
-            please wait, while clide is getting ready for you.
+            <div class='row'>              
+              <h1 class='title'>loading</h1>
+              please wait, while clide is getting ready for you.
+            </div>
           </div>
         </div>
       </div>
