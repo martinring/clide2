@@ -1,5 +1,5 @@
 ### @controller controllers:AppController ###
-define -> ($scope, $location, Auth, version) ->  
+define -> ($scope, $location, Auth, Toasts, version) ->  
   $scope.user = Auth.user
   $scope.version = version
   $scope.goBack = () ->
