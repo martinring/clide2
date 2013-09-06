@@ -16,7 +16,6 @@ define -> () ->
           for q in state.current.queries
             result[q.name] = q.value
         res = action(result)
-        console.log res
         switch typeof res
           when 'function'
             done(); res()

@@ -1,7 +1,7 @@
 <div ng-controller='DialogController' ng-show='dialog.current'>
   <dialog>
     <div class='row'>
-      <div class='col-md-6 col-md-offset-3'>
+      <div class='col-sm-6 col-sm-offset-3'>
         <h2 class='title' ng-bind='dialog.current.title'></h2>
         <form role='form'>
         <p class='error' ng-show='dialog.current.error' ng-bind='dialog.current.error'></p>
@@ -41,9 +41,10 @@
             <input class='form-control' type="{{query.type}}" ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>
           </span>
         </div>
-        <div class='pull-right clearfix'>
-          <button class='btn' ng-disabled='dialog.current.wait' type='{{button.type}}' ng-repeat='button in dialog.current.buttons' ng-bind='button.text' ng-class='{ default: $index == 0 }' ng-click='dialog.next(button.action)'/>
+        <div class='pull-right'>
+          <button class='btn' ng-disabled='dialog.current.wait' type='{{button.type}}' ng-repeat='button in dialog.current.buttons' ng-class='{ "btn-primary": $index==0, "btn-default": $index!=0 }' ng-click='dialog.next(button.action)'>{{button.text}}</button>
         </div>
+        <div class='clearfix'></div>
         </form>
       </div>
     </div>
