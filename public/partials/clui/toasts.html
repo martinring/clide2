@@ -1,5 +1,5 @@
 <div id='toasts' ng-controller='ToastController' ng-show='toasts.length > 0'>
-  <div ng-repeat='toast in toasts track by $index' class='alert alert-dismissable alert-{{toast.type}}'>
+  <div ng-repeat='toast in toasts track by $index' class='toast alert alert-dismissable alert-{{toast.type}}'>
     <button type="button" class="close" ng-click='toast.remove()' data-dismiss="alert" aria-hidden="true">&times;</button>
     <span ng-bind='toast.message'></span>    
   </div>

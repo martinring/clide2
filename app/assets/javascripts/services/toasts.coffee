@@ -3,7 +3,7 @@ define () -> ($rootScope) ->
   toasts = []
 
   config = 
-    timeout: 5000
+    timeout: 15000
 
   push = (type, message) ->
     toast = 

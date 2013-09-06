@@ -1,10 +1,13 @@
 ### @service services:ContextMenu ###
 define [], () -> ($timeout) ->  
-  state = { current: null }
-  state.display = (create, x, y) ->
-    $('#contextmenu').css # HACK!
-      left: x
-      top: y    
+  state = { 
+    current: null     
+  }
+  el = null
+  state.display = (create, x, y) ->    
+    el = document.getElementById('contextmenu') unless el?
+    el.style.left = x
+    el.style.top = y
     state.current = create
-    $('#contextmenu').focus()
+    el.focus()
   return state

@@ -1,6 +1,7 @@
-<ul id='contextmenu' ng-controller='ContextMenuController' tabindex='-1'>
-  <li ng-repeat='item in contextmenu.current' ng-click='done(item.action)'>
-    <i class='icon-{{item.icon}}'></i>
-    <span ng-bind='item.text'></span>
-  </li>
-</ul>
+<div id='contextmenu' class='dropdown' tabindex='-1' ng-controller='ContextMenuController'>
+  <ul class='dropdown-menu' role='menu'>
+    <li ng-repeat='item in contextmenu.current' role='presentation'>
+      <a role='menuitem'>{{item.text}}</a>
+    </li>
+  </ul>
+</div>
