@@ -4,17 +4,17 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Files, Dialog, 
 
   unless Auth.loggedIn
     $location.path '/login'
-    Toasts.push 'warn', 'You need to log in to view the requested resource!'
+    Toasts.push 'warning', 'You need to log in to view the requested resource!'
     return
 
   Auth.validateSession 
     success: (user) -> 
       if $routeParams.user isnt user.username
         $location.path '/login'
-        Toasts.push 'warn', 'The requested resource is not associated with your user account!'
+        Toasts.push 'warning', 'The requested resource is not associated with your user account!'
     error: -> 
       $location.path '/login'
-      Toasts.push 'warn', 'Sorry, your login session has expired! Please enter your credentials once again.'    
+      Toasts.push 'warning', 'Sorry, your login session has expired! Please enter your credentials once again.'    
   
   Session.open($routeParams.user, $routeParams.project)
 

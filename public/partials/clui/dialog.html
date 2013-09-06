@@ -3,7 +3,7 @@
     <div class='row'>
       <div class='col-md-6 col-md-offset-3'>
         <h2 class='title' ng-bind='dialog.current.title'></h2>
-        <form>
+        <form role='form'>
         <p class='error' ng-show='dialog.current.error' ng-bind='dialog.current.error'></p>
         <span ng-bind='dialog.current.text'></span>
         <div class='form-group' ng-repeat='query in dialog.current.queries' ng-switch='query.type'>
@@ -32,7 +32,7 @@
           </span>
           <span ng-switch-when='select'>
             <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
-            <select ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'
+            <select class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'
                     ng-options='option.text for option in query.options'>
             </select>
           </span>

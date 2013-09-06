@@ -8,7 +8,7 @@ define ['routes','util/md5'], (routes,md5) -> ($scope, $location, Console, Toast
   $scope.updateGravatar = () -> if $scope.data.email?
     $scope.gravatar = md5($scope.data.email)
   $scope.signup = () ->    
-    $scope.signupForm.error = { }      
+    $scope.error = { }      
     Console.write "signing up as '#{$scope.username}'..."
     Auth.signup $scope.data,
       success: ->
@@ -18,9 +18,9 @@ define ['routes','util/md5'], (routes,md5) -> ($scope, $location, Console, Toast
         console.log data
         switch status          
           when 400
-            $scope.signupForm.error = data
+            $scope.error = data
           when 404
-            $scope.signupForm.error[''] = 'the server did not respond'
+            $scope.error[''] = 'the server did not respond'
           else
-            $scope.signupForm.error[''] = 'something went wrong...'
+            $scope.error[''] = 'something went wrong...'
         

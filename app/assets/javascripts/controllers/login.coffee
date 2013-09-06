@@ -4,8 +4,7 @@ define ['routes'], (routes) -> ($scope, $location, Auth, Toasts) ->
     username: null
     password: null
     staySignedIn: true
-  $scope.login = () ->
-    console.log $scope    
+  $scope.login = () ->    
     $scope.error = { }
     Auth.login $scope.data,
       success: ->

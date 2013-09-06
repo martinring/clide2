@@ -3,26 +3,27 @@
     <div class='col-md-4 col-md-offset-2'>
       <h2 class='title'>Sign up</h2>
       <form name='signupForm' role='form'>
-        <p class='error' ng-bind="signupForm.error['']" ng-show="signupForm.error['']"></p>
-        <div class='form-group'>
+        <p class='error' ng-bind="error['']" ng-show="error['']"></p>
+        <div class='form-group' ng-class='{"has-error": error.username}'>
           <label for='name'>username:</label> 
-          <span class='error' ng-bind='signupForm.error.username' ng-show='signupForm.error.username'></span>
+          <span class='text-danger pull-right' ng-bind='error.username' ng-show='error.username'></span>
           <input class='form-control' type='text' ng-model='data.username' name='name' required autofocus></input>
         </div>
-        <div class='form-group'>
+        <div class='form-group' ng-class='{"has-error": error.email}'>
           <label for='email'>email address:</label>
-          <span class='error' ng-bind='signupForm.error.email' ng-show='signupForm.error.email'></span>
+          <span class='text-danger pull-right' ng-bind='error.email' ng-show='error.email'></span>
           <input class='form-control' type='email' ng-model='data.email' name='email' required ng-change='updateGravatar()'></input>        
         </div>
-        <div class='form-group'>
+        <div class='form-group' ng-class='{"has-error": error.password}'>
           <label for='password'>password:</label>
-          <span class='error' ng-bind='signupForm.error.password' ng-show='signupForm.error.password'></span>
+          <span class='text-danger pull-right' ng-bind='error.password' ng-show='error.password'></span>
           <input class='form-control' type='password' ng-model='data.password' name='password' ng-minlength='8' required></input>
         </div>
-        <div class='pull-right clearfix'>
+        <div class='pull-right'>
           <button class='btn btn-primary' type='submit' class='default' ng-click='signup()' ng-disabled='!signupForm.$valid || app.wait'>Sign Up</button>
           <a class='btn' href='/login'>Cancel</a> 
         </div>
+        <div class='clearfix'></div>
       </form>
     </div>
     <div class='col-md-4'>
