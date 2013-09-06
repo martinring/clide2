@@ -2,7 +2,6 @@ package clide.web.controllers
 
 import java.util.UUID
 
-import controllers.routes;
 import scala.concurrent.duration.DurationInt
 import scala.slick.driver.H2Driver.simple._
 import akka.actor.ActorDSL._

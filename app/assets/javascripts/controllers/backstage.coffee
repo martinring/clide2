@@ -1,6 +1,6 @@
 ### @controller clide.controllers:BackstageController ###
 define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, Toasts, Dialog) ->
-  $scope.user = $routeParams.user 
+  $scope.user = $routeParams.user
 
   unless Auth.loggedIn
     $location.path '/login'
