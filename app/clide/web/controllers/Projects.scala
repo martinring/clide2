@@ -23,38 +23,38 @@ import clide.infrastructure.SessionActor
 import clide.db
 
 object Projects extends Controller with Secured {  
-  def index(username: String) = Authenticated { user => implicit request => 
-    if (user.name != username) Results.Unauthorized
+  def index(username: String) = Authenticated { request => 
+    if (request.user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
       Ok(Json.toJson(db.Projects.getByOwner(username).toSeq))
   } }
   
-  def details(username: String, project: String) = Authenticated { user => implicit request =>
-    if (user.name != username) Results.Unauthorized
+  def details(username: String, project: String) = Authenticated { request =>
+    if (request.user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
       Ok(Json.toJson(db.Projects.get(username,project)))
   } }  
   
-  def put(username: String) = Authenticated(parse.json) { user => implicit request => 
-    if (user.name != username) Results.Unauthorized
+  def put(username: String) = Authenticated(parse.json) { request => 
+    if (request.user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
       (request.body \ "name").asOpt[String] match {
-        case Some("") => BadRequest("project name must not be empty!")
+        case Some("") => Results.BadRequest("project name must not be empty!")
         case Some(name) => 
           val descr = (request.body \ "description").asOpt[String]
           val project = db.ProjectInfo(None,name,username,descr)
           try {
-            Ok(Json.toJson(db.Projects.create(project)))
+            Results.Ok(Json.toJson(db.Projects.create(project)))
           } catch {
             case e: JdbcSQLException => e.getErrorCode() match {
-              case 23505 => BadRequest("A project with that name already exists")
-              case _     => BadRequest(e.getMessage())                                           
+              case 23505 => Results.BadRequest("A project with that name already exists")
+              case _     => Results.BadRequest(e.getMessage())                                           
           } }
-        case None => BadRequest("Malformed Project")      
+        case None => Results.BadRequest("Malformed Project")      
   } } }
   
-  def delete(username: String, project: String) = Authenticated { user => implicit request =>
-    if (user.name != username) Results.Unauthorized
+  def delete(username: String, project: String) = Authenticated { request =>
+    if (request.user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
       val q = for (p <- db.Projects if p.ownerName === username && p.name === project) yield p      
       if (q.delete > 0) Ok

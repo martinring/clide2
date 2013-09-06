@@ -18,8 +18,8 @@ import clide.db
  * TODO: User rights are ignored right now!!!
  */
 object Files extends Controller with Secured {    
-  def getTree(username: String, project: String) = Authenticated { user => request =>
-    if (user.name != username) Unauthorized
+  def getTree(username: String, project: String) = Authenticated { request =>
+    if (request.user.name != username) Unauthorized
     else DB.withSession { implicit session =>
       db.Projects.get(username,project) match {
         case None => NotFound
@@ -43,8 +43,8 @@ object Files extends Controller with Secured {
     }
   }
     
-  def newFile(username: String, project: String, path: String = "") = Authenticated(parse.json) { user => request =>
-    if (user.name != username) Unauthorized
+  def newFile(username: String, project: String, path: String = "") = Authenticated(parse.json) { request =>
+    if (request.user.name != username) Unauthorized
     else DB.withSession { implicit session =>
       val folder = ( request.body \ "files" ).asOpt[Array[JsValue]].isDefined
       ( request.body \ "name" ).asOpt[String] match {
@@ -68,8 +68,8 @@ object Files extends Controller with Secured {
 	          else BadRequest("could not create file")
   } } } } }
   
-  def deleteFile(username: String, project: String, path: String) = Authenticated { user => request =>
-    if (user.name != username) Unauthorized
+  def deleteFile(username: String, project: String, path: String) = Authenticated { request =>
+    if (request.user.name != username) Unauthorized
     else DB.withSession { implicit session => db.Projects.get(username,project) match {
       case None => NotFound("invalid project")
       case Some(p) =>

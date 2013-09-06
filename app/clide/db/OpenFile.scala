@@ -7,8 +7,6 @@ import play.api.libs.iteratee.Iteratee
 import akka.actor.Actor
 import play.api.libs.Crypto
 import java.sql.Date
-
-import clide.db.OpenFiles;
 import play.api.libs.json._
 
 case class OpenFile(

@@ -66,13 +66,13 @@ object Authentication extends Controller with Secured {
     ) 
   }  
   
-  def validateSession = Authenticated { user => request =>
-    Ok(Json.obj("username" -> user.name, "email" -> user.email))	       
+  def validateSession = Authenticated { request =>
+    Ok(Json.obj("username" -> request.user.name, "email" -> request.user.email))	       
   }
   
-  def logout = Authenticated { user => request => 
+  def logout = Authenticated { request => 
     DB.withSession { implicit session: Session =>
-      Users.getByName(user.name).update(user.copy(session = None))
+      Users.getByName(request.user.name).update(request.user.copy(session = None))
     }
     Ok.withNewSession
   }
