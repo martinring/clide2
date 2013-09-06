@@ -1,7 +1,7 @@
-<dialog>  
+<dialog id='signup'>  
   <div class='row'>    
-    <div class='col-md-7'>
-      <h1 class='title'>sign up for clide</h1>
+    <div class='col-md-4 col-md-offset-2'>
+      <h2 class='title'>Sign up</h2>
       <form name='signupForm' role='form'>
         <p class='error' ng-bind="signupForm.error['']" ng-show="signupForm.error['']"></p>
         <div class='form-group'>
@@ -19,14 +19,16 @@
           <span class='error' ng-bind='signupForm.error.password' ng-show='signupForm.error.password'></span>
           <input class='form-control' type='password' ng-model='data.password' name='password' ng-minlength='8' required></input>
         </div>
-        <div class='control-group pull-right'>
+        <div class='pull-right clearfix'>
           <button class='btn btn-primary' type='submit' class='default' ng-click='signup()' ng-disabled='!signupForm.$valid || app.wait'>Sign Up</button>
           <a class='btn' href='/login'>Cancel</a> 
         </div>
       </form>
     </div>
-    <div class='col-md-5'>
-      <img ng-show='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=100'></img>
+    <div class='col-md-4'>
+      <div class='gravatar'>
+        <img ng-show='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=320'></img>
+      </div>
     </div>
   </div>
 </dialog>

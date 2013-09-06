@@ -34,7 +34,7 @@
   left: 0;  
   padding: 6px 0 0 0;
   width: @ribbon-width;
-  top: 32px;
+  top: @tabbar-height;
   a {
     color: #000;  
   }
@@ -109,15 +109,14 @@
 }
 
 #sidebar {
-  z-index: 2;
-  box-shadow: 1px 1px 5px #888;  
+  z-index: 2;  
   position: absolute;
   background-color: @gray-lighter;  
   bottom: 0;
   top: 0;
-  width: @sidebar-width;
+  width: @sidebar-width + @ribbon-width;
   padding: 32px 0 0 @ribbon-width;
-
+  box-shadow: 0 0 4px #000;
   .section {
     .command {      
       margin-right: 14px;
@@ -233,13 +232,13 @@
 }
 
 #sidebarContent {
-  padding: 0 0 128px 0;
+  padding: 0 0 16px 0;
   margin: 0;
   position: absolute;
   overflow-x: hidden;
   overflow-y: scroll;
   bottom: 0;
-  left: 32px;
+  left: @ribbon-width;
   right: 0;
   top: 32px;
 }
@@ -256,7 +255,7 @@
   left: 0;
   top: 0;
   width: 282px;
-  height: 29px;
+  height: @tabbar-height;
   border-bottom: 3px solid @accent;
   background: #ccc;
   overflow: hidden;
@@ -264,7 +263,7 @@
     background: none;
     position: absolute;
     top: 0;
-    left: 32px;
+    left: @ribbon-width;
     right: 0;
     bottom: 0;
     margin: 0;

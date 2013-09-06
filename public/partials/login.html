@@ -1,7 +1,7 @@
 <dialog>  
   <div class='row'>
-    <div class='col-md-7'>
-      <h1 class='title' title='version {{version}}'>Welcome to clide</h1>
+    <div class='col-md-4 col-md-offset-2'>
+      <h2 class='title' title='version {{version}}'>Welcome to clide</h2>
       <form name='loginForm' role='form'>
         <p class='error' ng-bind="loginForm.error['']" ng-show="loginForm.error['']"></p>
         <div class="form-group">
@@ -21,15 +21,15 @@
           </span>
           <input type='checkbox' name='staySignedIn' data-toggle='checkbox' ng-model='data.staySignedIn' id='staySignedIn'> keep me signed in
         </label>                        
-        <div class='form-group pull-right'>
+        <div class='pull-right clearfix'>
           <a class='btn' href='/signup'>Sign Up</a>
           <button type='submit' class='btn btn-primary' ng-click='login()' ng-disabled='!loginForm.$valid || app.wait'>Login</button>
         </div>
       </form>
     </div>
-    <div class='col-md-5'>
+    <div class='col-md-4'>
       <div class='banner'>
-        <h1 class='title'>What is clide?</h1>        
+        <h2 class='title'>What is clide?</h2>        
         Clide has initially been developed as a proof of concept of a web 
         interface for the interactive thorem proover 
         <a href='http://isabelle.in.tum.de/'>Isabelle</a>. Currently it is 
