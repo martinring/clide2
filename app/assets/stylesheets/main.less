@@ -13,9 +13,13 @@
 @import 'statusbar.less';
 
 body {
+  -webkit-transition: background-color 0.5s ease;
   background-color: #fff;
   background-image: url('/client/images/clouds.svg');
   -webkit-user-select: none;
+  &.ide {
+    background-color: #ccc;
+  }    
 }
 
 a {  
@@ -74,3 +78,4 @@ a {
 .cm-keyword {
   color: blue !important;  
 }
+

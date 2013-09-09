@@ -4,7 +4,7 @@
   <head>
     <base href='/'/>
     <meta charset="utf-8"/>
-    <title>clide 2</title>    
+    <title>clide 2</title>
     <link rel='stylesheet' media='screen' href='//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/codemirror.min.css'>
     <link rel='stylesheet' media='screen' href='@routes.Assets.at("stylesheets/main.css")'>
     <link rel='shortcut icon' type='image/png' href='@routes.Assets.at("images/favicon.png")'>
@@ -19,7 +19,7 @@
     <script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/codemirror.min.js'></script>
     @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url)
   </head>
-  <body ng-controller='AppController' ng-class='{wait: app.wait}'>           
+  <body ng-controller='AppController' ng-class='{ ide: ide }'>
     <div id='loading' class='dialogOuterContainer'>
       <div class='dialogInnerContainer'>
         <div class='dialog'>

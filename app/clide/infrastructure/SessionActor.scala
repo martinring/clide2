@@ -62,7 +62,6 @@ class SessionActor(user: GenericUser, project: ProjectInfo) extends Actor with A
     case AnnotateFile(path, rev, ann) =>
       // TODO: Check Rights
       context.parent.forward(ProjectActor.WithFile(path,FileActor.Annotate(rev,ann)))
-    case whatever => println(whatever)
   }
   
   override def preStart() {
@@ -143,7 +142,7 @@ object SessionActor {
         case Annotated(path, before, after) => Json.obj (
           "type" -> "ann",
           "path" -> path,
-          "as"   -> after)
+          "as"   -> diff(Json.toJson(before),Json.toJson(after)))
         case _ => JsString("could not translate reply")
       }
     }

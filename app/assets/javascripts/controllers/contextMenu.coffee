@@ -3,5 +3,5 @@ define () -> ($scope, ContextMenu) ->
   el = null
   $scope.done = (action) ->
     el = document.getElementById('contextmenu') unless el?
-    el.blur()
+    angular.element(el).blur()    
     action()

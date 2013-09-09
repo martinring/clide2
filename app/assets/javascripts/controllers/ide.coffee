@@ -2,6 +2,8 @@
 define ['routes'], (routes) -> ($scope, $location, $routeParams, Files, Dialog, Auth, Toasts, Session) ->  
   $scope.user = $routeParams.user  
 
+  console.log $routeParams.path
+
   unless Auth.loggedIn
     $location.path '/login'
     Toasts.push 'warning', 'You need to log in to view the requested resource!'

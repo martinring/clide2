@@ -2,9 +2,6 @@
 define ['routes'], (routes) -> ($routeProvider, $locationProvider) ->
   $locationProvider.html5Mode(true)
 
-  # DEBUG
-  window.routes = routes
-
   $routeProvider.when '/'  
     redirectTo: '/login'
   $routeProvider.when '/login'
@@ -19,12 +16,9 @@ define ['routes'], (routes) -> ($routeProvider, $locationProvider) ->
     title:       'backstage'
     templateUrl: '/client/partials/backstage.html'
     controller:  'BackstageController'
-  $routeProvider.when '/:user/:project/',
+  $routeProvider.when '/:user/:project/:path*',
     title:       'coding'
-    templateUrl: '/client/partials/ide.html'
-    controller:  'IdeController'
-  $routeProvider.when '/:user/:project/:file',
-    title:       'coding'
+    ide:         true
     templateUrl: '/client/partials/ide.html'
     controller:  'IdeController'
   $routeProvider.when '/404',
@@ -35,35 +29,3 @@ define ['routes'], (routes) -> ($routeProvider, $locationProvider) ->
     templateUrl: '/client/partials/401.html'        
   $routeProvider.otherwise
     redirectTo: '/404'
-
-  #$httpProvider.defaults.transformRequest.unshift (data) ->
-  #  console.log data    
-  #  console.log 'request augmented with session key ' + localStorage['session']
-  #  if data?
-  #    if typeof data is 'string'
-  #      data =
-  #        $sessionKey: localStorage['session']
-  #        data: data
-  #    else
-  #      data.$sessionKey = localStorage['session']
-  #  else        
-  #    data =
-  #      $sessionKey: localStorage['session']
-  #  console.log data
-  #  return data
-
-  #$httpProvider.interceptors.push ($q, $location, Toasts) ->
-  #  responseError: (rejection) ->      
-  #    switch rejection.status 
-  #      when 404
-  #        $location.path '/404'
-  #    $q.reject(rejection)
-
-
-  #$httpProvider.responseInterceptors.push ($location, $q) -> 
-  #  success = (response) -> response
-  #  error = (response) ->
-  #    if response.status = 401
-  #      $location.path('/login')
-  #    $q.reject(response)      
-  #  (promise) -> promise.then success, error
