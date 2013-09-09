@@ -3,7 +3,7 @@
  * @see https://github.com/Operational-Transformation/ot.hs
  * @author Martin Ring
  */
-package clide.ot
+package clide.collaboration
 
 import play.api.libs.json._
 import play.api.libs.functional.syntax._

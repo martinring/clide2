@@ -5,15 +5,14 @@
     <div class='row'>
       <div class='col-md-3'>
         <h2>profile</h2>
-        <img class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=400'></img>
+        <p><img class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=400'></img></p>
         <p>username: {{user}}</p>
         <p>email: {{email}}</p>        
       </div>
-      <div class='col-md-3'>
-        <a class='command' ng-click='createProject()' title='create a project'>
+      <div class='col-md-3'>        
+        <h2>projects<a class='command pull-right' ng-click='createProject()' title='create a project'>
           <i class='icon-plus'></i>
-        </a>
-        <h2>projects</h2>
+        </a></h2>
         <ul id='projectList' ng-show='projects.length > 0'>
           <li ng-repeat='project in projects' context-menu="projectContextMenu(project)" ng-class='{ current: project==selectedProject }' ng-click='change(project)'>
             <span ng-bind='project.name'></span>

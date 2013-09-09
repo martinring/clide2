@@ -1,4 +1,4 @@
-package clide.db
+package clide.models
 
 import scala.slick.driver.H2Driver.simple._
 import play.api.Play.current

@@ -5,7 +5,7 @@ import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.actor.ActorRef
 import akka.actor.Props
-import clide.db._
+import clide.models._
 import akka.actor.ActorPath
 
 /** 

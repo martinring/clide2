@@ -1,9 +1,9 @@
 package clide.infrastructure
 
 import akka.actor.Actor
-import clide.db._
+import clide.models._
 import akka.actor.ActorLogging
-import clide.ot._
+import clide.collaboration._
 import akka.actor.Props
 import akka.actor.ActorRef
 import scala.collection.mutable.Map

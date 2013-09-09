@@ -9,8 +9,10 @@ import play.api.data.Forms._
 import play.api.libs.json._
 import play.api.libs.Crypto
 import java.util.UUID
-import clide.db.Users
-import clide.db.User
+import clide.models.Users
+import clide.models.User
+import scala.concurrent.Future
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object Authentication extends Controller with Secured {
   // -- Authentication
@@ -36,8 +38,8 @@ object Authentication extends Controller with Secured {
   /**
    * Handle login form submission.
    */
-  def login = Action(parse.json) { implicit request =>
-    loginForm.bind(request.body).fold(        
+  def login = Action.async(parse.json) { implicit request => Future {
+    loginForm.bind(request.body).fold(
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
       { case (name,password) => DB.withSession { implicit session =>                 
         Users.getByName(name).firstOption match {
@@ -51,8 +53,8 @@ object Authentication extends Controller with Secured {
             Ok(Json.obj(
                 "username" -> u.name, 
                 "email" -> u.email)).withSession("session" -> sessionKey)            
-    } } })               
-  }
+  } } } ) } }
+  
   
   def signup = Action(parse.json) { implicit request =>
     signupForm.bind(request.body).fold(

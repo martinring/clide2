@@ -1,4 +1,4 @@
-package clide.ot
+package clide.collaboration
 
 import scala.util.{Try,Success,Failure}
 import scala.reflect.ClassTag

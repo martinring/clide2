@@ -1,4 +1,4 @@
-package clide.ot
+package clide.collaboration
 
 import scala.reflect.ClassTag
 import akka.actor.{Actor,ActorRef,Props}

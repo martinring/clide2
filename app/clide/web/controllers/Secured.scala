@@ -3,7 +3,7 @@ package clide.web.controllers
 import play.api.mvc._
 import play.api.mvc.BodyParsers._
 import play.api.libs.json.JsValue
-import clide.db.{Users,User}
+import clide.models.{Users,User}
 import scala.slick.driver.H2Driver.simple._
 import Database.{threadLocalSession => session}
 import play.api.db.slick.DB

@@ -34,6 +34,7 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Files, Dialog, 
     console.log root
 
   $scope.selectFile = (file) -> unless file.files
+    console.log file.name
     $scope.currentFile = file
     for f in $scope.openFiles
       return false if file is f

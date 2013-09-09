@@ -15,7 +15,7 @@ import play.api.libs.iteratee._
 import play.api.libs.json._
 import play.api.mvc._
 import akka.actor.ActorRef
-import clide.db.Users
+import clide.models.Users
 
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>

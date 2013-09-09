@@ -4,7 +4,7 @@
       <div class='col-sm-6 col-sm-offset-3'>
         <h2 class='title' ng-bind='dialog.current.title'></h2>
         <form role='form'>
-        <p class='error' ng-show='dialog.current.error' ng-bind='dialog.current.error'></p>
+        <p class='text-danger' ng-show='dialog.current.error' ng-bind='dialog.current.error'></p>
         <span ng-bind='dialog.current.text'></span>
         <div class='form-group' ng-repeat='query in dialog.current.queries' ng-switch='query.type'>
           <span ng-switch-when='text'>

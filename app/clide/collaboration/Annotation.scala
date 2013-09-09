@@ -1,4 +1,4 @@
-package clide.ot
+package clide.collaboration
 
 import play.api.libs.json._
 import scala.util._

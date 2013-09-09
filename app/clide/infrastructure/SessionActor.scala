@@ -16,8 +16,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Await
 import akka.actor.ActorRef
 import scala.collection.mutable.Buffer
-import clide.ot._
-import clide.db._
+import clide.collaboration._
+import clide.models._
 import akka.actor.Props
 
 /**

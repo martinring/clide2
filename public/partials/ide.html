@@ -122,7 +122,7 @@
                 ng-click='selectFile(file)'
                 context-menu='fileContextMenu(file)'
                 ng-class='{active: currentFile==file}'>
-              {{file.name}} <i class='icon-remove' ng-click='closeFile(file)'></i>
+              {{file.name}} <button type="button" class="close" ng-click='closeFile(file)' aria-hidden="true">&times;</button>
             </li>
           </ul>
           <div class="content" ng-show='currentFile'>
