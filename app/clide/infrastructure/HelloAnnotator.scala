@@ -34,10 +34,14 @@ class HelloAnnotator(session: ActorRef) extends Actor with ActorLogging {
       docs.foreach { case (path,(rev,doc)) =>
         def parse(what: String): List[Annotation] = {
           what.toUpperCase().indexOf("HELLO") match {
-	        case -1 => Plain(what.length)::Nil
+	        case -1 => what.toUpperCase().indexOf("WORLD") match {
+	          case -1 => Plain(what.length)::Nil
+	          case 0  => clide.collaboration.Annotate(5,scala.collection.immutable.Map("class" -> "string"))::parse(what.drop(5))
+	          case n  => Plain(n)::clide.collaboration.Annotate(5,scala.collection.immutable.Map("class" -> "string"))::parse(what.drop(n+5))
+	        }
 	        case 0  => clide.collaboration.Annotate(5,scala.collection.immutable.Map("class" -> "keyword"))::parse(what.drop(5))
 	        case n  => Plain(n)::clide.collaboration.Annotate(5,scala.collection.immutable.Map("class" -> "keyword"))::parse(what.drop(n+5))
-	      }          
+	      }
         }        
         session ! SessionActor.AnnotateFile(path,rev,AnnotationStream(parse(doc.content)))
       }

@@ -26,6 +26,18 @@ object Annotation {
   }
 }
 
+object AnnotationDiff {
+  trait AnnotationDiff
+  case class ChangeLength(n: Int) extends AnnotationDiff
+  case class ChangeContent(c: Map[String,String]) extends AnnotationDiff
+  case class Delete(n: Int) extends AnnotationDiff
+  case class Insert(a: AnnotationStream) extends AnnotationDiff
+  
+  def diff(a: AnnotationStream, b: AnnotationStream): Map[Int,AnnotationDiff] = {
+    null
+  }
+}
+
 case class AnnotationStream(annotations: List[Annotation]) extends AnyVal {
   override def toString = Json.stringify(Json.toJson(this)(AnnotationStream.AnnotationStreamFormat))
 }

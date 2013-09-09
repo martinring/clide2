@@ -86,7 +86,7 @@ object SessionActor {
   trait Reply
   case class Initialize(path: String, revision: Int, content: String) extends Reply
   case class Edited(path: String, operation: Operation) extends Reply
-  case class Annotated(path: String, annotation: AnnotationStream) extends Reply
+  case class Annotated(path: String, before: AnnotationStream, after: AnnotationStream) extends Reply
   case class Acknowledgement(path: String) extends Reply  
   
   import play.api.libs.json._
@@ -109,6 +109,22 @@ object SessionActor {
     }
   }
   
+  private def diff(a: JsValue, b: JsValue): JsValue = {
+    import org.json4s.native.JsonMethods._
+    val ja = parse(a.toString)
+    val jb = parse(b.toString)
+    ja.diff(jb) match {      
+      case org.json4s.Diff(changed, added, deleted) =>
+        if (changed != org.json4s.JNothing)
+          println("changed: " + compact(render(changed)))
+        if (added != org.json4s.JNothing)
+          println("added: " + pretty(render(added)))
+        if (deleted != org.json4s.JNothing)
+          println("deleted: " + pretty(render(deleted)))
+        b
+    }
+  }
+  
   object Reply {
     implicit object writes extends Writes[Reply] {
       def writes(reply: Reply): JsValue = reply match {
@@ -116,8 +132,7 @@ object SessionActor {
           "type" -> "init",
           "path" -> path,
           "rev"  -> rev,
-          "text" -> s
-        )
+          "text" -> s)
         case Acknowledgement(path) => Json.obj(
           "type" -> "ack",
           "path" -> path)
@@ -125,10 +140,10 @@ object SessionActor {
           "type" -> "edit",
           "path" -> path,
           "op"   -> operation)
-        case Annotated(path, as) => Json.obj (
+        case Annotated(path, before, after) => Json.obj (
           "type" -> "ann",
           "path" -> path,
-          "as"   -> as)          
+          "as"   -> after)
         case _ => JsString("could not translate reply")
       }
     }

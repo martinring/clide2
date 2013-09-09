@@ -27,7 +27,7 @@ class FileActor(project: ProjectInfo, path: String) extends Actor with ActorLogg
     
   var server: Server = null
   var clients = Map[ActorRef,GenericUser]()  
-  var annotations = Map[GenericUser,AnnotationStream]()
+  var annotations: AnnotationStream = AnnotationStream(Nil)
   
   var kill: Option[Cancellable] = None
   
@@ -44,6 +44,7 @@ class FileActor(project: ProjectInfo, path: String) extends Actor with ActorLogg
       log.info(f"user ${user.name} registered")
       clients += sender -> user
       sender ! SessionActor.Initialize(path, server.revision, server.text)
+      sender ! SessionActor.Annotated(path, AnnotationStream(Nil), annotations)
       kill.map(_.cancel())
       kill = None
 
@@ -69,7 +70,8 @@ class FileActor(project: ProjectInfo, path: String) extends Actor with ActorLogg
       require(clients.contains(sender), "unknown sender")
       server.transformAnnotation(rev, as) match {
         case Success(as) =>
-          clients.keys.filter(_ != sender).foreach(_ ! SessionActor.Annotated(path, as))
+          clients.keys.filter(_ != sender).foreach(_ ! SessionActor.Annotated(path, annotations, as))
+          annotations = as
           sender ! SessionActor.Acknowledgement(path)
         case Failure(e) =>
           throw e
