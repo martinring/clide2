@@ -7,9 +7,9 @@ object ApplicationBuild extends Build {
   val appName         = "clide"
   val appVersion      = "2.0-SNAPSHOT"
   val appDependencies = Seq(    
-    "com.typesafe.akka"  %% "akka-testkit"        % "2.2.1" % "test",
+    "com.typesafe.akka"  %% "akka-testkit"        % "2.2.0"    % "test",
     "com.typesafe"       %% "play-plugins-mailer" % "2.1.0",
-    "com.typesafe.play"  %% "play-slick"          % "0.5.0.3")
+    "com.typesafe.play"  %% "play-slick"          % "0.5.0.2-SNAPSHOT")
     
   val main = play.Project(appName, appVersion, appDependencies).settings(Angular.defaultSettings:_*).settings(    
     scalaVersion := "2.10.2",    
