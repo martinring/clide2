@@ -7,13 +7,9 @@ object ApplicationBuild extends Build {
   val appName         = "clide"
   val appVersion      = "2.0-SNAPSHOT"
   val appDependencies = Seq(    
-    "com.typesafe.akka"  %% "akka-testkit"        % "2.2.0"    % "test",
-    "com.typesafe"       %% "play-plugins-mailer" % "2.1.0",    
-    "com.typesafe.play"  %% "play-slick"          % "0.5.0.2-SNAPSHOT",
-    "com.typesafe.slick" %% "slick"               % "1.0.1",
-    "org.json4s"         %% "json4s-native"       % "3.2.5",    
-    "org.json4s"         %% "json4s-jackson"      % "3.2.5"
-  )
+    "com.typesafe.akka"  %% "akka-testkit"        % "2.2.1" % "test",
+    "com.typesafe"       %% "play-plugins-mailer" % "2.1.0",
+    "com.typesafe.play"  %% "play-slick"          % "0.5.0.3")
     
   val main = play.Project(appName, appVersion, appDependencies).settings(Angular.defaultSettings:_*).settings(    
     scalaVersion := "2.10.2",    
