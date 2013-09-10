@@ -107,23 +107,7 @@ object SessionActor {
       } 
     }
   }
-  
-  private def diff(a: JsValue, b: JsValue): JsValue = {
-    import org.json4s.native.JsonMethods._
-    val ja = parse(a.toString)
-    val jb = parse(b.toString)
-    ja.diff(jb) match {      
-      case org.json4s.Diff(changed, added, deleted) =>
-        if (changed != org.json4s.JNothing)
-          println("changed: " + compact(render(changed)))
-        if (added != org.json4s.JNothing)
-          println("added: " + pretty(render(added)))
-        if (deleted != org.json4s.JNothing)
-          println("deleted: " + pretty(render(deleted)))
-        b
-    }
-  }
-  
+    
   object Reply {
     implicit object writes extends Writes[Reply] {
       def writes(reply: Reply): JsValue = reply match {
@@ -142,7 +126,7 @@ object SessionActor {
         case Annotated(path, before, after) => Json.obj (
           "type" -> "ann",
           "path" -> path,
-          "as"   -> diff(Json.toJson(before),Json.toJson(after)))
+          "as"   -> after)
         case _ => JsString("could not translate reply")
       }
     }

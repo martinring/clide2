@@ -1,7 +1,6 @@
 package clide.models
 
 import scala.slick.driver.H2Driver.simple._
-import Database.{threadLocalSession => session}
 import play.api.libs.iteratee.Concurrent
 import play.api.libs.iteratee.Iteratee
 import akka.actor.Actor
@@ -34,5 +33,5 @@ object Users extends Table[User]("users") {
   
   def getBySession(session: String) = for {
     user <- Users if user.session === session
-  } yield user
+  } yield user    
 }
