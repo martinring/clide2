@@ -59,14 +59,17 @@ object Authentication extends Controller with Secured {
   def signup = Action(parse.json) { implicit request =>
     signupForm.bind(request.body).fold(
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
-      user => DB.withSession { implicit session =>        
-        if (Users.insert(User(user._1, user._2, Crypto.sign(user._1 + user._3),None,None)) > 0)
-          Ok(user._1)
+      user => DB.withSession { implicit session =>
+        val u = User(user._1,user._2,Crypto.sign(user._1+user._3),None,None)
+        if (Users.insert(u) > 0) {
+          clide.actors.Server.instance ! clide.actors.Users.SignedUp(u)
+          Ok(user._1) 
+        }          
         else
           BadRequest("Signup failed")
       }      
     ) 
-  }  
+  }
   
   def validateSession = Authenticated { request =>
     Ok(Json.obj("username" -> request.user.name, "email" -> request.user.email))	       

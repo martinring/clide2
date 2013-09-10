@@ -30,7 +30,7 @@ trait Secured { this: Controller =>
     }
  
   object Authenticated extends ActionBuilder[AuthenticatedRequest] {
-    def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[SimpleResult]) = {
+    def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[SimpleResult]) = {      
       getSessionUser(request) match {
         case Left(TimedOut)  => Future.successful(Results.Unauthorized)
         case Left(NoSession) => Future.successful(Results.Forbidden)

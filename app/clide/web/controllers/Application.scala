@@ -6,6 +6,7 @@ import scala.concurrent.duration.DurationInt
 import scala.slick.driver.H2Driver.simple._
 import akka.actor.ActorDSL._
 import akka.actor.actorRef2Scala
+import play.api.Play
 import play.api.Play.current
 import play.api.Routes
 import play.api.db.slick.DB
@@ -38,10 +39,6 @@ object Application extends Controller with Secured {
     }
   }
   
-  def session = WebSocket.async[String] { request =>
-    null
-  }
-
   // -- Javascript routing
   def javascriptRoutes = Action { implicit request =>
 import routes.javascript._
