@@ -34,6 +34,7 @@ object AnnotationDiff {
   case class Insert(a: AnnotationStream) extends AnnotationDiff
   
   def diff(a: AnnotationStream, b: AnnotationStream): Map[Int,AnnotationDiff] = {
+    
     null
   }
 }
