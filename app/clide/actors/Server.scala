@@ -30,11 +30,11 @@ class Server extends Actor {
 	    case "projects" => projects_=
 	    case "files"    => files_=
 	  })
-    case message: Users.Message =>
+    case message: UserServer.Message =>
       users.forward(message)
-    case message: Projects.Message =>
+    case message: ProjectServer.Message =>
       projects.forward(message)
-    case message: Files.Message =>
+    case message: FileServer.Message =>
       files.forward(message)
   }
   

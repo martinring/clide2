@@ -10,15 +10,15 @@ import java.net.URLEncoder
 import clide.models._
 import akka.actor.PoisonPill
 
-object Projects {
+object ProjectServer {
   trait Message
   case object Initialize extends Message
   case class Created(project: ProjectInfo) extends Message
   case class Deleted(project: ProjectInfo) extends Message
 }
 
-class Projects extends Actor with ActorLogging {
-  import Projects._
+class ProjectServer extends Actor with ActorLogging {
+  import ProjectServer._
   import projects._
   
   def receive = {

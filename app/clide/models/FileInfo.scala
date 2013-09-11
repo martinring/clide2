@@ -10,7 +10,7 @@ import java.sql.Date
 import play.api.libs.json._
 
 case class FileInfo(
-  id: Option[Long],
+  id: Option[Long] = None,
   project: Long,
   path: String,
   deleted: Boolean,
@@ -37,5 +37,9 @@ object FileInfos extends Table[FileInfo]("openFiles") {
   
   def get(project: ProjectInfo, path: String) = for {
     file <- FileInfos if file.projectId === project.id && file.path === path  
+  } yield *
+  
+  def getChildren(file: FileInfo) = for {
+    file <- FileInfos if file.parentId === file.id
   } yield *
 }

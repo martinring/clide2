@@ -9,15 +9,15 @@ import akka.actor.ActorLogging
 import scala.concurrent.Future
 import clide.models._
 
-object Users {
+object UserServer {
   trait Message
   case object Initialize extends Message
   case class SignedUp(user: UserInfo) extends Message
   case class Deleted(who: String) extends Message
 }
 
-class Users extends Actor with ActorLogging {
-  import Users._
+class UserServer extends Actor with ActorLogging {
+  import UserServer._
   import users._
   
   def receive = {

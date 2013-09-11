@@ -13,9 +13,9 @@ object Global extends GlobalSettings {
   override def onStart(app: Application) {    
     import clide.actors._
     Logger.info("initializing actor infrastructure")
-    Akka.system.actorOf(Props[Files], "files")    
-    Akka.system.actorOf(Props[Projects], "projects")    
-    Akka.system.actorOf(Props[Users], "users")
+    Akka.system.actorOf(Props[FileServer], "files")    
+    Akka.system.actorOf(Props[ProjectServer], "projects")    
+    Akka.system.actorOf(Props[UserServer], "users")
     Server.instance = Akka.system.actorOf(Props[Server], "server")
   }
   
