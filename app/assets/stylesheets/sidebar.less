@@ -1,10 +1,10 @@
 #sidebarContainer {
-  -webkit-transition: left @fancy-transition ease;
-  position: fixed;
-  top: 0;
-  left: -(@sidebar-width);
-  right: 0;
+  -webkit-transition: left @fancy-transition ease;  
   bottom: 0;
+  left: -(@sidebar-width);
+  position: fixed;
+  right: 0;
+  top: 0;
 }
 
 .sidebar #sidebarContainer {
@@ -12,73 +12,46 @@
 }
 
 #content {  
-  z-index: 0;
-  position: absolute;  
-  left: @sidebar-width + @ribbon-width;
-  top: 0;
   bottom: @statusbar-height;
-  right: 0;
+  left: @sidebar-width + @ribbon-width;
   overflow: hidden;
-  cursor: default;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 0;
 }
 
 #ribbon {
-  z-index: 3;
-  color: #000;
-  -webkit-transition: background-color @fancy-transition ease;
-  cursor: default;
-  background-color: #ddd;
-  position: fixed;
+  background-color: #ddd;  
   bottom: 0;
-  left: 0;  
+  left: 0;
   padding: 6px 0 0 0;
-  width: @ribbon-width;
+  position: fixed;
   top: @tabbar-height;
-  a {
-    color: #000;  
-  }
-  a:hover {
-    background: transparent;
-    color: #000;
-  }
+  width: @ribbon-width;
+  z-index: 3;
 }
 
 #ribbon .menu {
   list-style: none;
+  margin: 0;
   padding: 0;
-  margin: 0;  
-  li {
-    overflow: visible;
-    font-family: icon;
-    font-size: 16px;
+  li {    
+    -webkit-transition: opacity @quick-transition ease;
+    cursor: pointer;    
+    line-height: @ribbon-width;
+    opacity: 0.2;
     text-align: center;
     vertical-align: middle;
-    width: 32px;
-    color: #111;
-    opacity: 0.2;
-    display: inline-block;
-    cursor: pointer;
-    line-height: 32px;
-    margin: 0;
-    padding: 0;
-    -webkit-transition: opacity @quick-transition ease;
-    .icon {
-      fill: white;
-      overflow: visible;
-      width: 16px;
-      height: 16px;
-    }
+    width: @ribbon-width;
     &:hover {
       text-decoration: none;
       opacity: 1;
+    }    
+    &.active {
+      opacity: 1;
+      cursor: default;
     }
-    &:last {
-      margin-right: 0;
-    }
-  }
-  li.active {
-    opacity: 1;
-    cursor: default;
   }
 }
 
@@ -126,6 +99,9 @@
         opacity: 1;
       }
     }
+    .list-group-item {
+      padding: 2px 0px;      
+    }
     margin: 0;
     margin-bottom: 8px;
     padding: 0;
@@ -155,14 +131,6 @@
     }
   }
 
-  h1 {
-    font-family: "myriad-pro", "Segoe UI Light";
-    font-weight: 100;
-    font-size: 16pt;
-    margin: 8px 16px;
-  }
-
-
   hr {
     margin: 16px;
     color: #EEE;
@@ -171,7 +139,6 @@
   .content {
     color: @text-color;
     display: block;
-    padding: 0 16px;
   }  
 
   .commandGroup {
@@ -231,7 +198,7 @@
 }
 
 #sidebarContent {
-  padding: 0 0 16px 0;
+  padding: 0 16px 16px 16px;
   margin: 0;
   position: absolute;
   overflow-x: hidden;
@@ -281,22 +248,20 @@
 }
 
 .sidebar #search, .search #search {
-  background: white;  
+  background: white;
 }
 
 #searchButton {
-  z-index: 8;
-  opacity: 0.4;
-  position: fixed;
-  top: 0;
+  height: @tabbar-height;
   left: 0;
-  font-size: 16px;
-  vertical-align: middle;
+  line-height: @tabbar-height - 3px;
+  opacity: 0.4;  
+  position: fixed;
   text-align: center;
-  font-family: icon;
-  line-height: 29px;
-  width: 32px;
-  height: 32px;
+  top: 0;
+  vertical-align: middle;
+  width: @ribbon-width;
+  z-index: 8;
   &:hover {
     opacity: 1;
   }
@@ -311,95 +276,4 @@
   right: 0;
   top: 32px;
   bottom: 0px;  
-}
-
-ul.treeview {
-  list-style: none;
-  padding: 0;
-  .placeholder {
-    color: #999;
-    padding: 0 16px 0 8px;
-    margin: 2px 8px;
-    border-left: 1px dashed #ccc;
-  }
-  li {    
-    position: relative;    
-    display: block;
-    i {
-      position: absolute;
-      padding-left: 16px;      
-      width: 16px;
-      line-height: 24px;
-      height: 24px;
-      text-align: center;
-      vertical-align: middle;      
-      &.folder {
-        -webkit-transition: -webkit-transform ease 0.2s;
-        -webkit-transform: rotate(0deg);
-        &.opened {
-          -webkit-transform: rotate(45deg);
-        }
-      }
-    }
-    .title {
-      cursor: pointer;
-      padding: 0px 16px 2px 36px;
-      &:hover {
-        background-color: #ddd;
-      }
-    }
-    &.open {
-      border-left: 8px solid #ddd;
-      i {
-        padding-left: 8px;
-      }
-      .title {
-        padding-left: 28px;
-      }
-    }    
-    &.selected {
-      border-left: 8px solid @accent;
-      i {
-        padding-left: 8px;
-      }
-      .title {
-        padding-left: 28px;
-      }
-    }
-    .treeview {
-      border-left: 1px dashed #ccc;
-      margin-left: 16px; 
-      li {
-        i {
-          padding-left: 6px;
-        }
-        .title {
-          padding: 0px 16px 2px 28px;
-        }
-        .treeview {
-          margin-left: 8px;
-        }   
-        &.open {
-          margin-left: -9px;
-          border-left: 8px solid #ddd;
-          i {
-            padding-left: 7px;
-          }
-          .title {
-            padding-left: 29px;
-          }
-        }     
-        &.selected {
-          margin-left: -9px;
-          border-left: 8px solid @accent;
-          i {
-            padding-left: 7px;
-          }
-          .title {
-            padding-left: 29px;
-          }
-        }
-      }      
-    }
-  }
 }

@@ -45,7 +45,7 @@
 @font-family-monospace:   inconsolata, Monaco, Menlo, Consolas, "Courier New", monospace;
 @font-family-base:        @font-family-sans-serif;
 
-@font-size-base:          15px;
+@font-size-base:          14px;
 @font-size-large:         ceil(@font-size-base * 1.44);
 @font-size-small:         ceil(@font-size-base * 0.66);
 
@@ -473,11 +473,11 @@
 
 // List group
 // -------------------------
-@list-group-bg:               #fff;
+@list-group-bg:               transparent;
 @list-group-border:           @gray-lighter;
 @list-group-border-radius:    @border-radius-base;
 
-@list-group-hover-bg:         @gray-lighter;
+@list-group-hover-bg:         rgba(0,0,0,0.1);
 @list-group-active-color:     #fff;
 @list-group-active-bg:        @component-active-bg;
 @list-group-active-border:    @list-group-active-bg;

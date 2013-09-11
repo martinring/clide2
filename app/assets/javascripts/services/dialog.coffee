@@ -22,6 +22,7 @@ define -> () ->
           when 'object'
             if res.then?
               res.then done, (error) ->
+                console.log error
                 state.current.error = error
             else done()
           when 'boolean'

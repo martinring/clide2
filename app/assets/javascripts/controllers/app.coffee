@@ -10,5 +10,5 @@ define -> ($scope, $location, Auth, Toasts, version) ->
         $location.path '/login'
         Toasts.push 'success', 'You have been logged out!'
       error: ->
-        Toasts.push 'warn', 'There was an error while loggin out!'
+        Toasts.push 'danger', 'There was an error while logging out!'
     

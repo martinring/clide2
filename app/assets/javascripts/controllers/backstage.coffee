@@ -21,7 +21,7 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
   
   $scope.selectedProject = null
 
-  $scope.change = (project) ->     
+  $scope.selectProject = (project) ->     
     $scope.selectedProject = project
 
   Projects.get($scope.user).then (projects) ->
@@ -46,8 +46,8 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
     error: error
     title: 'new project'
     queries: [
-      { name: 'name', value: name }
-      { name: 'description', type: 'textarea', value: description } 
+      { text: 'Name:', name: 'name', value: name }
+      { text: 'Short description:', name: 'description', type: 'textarea', value: description } 
     ]
     buttons: ['Ok','Cancel']
     done: (answer,result) -> if answer is 'Ok'

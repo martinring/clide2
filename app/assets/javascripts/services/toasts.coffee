@@ -1,21 +1,28 @@
 ### @service services:Toasts ###
-define () -> ($rootScope) ->
+define () -> ($rootScope,$timeout) ->
   toasts = []
 
   config = 
-    timeout: 5000
+    timeout: 250
 
   push = (type, message) ->
     toast = 
       type: type
-      message: message    
+      message: message
+      life: 100
     toasts.push toast
     toast.remove = () -> 
-      toasts.splice(toasts.indexOf(toast),1)
-      if (!$rootScope.$$phase)
-        $rootScope.$apply()
+      toasts.splice(toasts.indexOf(toast),1)      
+    toast.refresh = () -> 
+      toast.life = 100
+    toast.decease = () ->
+      if toast.life > 0
+        toast.life -= 5
+        $timeout(toast.decease, config.timeout)
+      else
+        toast.remove()      
     toast.reset = () ->
-      toast.timeout = window.setTimeout(toast.remove, config.timeout) # TODO: move to settings
+      $timeout(toast.decease, config.timeout) # TODO: move to settings
     toast.reset()
     if (!$rootScope.$$phase)
       $rootScope.$apply()
