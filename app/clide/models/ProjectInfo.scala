@@ -11,7 +11,7 @@ import java.io.File
 import play.api.Play
 
 case class ProjectInfo(
-    id: Option[Long], 
+    id: Option[Long] = None, 
     name: String, 
     owner: String, 
     description: Option[String] = None) {
