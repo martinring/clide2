@@ -1,6 +1,6 @@
 <dialog id='signup'>  
   <div class='row'>    
-    <div class='col-sm-5 col-sm-offset-1'>
+    <div class='col-sm-5 col-sm-offset-1 col-lg-4 col-lg-offset-2'>
       <h2 class='title'>Sign up</h2>
       <form name='signupForm' role='form'>
         <p class='text-danger' ng-bind="error['']" ng-show="error['']"></p>
@@ -26,9 +26,8 @@
         <div class='clearfix'></div>
       </form>
     </div>
-    <div class='col-sm-5'>
-      <div class='gravatar'>
-        <img ng-show='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=320'></img>
+    <div class='col-sm-5 col-lg-4'>
+      <div class='gravatar' style='background-image:url(http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=320)'>
       </div>
     </div>
   </div>

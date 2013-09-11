@@ -9,8 +9,7 @@ import play.api.data.Forms._
 import play.api.libs.json._
 import play.api.libs.Crypto
 import java.util.UUID
-import clide.models.Users
-import clide.models.User
+import clide.models._
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -28,9 +27,9 @@ object Authentication extends Controller with Secured {
     tuple(
       "username" -> text.verifying("name is already in use", name => 
         !Seq("login","logout","signup","assets").contains(name) &&
-       DB.withSession { implicit session => !Users.getByName(name).firstOption.isDefined }),
+       DB.withSession { implicit session => !UserInfos.getByName(name).firstOption.isDefined }),
       "email" -> email.verifying("email is already registered", email =>
-       DB.withSession { implicit session => !Users.getByEmail(email).firstOption.isDefined }),
+       DB.withSession { implicit session => !UserInfos.getByEmail(email).firstOption.isDefined }),
       "password" -> text(minLength=8)
     )
   )
@@ -42,14 +41,14 @@ object Authentication extends Controller with Secured {
     loginForm.bind(request.body).fold(
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
       { case (name,password) => DB.withSession { implicit session =>                 
-        Users.getByName(name).firstOption match {
+        UserInfos.getByName(name).firstOption match {
           case None => Status(401)(Json.obj("username" -> Json.arr("we don't know anybody with that username")))
           case Some(user) if (user.password != Crypto.sign(name+password)) => 
             Status(401)(Json.obj("password" -> Json.arr("invalid password")))            
           case Some(user) =>            
             val sessionKey = Crypto.sign(UUID.randomUUID().toString() + System.nanoTime())                       
             val u = user.copy(session = Some(sessionKey))
-            Users.getByName(name).update(u)
+            UserInfos.getByName(name).update(u)
             Ok(Json.obj(
                 "username" -> u.name, 
                 "email" -> u.email)).withSession("session" -> sessionKey)            
@@ -60,8 +59,8 @@ object Authentication extends Controller with Secured {
     signupForm.bind(request.body).fold(
       formWithErrors => BadRequest(formWithErrors.errorsAsJson),
       user => DB.withSession { implicit session =>
-        val u = User(user._1,user._2,Crypto.sign(user._1+user._3),None,None)
-        if (Users.insert(u) > 0) {
+        val u = UserInfo(user._1,user._2,Crypto.sign(user._1+user._3),None,None)
+        if (UserInfos.insert(u) > 0) {
           clide.actors.Server.instance ! clide.actors.Users.SignedUp(u)
           Ok(user._1) 
         }          
@@ -77,7 +76,7 @@ object Authentication extends Controller with Secured {
   
   def logout = Authenticated { request => 
     DB.withSession { implicit session: Session =>
-      Users.getByName(request.user.name).update(request.user.copy(session = None))
+      UserInfos.getByName(request.user.name).update(request.user.copy(session = None))
     }
     Ok.withNewSession
   }

@@ -20,19 +20,19 @@ import akka.actor.ActorDSL._
 import akka.actor.ActorRefFactory
 import clide.infrastructure.ServerActor
 import clide.infrastructure.SessionActor
-import clide.models
+import clide.models._
 
 object Projects extends Controller with Secured {  
   def index(username: String) = Authenticated { request => 
     if (request.user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
-      Ok(Json.toJson(models.Projects.getByOwner(username).toSeq))
+      Ok(Json.toJson(ProjectInfos.getByOwner(username).toSeq))
   } }
   
   def details(username: String, project: String) = Authenticated { request =>
     if (request.user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
-      Ok(Json.toJson(models.Projects.get(username,project)))
+      Ok(Json.toJson(ProjectInfos.get(username,project)))
   } }  
   
   def put(username: String) = Authenticated(parse.json) { request => 
@@ -42,9 +42,11 @@ object Projects extends Controller with Secured {
         case Some("") => Results.BadRequest("project name must not be empty!")
         case Some(name) => 
           val descr = (request.body \ "description").asOpt[String]
-          val project = models.ProjectInfo(None,name,username,descr)
+          val project = ProjectInfo(None,name,username,descr)
           try {
-            Results.Ok(Json.toJson(models.Projects.create(project)))
+            val p = ProjectInfos.create(project)
+            clide.actors.Server.instance ! clide.actors.Projects.Created(p)
+            Results.Ok(Json.toJson(p))
           } catch {
             case e: JdbcSQLException => e.getErrorCode() match {
               case 23505 => Results.BadRequest("A project with that name already exists")
@@ -53,10 +55,10 @@ object Projects extends Controller with Secured {
         case None => Results.BadRequest("Malformed Project")      
   } } }
   
-  def delete(username: String, project: String) = Authenticated { request =>
+  def delete(username: String, project: String) = Authenticated(parse.empty) { request =>
     if (request.user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
-      val q = for (p <- models.Projects if p.ownerName === username && p.name === project) yield p      
+      val q = for (p <- ProjectInfos if p.ownerName === username && p.name === project) yield p      
       if (q.delete > 0) Ok
       else NotFound
   } }
@@ -65,9 +67,9 @@ object Projects extends Controller with Secured {
     import SessionActor._
     implicit def error(msg: String) = new Exception(msg)
     DB.withSession { implicit session: scala.slick.driver.H2Driver.simple.Session =>
-      models.Users.getByName(username).firstOption match {
+      UserInfos.getByName(username).firstOption match {
         case None => scala.concurrent.Future.failed("user not found")
-        case Some(user) => models.Projects.get(user.name, project) match {
+        case Some(user) => ProjectInfos.get(user.name, project) match {
           case None => scala.concurrent.Future.failed("project not found")
           case Some(project) => 
             val server = Akka.system.actorFor("/user/server")

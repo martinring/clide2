@@ -7,11 +7,12 @@ import play.api.db.slick.DB
 import akka.actor.Props
 import akka.actor.ActorLogging
 import scala.concurrent.Future
+import clide.models._
 
 object Users {
   trait Message
   case object Initialize extends Message
-  case class SignedUp(user: clide.models.User) extends Message
+  case class SignedUp(user: UserInfo) extends Message
   case class Deleted(who: String) extends Message
 }
 
@@ -23,7 +24,7 @@ class Users extends Actor with ActorLogging {
     case Initialize =>
       log.info("creating user actors")
       val users = DB.withSession { implicit session: scala.slick.session.Session =>
-        val q = for (user <- clide.models.Users) yield user.* 
+        val q = for (user <- UserInfos) yield user.* 
         q.elements }
       users.foreach { user => context.actorOf(Props(classOf[User], user), user.name) }
     case SignedUp(user) =>

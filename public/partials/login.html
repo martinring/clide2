@@ -1,6 +1,6 @@
 <dialog>  
   <div class='row'>
-    <div class='col-sm-5 col-sm-offset-1'>
+    <div class='col-sm-5 col-sm-offset-1 col-lg-4 col-lg-offset-2'>
       <h2 class='title' title='version {{version}}'>Welcome to clide</h2>
       <form name='loginForm' role='form'>
         <p class='text-danger' ng-bind="error['']" ng-show="error['']"></p>
@@ -23,12 +23,14 @@
         </label>                        
         <div class='pull-right'>
           <a class='btn btn-link' href='/signup'>Sign Up</a>
-          <button type='submit' class='btn btn-primary' ng-click='login()' ng-disabled='!loginForm.$valid || app.wait'>Login</button>
+          <button type='submit' class='btn btn-primary' ng-click='login()' ng-disabled='!loginForm.$valid || app.wait'>
+            <i class="icon-signin"></i> Login
+          </button>
         </div>
         <div class='clearfix'></div>
       </form>
     </div>
-    <div class='col-sm-5'>
+    <div class='col-sm-5 col-lg-4'>
       <div class='banner'>
         <h2 class='title'>What is this?</h2>
         <p>Clide has initially been developed as a proof of concept of a web 

@@ -15,7 +15,7 @@ class ServerActor extends Actor with ActorLogging {
   import ServerActor._  
       
   def getProjectActor(project: ProjectInfo): ActorRef = {
-    val name = java.net.URLEncoder.encode(project.uniqueName,"UTF8")
+    val name = project.actorName
     context.child(name).getOrElse(context.actorOf(Props(new ProjectActor(project)),name))
   }  
   

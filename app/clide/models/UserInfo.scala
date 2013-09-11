@@ -8,30 +8,30 @@ import play.api.libs.Crypto
 import java.sql.Date
 import play.api.libs.json._
 
-case class User(
+case class UserInfo(
     name: String, 
     email: String, 
     password: String,
     session: Option[String],
     timeout: Option[Date]) extends GenericUser
     
-object Users extends Table[User]("users") {  
+object UserInfos extends Table[UserInfo]("users") {  
   def name     = column[String]("name", O.PrimaryKey)
   def email    = column[String]("email")
   def password = column[String]("password")
   def session  = column[Option[String]]("session")
   def timeout  = column[Option[Date]]("timeout")
-  def *        = name ~ email ~ password ~ session ~ timeout <> (User.apply _, User.unapply _)
+  def *        = name ~ email ~ password ~ session ~ timeout <> (UserInfo.apply _, UserInfo.unapply _)
   
   def getByName(name: String) = for {    
-    user <- Users; if user.name === name
+    user <- UserInfos; if user.name === name
   } yield user
   
   def getByEmail(email: String) = for {    
-    user <- Users if user.email === email
+    user <- UserInfos if user.email === email
   } yield user
   
   def getBySession(session: String) = for {
-    user <- Users if user.session === session
+    user <- UserInfos if user.session === session
   } yield user    
 }

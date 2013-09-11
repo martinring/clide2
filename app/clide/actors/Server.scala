@@ -38,7 +38,7 @@ class Server extends Actor {
       files.forward(message)
   }
   
-  override def preStart {
+  override def preStart {    
     self ! Initialize
   }
 }

@@ -14,6 +14,7 @@ class Project(project: ProjectInfo) extends Actor with ActorLogging {
   }
   
   override def preStart() {
-    log.info(f"starting")
+    log.info(f"initialize file system")
+    
   }
 }

@@ -16,17 +16,17 @@ case class ProjectInfo(
     owner: String, 
     description: Option[String] = None) {
   lazy val root = f"files/$owner/$name"
-  lazy val uniqueName = f"$owner/$name"
+  lazy val actorName = f"${owner}:${name}"
 }
 /* Json (de)serialization */
 object ProjectInfo { implicit val json = Json.format[ProjectInfo] }
 
-object Projects extends Table[ProjectInfo]("projects") {
+object ProjectInfos extends Table[ProjectInfo]("projects") {
   def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def name         = column[String]("name")
   def ownerName    = column[String]("owner")
   def description  = column[Option[String]]("description")
-  def owner        = foreignKey("fk_project_user", ownerName, Users)(_.name)  
+  def owner        = foreignKey("fk_project_user", ownerName, UserInfos)(_.name)  
   def *            = id.? ~ name ~ ownerName ~ description <> (ProjectInfo.apply _, ProjectInfo.unapply _)
   
   // for every owner, the names of all his projects must be unique
@@ -35,7 +35,7 @@ object Projects extends Table[ProjectInfo]("projects") {
   def autoinc = id.? ~ name ~ ownerName ~ description <> (ProjectInfo.apply _, ProjectInfo.unapply _) returning id
   
   def byOwner(owner: String) = 	
-    for(project <- Projects if project.ownerName === owner)
+    for(project <- ProjectInfos if project.ownerName === owner)
       yield project
   
   def byOwnerAndName(owner: String, name: String) =
@@ -58,8 +58,8 @@ object Projects extends Table[ProjectInfo]("projects") {
 object Rights extends Table[(Long,String,Int)]("rights") {  
   def projectId = column[Long]("project")
   def userName  = column[String]("user")
-  def project   = foreignKey("fk_right_project", projectId, Projects)(_.id)
-  def user      = foreignKey("fk_right_user", userName, Users)(_.name)
+  def project   = foreignKey("fk_right_project", projectId, ProjectInfos)(_.id)
+  def user      = foreignKey("fk_right_user", userName, UserInfos)(_.name)
   def pk        = primaryKey("pk_right", (projectId,userName))
   def policy    = column[Int]("policy")  
   def *         = projectId ~ userName ~ policy

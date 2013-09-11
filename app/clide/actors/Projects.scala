@@ -6,7 +6,9 @@ import play.api.Play.current
 import play.api.db.slick.DB
 import akka.actor.Props
 import akka.actor.ActorLogging
-import clide.models.ProjectInfo
+import java.net.URLEncoder
+import clide.models._
+import akka.actor.PoisonPill
 
 object Projects {
   trait Message
@@ -23,11 +25,13 @@ class Projects extends Actor with ActorLogging {
     case Initialize =>
       log.info("creating project actors")
       val projects = DB.withSession { implicit session: scala.slick.session.Session =>
-        val q = for (project <- clide.models.Projects) yield project.* 
+        val q = for (project <- ProjectInfos) yield project.* 
         q.elements }
-      projects.foreach { project => context.actorOf(Props(classOf[Project], project), project.uniqueName) }
+      projects.foreach { project => context.actorOf(Props(classOf[Project], project), project.actorName) }
     case Created(project) =>
-      context.actorOf(Props(classOf[Project],project),project.uniqueName)
+      context.actorOf(Props(classOf[Project],project), project.actorName)
+    case Deleted(project) =>
+      context.actorSelection(project.actorName) ! PoisonPill
   }
   
   override def preStart() {

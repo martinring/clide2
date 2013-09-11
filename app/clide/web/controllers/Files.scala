@@ -11,20 +11,40 @@ import org.h2.jdbc.JdbcSQLException
 import java.io.File
 import play.api.Play
 import views.html.defaultpages.unauthorized
-import clide.models
+import clide.models._
 
 
 /**
  * TODO: User rights are ignored right now!!!
  */
 object Files extends Controller with Secured {
+  def browse(username: String, project: String, path: String) = Authenticated { request =>
+    if (request.user.name != username) Unauthorized 
+    else DB.withSession { implicit session =>
+      ProjectInfos.get(username,project) match {
+        case None => NotFound
+        case Some(project) =>          
+          val dir = Play.getFile(project.root + path)
+          if (!dir.isDirectory()) NotFound
+          else {
+            val l = Play.getFile(project.root).getAbsolutePath().length()
+            val json = dir.listFiles().map(file => Json.obj(
+              "name" -> file.getName(),
+              "path" -> file.getAbsolutePath().drop(l).replace('\\','/'),
+              "isDirectory" -> file.isDirectory()))
+            Ok(Json.arr(json))
+          }
+      }
+    }
+  }
+  
   def getTree(username: String, project: String) = Authenticated { request =>
     if (request.user.name != username) Unauthorized
     else DB.withSession { implicit session =>
-      models.Projects.get(username,project) match {
+      ProjectInfos.get(username,project) match {
         case None => NotFound
         case Some(p) =>
-          val l = Play.getFile(p.root).getAbsolutePath().length()          
+          val l = Play.getFile(p.root).getAbsolutePath().length()
           def jsonify(file: File): JsObject = {            
             if (file.isDirectory()) {
               val (folders,files) = file.listFiles.partition(_.isDirectory())
@@ -50,7 +70,7 @@ object Files extends Controller with Secured {
       ( request.body \ "name" ).asOpt[String] match {
         case None => BadRequest("please enter a name")
         case Some("") => BadRequest("name must not be empty")
-        case Some(name) => models.Projects.get(username,project) match {
+        case Some(name) => ProjectInfos.get(username,project) match {
           case None => NotFound("invalid project")
           case Some(p) =>   
             val l = Play.getFile(p.root).getAbsolutePath().length()    
@@ -70,7 +90,7 @@ object Files extends Controller with Secured {
   
   def deleteFile(username: String, project: String, path: String) = Authenticated { request =>
     if (request.user.name != username) Unauthorized
-    else DB.withSession { implicit session => models.Projects.get(username,project) match {
+    else DB.withSession { implicit session => ProjectInfos.get(username,project) match {
       case None => NotFound("invalid project")
       case Some(p) =>
         val file = Play.getFile(p.root + path)

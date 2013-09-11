@@ -16,7 +16,7 @@ object Revisions extends Table[Revision]("revisions") {
   def id      = column[Long]("id")
   def content = column[String]("content")
   
-  def file = foreignKey("fk_revision_file", fileId, OpenFiles)(_.id)
+  def file = foreignKey("fk_revision_file", fileId, FileInfos)(_.id)
   
   def fileRevision = index("file_revision", (fileId,id), unique = true)
   

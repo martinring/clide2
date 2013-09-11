@@ -1,38 +1,47 @@
 <div id='backstage'>  
-  <div class='container'>
-    <div class='logout'><a title='log out' ng-click='logout()'><i class='icon-signout'></i></a></div>
+  <div class='container'>    
     <h1 class='title'>{{user}}'s backstage area</h1>
     <div class='row'>
-      <div class='col-md-3'>
-        <h2>profile</h2>
-        <p><img class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=400'></img></p>
-        <p>username: {{user}}</p>
-        <p>email: {{email}}</p>        
+      <div class='col-sm-4 col-md-3'>        
+        <div>        
+          <h2>Projects
+          <div class='btn-group pull-right'>
+            <a class='btn btn-default' ng-click='createProject()'><i class="icon-plus"></i></a>
+          </div>
+          </h2>
+          <p ng-show='projects.length==0' class='alert alert-info'>
+            You don't have any projects associated with your account yet. Get started by <a ng-click='createProject()'>creating a new project</a>.
+          </p>                            
+          <div class='list-group' ng-show='projects.length > 0'>
+            <a ng-repeat='project in projects' context-menu="projectContextMenu(project)" class='list-group-item' ng-class='{ active: project==selectedProject }' ng-click='selectProject(project)'>
+              <h4 class='list-group-item-heading' ng-bind='project.name'></h4>
+              <p class='list-group-item-text' ng-bind='project.description'></p>
+            </a>
+          </div>
+        </div>
+        <div>
+          <h2>Profile</h2>
+          <p><img class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=400'></img></p>          
+          <ul class='list-unstyled icons-ul'>
+          <li><i class='icon-li icon-male'></i>{{user}}</li>
+          <li><i class='icon-li icon-envelope'></i>{{email}}</li>
+          <li><i class='icon-li icon-signout'></i><a ng-click='logout()'>log out</a></li>
+          </ul>
+        </div>
       </div>
-      <div class='col-md-3'>        
-        <h2>projects<a class='command pull-right' ng-click='createProject()' title='create a project'>
-          <i class='icon-plus'></i>
-        </a></h2>
-        <ul id='projectList' ng-show='projects.length > 0'>
-          <li ng-repeat='project in projects' context-menu="projectContextMenu(project)" ng-class='{ current: project==selectedProject }' ng-click='change(project)'>
-            <span ng-bind='project.name'></span>
-          </li>
-        </ul>
-        <p ng-show='projects.length == 0'>
-          You don't have any projects associated with your account yet. Get started by <a ng-click='createProject()'>creating a new project</a>.
-        </p>
-      </div>
-      <div class='col-md-3' ng-hide='selectedProject==null'>
-        <h2>project '{{selectedProject.name}}'</h2>
-        <span ng-bind='selectedProject.description' contenteditable style='-webkit-user-select: auto'></span>
-        <p><a ng-click='start()'>start coding...</a></p>
-      </div>
-      <div class='col-md-3'>
-        <h2>about clide</h2>
-        <p>version {{version}}</p>
-        <p>copyright 2011-2013 by <a href='http://github.com/martinring'>Martin Ring</a>.</p>
-        <p>source code is hosted on <a href='http://github.com/martinring/clide2'>github</a>.</p>              
+      <div class='col-sm-8 col-md-9'>
+        <div ng-hide='selectedProject==null'>
+          <h2>Project '{{selectedProject.name}}'</h2>
+          <span ng-bind='selectedProject.description' contenteditable style='-webkit-user-select: auto'></span>
+          <p><a ng-click='start()'>start coding...</a></p>
+        </div>
+        <div>
+          <h2>About clide</h2>
+          <p>You are looking at version {{version}}.</p>
+          <p>Copyright 2011-2013 by <a href='http://github.com/martinring'>Martin Ring</a>.</p>
+          <p>The source code is hosted on <a href='http://github.com/martinring/clide2'>github</a>.</p>              
+        </div>              
       </div>      
-    </div>  
+    </div>      
   </div>
 </div>

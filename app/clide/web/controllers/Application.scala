@@ -16,7 +16,7 @@ import play.api.libs.iteratee._
 import play.api.libs.json._
 import play.api.mvc._
 import akka.actor.ActorRef
-import clide.models.Users
+import clide.models._
 
 object Application extends Controller with Secured {
   def index(path: String) = Action { implicit request =>
@@ -27,7 +27,7 @@ object Application extends Controller with Secured {
     request.session.get("session") match {
       case None => unauthorized
       case Some(session) => DB.withSession { implicit dbsession =>
-        val q = for (user <- Users if user.session === session)
+        val q = for (user <- UserInfos if user.session === session)
           yield user.*
         q.firstOption match {
           case None => unauthorized
