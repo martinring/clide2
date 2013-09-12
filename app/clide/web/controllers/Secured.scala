@@ -9,33 +9,41 @@ import Database.{threadLocalSession => session}
 import play.api.db.slick.DB
 import play.api.Play.current
 import scala.concurrent.Future
+import clide.actors.Infrastructure._
+import clide.actors.UserServer._
+import clide.actors.users.UserActor._
 
 /**
  * Provide security features
  */
-trait Secured { this: Controller =>
-  sealed trait RefuseReason
-  case object TimedOut extends RefuseReason
-  case object NoSession extends RefuseReason
-  
-  class AuthenticatedRequest[A](val user: UserInfo, request: Request[A])
+trait Secured { this: Controller with ActorAsk =>
+  class AuthenticatedRequest[A](
+      val user: UserInfo,
+      val login: LoginInfo,
+      request: Request[A])
     extends WrappedRequest[A](request)
   
   /**
    * Looks up the current user in the database and returns it.
    */  
-  def getSessionUser[T](implicit request: Request[T]): Either[RefuseReason,UserInfo] =
-    request.session.get("session").toRight(NoSession).right.flatMap { session => 
-      DB.withSession { implicit s => UserInfos.getBySession(session).firstOption.toRight(TimedOut) }
-    }
+  def sessionInfo[T](implicit request: Request[T]): Option[(String,String)] = for {
+    name <- request.session.get("user")
+    key  <- request.session.get("key")      
+  } yield (name,key)         
  
   object Authenticated extends ActionBuilder[AuthenticatedRequest] {
-    def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[SimpleResult]) = {      
-      getSessionUser(request) match {
-        case Left(TimedOut)  => Future.successful(Results.Unauthorized)
-        case Left(NoSession) => Future.successful(Results.Forbidden)
-        case Right(user)     => block(new AuthenticatedRequest(user,request))
+    def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[SimpleResult]) = {
+      sessionInfo(request) match {
+        case None => Future.successful(Results.Forbidden)
+        case Some((name,key)) =>
+          implicit val ec = executionContext
+          (server ? WithUser(name,Validate(key))).mapTo[UserEvent].flatMap {
+            case Validated(user,login) => block(new AuthenticatedRequest(user,login,request))
+            case NotLoggedIn           => Future.successful(Results.Unauthorized("not-logged-in"))
+            case SessionTimedOut(user) => Future.successful(Results.Unauthorized("timeout"))
+            case msg                   => Future.successful(Results.InternalServerError(msg.toString))
+          }
       }
     }
-  }
+  }    
 }

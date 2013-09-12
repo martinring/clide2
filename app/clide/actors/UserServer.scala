@@ -11,7 +11,7 @@ import play.api.libs.Crypto
 object UserServer {
   trait Message  
   case class SignUp(name: String, email: String, password: String) extends Message  
-  case class WithUser(name: String, msg: users.UserActor.Message)
+  case class WithUser(name: String, msg: users.UserActor.Message) extends Message
   
   trait UserEvent
   case class SignedUp(user: UserInfo) extends UserEvent
@@ -20,9 +20,9 @@ object UserServer {
   case class DoesntExist(name: String) extends UserEvent
   case class WrongPassword(user: UserInfo) extends UserEvent
   case class SessionTimedOut(user: UserInfo) extends UserEvent
-  case class NotLoggedIn(user: UserInfo) extends UserEvent
+  case object NotLoggedIn extends UserEvent
   case class NotAllowed(user: UserInfo) extends UserEvent
-  case class Validated(user: UserInfo) extends UserEvent
+  case class Validated(user: UserInfo, login: LoginInfo) extends UserEvent
 }
 
 class UserServer extends Actor with ActorLogging {
@@ -42,7 +42,7 @@ class UserServer extends Actor with ActorLogging {
       context.child(name) match {
         case None      => sender ! DoesntExist(name)
         case Some(ref) => ref.forward(msg) 
-      }    
+      }
   }
   
   override def preStart() {

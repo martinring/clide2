@@ -22,7 +22,7 @@ import clide.infrastructure.ServerActor
 import clide.infrastructure.SessionActor
 import clide.models._
 
-object Projects extends Controller with Secured {  
+object Projects extends Controller with ActorAsk with Secured {  
   def index(username: String) = Authenticated { request => 
     if (request.user.name != username) Results.Unauthorized
     else DB.withSession { implicit session =>
@@ -45,7 +45,7 @@ object Projects extends Controller with Secured {
           val project = ProjectInfo(None,name,username,descr)
           try {
             val p = ProjectInfos.create(project)
-            clide.actors.Server.instance ! clide.actors.Projects.Created(p)
+            server ! clide.actors.ProjectServer.CreatedProject(p)
             Results.Ok(Json.toJson(p))
           } catch {
             case e: JdbcSQLException => e.getErrorCode() match {

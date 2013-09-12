@@ -13,7 +13,7 @@ object UserActor {
   trait Message
   case class Login(password: String) extends Message
   case class Logout(key: String) extends Message
-  case class Validate(key: String) extends Message
+  case class Validate(key: String) extends Message  
 }
 
 class UserActor(var user: UserInfo) extends Actor with ActorLogging {
@@ -23,16 +23,18 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
   var logins = Map[String,LoginInfo]()
   
   def authenticated(key: String)(block: LoginInfo => Unit) =
-    logins.get(key).map(block).getOrElse(sender ! NotLoggedIn)
+    logins.get(key).map(block).getOrElse { sender ! NotLoggedIn }
   
   def receive = {
-    case Login(password) =>
-      if (UserInfos.passwordHash(user.name, password) != user.password)
+    case Login(password) =>      
+      if (UserInfos.passwordHash(user.name, password) != user.password) {
+        log.info("login attempt failed")
         sender ! WrongPassword
-      else {
+      } else {
         val key   = UUID.randomUUID().toString()
         val login = LoginInfo(user.name,key,None) // TODO: Handle Timeouts!
         DB.withSession { implicit Session: Session => LoginInfos.insert(login) }
+        logins += key -> login
         sender ! LoggedIn(user, login)
         context.parent ! LoggedIn(user, login)
       }
@@ -41,7 +43,7 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       sender ! LoggedOut(user)
       context.parent ! LoggedOut(user)
     }
-    case Validate(key) => authenticated(key) { info => sender ! Validated(user) }
+    case Validate(key) => authenticated(key) { info => sender ! Validated(user,info) }
   }
   
   override def preStart() {

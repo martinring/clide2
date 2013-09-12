@@ -11,9 +11,12 @@ import play.api.libs.Crypto
 import java.util.UUID
 import clide.models._
 import scala.concurrent.Future
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import clide.actors.UserServer._
+import clide.actors.users.UserActor._
+import play.api.mvc.Results
+import play.Logger
 
-object Authentication extends Controller with Secured {
+object Authentication extends Controller with Secured with ActorAsk {
   // -- Authentication
   val loginForm = Form(
     tuple(
@@ -37,47 +40,53 @@ object Authentication extends Controller with Secured {
   /**
    * Handle login form submission.
    */
-  def login = Action.async(parse.json) { implicit request => Future {
+  def login = Action.async(parse.json) { implicit request =>
     loginForm.bind(request.body).fold(
-      formWithErrors => BadRequest(formWithErrors.errorsAsJson),
-      { case (name,password) => DB.withSession { implicit session =>                 
-        UserInfos.getByName(name).firstOption match {
-          case None => Status(401)(Json.obj("username" -> Json.arr("we don't know anybody with that username")))
-          case Some(user) if (user.password != Crypto.sign(name+password)) => 
-            Status(401)(Json.obj("password" -> Json.arr("invalid password")))            
-          case Some(user) =>            
-            val sessionKey = Crypto.sign(UUID.randomUUID().toString() + System.nanoTime())                       
-            val u = user.copy(session = Some(sessionKey))
-            UserInfos.getByName(name).update(u)
+      formWithErrors => Future.successful(BadRequest(formWithErrors.errorsAsJson)),
+      { case (name,password) =>
+        (server ? WithUser(name,Login(password))).collect {
+          case LoggedIn(user,login) => 
             Ok(Json.obj(
-                "username" -> u.name, 
-                "email" -> u.email)).withSession("session" -> sessionKey)            
-  } } } ) } }
+                "username" -> user.name, 
+                "email" -> user.email)
+            ).withSession(
+                "user" -> login.user,
+                "key"  -> login.key
+            )
+          case DoesntExist(name) =>
+            Status(401)(Json.obj("username" -> Json.arr("we don't know anybody by that name")))
+          case WrongPassword(user) =>
+            Status(401)(Json.obj("password" -> Json.arr("invalid password")))
+          case other =>
+            Status(500)(other.toString)
+        }
+    })
+  }
   
-  
-  def signup = Action(parse.json) { implicit request =>
+  def signup = Action.async(parse.json) { implicit request =>
     signupForm.bind(request.body).fold(
-      formWithErrors => BadRequest(formWithErrors.errorsAsJson),
-      user => DB.withSession { implicit session =>
-        val u = UserInfo(user._1,user._2,Crypto.sign(user._1+user._3),None,None)
-        if (UserInfos.insert(u) > 0) {
-          clide.actors.Server.instance ! clide.actors.Users.SignedUp(u)
-          Ok(user._1) 
-        }          
-        else
-          BadRequest("Signup failed")
-      }      
-    ) 
+      formWithErrors => Future.successful(BadRequest(formWithErrors.errorsAsJson)),
+      { case (name,email,password) =>
+        (server ? SignUp(name,email,password)).collect {        
+          case SignedUp(user) =>
+            Ok("Your account has been created. Have fun!")          
+        }
+      })
   }
   
-  def validateSession = Authenticated { request =>
-    Ok(Json.obj("username" -> request.user.name, "email" -> request.user.email))	       
+  def validateSession = Authenticated { request =>    
+    Ok(Json.obj("username" -> request.user.name, 
+                "email" -> request.user.email))
   }
   
-  def logout = Authenticated { request => 
-    DB.withSession { implicit session: Session =>
-      UserInfos.getByName(request.user.name).update(request.user.copy(session = None))
+  def logout = Action.async { implicit request =>
+    sessionInfo match {
+      case None => Future.successful(Results.Unauthorized)
+      case Some((name,key)) =>
+        (server ? WithUser(name,Logout(key))).collect {
+	      case NotLoggedIn => Results.Unauthorized
+	      case LoggedOut   => Results.Ok.withNewSession
+	    }
     }
-    Ok.withNewSession
   }
 }

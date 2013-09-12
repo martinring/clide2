@@ -18,31 +18,22 @@ import akka.actor.ActorRef
 import clide.models._
 import clide.actors._
 import clide.actors.Infrastructure._
-import clide.actors.users.UserActor
+import clide.actors.users.UserActor._
 import clide.actors.UserServer._
 import scala.concurrent.Future
-import akka.pattern.Patterns._
-import akka.util.Timeout
 
-object Application extends Controller with Secured {
+object Application extends Controller with ActorAsk with Secured {
   def index(path: String) = Action.async { implicit request =>
-    def default = path match {
+    def notLoggedIn: SimpleResult = path match {
       case "login" => Ok(clide.web.views.html.index()).withNewSession
       case _       => Redirect("/login").withNewSession
     }
-    val session = for {
-      name <- request.session.get("user")
-      key  <- request.session.get("key")
-    } yield (name,key)    
-    session match {
-      case None => Future.successful(default)
-      case Some((name,key)) =>
-        implicit val context = Akka.system.dispatcher
-        val timeout = Timeout(5 seconds)
-        val future = (ask(server, WithUser(name,UserActor.Validate(key)),timeout)).mapTo[UserEvent]
-        future.map {
-          case Validated(user) => Ok(clide.web.views.html.index())
-          case _               => default
+    sessionInfo match {
+      case None => Future.successful(notLoggedIn)
+      case Some((name,key)) =>        
+        (server ? WithUser(name,Validate(key))).collect {
+          case Validated(user,login) => Ok(clide.web.views.html.index())
+          case _                     => notLoggedIn
         }
     }
   }  

@@ -19,6 +19,16 @@ object ProjectAccessInfos extends Table[(Long,String,Int)]("rights") {
   def policy    = column[Int]("policy")  
   def *         = projectId ~ userName ~ policy
   
+  def getUserProjects(user: String) = for {
+    ai <- ProjectAccessInfos if ai.userName === user
+    p  <- ai.project
+  } yield (p -> ai)
+  
+  def getProjectUsers(project: Long) = for {
+    ai <- ProjectAccessInfos if ai.projectId === project
+    u  <- ai.user
+  } yield (u -> ai)
+  
   val None = 0
   val Read = 1
   val Write = 2

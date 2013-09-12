@@ -17,7 +17,7 @@ import clide.models._
 /**
  * TODO: User rights are ignored right now!!!
  */
-object Files extends Controller with Secured {
+object Files extends Controller with ActorAsk with Secured {
   def browse(username: String, project: String, path: String) = Authenticated { request =>
     if (request.user.name != username) Unauthorized 
     else DB.withSession { implicit session =>

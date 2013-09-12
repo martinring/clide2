@@ -22,6 +22,6 @@ class SessionActor(project: ProjectInfo, user: GenericUser) extends Actor with A
       context.watch(peer)
     case Terminated(peer) =>
       log.info("peer terminated")
-      context.parent ! UserActor.SessionIdle
+      //context.parent ! UserActor.SessionIdle
   }
 }

@@ -3,9 +3,11 @@ package clide.actors.projects
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import clide.models.ProjectInfo
+import clide.models.ProjectAccessInfos
 
 object ProjectActor {
-  
+  trait Message
+  case object Delete extends Message
 }
 
 class ProjectActor(project: ProjectInfo) extends Actor with ActorLogging {    
@@ -14,6 +16,7 @@ class ProjectActor(project: ProjectInfo) extends Actor with ActorLogging {
   }
   
   override def preStart() {
-    log.info("started")    
+    ProjectAccessInfos.    
+    log.info("started")
   }
 }
