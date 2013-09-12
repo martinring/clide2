@@ -10,8 +10,10 @@ object SessionActor {
   case object Initialize
 }
 
-class SessionActor(project: ProjectInfo, user: GenericUser) extends Actor with ActorLogging {
+class SessionActor(user: GenericUser) extends Actor with ActorLogging {
   import SessionActor._
+  
+  var project: Option[ProjectInfo] = None
   
   /** identifies the connected peer actor **/
   var peer = context.system.deadLetters  

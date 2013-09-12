@@ -15,8 +15,7 @@ case class ProjectInfo(
     name: String, 
     owner: String, 
     description: Option[String] = None) {
-  lazy val root = f"files/$owner/$name"
-  lazy val actorName = f"${owner}:${name}"
+  lazy val root = f"files/$owner/$name" // TODO: This should be configured in the future  
 }
 /* Json (de)serialization */
 object ProjectInfo { implicit val json = Json.format[ProjectInfo] }
@@ -47,6 +46,9 @@ object ProjectInfos extends Table[ProjectInfo]("projects") {
   
   def get(owner: String, name: String)(implicit session: Session) =
     byOwnerAndName(owner,name).firstOption
+    
+  def get(id: Long) =
+    for (project <- ProjectInfos if project.id === id) yield project
     
   def create(project: ProjectInfo)(implicit session: Session) = {    
     Play.getFile(project.root).mkdirs()

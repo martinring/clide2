@@ -18,11 +18,12 @@ import akka.actor.ActorRef
 import clide.models._
 import clide.actors._
 import clide.actors.Infrastructure._
-import clide.actors.users.UserActor._
-import clide.actors.UserServer._
 import scala.concurrent.Future
 
 object Application extends Controller with ActorAsk with Secured {
+  import Messages._
+  import Events._
+  
   def index(path: String) = Action.async { implicit request =>
     def notLoggedIn: SimpleResult = path match {
       case "login" => Ok(clide.web.views.html.index()).withNewSession

@@ -11,8 +11,8 @@ import play.api.libs.Crypto
 import java.util.UUID
 import clide.models._
 import scala.concurrent.Future
-import clide.actors.UserServer._
-import clide.actors.users.UserActor._
+import clide.actors.Messages._
+import clide.actors.Events._
 import play.api.mvc.Results
 import play.Logger
 

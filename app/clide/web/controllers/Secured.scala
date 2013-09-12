@@ -10,8 +10,8 @@ import play.api.db.slick.DB
 import play.api.Play.current
 import scala.concurrent.Future
 import clide.actors.Infrastructure._
-import clide.actors.UserServer._
-import clide.actors.users.UserActor._
+import clide.actors.Messages._
+import clide.actors.Events._
 
 /**
  * Provide security features
@@ -31,6 +31,9 @@ trait Secured { this: Controller with ActorAsk =>
     key  <- request.session.get("key")      
   } yield (name,key)         
  
+  def authToken[T](implicit request: Request[T]): AuthenticationToken =
+    sessionInfo.map(FullToken.tupled).getOrElse(EmptyToken)
+  
   object Authenticated extends ActionBuilder[AuthenticatedRequest] {
     def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[SimpleResult]) = {
       sessionInfo(request) match {

@@ -7,39 +7,29 @@ import play.api.libs.concurrent.Akka
 import play.api.Play.current
 import akka.actor.ActorLogging
 
-object Server {
-  
-}
-
 class Server extends Actor with ActorLogging {  
-  import Server._
+  import Messages._
   
   private case object Initialize
   
   var users    = context.system.deadLetters
-  var projects = context.system.deadLetters
-  var files    = context.system.deadLetters
+  var projects = context.system.deadLetters  
   
   def receive = {
     case Initialize =>
       context.actorSelection("/user/users")    ! Identify("users")
-      context.actorSelection("/user/projects") ! Identify("projects")
-      context.actorSelection("/user/files")    ! Identify("files")
+      context.actorSelection("/user/projects") ! Identify("projects")      
     case ActorIdentity(who,ref) =>
       ref.map(who match {
 	    case "users"    => users_=
-	    case "projects" => projects_=
-	    case "files"    => files_=
+	    case "projects" => projects_=	    
 	  })
-    case message: UserServer.Message =>
+    case message: UserServerMessage =>
       log.info("forwarding message to user server")
-      users.forward(message)
-    case message: ProjectServer.Message =>
+      users.forward(message)    
+    case message: ProjectServerMessage =>
       log.info("forwarding message to project server")
       projects.forward(message)
-    case message: FileServer.Message =>
-      log.info("forwarding message to file server")
-      files.forward(message)
   }
   
   override def preStart {    

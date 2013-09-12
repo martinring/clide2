@@ -1,22 +1,32 @@
 package clide.actors.projects
 
-import akka.actor.Actor
-import akka.actor.ActorLogging
-import clide.models.ProjectInfo
-import clide.models.ProjectAccessInfos
 
-object ProjectActor {
-  trait Message
-  case object Delete extends Message
-}
+import akka.actor._
+import clide.models._
+import play.api.Play.current
+import play.api.db.slick._
+import scala.slick.driver.H2Driver.simple._
 
-class ProjectActor(project: ProjectInfo) extends Actor with ActorLogging {    
+class ProjectActor(id: Long) extends Actor with ActorLogging {
+  import clide.actors.Messages._
+  
+  var info: ProjectInfo = null
+  var root: ActorRef    = context.system.deadLetters
+  
   def receive = {
-    case () =>
+    case fm: FileMessage => 
   }
   
   override def preStart() {
-    ProjectAccessInfos.    
-    log.info("started")
+    DB.withSession { implicit session: Session =>
+      ProjectInfos.get(id).firstOption match {
+        case None       => 
+          log.error("this project doesn't exist")
+          context.stop(self)
+        case Some(info) => 
+          this.info = info
+          log.info(s"project ${info.owner}/${info.name}")
+      }
+    }    
   }
 }

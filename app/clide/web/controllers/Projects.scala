@@ -18,9 +18,10 @@ import play.Logger
 import akka.actor.PoisonPill
 import akka.actor.ActorDSL._
 import akka.actor.ActorRefFactory
-import clide.infrastructure.ServerActor
-import clide.infrastructure.SessionActor
 import clide.models._
+import clide.actors._
+import Messages._
+import Events._
 
 object Projects extends Controller with ActorAsk with Secured {  
   def index(username: String) = Authenticated { request => 
@@ -45,7 +46,7 @@ object Projects extends Controller with ActorAsk with Secured {
           val project = ProjectInfo(None,name,username,descr)
           try {
             val p = ProjectInfos.create(project)
-            server ! clide.actors.ProjectServer.CreatedProject(p)
+            server ! CreatedProject(p)
             Results.Ok(Json.toJson(p))
           } catch {
             case e: JdbcSQLException => e.getErrorCode() match {
@@ -64,8 +65,8 @@ object Projects extends Controller with ActorAsk with Secured {
   } }
   
   def session(username: String, project: String) = WebSocket.async[JsValue] { request =>
-    import SessionActor._
-    implicit def error(msg: String) = new Exception(msg)
+    null
+    /*implicit def error(msg: String) = new Exception(msg)
     DB.withSession { implicit session: scala.slick.driver.H2Driver.simple.Session =>
       UserInfos.getByName(username).firstOption match {
         case None => scala.concurrent.Future.failed("user not found")
@@ -75,7 +76,7 @@ object Projects extends Controller with ActorAsk with Secured {
             val server = Akka.system.actorFor("/user/server")
             implicit val timeout = Timeout(5 seconds)
             for {
-              reply <- akka.pattern.ask(server,ServerActor.OpenSession(user,project))
+              reply <- akka.pattern.ask(server,OpenSession(user,project))
             } yield reply match {
               case ServerActor.WelcomeToSession(ref) => // The session has been opened and we get an ActorRef to the
                                    // actor, that is responsible for us.                
@@ -102,5 +103,5 @@ object Projects extends Controller with ActorAsk with Secured {
                 val in = Iteratee.foreach[JsValue]{ dolmetcher ! _ }
                                  .mapDone{ Unit => dolmetcher ! PoisonPill; ref ! Leave }
                 (in,out)           
-  } } } } }
+  } } } } }*/ }
 }

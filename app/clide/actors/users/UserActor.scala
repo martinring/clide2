@@ -6,19 +6,18 @@ import play.api.Play.current
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import clide.models._
+import clide.actors._
 import java.util.UUID
 import scala.slick.session.Session
 
 object UserActor {
   trait Message
-  case class Login(password: String) extends Message
-  case class Logout(key: String) extends Message
-  case class Validate(key: String) extends Message  
+
 }
 
 class UserActor(var user: UserInfo) extends Actor with ActorLogging {
-  import UserActor._
-  import clide.actors.UserServer._
+  import Messages._
+  import Events._
   
   var logins = Map[String,LoginInfo]()
   
