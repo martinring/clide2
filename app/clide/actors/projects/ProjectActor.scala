@@ -4,11 +4,11 @@ import akka.actor.Actor
 import akka.actor.ActorLogging
 import clide.models.ProjectInfo
 
-object Project {
+object ProjectActor {
   
 }
 
-class Project(project: ProjectInfo) extends Actor with ActorLogging {    
+class ProjectActor(project: ProjectInfo) extends Actor with ActorLogging {    
   def receive = {
     case () =>
   }

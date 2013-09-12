@@ -27,28 +27,28 @@ class ProjectServer extends Actor with ActorLogging {
   import projects._
   
   def getProject(project: ProjectInfo) = context.child(project.actorName).getOrElse {
-    context.actorOf(Props(classOf[Project],project), project.actorName) }
+    context.actorOf(Props(classOf[ProjectActor],project), project.actorName) }
   
   def receive = {
     case Initialize =>
       log.info("creating project actors")
-      val projects = DB.withSession { implicit session: scala.slick.session.Session =>
-        val q = for (project <- ProjectInfos) yield project.* 
-        q.elements }
-      projects.foreach { project => context.actorOf(Props(classOf[Project], project), project.actorName) }
+      val q = for (project <- ProjectInfos) yield project.*
+      val projects = DB.withSession { implicit session: scala.slick.session.Session => q.elements }
+      projects.foreach { project => context.actorOf(Props(classOf[ProjectActor], project), project.actorName) }
+      
     case CreateProject(user, name, description) =>
-      DB.withSession { implicit session: Session =>
-        val p = ProjectInfo(name = name, owner = user.name, description = description)
-        val id = ProjectInfos.autoinc.insert(p)
-        val project = p.copy(id = Some(id))
-        context.actorOf(Props(classOf[Project], project), project.actorName)
-        Seq(sender,context.parent).foreach(_ ! CreatedProject(p.copy(id = Some(id)))) }
+      var project = ProjectInfo(None, name = name, owner = user.name, description = description)
+      val id = DB.withSession { implicit session: Session => ProjectInfos.autoinc.insert(project) }
+      project = project.copy(id = Some(id))
+      context.actorOf(Props(classOf[ProjectActor], project), project.actorName)
+      Seq(sender,context.parent).foreach(_ ! CreatedProject(project))
+      
     case DeleteProject(project) =>
-      DB.withSession { implicit session: Session =>
-        val q = for (p <- ProjectInfos if p.id === project.id) yield p      
-        q.delete }
-      context.actorSelection(project.actorName) ! PoisonPill
-      Seq(sender,context.parent).foreach(_ ! DeletedProject(project))    
+      val q = for (p <- ProjectInfos if p.id === project.id) yield p
+      DB.withSession { implicit session: Session => q.delete }
+      context.actorSelection(project.actorName) ! DeletedProject(project)
+      sender ! DeletedProject(project)
+      context.parent ! DeletedProject(project)
   }
   
   override def preStart() {

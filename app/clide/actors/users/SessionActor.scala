@@ -6,12 +6,12 @@ import clide.models.ProjectInfo
 import akka.actor.Terminated
 import akka.actor.ActorLogging
 
-object Session {
+object SessionActor {
   case object Initialize
 }
 
-class Session(project: ProjectInfo, user: GenericUser) extends Actor with ActorLogging {
-  import Session._
+class SessionActor(project: ProjectInfo, user: GenericUser) extends Actor with ActorLogging {
+  import SessionActor._
   
   /** identifies the connected peer actor **/
   var peer = context.system.deadLetters  
@@ -22,6 +22,6 @@ class Session(project: ProjectInfo, user: GenericUser) extends Actor with ActorL
       context.watch(peer)
     case Terminated(peer) =>
       log.info("peer terminated")
-      context.parent ! User.SessionIdle
+      context.parent ! UserActor.SessionIdle
   }
 }

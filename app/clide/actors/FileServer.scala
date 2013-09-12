@@ -20,10 +20,10 @@ object FileServer {
   case object Save       extends FileQuery  
   
   trait FileEvent
-  case class CreatedFile(project: ProjectInfo, path: Seq[String]) extends FileEvent
-  case class DeletedFile(project: ProjectInfo, path: Seq[String]) extends FileEvent
-  case class CreatedFolder(project: ProjectInfo, path: Seq[String]) extends FileEvent
-  case class DeletedFolder(project: ProjectInfo, path: Seq[String]) extends FileEvent
+  case class FileCreated(project: ProjectInfo, path: Seq[String]) extends FileEvent
+  case class FileDeleted(project: ProjectInfo, path: Seq[String]) extends FileEvent
+  case class FolderCreated(project: ProjectInfo, path: Seq[String]) extends FileEvent
+  case class FolderDeleted(project: ProjectInfo, path: Seq[String]) extends FileEvent
 }
 
 class FileServer extends Actor {

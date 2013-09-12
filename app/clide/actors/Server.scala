@@ -21,9 +21,9 @@ class Server extends Actor {
   
   def receive = {
     case Initialize =>
-      context.actorSelection("../users")    ! Identify("users")
-      context.actorSelection("../projects") ! Identify("projects")
-      context.actorSelection("../files")    ! Identify("files")
+      context.actorSelection("/users")    ! Identify("users")
+      context.actorSelection("/projects") ! Identify("projects")
+      context.actorSelection("/files")    ! Identify("files")
     case ActorIdentity(who,ref) =>
       ref.map(who match {
 	    case "users"    => users_=

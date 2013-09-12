@@ -4,11 +4,11 @@ import akka.actor.Actor
 import akka.actor.ActorLogging
 import clide.models._
 
-object User {
+object UserActor {
   case object SessionIdle
 }
 
-class User(user: UserInfo) extends Actor with ActorLogging {    
+class UserActor(user: UserInfo) extends Actor with ActorLogging {    
   def receive = {
     case () =>
   }
