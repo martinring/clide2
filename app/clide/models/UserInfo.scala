@@ -13,7 +13,7 @@ case class UserInfo(
     email: String, 
     password: String,
     session: Option[String],
-    timeout: Option[Date]) extends GenericUser
+    timeout: Option[Date]) extends GenericUser   
     
 object UserInfos extends Table[UserInfo]("users") {  
   def name     = column[String]("name", O.PrimaryKey)
@@ -33,5 +33,8 @@ object UserInfos extends Table[UserInfo]("users") {
   
   def getBySession(session: String) = for {
     user <- UserInfos if user.session === session
-  } yield user    
+  } yield user
+  
+  def passwordHash(name: String, password: String) = 
+    Crypto.sign(name + password)
 }

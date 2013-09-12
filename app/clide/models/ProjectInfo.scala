@@ -54,18 +54,3 @@ object ProjectInfos extends Table[ProjectInfo]("projects") {
     project.copy(id=Some(id))
   }
 }
-
-object Rights extends Table[(Long,String,Int)]("rights") {  
-  def projectId = column[Long]("project")
-  def userName  = column[String]("user")
-  def project   = foreignKey("fk_right_project", projectId, ProjectInfos)(_.id)
-  def user      = foreignKey("fk_right_user", userName, UserInfos)(_.name)
-  def pk        = primaryKey("pk_right", (projectId,userName))
-  def policy    = column[Int]("policy")  
-  def *         = projectId ~ userName ~ policy
-  
-  val None = 0
-  val Read = 1
-  val Write = 2
-  val Admin = 3
-}

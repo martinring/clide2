@@ -19,7 +19,7 @@ case class SessionInfo(
 /* Json (de)serialization */
 object SessionInfo { implicit val json = Json.format[SessionInfo] }
 
-object SessionInfos extends Table[SessionInfo]("projects") {
+object SessionInfos extends Table[SessionInfo]("sessions") {
   def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def userName     = column[String]("name")
   def projectId    = column[Long]("project")
