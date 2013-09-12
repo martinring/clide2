@@ -1,10 +1,9 @@
 package clide.actors
 
-import akka.actor.Actor
-import clide.models.ProjectInfo
+import akka.actor._
+import clide.models._
 import clide.actors.files.FolderActor
-import akka.actor.Props
-import akka.actor.ActorRef
+import clide.actors.files.FileEventSource
 
 object FileServer {
   trait Message
@@ -18,15 +17,9 @@ object FileServer {
   case object Browse     extends FileQuery
   case object Delete     extends FileQuery
   case object Save       extends FileQuery  
-  
-  trait FileEvent
-  case class FileCreated(project: ProjectInfo, path: Seq[String]) extends FileEvent
-  case class FileDeleted(project: ProjectInfo, path: Seq[String]) extends FileEvent
-  case class FolderCreated(project: ProjectInfo, path: Seq[String]) extends FileEvent
-  case class FolderDeleted(project: ProjectInfo, path: Seq[String]) extends FileEvent
 }
 
-class FileServer extends Actor {
+class FileServer extends Actor with ActorLogging {
   import FileServer._
   
   def projectRootActor(project: ProjectInfo): ActorRef = {
@@ -38,6 +31,8 @@ class FileServer extends Actor {
   
   def receive = {
     case WithProject(project, msg) =>
-      projectRootActor(project).forward(msg)    
+      projectRootActor(project).forward(msg)
+    case event: FileEventSource.FileEvent =>
+      log.info(event.toString())
   }
 }

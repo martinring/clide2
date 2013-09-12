@@ -29,12 +29,11 @@ class UserServer extends Actor with ActorLogging {
   
   def receive = {    
     case SignUp(name,email,password) =>
-      DB.withSession { implicit session: scala.slick.session.Session =>
-        val user = UserInfo(name,email,Crypto.sign(name+password),None,None)        
-        UserInfos.insert(user)
-        context.actorOf(Props(classOf[UserActor],user), user.name)
-        Seq(sender,context.parent).foreach(_ ! SignedUp(user))             
-      }
+      val user = UserInfo(name,email,Crypto.sign(name+password),None,None)
+      DB.withSession { implicit session: scala.slick.session.Session => UserInfos.insert(user) }
+      context.actorOf(Props(classOf[UserActor],user), user.name)
+      sender ! SignedUp(user)
+      context.parent ! SignedUp(user)
     case Login(name,password) =>
       DB.withSession { implicit session: scala.slick.session.Session =>
         

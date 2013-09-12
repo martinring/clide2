@@ -15,7 +15,7 @@ case class FileInfo(
   path: String,
   deleted: Boolean,
   exists: Boolean,
-  idDirectory: Boolean,
+  isDirectory: Boolean,
   parent: Option[Long])
 
 object FileInfos extends Table[FileInfo]("openFiles") {
@@ -37,9 +37,13 @@ object FileInfos extends Table[FileInfo]("openFiles") {
   
   def get(project: ProjectInfo, path: String) = for {
     file <- FileInfos if file.projectId === project.id && file.path === path  
-  } yield *
+  } yield file
+  
+  def get(id: Long) = for {
+    file <- FileInfos if file.id === id
+  } yield file
   
   def getChildren(file: FileInfo) = for {
     file <- FileInfos if file.parentId === file.id
-  } yield *
+  } yield file
 }
