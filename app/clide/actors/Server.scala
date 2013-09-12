@@ -7,8 +7,6 @@ import play.api.libs.concurrent.Akka
 import play.api.Play.current
 
 object Server {
-  var instance = Akka.system.deadLetters
-  
   case object Initialize
 }
 

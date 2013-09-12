@@ -1,7 +1,6 @@
 package clide.web.controllers
 
 import java.util.UUID
-
 import scala.concurrent.duration.DurationInt
 import scala.slick.driver.H2Driver.simple._
 import akka.actor.ActorDSL._
@@ -17,27 +16,36 @@ import play.api.libs.json._
 import play.api.mvc._
 import akka.actor.ActorRef
 import clide.models._
+import clide.actors._
+import clide.actors.Infrastructure._
+import clide.actors.users.UserActor
+import clide.actors.UserServer._
+import scala.concurrent.Future
+import akka.pattern.Patterns._
+import akka.util.Timeout
 
 object Application extends Controller with Secured {
-  def index(path: String) = Action { implicit request =>
-    def unauthorized = path match {
+  def index(path: String) = Action.async { implicit request =>
+    def default = path match {
       case "login" => Ok(clide.web.views.html.index()).withNewSession
-      case _ => Redirect("/login").withNewSession
+      case _       => Redirect("/login").withNewSession
     }
-    request.session.get("session") match {
-      case None => unauthorized
-      case Some(session) => DB.withSession { implicit dbsession =>
-        val q = for (user <- UserInfos if user.session === session)
-          yield user.*
-        q.firstOption match {
-          case None => unauthorized
-          case Some(u) =>
-            if (path.isEmpty) Redirect(f"/${u.name}/backstage")            
-            else Ok(clide.web.views.html.index())           
+    val session = for {
+      name <- request.session.get("user")
+      key  <- request.session.get("key")
+    } yield (name,key)    
+    session match {
+      case None => Future.successful(default)
+      case Some((name,key)) =>
+        implicit val context = Akka.system.dispatcher
+        val timeout = Timeout(5 seconds)
+        val future = (ask(server, WithUser(name,UserActor.Validate(key)),timeout)).mapTo[UserEvent]
+        future.map {
+          case Validated(user) => Ok(clide.web.views.html.index())
+          case _               => default
         }
-      }
     }
-  }
+  }  
   
   // -- Javascript routing
   def javascriptRoutes = Action { implicit request =>
