@@ -22,12 +22,12 @@ object ProjectAccessInfos extends Table[(Long,String,Int)]("rights") {
   def getUserProjects(user: String) = for {
     ai <- ProjectAccessInfos if ai.userName === user
     p  <- ai.project
-  } yield (p -> ai)
+  } yield (p -> ai.policy)
   
   def getProjectUsers(project: Long) = for {
     ai <- ProjectAccessInfos if ai.projectId === project
     u  <- ai.user
-  } yield (u -> ai)
+  } yield (u -> ai.policy)
   
   val None = 0
   val Read = 1

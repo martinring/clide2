@@ -42,11 +42,9 @@ object Projects extends Controller with ActorAsk with Secured {
       (request.body \ "name").asOpt[String] match {
         case Some("") => Results.BadRequest("project name must not be empty!")
         case Some(name) => 
-          val descr = (request.body \ "description").asOpt[String]
-          val project = ProjectInfo(None,name,username,descr)
+          val descr = (request.body \ "description").asOpt[String]         
           try {
-            val p = ProjectInfos.create(project)
-            server ! CreatedProject(p)
+            val p = ProjectInfos.create(name,username,descr)            
             Results.Ok(Json.toJson(p))
           } catch {
             case e: JdbcSQLException => e.getErrorCode() match {

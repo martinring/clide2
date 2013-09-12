@@ -37,7 +37,7 @@ object Application extends Controller with ActorAsk with Secured {
           case _                     => notLoggedIn
         }
     }
-  }  
+  }    
   
   // -- Javascript routing
   def javascriptRoutes = Action { implicit request =>

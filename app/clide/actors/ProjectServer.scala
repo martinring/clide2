@@ -1,8 +1,8 @@
 package clide.actors
 
 import scala.slick.driver.H2Driver.simple._
+import play.api.db.slick._
 import play.api.Play.current
-import play.api.db.slick.DB
 import akka.actor._
 import java.net.URLEncoder
 import clide.models._
@@ -16,18 +16,16 @@ class ProjectServer extends Actor with ActorLogging {
   import projects._
   
   def getProjectActor(id: Long): ActorRef = context.child(id.toString()).getOrElse {
-    context.actorOf(Props(classOf[ProjectActor],id),id.toString) }
+    context.system.deadLetters }
  
   def receive = {      
     case CreateProject(user,name,description) =>
-      var project = ProjectInfo(None, name = name, owner = user.name, description = description)
-      val id = DB.withSession { implicit session: Session => ProjectInfos.autoinc.insert(project) }
-      project = project.copy(id = Some(id))
+      var project = DB.withSession { implicit session: Session => ProjectInfos.create(user.name,name,description) }
       context.actorOf(Props(classOf[ProjectActor], project), project.id.toString())
-      sender         ! CreatedProject(project)
-      context.parent ! CreatedProject(project)
+      sender ! CreatedProject(project)
+      context.system.eventStream.publish(CreatedProject(project))
       
-    case WithProject(project,message: FileMessage) =>      
+    case WithProject(project,message: FileMessage) =>
       getProjectActor(project).forward(message)
   }
   

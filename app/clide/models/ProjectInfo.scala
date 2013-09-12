@@ -11,7 +11,7 @@ import java.io.File
 import play.api.Play
 
 case class ProjectInfo(
-    id: Option[Long] = None, 
+    id: Long, 
     name: String, 
     owner: String, 
     description: Option[String] = None) {
@@ -26,13 +26,21 @@ object ProjectInfos extends Table[ProjectInfo]("projects") {
   def ownerName    = column[String]("owner")
   def description  = column[Option[String]]("description")
   def owner        = foreignKey("fk_project_user", ownerName, UserInfos)(_.name)  
-  def *            = id.? ~ name ~ ownerName ~ description <> (ProjectInfo.apply _, ProjectInfo.unapply _)
+  def *            = id ~ name ~ ownerName ~ description <> (ProjectInfo.apply _, ProjectInfo.unapply _)
   
   // for every owner, the names of all his projects must be unique
   // which means, that project names alone don't have to be.
-  def ownerProject = index("idx_owner_project", (ownerName, name), unique = true) 
-  def autoinc = id.? ~ name ~ ownerName ~ description <> (ProjectInfo.apply _, ProjectInfo.unapply _) returning id
+  def ownerProject = index("idx_owner_project", (ownerName, name), unique = true)    
   
+  def create(name: String, owner: String, description: Option[String]) = { 
+    val q = (name ~ ownerName ~ description returning *)
+    q.insert((name,owner,description))
+  }
+  
+  def delete(id: Long) = get(id).delete
+  
+  def update(p: ProjectInfo) = get(p.id).update(p)
+      
   def byOwner(owner: String) = 	
     for(project <- ProjectInfos if project.ownerName === owner)
       yield project
@@ -50,9 +58,5 @@ object ProjectInfos extends Table[ProjectInfo]("projects") {
   def get(id: Long) =
     for (project <- ProjectInfos if project.id === id) yield project
     
-  def create(project: ProjectInfo)(implicit session: Session) = {    
-    Play.getFile(project.root).mkdirs()
-    val id = autoinc.insert(project)
-    project.copy(id=Some(id))
-  }
+  
 }

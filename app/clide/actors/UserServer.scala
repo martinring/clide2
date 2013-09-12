@@ -21,7 +21,8 @@ class UserServer extends Actor with ActorLogging {
       DB.withSession { implicit session: scala.slick.session.Session => UserInfos.insert(user) }
       context.actorOf(Props(classOf[UserActor],user), user.name)
       sender ! SignedUp(user)
-      context.parent ! SignedUp(user)
+      context.system.eventStream.publish(SignedUp(user))
+      
     case WithUser(name, msg) =>
       context.child(name) match {
         case None      => sender ! DoesntExist(name)
