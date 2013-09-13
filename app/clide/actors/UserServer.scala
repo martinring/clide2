@@ -7,13 +7,11 @@ import akka.actor._
 import scala.concurrent.Future
 import clide.models._
 import play.api.libs.Crypto
+import play.api.Logger
 
 class UserServer extends Actor with ActorLogging {
   import Messages._
   import Events._
-  import users._    
-  
-  var logins = Map[String,ActorRef]()
   
   def receive = {    
     case SignUp(name,email,password) =>
@@ -23,10 +21,20 @@ class UserServer extends Actor with ActorLogging {
       sender ! SignedUp(user)
       context.system.eventStream.publish(SignedUp(user))
       
-    case WithUser(name, msg) =>
+    case IdentifiedFor(name,key,message) =>
       context.child(name) match {
-        case None      => sender ! DoesntExist(name)
-        case Some(ref) => ref.forward(msg)
+        case None      => sender ! DoesntExist
+        case Some(ref) => 
+          Logger.info(f"identified forward to $name: $message")
+          ref.forward(Identified(key,message))
+      }
+      
+    case AnonymousFor(name,message) =>
+      context.child(name) match {
+        case None => sender ! DoesntExist
+        case Some(ref) => 
+          Logger.info(f"anonymous forward to $name: $message")
+          ref.forward(Anonymous(message))
       }
   }
   

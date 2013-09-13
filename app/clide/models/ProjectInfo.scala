@@ -11,9 +11,9 @@ import java.io.File
 import play.api.Play
 
 case class ProjectInfo(
-    id: Long, 
-    name: String, 
-    owner: String, 
+    id: Long,
+    name: String,
+    owner: String,
     description: Option[String] = None) {
   lazy val root = f"files/$owner/$name" // TODO: This should be configured in the future  
 }
@@ -32,14 +32,15 @@ object ProjectInfos extends Table[ProjectInfo]("projects") {
   // which means, that project names alone don't have to be.
   def ownerProject = index("idx_owner_project", (ownerName, name), unique = true)    
   
-  def create(name: String, owner: String, description: Option[String]) = { 
-    val q = (name ~ ownerName ~ description returning *)
-    q.insert((name,owner,description))
+  def create(name: String, owner: String, description: Option[String])(implicit session: Session) = { 
+    val q = (this.id.? ~ this.name ~ this.ownerName ~ this.description returning this.id)
+    val id = q.insert((None,name,owner,description))
+    ProjectInfo(id,name,owner,description)
   }
   
-  def delete(id: Long) = get(id).delete
+  def delete(id: Long)(implicit session: Session) = get(id).delete
   
-  def update(p: ProjectInfo) = get(p.id).update(p)
+  def update(p: ProjectInfo)(implicit session: Session) = get(p.id).update(p)
       
   def byOwner(owner: String) = 	
     for(project <- ProjectInfos if project.ownerName === owner)

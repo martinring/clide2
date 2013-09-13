@@ -20,28 +20,26 @@ import clide.actors._
 import clide.actors.Infrastructure._
 import scala.concurrent.Future
 
-object Application extends Controller with ActorAsk with Secured {
+object Application extends Controller with UserRequests {
   import Messages._
   import Events._
   
-  def index(path: String) = Action.async { implicit request =>
+  def index(path: String) = UserRequest.async { implicit request =>
     def notLoggedIn: SimpleResult = path match {
       case "login" => Ok(clide.web.views.html.index()).withNewSession
       case _       => Redirect("/login").withNewSession
     }
-    sessionInfo match {
-      case None => Future.successful(notLoggedIn)
-      case Some((name,key)) =>        
-        (server ? WithUser(name,Validate(key))).collect {
-          case Validated(user,login) => Ok(clide.web.views.html.index())
-          case _                     => notLoggedIn
-        }
+    request.ask(Validate).map {
+      case Validated(info) =>
+        if (path.isEmpty()) Redirect(s"${info.name}/backstage")
+        else Ok(clide.web.views.html.index())
+      case _               => notLoggedIn
     }
-  }    
+  }
   
   // -- Javascript routing
   def javascriptRoutes = Action { implicit request =>
-import routes.javascript._
+  import routes.javascript._
     Ok(
       Routes.javascriptRouter("jsRoutes")(
         routes.javascript.Application.index,      
@@ -52,10 +50,7 @@ import routes.javascript._
         routes.javascript.Projects.index,        
         routes.javascript.Projects.put,
         routes.javascript.Projects.delete,
-        routes.javascript.Projects.session,
-        routes.javascript.Files.getTree,
-        routes.javascript.Files.newFile,
-        routes.javascript.Files.deleteFile
+        routes.javascript.Projects.session
       )
     ).as("text/javascript") 
   }

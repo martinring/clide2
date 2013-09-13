@@ -22,47 +22,30 @@ import clide.models._
 import clide.actors._
 import Messages._
 import Events._
+import scala.concurrent.Future
 
-object Projects extends Controller with ActorAsk with Secured {  
-  def index(username: String) = Authenticated { request => 
-    if (request.user.name != username) Results.Unauthorized
-    else DB.withSession { implicit session =>
-      Ok(Json.toJson(ProjectInfos.getByOwner(username).toSeq))
-  } }
+object Projects extends Controller with UserRequests {  
+  def index(username: String) = UserRequest.async { request =>
+    request.askFor(username)(BrowseProjects).map {
+      case UserProjectInfos(own,other) =>
+        Ok(Json.toJson(own))
+      case other => defaultResult(other)
+    }
+  }     
   
-  def details(username: String, project: String) = Authenticated { request =>
-    if (request.user.name != username) Results.Unauthorized
-    else DB.withSession { implicit session =>
-      Ok(Json.toJson(ProjectInfos.get(username,project)))
-  } }  
+  def put(username: String) = UserRequest.async(parse.json) { request =>
+    Json.fromJson[CreateProject](request.body) match {
+      case JsError(e) =>
+        Future.successful(BadRequest("The server didn't understand your request."))
+      case JsSuccess(msg,_) => request.askFor(username)(msg).map(defaultResult)
+    }
+  }
+
+  def delete(username: String, name: String) = UserRequest.async(parse.empty) { request =>    
+    request.askFor(username)(WithProject(name,DeleteProject)).map(defaultResult)
+  }
   
-  def put(username: String) = Authenticated(parse.json) { request => 
-    if (request.user.name != username) Results.Unauthorized
-    else DB.withSession { implicit session =>
-      (request.body \ "name").asOpt[String] match {
-        case Some("") => Results.BadRequest("project name must not be empty!")
-        case Some(name) => 
-          val descr = (request.body \ "description").asOpt[String]         
-          try {
-            val p = ProjectInfos.create(name,username,descr)            
-            Results.Ok(Json.toJson(p))
-          } catch {
-            case e: JdbcSQLException => e.getErrorCode() match {
-              case 23505 => Results.BadRequest("A project with that name already exists")
-              case _     => Results.BadRequest(e.getMessage())                                           
-          } }
-        case None => Results.BadRequest("Malformed Project")      
-  } } }
-  
-  def delete(username: String, project: String) = Authenticated(parse.empty) { request =>
-    if (request.user.name != username) Results.Unauthorized
-    else DB.withSession { implicit session =>
-      val q = for (p <- ProjectInfos if p.ownerName === username && p.name === project) yield p      
-      if (q.delete > 0) Ok
-      else NotFound
-  } }
-  
-  def session(username: String, project: String) = WebSocket.async[JsValue] { request =>
+  def session(username: String, name: String) = WebSocket.async[JsValue] { request =>
     null
     /*implicit def error(msg: String) = new Exception(msg)
     DB.withSession { implicit session: scala.slick.driver.H2Driver.simple.Session =>

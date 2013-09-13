@@ -23,6 +23,13 @@ object LoginInfos extends Table[LoginInfo]("logins") {
   def timeout  = column[Option[Date]]("timeout")
   def *        = user ~ key ~ timeout <> (LoginInfo.apply _, LoginInfo.unapply _)
   
+  def delete(login: LoginInfo)(implicit session: Session) = {
+    val q = for (l <- LoginInfos if l.key === login.key &&
+                                    l.user === login.user) yield l
+    q.delete
+  }
+    
+  
   def get(user: String, key: String) = for {
     login <- LoginInfos if login.user === user && login.key === key
   } yield login

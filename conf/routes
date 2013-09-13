@@ -7,14 +7,8 @@ GET     /api/auth/logout                    clide.web.controllers.Authentication
 # Projects
 GET     /api/projects/:user                 clide.web.controllers.Projects.index(user)
 PUT     /api/projects/:user                 clide.web.controllers.Projects.put(user)
-DELETE  /api/projects/:user/:project        clide.web.controllers.Projects.delete(user,project)
-GET     /api/:user/:project/@session        clide.web.controllers.Projects.session(user,project)
-
-# File System
-GET     /api/projects/:user/:project        clide.web.controllers.Files.getTree(user,project)
-PUT     /api/projects/:user/:project        clide.web.controllers.Files.newFile(user,project,path="")
-PUT     /api/projects/:user/:project/*path  clide.web.controllers.Files.newFile(user,project,path)
-DELETE  /api/projects/:user/:project/*path  clide.web.controllers.Files.deleteFile(user,project,path)
+DELETE  /api/projects/:user/:name           clide.web.controllers.Projects.delete(user,name)
+GET     /api/projects/:user/:name/@session  clide.web.controllers.Projects.session(user,name)
 
 # Javascript routing
 GET     /client/javascripts/routes.js       clide.web.controllers.Application.javascriptRoutes

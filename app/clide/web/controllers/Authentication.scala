@@ -15,8 +15,9 @@ import clide.actors.Messages._
 import clide.actors.Events._
 import play.api.mvc.Results
 import play.Logger
+import views.html.defaultpages.badRequest
 
-object Authentication extends Controller with Secured with ActorAsk {
+object Authentication extends Controller with UserRequests {
   // -- Authentication
   val loginForm = Form(
     tuple(
@@ -40,11 +41,11 @@ object Authentication extends Controller with Secured with ActorAsk {
   /**
    * Handle login form submission.
    */
-  def login = Action.async(parse.json) { implicit request =>
+  def login = UserRequest.async(parse.json) { implicit request =>
     loginForm.bind(request.body).fold(
       formWithErrors => Future.successful(BadRequest(formWithErrors.errorsAsJson)),
       { case (name,password) =>
-        (server ? WithUser(name,Login(password))).collect {
+        request.askFor(name)(Login(password)).map {        
           case LoggedIn(user,login) => 
             Ok(Json.obj(
                 "username" -> user.name, 
@@ -53,9 +54,9 @@ object Authentication extends Controller with Secured with ActorAsk {
                 "user" -> login.user,
                 "key"  -> login.key
             )
-          case DoesntExist(name) =>
+          case DoesntExist =>
             Status(401)(Json.obj("username" -> Json.arr("we don't know anybody by that name")))
-          case WrongPassword(user) =>
+          case WrongPassword =>
             Status(401)(Json.obj("password" -> Json.arr("invalid password")))
           case other =>
             Status(500)(other.toString)
@@ -67,26 +68,31 @@ object Authentication extends Controller with Secured with ActorAsk {
     signupForm.bind(request.body).fold(
       formWithErrors => Future.successful(BadRequest(formWithErrors.errorsAsJson)),
       { case (name,email,password) =>
-        (server ? SignUp(name,email,password)).collect {        
+        (server ? SignUp(name,email,password)).map {        
           case SignedUp(user) =>
-            Ok("Your account has been created. Have fun!")          
+            Ok("Your account has been created. Have fun!")
+          case other => Status(500)(other.toString)
         }
       })
   }
   
-  def validateSession = Authenticated { request =>    
-    Ok(Json.obj("username" -> request.user.name, 
-                "email" -> request.user.email))
+  def validateSession = UserRequest.async { request =>
+    request.ask(Validate) map {
+      case Validated(user) => Ok(Json.obj(
+          "username" -> user.name, 
+          "email" -> user.email))      
+      case other => BadRequest(other.toString) // TODO: Differentiate
+    }    
   }
   
-  def logout = Action.async { implicit request =>
-    sessionInfo match {
-      case None => Future.successful(Results.Unauthorized)
-      case Some((name,key)) =>
-        (server ? WithUser(name,Logout(key))).collect {
-	      case NotLoggedIn => Results.Unauthorized
-	      case LoggedOut   => Results.Ok.withNewSession
-	    }
+  def logout = UserRequest.async { implicit request =>
+    request.ask(Logout) map {
+      case LoggedOut(user) => Ok.withNewSession
+      case SessionTimedOut => Ok.withNewSession // no need to confuse the user
+                                                // here
+      case NotLoggedIn     => Results.Unauthorized
+      case DoesntExist     => Results.NotFound
+      case _               => Results.InternalServerError
     }
   }
 }
