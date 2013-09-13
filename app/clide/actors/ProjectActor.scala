@@ -34,7 +34,6 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       case _ =>
         none(msg)
     }
-      
   }
   
   override def preStart() {

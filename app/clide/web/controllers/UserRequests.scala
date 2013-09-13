@@ -9,6 +9,8 @@ import clide.actors.Messages._
 import clide.actors.Events._
 import play.api.mvc._
 import scala.concurrent.Future
+import play.api.libs.json._
+import play.api.libs.iteratee.Iteratee
 
 trait UserRequests { this: Controller =>
   implicit val timeout = Timeout(5 seconds)
@@ -21,6 +23,26 @@ trait UserRequests { this: Controller =>
                           val askFor: (String => UserMessage => Future[Event]), 
                           request: Request[A])
     extends WrappedRequest[A](request)
+    
+  def ActorSocket(
+      user: String, 
+      message: UserMessage,
+      deserialize: JsValue => Message,
+      serialize: Event => JsValue) = WebSocket.async[JsValue] { request =>
+    val auth = for {
+      user <- request.session.get("user")
+      key  <- request.session.get("key")      
+    } yield (user,key)
+    val req = auth match {
+      case None => AnonymousFor(user,message)
+      case Some((user,key)) => IdentifiedFor(user,key,message)
+    }    
+    (server ? req).mapTo[Event].map {
+      case EventSocket(in,out) => 
+        (Iteratee.foreach[JsValue](json => in ! deserialize(json)),
+         out.map(serialize))      
+    }
+  }
       
   object UserRequest extends ActionBuilder[UserAskRequest] {
     def invokeBlock[A](request: Request[A], block: UserAskRequest[A] => Future[SimpleResult]) = {     

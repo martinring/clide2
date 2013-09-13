@@ -100,7 +100,7 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       else context.actorSelection(s"../$name").tell(External(user,msg),sender)
       
     case StartSession(projectName) =>
-      context.actorOf()
+      Logger.error("not implemented")
       
     case Validate => sender ! Validated(user)
     

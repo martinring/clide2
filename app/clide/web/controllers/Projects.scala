@@ -45,44 +45,23 @@ object Projects extends Controller with UserRequests {
     request.askFor(username)(WithProject(name,DeleteProject)).map(defaultResult)
   }
   
-  def session(username: String, name: String) = WebSocket.async[JsValue] { request =>
-    null
-    /*implicit def error(msg: String) = new Exception(msg)
-    DB.withSession { implicit session: scala.slick.driver.H2Driver.simple.Session =>
-      UserInfos.getByName(username).firstOption match {
-        case None => scala.concurrent.Future.failed("user not found")
-        case Some(user) => ProjectInfos.get(user.name, project) match {
-          case None => scala.concurrent.Future.failed("project not found")
-          case Some(project) => 
-            val server = Akka.system.actorFor("/user/server")
-            implicit val timeout = Timeout(5 seconds)
-            for {
-              reply <- akka.pattern.ask(server,OpenSession(user,project))
-            } yield reply match {
-              case ServerActor.WelcomeToSession(ref) => // The session has been opened and we get an ActorRef to the
-                                   // actor, that is responsible for us.                
-                Logger.info("Connecting to WebSocket")
-                implicit val sys = Akka.system
-                // `out` is the outbound channel of our WebSocket. Messages can be pushed via 
-                // channel.
-                val (out,channel) = Concurrent.broadcast[JsValue]
-                // We instantiate an intermediate Actor, that translates between JSON and 
-                // Scala objects.
-                val dolmetcher = actor(new Act { become {
-                    case json: JsValue =>
-                      Json.fromJson[Request](json) match {
-                        case JsSuccess(msg,where) => ref ! msg
-                        case JsError(e)           => channel.push(Json.obj("error" -> e.toString))
-                      }                      
-                    case reply: Reply  =>                      
-                      channel.push(Json.toJson(reply))                    
-                } }) 
-                // `in` is the inbound channel of the WebSocket. Messages get forwarded to the
-                // dolmetcher actor which then passes them to the responsible session actor.
-                // when the socket is closed, we send a PoisonPill to the dolmetcher and a
-                // close notification directly to the session actor.
-                val in = Iteratee.foreach[JsValue]{ dolmetcher ! _ }
-                                 .mapDone{ Unit => dolmetcher ! PoisonPill; ref ! Leave }
-                (in,out)           
-  } } } } }*/ }
+  def session(username: String, name: String) = ActorSocket(
+      user = username,
+      message = WithUser(username, StartSession(name)),
+      serialize = { msg =>
+        null
+      },
+      deserialize = { json =>
+        null
+      })
+  
+  def fileBrowser(username: String, name: String) = ActorSocket(
+      user = username,
+      message = WithUser(username,WithProject(name,StartFileBrowser)),
+      serialize = { msg =>
+        null
+      },
+      deserialize = { json =>
+        null
+      })  
 }

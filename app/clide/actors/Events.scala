@@ -4,11 +4,14 @@ import clide.models._
 import play.api.libs.iteratee.Enumeratee
 import play.api.mvc._
 import play.api.libs.json._
+import akka.actor.ActorRef
+import play.api.libs.iteratee.Enumerator
 
 object Events {
-  trait Event
-  
+  trait Event  
   case object TimeOut extends Event
+    
+  case class EventSocket(in: ActorRef, out: Enumerator[Event]) extends Event
   
   trait FileEvent extends Event
   case class FileCreated(file: FileInfo) extends FileEvent
@@ -37,7 +40,7 @@ object Events {
   
   case class UserProjectInfos(
       userProjects: Set[ProjectInfo],
-      collaborating: Set[ProjectInfo]) extends Event        
+      collaborating: Set[ProjectInfo]) extends Event          
       
   import Results._
   implicit def defaultResult(event: Event): SimpleResult = event match {

@@ -38,9 +38,10 @@ object Messages {
       message: ProjectMessage)
   
   trait ProjectMessage extends Message
-  object DeleteProject extends ProjectMessage
-
+  object DeleteProject extends ProjectMessage 
+  
   case class WithPath(path: Seq[String], message: FileMessage) extends ProjectMessage
+  case object StartFileBrowser extends ProjectMessage
 
   trait FileMessage        extends Message
   trait FileReadMessage    extends FileMessage
@@ -59,5 +60,5 @@ object Messages {
   case class Annotate(revision: Long, annotation: AnnotationStream) extends SessionMessage
   
   // JSON 
-  implicit val readCreateProject = Json.reads[CreateProject]
+  implicit val readCreateProject = Json.reads[CreateProject]  
 }
