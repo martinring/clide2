@@ -20,7 +20,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       }
       sender         ! DeletedProject(info)
       context.parent ! DeletedProject(info)
-      context.stop(self)
+      context.stop(self)    
   }
   
   def none: Receive = {
@@ -28,6 +28,8 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   }
   
   def receive = {
+    case WrappedProjectMessage(level,StartFileBrowser) =>
+      context.actorOf(Props(classOf[FileBrowser],level,root))
     case WrappedProjectMessage(level,msg) => level match {
       case ProjectAccessLevel.Admin =>
         (admin orElse none)(msg)

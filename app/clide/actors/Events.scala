@@ -5,11 +5,14 @@ import play.api.libs.iteratee.Enumeratee
 import play.api.mvc._
 import play.api.libs.json._
 import akka.actor.ActorRef
-import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee._
+import clide.actors.Messages.Message
+import scala.actors.Channel
 
 object Events {
   trait Event  
   case object TimeOut extends Event
+  case object UnexpectedTermination extends Event
     
   case class EventSocket(in: ActorRef, out: Enumerator[Event]) extends Event
   
