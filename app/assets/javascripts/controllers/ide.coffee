@@ -1,5 +1,5 @@
 ### @controller controllers:IdeController ###
-define ['routes'], (routes) -> ($scope, $location, $routeParams, Files, Dialog, Auth, Toasts, Session) ->  
+define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, Toasts, Session) ->  
   $scope.user = $routeParams.user  
 
   console.log $routeParams.path
@@ -9,15 +9,6 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Files, Dialog, 
     Toasts.push 'warning', 'You need to log in to view the requested resource!'
     return
 
-  Auth.validateSession 
-    success: (user) -> 
-      if $routeParams.user isnt user.username
-        $location.path '/login'
-        Toasts.push 'warning', 'The requested resource is not associated with your user account!'
-    error: -> 
-      $location.path '/login'
-      Toasts.push 'warning', 'Sorry, your login session has expired! Please enter your credentials once again.'    
-  
   Session.open($routeParams.user, $routeParams.project)
 
   $scope.traffic = Session.traffic
@@ -30,10 +21,6 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Files, Dialog, 
   $scope.root = null
   $scope.openFiles = []
   $scope.currentFile = null
-
-  Files.get($routeParams.user, $routeParams.project).then (root) ->      
-    $scope.root = root
-    console.log root
 
   $scope.selectFile = (file) -> unless file.files
     console.log file.name

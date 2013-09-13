@@ -20,7 +20,7 @@ define ['routes'], (routes) -> ($http, $cookies, $location) ->
     service.user.email = user?.email or null
 
   console.log $cookies
-  service.loggedIn = $cookies['PLAY_SESSION']?
+  service.loggedIn = $cookies['PLAY_SESSION']?.indexOf("user") >= 0
 
   console.log $cookies.PLAY_SESSION
 

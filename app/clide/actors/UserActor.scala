@@ -37,9 +37,9 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
   def receive = {
     case Identified(key,msg) => authenticate(key).fold(
         { event => sender ! event },
-        { login => identified(login)(msg) })
+        { login => (identified(login) orElse anonymous)(msg) })
     case Anonymous(msg) => anonymous(msg)
-    case External(user,msg) => external(user)(msg)
+    case External(user,msg) => (external(user) orElse anonymous)(msg)
     // EVENTS
     case DeletedProject(project) =>
       projects -= project.name
@@ -57,7 +57,8 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
         logins += key -> login
         sender ! LoggedIn(user, login)
         context.system.eventStream.publish(LoggedIn(user,login))
-      }         
+      }
+    case _ => sender ! NotAllowed
   }
   
   def external(user: UserInfo): Receive = {    
@@ -79,24 +80,27 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       context.system.eventStream.publish(LoggedOut(user))
     
     case CreateProject(name,description) =>
-      val project = DB.withSession { implicit session: Session => ProjectInfos.create(name,user.name,description) }      
+      val project = DB.withSession { implicit session: Session => ProjectInfos.create(name,user.name,description) }
+      projects += name -> project      
       context.actorOf(Props(classOf[ProjectActor], project), project.name)
       sender ! CreatedProject(project)
       context.system.eventStream.publish(CreatedProject(project))
       
     case WithProject(name,msg) =>
-      if (projects.contains(name)) {
-        context.child(name) match {
-          case None => 
-          case Some(ref) => ref.forward(
-            WrappedProjectMessage(ProjectAccessLevel.Admin,msg))
-        }
-      } else sender ! DoesntExist
+      projects.get(name) match {
+        case Some(project) =>
+          context.actorSelection(s"$name").tell(
+            WrappedProjectMessage(ProjectAccessLevel.Admin,msg),sender)
+        case None => sender ! DoesntExist
+      } 
      
     case WithUser(name,msg) =>
       Logger.info(s"${user.name} received $msg for $name")
-      if (name == user.name) identified(login)(msg)
+      if (name == user.name) (identified(login) orElse anonymous)(msg)
       else context.actorSelection(s"../$name").tell(External(user,msg),sender)
+      
+    case StartSession(projectName) =>
+      context.actorOf()
       
     case Validate => sender ! Validated(user)
     

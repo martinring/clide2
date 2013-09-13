@@ -2,6 +2,8 @@ package clide.actors
 
 import clide.models._
 import play.api.libs.json.Json
+import clide.collaboration.Operation
+import clide.collaboration.AnnotationStream
 
 object Messages {
   trait Message	
@@ -28,7 +30,8 @@ object Messages {
   case class CreateProject(name: String, description: Option[String]) extends UserMessage   
   case class WithUser(name: String, message: UserMessage) extends UserMessage  
   case class WithProject(name: String, message: ProjectMessage) extends UserMessage
-  case object BrowseProjects extends UserMessage 
+  case object BrowseProjects extends UserMessage
+  case class StartSession(project: String) extends UserMessage
     
   case class WrappedProjectMessage(
       level: ProjectAccessLevel.Value, 
@@ -46,6 +49,14 @@ object Messages {
   case object BrowseFolder extends FileReadMessage
   case object Delete       extends FileWriteMessage
   case object SaveFile     extends FileWriteMessage
+  
+  trait SessionMessage extends Message
+  case object EnterSession extends SessionMessage
+  case object LeaveSession extends SessionMessage
+  case object CloseSession extends SessionMessage
+  case class SwitchFile(id: Long) extends SessionMessage
+  case class Edit(revision: Long, operation: Operation) extends SessionMessage
+  case class Annotate(revision: Long, annotation: AnnotationStream) extends SessionMessage
   
   // JSON 
   implicit val readCreateProject = Json.reads[CreateProject]

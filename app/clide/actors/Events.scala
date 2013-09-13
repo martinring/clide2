@@ -32,10 +32,13 @@ object Events {
   case class CreatedProject(project: ProjectInfo) extends ProjectEvent
   case class DeletedProject(project: ProjectInfo) extends ProjectEvent
       
+  trait SessionEvent extends Event
+  case object SessionStarted
+  
   case class UserProjectInfos(
       userProjects: Set[ProjectInfo],
-      collaborating: Set[ProjectInfo]) extends Event
-  
+      collaborating: Set[ProjectInfo]) extends Event        
+      
   import Results._
   implicit def defaultResult(event: Event): SimpleResult = event match {
     case CreatedProject(info) => Ok(Json.toJson(info))

@@ -5,13 +5,13 @@ import clide.models._
 import play.api.Play.current
 import play.api.db.slick._
 import scala.slick.driver.H2Driver.simple._
+import clide.actors.files._
 
 class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   import clide.actors.Messages._
   import clide.actors.Events._
     
-  var root: ActorRef    = context.system.deadLetters
-  var users: Map[String,ProjectAccessLevel.Value] = Map()
+  var root: ActorRef    = context.system.deadLetters  
   
   def admin: Receive = {
     case DeleteProject =>
@@ -19,7 +19,8 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
         ProjectInfos.delete(info.id)
       }
       sender         ! DeletedProject(info)
-      context.parent ! DeletedProject(info)      
+      context.parent ! DeletedProject(info)
+      context.stop(self)
   }
   
   def none: Receive = {
@@ -37,9 +38,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   }
   
   override def preStart() {
+    root = context.actorOf(Props(classOf[FolderActor], info, None, "files"),"files")
     log.info(s"project ${info.owner}/${info.name}")
-    DB.withSession { implicit session: Session =>           
-      users = ProjectAccessLevels.getProjectUsers(info.id).elements.toMap
-    }
   }
 }

@@ -10,7 +10,7 @@ import java.sql.Date
 import play.api.libs.json._
 
 case class FileInfo(
-  id: Option[Long] = None,
+  id: Long,
   project: Long,
   path: String,
   deleted: Boolean,
@@ -32,8 +32,13 @@ object FileInfos extends Table[FileInfo]("openFiles") {
   
   def projectPath = index("project_path", (projectId,path), unique = true)
   
-  def *        = id.? ~ projectId ~ path ~ deleted ~ exists ~ isDirectory ~ parentId <> (FileInfo.apply _, FileInfo.unapply _)  
-  def autoinc  = id.? ~ projectId ~ path ~ deleted ~ exists ~ isDirectory ~ parentId <> (FileInfo.apply _, FileInfo.unapply _) returning id
+  def *        = id ~ projectId ~ path ~ deleted ~ exists ~ isDirectory ~ parentId <> (FileInfo.apply _, FileInfo.unapply _)
+  
+  def create(project: Long, path: String, deleted: Boolean, exists: Boolean, isDirectory: Boolean, parent: Option[Long])(implicit session: Session) = {
+    val autoinc = this.id.? ~ this.projectId ~ this.path ~ this.deleted ~ this.exists ~ this.isDirectory ~ this.parentId returning this.id    
+    val id = autoinc.insert((None,project,path,deleted,exists,isDirectory,parent))
+    FileInfo(id,project,path,deleted,exists,isDirectory,parent)
+  }  
   
   def get(project: ProjectInfo, path: String) = for {
     file <- FileInfos if file.projectId === project.id && file.path === path  
