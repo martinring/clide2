@@ -14,7 +14,7 @@ object Events {
   case object TimeOut extends Event
   case object UnexpectedTermination extends Event
     
-  case class EventSocket(in: ActorRef, out: Enumerator[Event]) extends Event
+  case class EventSocket(in: ActorRef) extends Event
   
   trait FileEvent extends Event
   case class FileCreated(file: FileInfo) extends FileEvent

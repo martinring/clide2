@@ -20,7 +20,19 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       }
       sender         ! DeletedProject(info)
       context.parent ! DeletedProject(info)
-      context.stop(self)    
+      context.stop(self)
+  }
+  
+  def write: Receive = {
+    case StartFileBrowser =>
+      val browser = context.actorOf(Props(classOf[FileBrowser],true,root))
+      browser.forward(StartFileBrowser)
+  }
+  
+  def read: Receive = {
+    case StartFileBrowser =>
+      val browser = context.actorOf(Props(classOf[FileBrowser],false,root))
+      browser.forward(StartFileBrowser)
   }
   
   def none: Receive = {
@@ -29,10 +41,14 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   
   def receive = {
     case WrappedProjectMessage(level,StartFileBrowser) =>
-      context.actorOf(Props(classOf[FileBrowser],level,root))
+      context.actorOf(Props(classOf[FileBrowser],level,root)).forward(StartFileBrowser)
     case WrappedProjectMessage(level,msg) => level match {
       case ProjectAccessLevel.Admin =>
-        (admin orElse none)(msg)
+        (admin orElse write orElse read orElse none)(msg)
+      case ProjectAccessLevel.Write =>
+        (write orElse read orElse none)(msg)
+      case ProjectAccessLevel.Read =>
+        (read orElse none)(msg)
       case _ =>
         none(msg)
     }
