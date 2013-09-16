@@ -13,16 +13,23 @@ import scala.slick.lifted.ForeignKeyAction
 case class FileInfo(
   id: Long,
   project: Long,
-  path: String,
+  path: Seq[String],
   deleted: Boolean,
   exists: Boolean,
   isDirectory: Boolean,
   parent: Option[Long])
+  
+object FileInfo {
+  implicit val writes = Json.writes[FileInfo]
+}
 
 object FileInfos extends Table[FileInfo]("openFiles") {
+  implicit val pathMapper = MappedTypeMapper.base[Seq[String], String](
+      _.mkString("/") , _.split('/').toSeq.filter(!_.isEmpty()))
+    
   def id          = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def projectId   = column[Long]("projectId")  
-  def path        = column[String]("path")
+  def path        = column[Seq[String]]("path")
   def deleted     = column[Boolean]("deleted")
   def exists      = column[Boolean]("exists")
   def isDirectory = column[Boolean]("isDirectory")
@@ -40,13 +47,13 @@ object FileInfos extends Table[FileInfo]("openFiles") {
   
   def *        = id ~ projectId ~ path ~ deleted ~ exists ~ isDirectory ~ parentId <> (FileInfo.apply _, FileInfo.unapply _)
   
-  def create(project: Long, path: String, deleted: Boolean, exists: Boolean, isDirectory: Boolean, parent: Option[Long])(implicit session: Session) = {
+  def create(project: Long, path: Seq[String], deleted: Boolean, exists: Boolean, isDirectory: Boolean, parent: Option[Long])(implicit session: Session) = {
     val autoinc = this.id.? ~ this.projectId ~ this.path ~ this.deleted ~ this.exists ~ this.isDirectory ~ this.parentId returning this.id    
     val id = autoinc.insert((None,project,path,deleted,exists,isDirectory,parent))
     FileInfo(id,project,path,deleted,exists,isDirectory,parent)
   }  
   
-  def get(project: ProjectInfo, path: String) = for {
+  def get(project: ProjectInfo, path: Seq[String]) = for {
     file <- FileInfos if file.projectId === project.id && file.path === path  
   } yield file
   

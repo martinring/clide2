@@ -11,7 +11,15 @@ import play.api.libs.json._
 case class UserInfo(
     name: String, 
     email: String, 
-    password: String) extends GenericUser   
+    password: String) extends GenericUser
+    
+object UserInfo {
+  implicit object Writes extends Writes[UserInfo] {
+    def writes(u: UserInfo) = Json.obj(
+        "name"  -> u.name, 
+        "email" -> u.email) 
+  }
+}
     
 object UserInfos extends Table[UserInfo]("users") {  
   def name     = column[String]("name", O.PrimaryKey)

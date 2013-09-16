@@ -48,20 +48,28 @@ object Projects extends Controller with UserRequests {
   def session(username: String, name: String) = ActorSocket(
       user = username,
       message = WithUser(username, StartSession(name)),
-      serialize = { msg =>
-        null
-      },
+      serialize = { serialize },
       deserialize = { json =>
-        null
+        (json \ "t").asOpt[String] match {
+          case None => ForgetIt
+          case Some(t) => t match {
+            case "browse" => BrowseFolder            
+          }
+        }
       })
   
   def fileBrowser(username: String, name: String) = ActorSocket(
       user = username,
       message = WithUser(username,WithProject(name,StartFileBrowser)),
-      serialize = { msg =>
-        null
-      },
+      serialize = { serialize },
       deserialize = { json =>
-        null
-      })  
+        (json \ "t").asOpt[String] match {
+          case None => ForgetIt
+          case Some(t) => t match {
+            case "browse" => BrowseFolder
+            case "touch" => 
+              WithPath((json \ "path").as[Seq[String]], TouchFile)
+          }
+        }
+      })
 }

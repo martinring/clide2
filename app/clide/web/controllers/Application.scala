@@ -50,7 +50,8 @@ object Application extends Controller with UserRequests {
         routes.javascript.Projects.index,        
         routes.javascript.Projects.put,
         routes.javascript.Projects.delete,
-        routes.javascript.Projects.session
+        routes.javascript.Projects.session,
+        routes.javascript.Projects.fileBrowser
       )
     ).as("text/javascript") 
   }

@@ -11,6 +11,8 @@ object Messages {
   case object Register extends Message
   case object Unregister extends Message
 
+  case object ForgetIt extends Message
+  
   trait UserServerMessage extends Message
   case class SignUp(name: String, email: String, password: String) extends UserServerMessage
   case class IdentifiedFor(user: String, key: String, message: UserMessage) extends UserServerMessage
@@ -40,14 +42,15 @@ object Messages {
   trait ProjectMessage extends Message
   object DeleteProject extends ProjectMessage 
   
-  case class WithPath(path: Seq[String], message: FileMessage) extends ProjectMessage
+  case class WithPath(path: Seq[String], message: FileMessage) extends ProjectMessage with FileMessage
   case object StartFileBrowser extends ProjectMessage
 
   trait FileMessage        extends Message
   trait FileReadMessage    extends FileMessage
-  trait FileWriteMessage   extends FileMessage
+  trait FileWriteMessage   extends FileMessage  
   case object OpenFile     extends FileReadMessage
   case object BrowseFolder extends FileReadMessage
+  case object TouchFile    extends FileWriteMessage
   case object Delete       extends FileWriteMessage
   case object SaveFile     extends FileWriteMessage
   
@@ -57,7 +60,7 @@ object Messages {
   case object CloseSession extends SessionMessage
   case class SwitchFile(id: Long) extends SessionMessage
   case class Edit(revision: Long, operation: Operation) extends SessionMessage
-  case class Annotate(revision: Long, annotation: AnnotationStream) extends SessionMessage
+  case class Annotate(revision: Long, annotation: AnnotationStream) extends SessionMessage    
   
   // JSON 
   implicit val readCreateProject = Json.reads[CreateProject]  

@@ -1,21 +1,19 @@
-### @service services:Session ###
+### @service services:Files ###
 define ['routes'], (routes) -> ($q,$http,$timeout) ->
   pc = routes.clide.web.controllers.Projects
   
   current   = undefined
   listeners = undefined
 
-  traffic = {
-    in: 0
-    out: 0
+  currentdir = {
+    
   }
-
-  get = (username, project) ->
-    ws = new WebSocket(pc.session(username,project).webSocketURL())
+  
+  get = (username, project, init) ->
+    ws = new WebSocket(pc.fileBrowser(username,project).webSocketURL())
     listeners = { }
     current = ws
-    ws.onmessage = (e) ->
-      $timeout((->traffic.in += e.data.length),0)
+    ws.onmessage = (e) ->      
       msg = JSON.parse(e.data)
       console.log "received: ", e.data
       if msg.path?
@@ -23,18 +21,16 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
       else if msg.error?
         console.error msg.error
     ws.onopen = (e) ->
-      console.log e
+      console.log 'sending: ', JSON.stringify(init)
+      ws.send(JSON.stringify(init)) if init?
     ws.onclose = (e) ->
       listeners = undefined
       current = undefined
-      traffic.in = 0
-      traffic.out = 0
       console.log e
 
   return (
-    traffic: traffic
-    open: (username, project) ->
-      current or get(username, project)            
+    open: (username, project, init) ->
+      current or get(username, project, init)            
     close: ->
       current.close()
     listen: (path, callback) ->      
@@ -42,8 +38,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
     ignore: (path) ->
       listeners[path] = undefined
     send: (message) ->
-      data = JSON.stringify(message)      
-      $timeout((->traffic.out += data.length),0)
+      data = JSON.stringify(message)
       console.log "sending: ", data
-      current.send(data)
+      current.send(data)    
   )

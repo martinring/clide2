@@ -1,5 +1,5 @@
 ### @controller controllers:IdeController ###
-define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, Toasts, Session) ->  
+define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, Toasts, Files) ->  
   $scope.user = $routeParams.user  
 
   $scope.path = 
@@ -14,9 +14,12 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
     Toasts.push 'warning', 'You need to log in to view the requested resource!'
     return
 
-  Session.open($routeParams.user, $routeParams.project)
+  init =
+    t: 'browse'
 
-  $scope.traffic = Session.traffic
+  Files.open($routeParams.user, $routeParams.project, init)
+
+  $scope.traffic = Files.traffic
 
   $scope.start = () ->
     $scope.state = 'ide'

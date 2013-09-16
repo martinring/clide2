@@ -14,11 +14,16 @@ object Events {
   case object UnexpectedTermination extends Event
     
   case class EventSocket(in: ActorRef) extends Event
+  case object Welcome extends Event
   
   trait FileEvent extends Event
   case class FileCreated(file: FileInfo) extends FileEvent
   case class FileDeleted(file: FileInfo) extends FileEvent
   case class FileMoved(file: FileInfo, from: Seq[String]) extends FileEvent
+  
+  trait FileBrowserEvent extends FileEvent
+  case class FolderContent(files: Seq[FileInfo]) extends FileBrowserEvent
+  case class FileId(id: FileInfo) extends FileBrowserEvent
   
   trait UserEvent extends Event
   case class SignedUp(user: UserInfo) extends UserEvent
@@ -58,6 +63,30 @@ object Events {
         "email" -> info.email))
     case UserProjectInfos(u,c) => Ok(Json.obj(
         "userProjects" -> Json.toJson(u),
-        "collaborating" -> Json.toJson(u)))      
-  } 
+        "collaborating" -> Json.toJson(u)))    
+  }
+  
+  private def error(error: String) = Json.obj("t"->"e","c"->error)
+  
+  private implicit def jsontype(name: String) = new {
+    def of[T](content: T)(implicit writes: Writes[T]) = Json.obj("t"->name,"c"->content)
+  }
+  
+  private implicit def plain(name: String) = Json.obj("t"->name)
+  
+  def serialize(event: Event): JsValue = event match {
+    case TimeOut => error("the request timed out")
+    case Welcome => "welcome"
+    case UnexpectedTermination => error("internal server error (unexpected termination)")
+    case SignedUp(user) => "signedup" of user
+    case LoggedIn(user,login) => "loggedin" of user
+    case LoggedOut(user) => "loggedout"
+    case FolderContent(files) => "folder" of files
+    case CreatedProject(p) => "createdproject" of p
+    case DeletedProject(p) => "deletedproject" of p.id
+    case FileCreated(f) => "newfile" of f
+    case FileDeleted(f) => "rmfile" of f
+    case FileId(i) => "file" of i
+    case _ => error("couldnt translate")
+  }
 }
