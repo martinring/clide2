@@ -38,7 +38,7 @@ trait UserRequests { this: Controller =>
       case Some((user,key)) => IdentifiedFor(user,key,message)
     }    
     (server ? req).mapTo[Event].map {
-      case EventSocket(in,out) => 
+      case EventSocket(in) => 
         (Iteratee.foreach[JsValue](json => in ! deserialize(json)),
          out.map(serialize))      
     }
