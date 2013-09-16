@@ -9,6 +9,7 @@ import play.api.libs.Crypto
 import java.util.UUID
 import java.io.File
 import play.api.Play
+import scala.slick.lifted.ForeignKeyAction
 
 object ProjectAccessLevel extends Enumeration {
   val None = Value(0)
@@ -23,8 +24,12 @@ object ProjectAccessLevels extends Table[(Long,String,ProjectAccessLevel.Value)]
   
   def projectId = column[Long]("project")
   def userName  = column[String]("user")
-  def project   = foreignKey("fk_right_project", projectId, ProjectInfos)(_.id)
-  def user      = foreignKey("fk_right_user", userName, UserInfos)(_.name)
+  def project   = foreignKey("fk_right_project", projectId, ProjectInfos)(_.id, 
+      onUpdate = ForeignKeyAction.Cascade, 
+      onDelete = ForeignKeyAction.Cascade)
+  def user      = foreignKey("fk_right_user", userName, UserInfos)(_.name, 
+      onUpdate = ForeignKeyAction.Cascade, 
+      onDelete = ForeignKeyAction.Cascade)
   def pk        = primaryKey("pk_right", (projectId,userName))
   def level     = column[ProjectAccessLevel.Value]("policy")  
   def *         = projectId ~ userName ~ level

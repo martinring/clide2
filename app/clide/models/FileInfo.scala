@@ -8,6 +8,7 @@ import akka.actor.Actor
 import play.api.libs.Crypto
 import java.sql.Date
 import play.api.libs.json._
+import scala.slick.lifted.ForeignKeyAction
 
 case class FileInfo(
   id: Long,
@@ -27,8 +28,13 @@ object FileInfos extends Table[FileInfo]("openFiles") {
   def isDirectory = column[Boolean]("isDirectory")
   def parentId    = column[Option[Long]]("parent")
       
-  def project     = foreignKey("fk_fileInfos_project", projectId, ProjectInfos)(_.id)
-  def parent      = foreignKey("fk_fileInfos_parent", parentId, FileInfos)(_.id)
+  def project     = foreignKey("fk_fileInfos_project", projectId, ProjectInfos)(_.id, 
+      onUpdate = ForeignKeyAction.Cascade, 
+      onDelete = ForeignKeyAction.Cascade)
+      
+  def parent      = foreignKey("fk_fileInfos_parent", parentId, FileInfos)(_.id, 
+      onUpdate = ForeignKeyAction.Cascade, 
+      onDelete = ForeignKeyAction.Cascade)
   
   def projectPath = index("project_path", (projectId,path), unique = true)
   

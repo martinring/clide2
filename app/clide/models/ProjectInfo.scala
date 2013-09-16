@@ -9,6 +9,7 @@ import play.api.libs.Crypto
 import java.util.UUID
 import java.io.File
 import play.api.Play
+import scala.slick.lifted.ForeignKeyAction
 
 case class ProjectInfo(
     id: Long,
@@ -25,7 +26,9 @@ object ProjectInfos extends Table[ProjectInfo]("projects") {
   def name         = column[String]("name")
   def ownerName    = column[String]("owner")
   def description  = column[Option[String]]("description")
-  def owner        = foreignKey("fk_project_user", ownerName, UserInfos)(_.name)  
+  def owner        = foreignKey("fk_project_user", ownerName, UserInfos)(_.name, 
+      onUpdate = ForeignKeyAction.Cascade, 
+      onDelete = ForeignKeyAction.Cascade)
   def *            = id ~ name ~ ownerName ~ description <> (ProjectInfo.apply _, ProjectInfo.unapply _)
   
   // for every owner, the names of all his projects must be unique

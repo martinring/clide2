@@ -10,6 +10,7 @@ import java.util.UUID
 import java.io.File
 import play.api.Play
 import java.sql.Date 
+import scala.slick.lifted.ForeignKeyAction
 
 case class LoginInfo(
   user: String,
@@ -18,24 +19,28 @@ case class LoginInfo(
 )
 
 object LoginInfos extends Table[LoginInfo]("logins") {
-  def user     = column[String]("user")
+  def userName = column[String]("user")
   def key      = column[String]("key")
   def timeout  = column[Option[Date]]("timeout")
-  def *        = user ~ key ~ timeout <> (LoginInfo.apply _, LoginInfo.unapply _)
+  def user     = foreignKey("fk_login_user", userName, UserInfos)(_.name, 
+      onUpdate = ForeignKeyAction.Cascade, 
+      onDelete = ForeignKeyAction.Cascade)
+      
+  def *        = userName ~ key ~ timeout <> (LoginInfo.apply _, LoginInfo.unapply _)
   
   def delete(login: LoginInfo)(implicit session: Session) = {
     val q = for (l <- LoginInfos if l.key === login.key &&
-                                    l.user === login.user) yield l
+                                    l.userName === login.user) yield l
     q.delete
   }
     
   
   def get(user: String, key: String) = for {
-    login <- LoginInfos if login.user === user && login.key === key
+    login <- LoginInfos if login.userName === user && login.key === key
   } yield login
   
   def getForUser(user: String) = for {
-    login <- LoginInfos if login.user === user
+    login <- LoginInfos if login.userName === user
   } yield login
   
   def getForKey(user: String) = for {

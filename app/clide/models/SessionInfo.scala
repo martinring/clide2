@@ -9,6 +9,8 @@ import play.api.libs.Crypto
 import java.util.UUID
 import java.io.File
 import play.api.Play
+import clide.web.controllers.Projects
+import scala.slick.lifted.ForeignKeyAction
 
 case class SessionInfo(
     id: Option[Long] = None,
@@ -24,6 +26,12 @@ object SessionInfos extends Table[SessionInfo]("sessions") {
   def userName     = column[String]("name")
   def projectId    = column[Long]("project")
   def active       = column[Boolean]("active")
+  def user         = foreignKey("ky_session_user", userName, UserInfos)(_.name, 
+      onUpdate = ForeignKeyAction.Cascade, 
+      onDelete = ForeignKeyAction.Cascade)  
+  def project      = foreignKey("fk_session_project", projectId, ProjectInfos)(_.id, 
+      onUpdate = ForeignKeyAction.Cascade, 
+      onDelete = ForeignKeyAction.Cascade)
   def *            = id.? ~ userName ~ projectId ~ active <> (SessionInfo.apply _, SessionInfo.unapply _)
    
   def autoinc = id.? ~ userName ~ projectId ~ active <> (SessionInfo.apply _, SessionInfo.unapply _) returning id

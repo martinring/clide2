@@ -7,7 +7,6 @@ import play.api.libs.json._
 import akka.actor.ActorRef
 import play.api.libs.iteratee._
 import clide.actors.Messages.Message
-import scala.actors.Channel
 
 object Events {
   trait Event  
@@ -48,11 +47,12 @@ object Events {
   import Results._
   implicit def defaultResult(event: Event): SimpleResult = event match {
     case CreatedProject(info) => Ok(Json.toJson(info))
-    case DeletedProject(info) => Ok    
-    case DoesntExist => NotFound
+    case DeletedProject(info) => Ok
+    case DoesntExist => NotFound("The requested resource doesn't exist (anymore).")
     case SessionTimedOut => Unauthorized("timeout")
-    case NotLoggedIn => Unauthorized
-    case NotAllowed  => Forbidden
+    case NotLoggedIn => Unauthorized("You are not logged in.")
+    case NotAllowed  => Forbidden("You are not allowed to access this resource")
+    case TimeOut => Results.InternalServerError("An error occurred while processing your request on the server. :(")
     case Validated(info) => Ok(Json.obj(
         "username" -> info.name, 
         "email" -> info.email))

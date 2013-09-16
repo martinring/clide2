@@ -8,6 +8,7 @@ import akka.actor.Actor
 import play.api.libs.Crypto
 import java.sql.Date
 import play.api.libs.json._
+import scala.slick.lifted.ForeignKeyAction
 
 case class Revision(file: Long, id: Long, content: String)
 
@@ -16,7 +17,9 @@ object Revisions extends Table[Revision]("revisions") {
   def id      = column[Long]("id")
   def content = column[String]("content")
   
-  def file = foreignKey("fk_revision_file", fileId, FileInfos)(_.id)
+  def file = foreignKey("fk_revision_file", fileId, FileInfos)(_.id, 
+      onUpdate = ForeignKeyAction.Cascade, 
+      onDelete = ForeignKeyAction.Cascade)
   
   def fileRevision = index("file_revision", (fileId,id), unique = true)
   

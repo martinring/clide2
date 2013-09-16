@@ -24,6 +24,11 @@
               <a class='btn btn-default' ng-click='createFile(root)'><i class="icon-plus"></i></a>
             </div>
             </h3>
+            <ul class="breadcrumb">
+              <li><a href="#">Home</a></li>
+              <li><a href="#">Library</a></li>
+              <li class="active">Data</li>
+            </ul>
             <script type='text/ng-template' id='file.html'>
               <i ng-class="{ 'icon-folder-close': file.files && !file.expand,
                              'icon-folder-open':  file.files && file.expand,

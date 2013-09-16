@@ -2,7 +2,12 @@
 define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, Toasts, Session) ->  
   $scope.user = $routeParams.user  
 
-  console.log $routeParams.path
+  $scope.path = 
+    if $routeParams.path? and $routeParams isnt ''
+      $routeParams.path.split('/')
+    else []
+
+  console.log $scope.path
 
   unless Auth.loggedIn
     $location.path '/login'
