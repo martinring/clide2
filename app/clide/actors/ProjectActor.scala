@@ -40,8 +40,6 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   }
   
   def receive = {
-    case WrappedProjectMessage(level,StartFileBrowser) =>
-      context.actorOf(Props(classOf[FileBrowser],level,root)).forward(StartFileBrowser)
     case WrappedProjectMessage(level,msg) => level match {
       case ProjectAccessLevel.Admin =>
         (admin orElse write orElse read orElse none)(msg)

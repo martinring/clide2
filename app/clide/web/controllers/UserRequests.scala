@@ -12,10 +12,17 @@ import scala.concurrent.Future
 import play.api.libs.json._
 import play.api.libs.iteratee.Iteratee
 import java.util.concurrent.TimeoutException
+import play.core.server.websocket.FrameFormatter
+import play.core.server.websocket.FrameFormatter
+import play.api.libs.iteratee.Concurrent
+import akka.actor.Actor
+import akka.actor.Terminated
+import akka.actor.Props
 
 trait UserRequests { this: Controller =>
   implicit val timeout = Timeout(2.5 seconds)
   implicit def ask(act: ActorRef) = akka.pattern.ask(act)
+  implicit val system = play.api.libs.concurrent.Akka.system
   implicit val executionContext = play.api.libs.concurrent.Akka.system.dispatcher
   val server = clide.actors.Infrastructure.userServer
   val Messages = clide.actors.Messages
@@ -25,24 +32,44 @@ trait UserRequests { this: Controller =>
                           request: Request[A])
     extends WrappedRequest[A](request)
     
+  class ChannelMediator(init: Message, initiator: ActorRef, channel: Concurrent.Channel[Event]) extends Actor {
+    var peer: ActorRef = context.system.deadLetters
+    
+    def receive = {
+      case EventSocket(in: ActorRef) => 
+        peer = in
+        context.watch(peer)
+      case e: Event     => channel.push(e)
+      case msg: Message => peer ! msg
+      case Terminated(ref) =>
+        channel.push(UnexpectedTermination)
+        context.stop(self)
+    }
+    
+    override def preStart() {
+      peer ! init
+    }
+  }
+    
   def ActorSocket(
-      user: String, 
+      user: String,
       message: UserMessage,
       deserialize: JsValue => Message,
-      serialize: Event => JsValue) = WebSocket.async[JsValue] { request =>
+      serialize: Event => JsValue) = WebSocket.using[JsValue] { request =>
     val auth = for {
       user <- request.session.get("user")
       key  <- request.session.get("key")      
     } yield (user,key)
+    
     val req = auth match {
       case None => AnonymousFor(user,message)
       case Some((user,key)) => IdentifiedFor(user,key,message)
-    }    
-    (server ? req).mapTo[Event].map {
-      case EventSocket(in) => 
-        (Iteratee.foreach[JsValue](json => in ! deserialize(json)),
-         null) // TODO: Fix      
     }
+    
+    val (out,channel) = Concurrent.broadcast[Event]
+    val mediator = system.actorOf(Props(classOf[ChannelMediator],req,server,channel))
+    val in = Iteratee.foreach[JsValue](m => mediator ! deserialize(m))
+    (in,out.map(serialize))
   }
       
   object UserRequest extends ActionBuilder[UserAskRequest] {
