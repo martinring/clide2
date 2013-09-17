@@ -73,7 +73,7 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
       buttons: ['Ok','Cancel']
       done: (answer,result) -> if answer is 'Ok'
         if result.name? and result.name.length > 0
-          p = folder.slice()        
+          p = folder.path?.slice() or []
           p.push(result.name)
           Files.touchFile(p)
         else
@@ -86,7 +86,7 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
       buttons: ['Ok','Cancel']
       done: (answer,result) -> if answer is 'Ok'
         if result.name? and result.name.length > 0
-          p = folder.slice()
+          p = folder.path?.slice() or []
           p.push(result.name)
           Files.touchFolder(p)
         else

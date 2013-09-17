@@ -22,8 +22,8 @@
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>            
             <h3>Files
             <div class='pull-right'>            
-              <a class='btn btn-default' ng-click='createFolder(currentDir().info.path)'><i class="icon-folder-close-alt"></i></a>
-              <a class='btn btn-default' ng-click='createFile(currentDir().info.path)'><i class="icon-file-alt"></i></a>
+              <a class='btn btn-default' ng-click='createFolder(currentDir().info)'><i class="icon-folder-close-alt"></i></a>
+              <a class='btn btn-default' ng-click='createFile(currentDir().info)'><i class="icon-file-alt"></i></a>
             </div>
             </h3>
             <ul class="breadcrumb">
@@ -52,7 +52,7 @@
                 loading...
               </div>
               <div class='placeholder' ng-if='currentDir().files == 0'>
-                This folder is empty. Create a <a ng-click='createFile(root)'>new file</a> or <a ng-click='createFolder(root)'>folder</a> to get started.
+                This folder is empty. Create a <a ng-click='createFile(currentDir().info)'>new file</a> or <a ng-click='createFolder(currentDir().info)'>folder</a> to get started.
               </div>
             </div>
           </li>
