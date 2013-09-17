@@ -22,7 +22,7 @@ object Events {
   case class FileMoved(file: FileInfo, from: Seq[String]) extends FileEvent
   
   trait FileBrowserEvent extends FileEvent
-  case class FolderContent(files: Seq[FileInfo]) extends FileBrowserEvent
+  case class FolderContent(folder: FileInfo, files: Seq[FileInfo]) extends FileBrowserEvent
   case class FileId(id: FileInfo) extends FileBrowserEvent
   
   trait UserEvent extends Event
@@ -81,7 +81,7 @@ object Events {
     case SignedUp(user) => "signedup" of user
     case LoggedIn(user,login) => "loggedin" of user
     case LoggedOut(user) => "loggedout"
-    case FolderContent(files) => "folder" of files
+    case FolderContent(folder,files) => Json.obj("t"->"folder","info"->folder,"files"->files)
     case CreatedProject(p) => "createdproject" of p
     case DeletedProject(p) => "deletedproject" of p.id
     case FileCreated(f) => "newfile" of f

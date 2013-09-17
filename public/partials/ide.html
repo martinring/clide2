@@ -21,51 +21,37 @@
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>            
             <h3>Files
             <div class='btn-group pull-right'>
-              <a class='btn btn-default' ng-click='createFile(root)'><i class="icon-plus"></i></a>
+              <a class='btn btn-default' ng-click='createFile(currentDir.info.path)'><i class="icon-plus"></i></a>
             </div>
             </h3>
             <ul class="breadcrumb">
-              <li><a href="#">Home</a></li>
-              <li><a href="#">Library</a></li>
-              <li class="active">Data</li>
-            </ul>
-            <script type='text/ng-template' id='file.html'>
-              <i ng-class="{ 'icon-folder-close': file.files && !file.expand,
-                             'icon-folder-open':  file.files && file.expand,
-                             'icon-file':        !file.files }" class='fixicon'></i>
-              <div class='title' ng-click='file.expand=!file.expand' context-menu='fileContextMenu(file)'>
-                <span class='name' ng-bind='file.name'/>
-                <div ng-show='file.open' class="progress">
-                  <div class="finished"></div>
-                  <div class="running"></div>
-                  <div class="warned"></div>
-                  <div class="failed"></div>
-                </div>
-              </div>
-              <ul ng-if='file.files.length > 0 && file.expand' class='treeview'>
-                <li ng-repeat='file in file.files | filter:search' 
-                    ng-include="'file.html'" 
-                    ng-class='{ selected: file==currentFile, open: file.open }'
-                    ng-click='selectFile(file)'>
-                </li>                
-              </ul>
-              <div class='placeholder' ng-if='file.files.length == 0 && file.expand'>
-                This folder is empty. Create a <a ng-click='createFile(file)'>new file</a> or <a ng-click='createFolder(file)'>folder</a>.
-              </div>
-            </script>
-            <ul class="treeview" ng-hide='serach.name.length>0'>
-              <li ng-repeat='file in root.files'
-                  ng-include='"file.html"'
-                  ng-class='{ selected: file==currentFile, open: file.doc!=null }'
-                  ng-click='selectFile(file)'>
+              <li ng-repeat='segment in currentDir.path'>                
+                <a ng-click='browseTo(segment.path)' ng-show='segment.name != "$home"'>
+                  {{segment.name}}
+                </a>
+                <a ng-click='browseTo(segment.path)' ng-show='segment.name == "$home"'>
+                  <i class='icon-home'></i>
+                </a>
               </li>
-              <div class='placeholder' ng-show='root==null'>
+            </ul>            
+            <div class='list-group'>
+              <a ng-repeat='file in currentDir.files'                  
+                 ng-click='selectFile(file)'
+                 class='list-group-item'
+                 ng-class='{ active: file.id==currentFile, open: file.doc!=null }'>
+                 <i class='fixicon' ng-class='{ "icon-folder-close": file.isDirectory, "icon-file": !file.isDirectory }'></i>
+                 <span class='fixicon-text'>{{file.path[file.path.length-1]}}</span>
+                 <div class='pullright' ng-show='file.id==currentFile'>
+                   <a><i class='icon-remove'></i></a>
+                 </div>
+              </a>
+              <div class='placeholder' ng-show='currentDir.files==null'>
                 loading...
               </div>
-              <div class='placeholder' ng-if='root.files.length == 0'>
+              <div class='placeholder' ng-if='currentDir.files == 0'>
                 This project is empty. Create a <a ng-click='createFile(root)'>new file</a> or <a ng-click='createFolder(root)'>folder</a>.
               </div>
-            </ul>
+            </div>
           </li>
           <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
             <h3>Edit</h3>   

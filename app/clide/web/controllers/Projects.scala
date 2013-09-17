@@ -66,7 +66,14 @@ object Projects extends Controller with UserRequests {
         (json \ "t").asOpt[String] match {
           case None => ForgetIt
           case Some(t) => t match {
-            case "browse" => BrowseFolder
+            case "browse" => // TODO: Make this pretty!
+              WithPath((json \ "path").as[Seq[String]], BrowseFolder)
+            case "explore" => 
+              WithPath((json \ "path").as[Seq[String]], ExplorePath)
+            case "new" =>
+              WithPath((json \ "path").as[Seq[String]], NewFile)
+            case "open" =>
+              WithPath((json \ "path").as[Seq[String]], OpenFile)
             case "touch" => 
               WithPath((json \ "path").as[Seq[String]], TouchFile)
           }

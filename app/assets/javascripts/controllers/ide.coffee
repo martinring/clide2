@@ -7,17 +7,23 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
       $routeParams.path.split('/')
     else []
 
-  console.log $scope.path
-
   unless Auth.loggedIn
     $location.path '/login'
     Toasts.push 'warning', 'You need to log in to view the requested resource!'
     return
 
-  init =
-    t: 'browse'
+  Files.open($routeParams.user, $routeParams.project)
+  Files.send
+    t: 'explore'
+    path: $scope.path
 
-  Files.open($routeParams.user, $routeParams.project, init)
+  $scope.browseTo = (path) ->
+    console.log path
+    Files.send
+      t: 'browse'
+      path: path
+
+  $scope.currentDir = Files.current
 
   $scope.traffic = Files.traffic
 
@@ -30,13 +36,14 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   $scope.openFiles = []
   $scope.currentFile = null
 
-  $scope.selectFile = (file) -> unless file.files
-    console.log file.name
-    $scope.currentFile = file
-    for f in $scope.openFiles
-      return false if file is f
-    $scope.openFiles.push(file)
-    return true
+  $scope.selectFile = (file) ->
+    if file.isDirectory
+      $scope.browseTo(file.path)
+    else
+      $scope.currentFile = file.id    
+      Files.send
+        t: 'open'
+        path: file.path
 
   removeFromOpened = (file) ->
     i = $scope.openFiles.indexOf(file)
@@ -65,7 +72,7 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
         result.push file
 
   removeFile = (file) -> if file?
-    if file.files?      
+    if file.files?
       removeFile(f) for f in file.files
     else if file.close?
       file.close()
@@ -107,16 +114,9 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   ]
 
   $scope.createFile = (folder) ->    
-    Dialog.push
-      title: 'new file'
-      queries: [{ name: 'type', type: 'select', options: types, value: types[0] }, 'name']
-      buttons: ['Ok','Cancel']
-      done: (answer,result) -> if answer is 'Ok'
-        file = 
-          name: result.name
-        Files.put($routeParams.user,$routeParams.project,folder.path,file).then (n) ->
-          folder.files.push n        
-          $scope.selectFile(n)
+    Files.send
+      t: 'new'
+      path: folder
 
   $scope.createFolder = (folder) ->
     Dialog.push

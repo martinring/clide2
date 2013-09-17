@@ -89,6 +89,11 @@
   width: @sidebar-width + @ribbon-width;
   padding: 32px 0 0 @ribbon-width;
   box-shadow: 0 0 4px #000;
+  .breadcrumb {
+    padding: 0 0 4px 0;
+    margin-bottom: 4px;
+    border-bottom: 1px dashed lightGray;
+  }
   .section {
     .command {      
       margin-right: 14px;
@@ -100,7 +105,9 @@
       }
     }
     .list-group-item {
-      padding: 2px 0px;      
+      padding: 1px 16px;
+      margin: 0 -16px;    
+      border: none;
     }
     margin: 0;
     margin-bottom: 8px;

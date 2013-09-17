@@ -50,9 +50,11 @@ object Messages {
   trait FileWriteMessage   extends FileMessage  
   case object OpenFile     extends FileReadMessage
   case object BrowseFolder extends FileReadMessage
+  case object ExplorePath  extends FileReadMessage
   case object TouchFile    extends FileWriteMessage
+  case object NewFile      extends FileWriteMessage
   case object Delete       extends FileWriteMessage
-  case object SaveFile     extends FileWriteMessage
+  case object SaveFile     extends FileWriteMessage  
   
   trait SessionMessage extends Message
   case object EnterSession extends SessionMessage

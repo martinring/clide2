@@ -61,7 +61,7 @@ object FileInfos extends Table[FileInfo]("openFiles") {
     file <- FileInfos if file.id === id
   } yield file
   
-  def getChildren(file: FileInfo) = for {
-    file <- FileInfos if file.parentId === file.id
+  def getChildren(id: Long) = for {
+    file <- FileInfos if file.parentId === id
   } yield file
 }
