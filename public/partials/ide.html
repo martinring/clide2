@@ -21,8 +21,9 @@
         <ul id="sidebarContent" class='touchScroll'>
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>            
             <h3>Files
-            <div class='btn-group pull-right'>
-              <a class='btn btn-default' ng-click='createFile(currentDir().info.path)'><i class="icon-plus"></i></a>
+            <div class='pull-right'>            
+              <a class='btn btn-default' ng-click='createFolder(currentDir().info.path)'><i class="icon-folder-close-alt"></i></a>
+              <a class='btn btn-default' ng-click='createFile(currentDir().info.path)'><i class="icon-file-alt"></i></a>
             </div>
             </h3>
             <ul class="breadcrumb">

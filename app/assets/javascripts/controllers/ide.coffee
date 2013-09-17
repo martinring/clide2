@@ -46,7 +46,7 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
       Files.open(file.path)    
     
   $scope.deleteFile = (file) ->
-    if file.isDirectory?
+    if file.isDirectory
       Dialog.push
         title: "delete '#{file.name}'"
         text: "Do you really want to delete the folder '#{file.path[file.path.length - 1]}' and all of its content? This can not be undone!"
@@ -67,19 +67,30 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   ]
 
   $scope.createFile = (folder) ->    
-    Files.create()
+    Dialog.push
+      title: 'new file'
+      queries: [{name: 'name', text: 'please enter a name for the new file:'}]
+      buttons: ['Ok','Cancel']
+      done: (answer,result) -> if answer is 'Ok'
+        if result.name? and result.name.length > 0
+          p = folder.slice()        
+          p.push(result.name)
+          Files.touchFile(p)
+        else
+          result.error = 'Please enter a name'
 
   $scope.createFolder = (folder) ->
     Dialog.push
       title: 'new folder'
-      queries: ['name']
+      queries: [{name: 'name', text: 'please enter a name for the new folder:'}]
       buttons: ['Ok','Cancel']
       done: (answer,result) -> if answer is 'Ok'
-        file =
-          name: result.name
-          files: []
-        Files.put($routeParams.user,$routeParams.project,folder.path,file).then (n) ->                              
-          folder.files.push n
+        if result.name? and result.name.length > 0
+          p = folder.slice()
+          p.push(result.name)
+          Files.touchFolder(p)
+        else
+          result.error = 'Please enter a name'
 
   $scope.fileContextMenu = (file) ->
     if (file.files?) 

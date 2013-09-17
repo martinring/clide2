@@ -74,8 +74,10 @@ object Projects extends Controller with UserRequests {
               WithPath((json \ "path").as[Seq[String]], NewFile)
             case "open" =>
               WithPath((json \ "path").as[Seq[String]], OpenFile)
-            case "touch" => 
+            case "touchFile" => 
               WithPath((json \ "path").as[Seq[String]], TouchFile)
+            case "touchFolder" => 
+              WithPath((json \ "path").as[Seq[String]], TouchFolder)
             case "rm" =>
               WithPath((json \ "path").as[Seq[String]], Delete)
           }

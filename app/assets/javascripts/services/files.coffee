@@ -77,6 +77,12 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
     browseTo: (path) -> send
       t: 'browse'
       path: path
+    touchFile: (path) -> send
+      t: 'touchFile'
+      path: path
+    touchFolder: (path) -> send
+      t: 'touchFolder'
+      path: path
     open: (path) -> send
       t: 'open'
       path: path

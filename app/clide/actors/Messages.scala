@@ -54,6 +54,7 @@ object Messages {
   case object BrowseFolder extends FileReadMessage
   case object ExplorePath  extends FileReadMessage
   case object TouchFile    extends FileWriteMessage
+  case object TouchFolder  extends FileWriteMessage
   case object NewFile      extends FileWriteMessage
   case object Delete       extends FileWriteMessage
   case object SaveFile     extends FileWriteMessage
