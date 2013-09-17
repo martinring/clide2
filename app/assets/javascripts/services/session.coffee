@@ -6,6 +6,20 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
   socket  = undefined
   me = null
   collaborators = null
+
+  remove = (id) ->
+    for session, i in collaborators
+      if session.id is id
+        return collaborators.splice(i,1)
+
+  update = (info) ->
+    for session, i in collaborators
+      if session.id is info.id
+        console.log 'updating', info, i
+        for k, v of info          
+          collaborators[i][k] = v
+        return true
+    collaborators.push(info)
   
   get = (username, project, init) ->
     ws = new WebSocket(pc.session(username,project).webSocketURL())
@@ -21,9 +35,10 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
           $timeout((->
             me = msg.info
             collaborators = msg.others),0)
-        when 'joined'
-          $timeout((->
-            collaborators.push(msg.c)),0)
+        when 'session_changed'
+          $timeout((->update(msg.c)),0)
+        when 'session_stopped'
+          $timeout((->remove(msg.c.id)),0)
     ws.onopen = (e) ->
       console.log 'opened'
       for msg in queue

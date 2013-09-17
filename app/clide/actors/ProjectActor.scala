@@ -13,9 +13,10 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
     
   var user: UserInfo = null
   var root: ActorRef     = context.system.deadLetters
-  var sessions = Set[SessionInfo]()
-  var sessionActors = Map[Long,ActorRef]() 
   
+  var sessions      = Set[SessionInfo]()
+  var sessionActors = Map[Long,ActorRef]() 
+       
   def admin: Receive = {
     case DeleteProject =>
       DB.withSession { implicit session: Session =>
@@ -34,7 +35,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
         }
       }.getOrElse {
         context.actorOf(Props(classOf[SessionActor],None,sessions,user,this.info))
-      }.forward(StartSession)
+      }.forward(EnterSession)
   }
   
   def write: Receive = {
@@ -51,27 +52,22 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   
   def none: Receive = {
     case _ => sender ! NotAllowed
-  }
+  }   
   
   def receive = {
-    case SessionIdle(info) =>
-      val old = sessions.find(_.id == info.id)
-      old.map { sessions -= _ }
+    case msg@SessionChanged(info) =>
+      if (!info.active && sessions.exists(_.user == info.user))
+        sender ! CloseSession
+      sessions -= info
       sessions += info
-    case msg@SessionStarted(info,_) =>      
-      sessionActors.values.foreach(_.forward(ProjectJoined(info)))
-      sessions += info
-      sessionActors += info.id.get -> sender
-    case SessionIdle(info) =>
-      log.info("idle " + info)
-      val old = sessions.find(_.id == info.id)
-      old.map { sessions -= _ }
-      sessions += info
-      sessionActors.values.foreach(_.forward(SessionIdle(info)))
-    case SessionStopped(info) =>
+      info.id.map { id =>
+        sessionActors += id -> sender
+      }      
+      sessionActors.values.foreach(_.forward(msg))
+    case msg@SessionStopped(info) =>
       sessions -= info
       sessionActors -= info.id.get
-      sessionActors.values.foreach(_.forward(SessionStopped(info)))
+      sessionActors.values.foreach(_.forward(msg))
     case WrappedProjectMessage(user,level,msg) =>
       this.user = user
       level match {
@@ -89,7 +85,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   override def preStart() {
     root = context.actorOf(Props(classOf[FolderActor], info, None, "files"),"files")    
     sessions = DB.withSession { implicit session =>
-      val q = for (session <- SessionInfos if session.projectId === info.id) yield session      
+      val q = for (session <- clide.models.SessionInfos if session.projectId === info.id) yield session      
       q.elements.toSet
     }    
     log.info(s"project ${info.owner}/${info.name}")

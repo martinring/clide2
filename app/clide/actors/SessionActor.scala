@@ -12,45 +12,58 @@ class SessionActor(
     var user: UserInfo,
     var project: ProjectInfo) extends Actor with ActorLogging {
   import clide.actors.Messages._
-  import clide.actors.Events._    
+  import clide.actors.Events._
   
   var session: SessionInfo = null
   var peer = context.system.deadLetters
-  
-  def goIdle() {
-    session = session.copy(active = false)
-    DB.withSession { implicit s: Session =>
-      val q = for (info <- SessionInfos if info.id === id) yield info      
-	  q.update(session)
-    }
-    context.parent ! SessionIdle(session)
+          
+  def setActive(value: Boolean) = DB.withSession { implicit session: Session =>
+    this.session = this.session.copy(active = value)
+    val q = for (info <- clide.models.SessionInfos if info.id === id) yield info        
+    q.update(this.session)
+    this.session
   }
-       
+  
   def receive = {
     // echoing
-    case ProjectJoined(info) =>
+    case SessionChanged(info) => if (info != session) {
+      collaborators -= info
       collaborators += info
-      peer ! ProjectJoined(info)
-    case SessionStopped(info) =>
+      peer ! SessionChanged(info)
+    }
+    case SessionStopped(info) => if (info != session) {
       collaborators -= info
       peer ! SessionStopped(info)
-    case SessionIdle(info) =>
-      peer ! SessionIdle(info)
-    case StartSession =>
+    }
+    case RequestSessionInfo =>
+      sender ! SessionInfos(session,collaborators)
+    case EnterSession =>
+      setActive(true)
       peer = sender
       context.watch(peer)
-      peer ! EventSocket(self)
-    case EnterSession =>
-      context.parent ! SessionStarted(session,collaborators)
-      peer ! SessionStarted(session,collaborators)
+      peer ! EventSocket(self)      
+      context.parent ! SessionChanged(session)
+    case LeaveSession | EOF =>
+      setActive(false)
+      peer = context.system.deadLetters
+      context.unwatch(sender)            
+      context.parent ! SessionChanged(session)
+    case CloseSession =>
+      context.unwatch(peer)
+      peer = context.system.deadLetters           
+      DB.withSession { implicit session: Session =>
+        val q = for (info <- clide.models.SessionInfos if info.id === id) yield info
+        q.delete
+      }
+      context.parent ! SessionStopped(session)
     case Terminated(ref) =>
       log.info("going idle due to termination")
-      goIdle()
+      receive(LeaveSession)
   }
   
   override def preStart() {
     session = id.flatMap { id =>
-      val q = for (info <- SessionInfos if info.id === id) yield info
+      val q = for (info <- clide.models.SessionInfos if info.id === id) yield info
       DB.withSession { implicit session: Session =>
         q.firstOption.map { i =>
           q.update(i.copy(active = true))
@@ -65,12 +78,13 @@ class SessionActor(
           project = project.id,
           active = true
         )
-        val nid = SessionInfos.autoinc.insert(info)
+        val nid = clide.models.SessionInfos.autoinc.insert(info)
         this.id = Some(nid)
         val res = info.copy(id = Some(nid))
-        context.parent ! SessionCreated(res)
+        context.parent ! SessionChanged(res)
         res
       }
-    }        
+    }
+    collaborators -= session
   }
 }

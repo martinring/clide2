@@ -42,12 +42,10 @@ object Events {
   case class CreatedProject(project: ProjectInfo) extends ProjectEvent
   case class DeletedProject(project: ProjectInfo) extends ProjectEvent
       
-  trait SessionEvent extends Event
-  case class SessionCreated(info: SessionInfo) extends SessionEvent
-  case class SessionStarted(info: SessionInfo, collaborators: Set[SessionInfo]) extends SessionEvent
-  case class SessionIdle(info: SessionInfo) extends SessionEvent
+  trait SessionEvent extends Event  
+  case class SessionInfos(info: SessionInfo, collaborators: Set[SessionInfo]) extends SessionEvent
+  case class SessionChanged(info: SessionInfo) extends SessionEvent
   case class SessionStopped(info: SessionInfo) extends SessionEvent  
-  case class ProjectJoined(info: SessionInfo) extends SessionEvent
   
   case class UserProjectInfos(
       userProjects: Set[ProjectInfo],
@@ -88,8 +86,9 @@ object Events {
     case FolderContent(folder,files) => Json.obj("t"->"folder","info"->folder,"files"->files)
     case CreatedProject(p) => "createdproject" of p
     case DeletedProject(p) => "deletedproject" of p.id
-    case SessionStarted(s,cs) => Json.obj("t"->"welcome","info"->s,"others"->cs)
-    case ProjectJoined(s) => "joined" of s
+    case SessionInfos(s,cs) => Json.obj("t"->"welcome","info"->s,"others"->cs)
+    case SessionChanged(s) => "session_changed" of s
+    case SessionStopped(s) => "session_stopped" of s    
     case FileCreated(f) => "newfile" of f
     case FileDeleted(f) => "rmfile" of f
     case FileId(i) => "file" of i

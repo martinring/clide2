@@ -16,7 +16,12 @@ case class SessionInfo(
     id: Option[Long] = None,
     user: String,
     project: Long,
-    active: Boolean)
+    active: Boolean) {
+  override def equals(other: Any) = other match {
+    case SessionInfo(id@Some(_),_,_,_) => id == this.id
+    case _ => false
+  }
+}
     
 /* Json (de)serialization */
 object SessionInfo { implicit val json = Json.format[SessionInfo] }

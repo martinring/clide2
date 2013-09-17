@@ -53,7 +53,7 @@ object Projects extends Controller with UserRequests {
         (json \ "t").asOpt[String] match {
           case None => ForgetIt
           case Some(t) => t match {
-            case "init" => EnterSession
+            case "init" => RequestSessionInfo
           }
         }
       })

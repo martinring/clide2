@@ -58,8 +58,11 @@
           <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
             <h3>Collaboration</h3>            
             <ul class='list-group'>
+              <li class='list-group-item'>
+                <i class='icon-fixed-width icon-user'></i> {{me().user}} ({{me().id}}) <span class='label label-success pull-right'>me</span>
+              </li>            
               <li class='list-group-item' ng-repeat='user in collaborators()'>
-                <i class='icon-fixed-width icon-user'></i> {{user.user}} <span class='label label-success pull-right'>online</span>
+                <i class='icon-fixed-width icon-user'></i> {{user.user}} ({{user.id}}) <span class='label label-success pull-right' ng-show='user.active'>online</span>
               </li>
             </ul>
           </li>
