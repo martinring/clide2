@@ -90,9 +90,14 @@
   padding: 32px 0 0 @ribbon-width;
   box-shadow: 0 0 4px #000;
   .breadcrumb {
-    padding: 0 0 4px 0;
+    padding: 0 0 2px 0;
     margin-bottom: 4px;
     border-bottom: 1px dashed lightGray;
+    & > li + li:before {
+      content: "/";
+      padding: 0 0 0 3px;
+      color: #cccccc;
+    }
   }
   .section {
     .command {      
@@ -113,7 +118,7 @@
     margin-bottom: 8px;
     padding: 0;
     list-style: none;
-    opacity: 0.2;
+    opacity: 0.4;
     -webkit-transition: opacity @quick-transition ease;
     
     position: relative;

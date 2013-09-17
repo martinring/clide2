@@ -36,6 +36,7 @@ object Messages {
   case class StartSession(project: String) extends UserMessage
     
   case class WrappedProjectMessage(
+      user: UserInfo,
       level: ProjectAccessLevel.Value, 
       message: ProjectMessage)
   
@@ -44,10 +45,11 @@ object Messages {
   
   case class WithPath(path: Seq[String], message: FileMessage) extends ProjectMessage with FileMessage
   case object StartFileBrowser extends ProjectMessage
+  case object StartSession     extends ProjectMessage
 
   trait FileMessage        extends Message
   trait FileReadMessage    extends FileMessage
-  trait FileWriteMessage   extends FileMessage  
+  trait FileWriteMessage   extends FileMessage
   case object OpenFile     extends FileReadMessage
   case object BrowseFolder extends FileReadMessage
   case object ExplorePath  extends FileReadMessage
@@ -56,7 +58,7 @@ object Messages {
   case object Delete       extends FileWriteMessage
   case object SaveFile     extends FileWriteMessage  
   
-  trait SessionMessage extends Message
+  trait SessionMessage extends Message  
   case object EnterSession extends SessionMessage
   case object LeaveSession extends SessionMessage
   case object CloseSession extends SessionMessage

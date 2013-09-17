@@ -90,17 +90,14 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       projects.get(name) match {
         case Some(project) =>
           context.actorSelection(s"$name").tell(
-            WrappedProjectMessage(ProjectAccessLevel.Admin,msg),sender)
+            WrappedProjectMessage(user, ProjectAccessLevel.Admin,msg),sender)
         case None => sender ! DoesntExist
       } 
      
     case WithUser(name,msg) =>
       Logger.info(s"${user.name} received $msg for $name")
       if (name == user.name) (identified(login) orElse anonymous)(msg)
-      else context.actorSelection(s"../$name").tell(External(user,msg),sender)
-      
-    case StartSession(projectName) =>
-      Logger.error("not implemented")
+      else context.actorSelection(s"../$name").tell(External(user,msg),sender)     
       
     case Validate => sender ! Validated(user)
     

@@ -1,5 +1,5 @@
 ### @controller controllers:IdeController ###
-define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, Toasts, Files) ->  
+define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, Toasts, Session, Files) ->  
   $scope.user = $routeParams.user  
 
   $scope.path = 
@@ -12,16 +12,15 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
     Toasts.push 'warning', 'You need to log in to view the requested resource!'
     return
 
-  Files.open($routeParams.user, $routeParams.project)
-  Files.send
-    t: 'explore'
-    path: $scope.path
+  Files.init($routeParams.user, $routeParams.project)
+  Files.explore($scope.path)
 
-  $scope.browseTo = (path) ->
-    console.log path
-    Files.send
-      t: 'browse'
-      path: path
+  Session.init($routeParams.user, $routeParams.project)
+
+  $scope.me = Session.me
+  $scope.collaborators = Session.collaborators
+
+  $scope.browseTo = Files.browseTo
 
   $scope.currentDir = Files.current
 
@@ -37,76 +36,30 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   $scope.currentFile = null
 
   $scope.selectFile = (file) ->
+    $scope.currentFile = file.id
+
+  $scope.openFile = (file) ->
     if file.isDirectory
       $scope.browseTo(file.path)
     else
       $scope.currentFile = file.id    
-      Files.send
-        t: 'open'
-        path: file.path
-
-  removeFromOpened = (file) ->
-    i = $scope.openFiles.indexOf(file)
-    if i >= 0
-      if (file is $scope.currentFile)
-        if i > 0
-          $scope.currentFile = $scope.openFiles[i-1]
-        else if i is 0 and $scope.openFiles.length > 1
-          $scope.currentFile = $scope.openFiles[1]
-        else
-          $scope.currentFile = null
-      $scope.openFiles.splice(i,1)
-
-  $scope.closeFile = (file) ->
-    file.close('confirm').then ->
-      removeFromOpened(file)
-
-  $scope.flatFiles = (prefix, where) ->
-    result = []
-    for file in where.files
-      if file.files?
-        flat = $scope.flatFiles("#{prefix}#{file.name}/",file)
-        result.push flat...
-      else
-        file.prefix = prefix
-        result.push file
-
-  removeFile = (file) -> if file?
-    if file.files?
-      removeFile(f) for f in file.files
-    else if file.close?
-      file.close()
-      removeFromOpened(file)
-    #recursive remove
-    remove = (list) ->
-      for f, i in list
-        if f is file
-          list.splice(i,1)
-          return true
-        if f.files?
-          if remove(f.files)
-            return true
-      return false
-    remove($scope.root.files)
+      Files.open(file.path)    
     
-
-  $scope.deleteFile = (file) ->    
-    if file.files?
+  $scope.deleteFile = (file) ->
+    if file.isDirectory?
       Dialog.push
         title: "delete '#{file.name}'"
-        text: "Do you really want to delete the folder '#{file.name}' and all of its content? This can not be undone!"
+        text: "Do you really want to delete the folder '#{file.path[file.path.length - 1]}' and all of its content? This can not be undone!"
         buttons: ['Yes','No']
         done: (answer) -> if (answer is 'Yes')
-          Files.delete($routeParams.user,$routeParams.project,file.path).then ->            
-            removeFile(file)
+          Files.delete(file.path)
     else
       Dialog.push
         title: "delete '#{file.name}'"
-        text: "Do you really want to delete '#{file.name}'? This can not be undone!"
+        text: "Do you really want to delete '#{file.path[file.path.length - 1]}'? This can not be undone!"
         buttons: ['Yes','No']
         done: (answer) -> if (answer is 'Yes')
-          Files.delete($routeParams.user,$routeParams.project,file.path).then ->            
-            removeFile(file)
+          Files.delete(file.path)
 
   types = [
     { text: 'Isabelle Theory', ext: 'thy' }
@@ -114,9 +67,7 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   ]
 
   $scope.createFile = (folder) ->    
-    Files.send
-      t: 'new'
-      path: folder
+    Files.create()
 
   $scope.createFolder = (folder) ->
     Dialog.push

@@ -3,6 +3,7 @@
     <nav id="ribbon">
       <ul class="nav menu" ng-init='sidebarSection="files"'>
         <li title='Files' ng-click='select("files")' ng-class='{active: sidebarSection=="files"}'><i class='icon-list-ul'></i></li>
+        <li title='Collaboration' ng-click='select("collab")' ng-class='{active: sidebarSection=="collab"}'><i class='icon-group'></i></li>        
         <li title='Edit' ng-click='select("edit")' ng-class='{active: sidebarSection=="edit"}'><i class='icon-pencil'></i></li>
         <li title='View' ng-click='select("view")' ng-class='{active: sidebarSection=="view"}'><i class='icon-eye-open'></i></li>
         <li title='Settings' ng-click='select("settings")' ng-class='{active: sidebarSection=="settings"}'><i class='icon-gear'></i></li>
@@ -21,11 +22,11 @@
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>            
             <h3>Files
             <div class='btn-group pull-right'>
-              <a class='btn btn-default' ng-click='createFile(currentDir.info.path)'><i class="icon-plus"></i></a>
+              <a class='btn btn-default' ng-click='createFile(currentDir().info.path)'><i class="icon-plus"></i></a>
             </div>
             </h3>
             <ul class="breadcrumb">
-              <li ng-repeat='segment in currentDir.path'>                
+              <li ng-repeat='segment in currentDir().path'>                
                 <a ng-click='browseTo(segment.path)' ng-show='segment.name != "$home"'>
                   {{segment.name}}
                 </a>
@@ -35,23 +36,32 @@
               </li>
             </ul>            
             <div class='list-group'>
-              <a ng-repeat='file in currentDir.files'                  
+              <a ng-repeat='file in currentDir().files | orderBy:"name"'
+                 ng-hide='file.deleted'
                  ng-click='selectFile(file)'
+                 ng-dblclick='openFile(file)'
                  class='list-group-item'
                  ng-class='{ active: file.id==currentFile, open: file.doc!=null }'>
-                 <i class='fixicon' ng-class='{ "icon-folder-close": file.isDirectory, "icon-file": !file.isDirectory }'></i>
-                 <span class='fixicon-text'>{{file.path[file.path.length-1]}}</span>
-                 <div class='pullright' ng-show='file.id==currentFile'>
-                   <a><i class='icon-remove'></i></a>
-                 </div>
+                 <i class='icon-fixed-width' ng-class='{ "icon-folder-close": file.isDirectory, "icon-file": !file.isDirectory }'></i> {{file.name}}
+                 <span class='pull-right' ng-show='file.id==currentFile'>
+                   <i ng-click='deleteFile(file)' class='icon-fixed-width icon-trash'></i>
+                 </span>
               </a>
-              <div class='placeholder' ng-show='currentDir.files==null'>
+              <div class='placeholder' ng-show='currentDir().files==null'>
                 loading...
               </div>
-              <div class='placeholder' ng-if='currentDir.files == 0'>
-                This project is empty. Create a <a ng-click='createFile(root)'>new file</a> or <a ng-click='createFolder(root)'>folder</a>.
+              <div class='placeholder' ng-if='currentDir().files == 0'>
+                This folder is empty. Create a <a ng-click='createFile(root)'>new file</a> or <a ng-click='createFolder(root)'>folder</a> to get started.
               </div>
             </div>
+          </li>
+          <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
+            <h3>Collaboration</h3>            
+            <ul class='list-group'>
+              <li class='list-group-item' ng-repeat='user in collaborators()'>
+                <i class='icon-fixed-width icon-user'></i> {{user.user}} <span class='label label-success pull-right'>online</span>
+              </li>
+            </ul>
           </li>
           <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
             <h3>Edit</h3>   

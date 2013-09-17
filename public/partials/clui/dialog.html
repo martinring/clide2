@@ -41,10 +41,10 @@
             <input class='form-control' type="{{query.type}}" ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>
           </span>
         </div>
+        <div class='clearfix'></div>
         <div class='pull-right'>
           <button class='btn' ng-disabled='dialog.current.wait' type='{{button.type}}' ng-repeat='button in dialog.current.buttons' ng-class='{ "btn-primary": $index==0, "btn-default": $index!=0 }' ng-click='dialog.next(button.action)'>{{button.text}}</button>
-        </div>
-        <div class='clearfix'></div>
+        </div>        
         </form>
       </div>
     </div>

@@ -28,7 +28,7 @@ object SessionInfos extends Table[SessionInfo]("sessions") {
   def active       = column[Boolean]("active")
   def user         = foreignKey("ky_session_user", userName, UserInfos)(_.name, 
       onUpdate = ForeignKeyAction.Cascade, 
-      onDelete = ForeignKeyAction.Cascade)  
+      onDelete = ForeignKeyAction.Cascade)
   def project      = foreignKey("fk_session_project", projectId, ProjectInfos)(_.id, 
       onUpdate = ForeignKeyAction.Cascade, 
       onDelete = ForeignKeyAction.Cascade)

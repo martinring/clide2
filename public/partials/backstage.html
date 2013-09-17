@@ -13,7 +13,7 @@
             You don't have any projects associated with your account yet. Get started by <a ng-click='createProject()'>creating a new project</a>.
           </p>                            
           <div class='list-group' ng-show='projects.length > 0'>
-            <a ng-repeat='project in projects' context-menu="projectContextMenu(project)" class='list-group-item' ng-class='{ active: project==selectedProject }' ng-click='selectProject(project)'>
+            <a ng-repeat='project in projects' context-menu="projectContextMenu(project)" class='list-group-item' ng-class='{ active: project==selectedProject }' ng-click='selectProject(project)' ng-dblclick='start()'>
               <h4 class='list-group-item-heading' ng-bind='project.name'></h4>
               <p class='list-group-item-text' ng-bind='project.description'></p>
             </a>
