@@ -16,6 +16,8 @@ class SessionActor(
   
   var session: SessionInfo = null
   var peer = context.system.deadLetters
+  var activeFile: Option[Long] = None
+  var openFiles = Map[Long,FileInfo]()
           
   def setActive(value: Boolean) = DB.withSession { implicit session: Session =>
     this.session = this.session.copy(active = value)
@@ -36,7 +38,7 @@ class SessionActor(
       peer ! SessionStopped(info)
     }
     case RequestSessionInfo =>
-      sender ! SessionInfos(session,collaborators)
+      sender ! SessionInit(session,collaborators)
     case EnterSession =>
       setActive(true)
       peer = sender
@@ -61,30 +63,23 @@ class SessionActor(
       receive(LeaveSession)
   }
   
-  override def preStart() {
-    session = id.flatMap { id =>
-      val q = for (info <- clide.models.SessionInfos if info.id === id) yield info
-      DB.withSession { implicit session: Session =>
-        q.firstOption.map { i =>
-          q.update(i.copy(active = true))
-          i.copy(active = true)
-        }
-      }
-    }.getOrElse {
-      DB.withSession { implicit session: Session =>
-        val info = SessionInfo(
-          id = None,                
-          user = this.user.name,
-          project = project.id,
-          active = true
-        )
-        val nid = clide.models.SessionInfos.autoinc.insert(info)
-        this.id = Some(nid)
-        val res = info.copy(id = Some(nid))
-        context.parent ! SessionChanged(res)
-        res
-      }
+  override def preStart() = DB.withSession { implicit session: Session =>
+    this.session = id.flatMap { id =>            
+      SessionInfos.get(id).map { i =>
+        val i_ = i.copy(active = true)
+        SessionInfos.update(i_)
+        i_
+      }      
+    }.getOrElse {      
+      val res = SessionInfos.create(
+        user = this.user.name,
+        project = project.id,
+        activeFile = activeFile,
+        active = true)
+      context.parent ! SessionChanged(res)
+      res      
     }
-    collaborators -= session
+    openFiles = OpenFiles.get(this.session.id).map(i => i.id -> i).toMap
+    collaborators -= this.session
   }
 }

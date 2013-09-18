@@ -21,12 +21,19 @@
         <ul id="sidebarContent" class='touchScroll'>
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>            
             <h3>Files
-            <div class='pull-right'>            
-              <a class='btn btn-default' ng-click='createFolder(currentDir().info)'><i class="icon-folder-close-alt"></i></a>
-              <a class='btn btn-default' ng-click='createFile(currentDir().info)'><i class="icon-file-alt"></i></a>
+            <div class='pull-right btn-group' ng-show='fileConnection()=="connected"'>
+              <a class='btn btn-default' ng-click='browseTo(currentDir().info.path.slice(0,-1))' ng-disabled='currentDir().info.parent==null'>
+                <i class='icon-level-up'></i>
+              </a>
+              <a class='btn btn-default' ng-click='createFolder(currentDir().info)'>
+                <i class="icon-folder-close-alt"></i>
+              </a>
+              <a class='btn btn-default' ng-click='createFile(currentDir().info)'>
+                <i class="icon-file-alt"></i>
+              </a>
             </div>
             </h3>
-            <ul class="breadcrumb">
+            <ul class="breadcrumb" ng-show='fileConnection()=="connected"'>
               <li ng-repeat='segment in currentDir().path'>                
                 <a ng-click='browseTo(segment.path)' ng-show='segment.name != "$home"'>
                   {{segment.name}}
@@ -36,24 +43,27 @@
                 </a>
               </li>
             </ul>            
-            <div class='list-group'>
+            <div class='list-group' ng-show='fileConnection()=="connected"'>
               <a ng-repeat='file in currentDir().files | orderBy:"name"'
                  ng-hide='file.deleted'
                  ng-click='selectFile(file)'
                  ng-dblclick='openFile(file)'
                  class='list-group-item'
-                 ng-class='{ active: file.id==currentFile, open: file.doc!=null }'>
+                 ng-class='{ active: file.id==selectedFile, open: file.doc!=null }'>
                  <i class='icon-fixed-width' ng-class='{ "icon-folder-close": file.isDirectory, "icon-file": !file.isDirectory }'></i> {{file.name}}
-                 <span class='pull-right' ng-show='file.id==currentFile'>
+                 <span class='pull-right' ng-show='file.id==selectedFile'>
                    <i ng-click='deleteFile(file)' class='icon-fixed-width icon-trash'></i>
                  </span>
-              </a>
-              <div class='placeholder' ng-show='currentDir().files==null'>
-                loading...
-              </div>
+              </a>              
               <div class='placeholder' ng-if='currentDir().files == 0'>
                 This folder is empty. Create a <a ng-click='createFile(currentDir().info)'>new file</a> or <a ng-click='createFolder(currentDir().info)'>folder</a> to get started.
               </div>
+            </div>
+            <div class='alert alert-info' ng-show='fileConnection()=="connecting"'>
+              Connecting to server...
+            </div>            
+            <div class='alert alert-warning' ng-show='fileConnection()=="disconnected"'>
+              The connection to the server file system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a ng-click='reconnect()'>reconnect</a>.
             </div>
           </li>
           <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>

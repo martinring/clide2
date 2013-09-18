@@ -21,10 +21,13 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   $scope.collaborators = Session.collaborators
 
   $scope.browseTo = Files.browseTo
-
   $scope.currentDir = Files.current
-
   $scope.traffic = Files.traffic
+  $scope.fileConnection = Files.state
+
+  $scope.reconnect = ->
+    Files.init($routeParams.user, $routeParams.project)
+    Files.explore($scope.path)
 
   $scope.start = () ->
     $scope.state = 'ide'
@@ -33,15 +36,15 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   $scope.sidebar = true
   $scope.root = null
   $scope.openFiles = []
-  $scope.currentFile = null
+  $scope.currentFile = null  
 
   $scope.selectFile = (file) ->
-    $scope.currentFile = file.id
+    $scope.selectedFile = file.id
 
   $scope.openFile = (file) ->
     if file.isDirectory
       $scope.browseTo(file.path)
-    else
+    else    
       $scope.currentFile = file.id    
       Files.open(file.path)    
     

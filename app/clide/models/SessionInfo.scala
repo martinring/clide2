@@ -13,12 +13,13 @@ import clide.web.controllers.Projects
 import scala.slick.lifted.ForeignKeyAction
 
 case class SessionInfo(
-    id: Option[Long] = None,
+    id: Long,
     user: String,
     project: Long,
+    activeFile: Option[Long],
     active: Boolean) {
   override def equals(other: Any) = other match {
-    case SessionInfo(id@Some(_),_,_,_) => id == this.id
+    case SessionInfo(id,_,_,_,_) => id == this.id
     case _ => false
   }
 }
@@ -30,14 +31,48 @@ object SessionInfos extends Table[SessionInfo]("sessions") {
   def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def userName     = column[String]("name")
   def projectId    = column[Long]("project")
+  def activeFileId = column[Option[Long]]("activeFile")
   def active       = column[Boolean]("active")
-  def user         = foreignKey("ky_session_user", userName, UserInfos)(_.name, 
+  def activeFile   = foreignKey("fk_session_file", activeFileId, FileInfos)(_.id,
+      onUpdate = ForeignKeyAction.SetNull, 
+      onDelete = ForeignKeyAction.SetNull)
+  def user         = foreignKey("fk_session_user", userName, UserInfos)(_.name, 
       onUpdate = ForeignKeyAction.Cascade, 
       onDelete = ForeignKeyAction.Cascade)
   def project      = foreignKey("fk_session_project", projectId, ProjectInfos)(_.id, 
       onUpdate = ForeignKeyAction.Cascade, 
       onDelete = ForeignKeyAction.Cascade)
-  def *            = id.? ~ userName ~ projectId ~ active <> (SessionInfo.apply _, SessionInfo.unapply _)
-   
-  def autoinc = id.? ~ userName ~ projectId ~ active <> (SessionInfo.apply _, SessionInfo.unapply _) returning id
+      
+  def * = id ~ userName ~ projectId ~ activeFileId ~ active <> (SessionInfo.apply _, SessionInfo.unapply _)     
+  
+  def create(user: String, project: Long, activeFile: Option[Long], active: Boolean)(implicit session: Session) = {
+    val q = this.id.? ~ this.userName ~ this.projectId ~ this.activeFileId ~ this.active returning this.id
+    val id = q.insert((None,user,project,activeFile,active))
+    SessionInfo(id,user,project,activeFile,active)
+  }
+  
+  def update(info: SessionInfo)(implicit session: Session) = {
+    val q = for (i <- SessionInfos if i.id === info.id) yield i
+    q.update(info)
+  }
+  
+  def delete(info: SessionInfo)(implicit session: Session) = {
+    val q = for (i <- SessionInfos if i.id === info.id) yield i
+    q.delete
+  }
+  
+  def get(id: Long)(implicit session: Session) = {
+    val q = for (i <- SessionInfos if i.id === id) yield i
+    q.firstOption
+  }
+  
+  def getForProject(id: Long)(implicit session: Session) = {
+    val q = for (i <- SessionInfos if i.projectId === id) yield i
+    q.elements
+  }
+ 
+  def getForUser(name: String)(implicit session: Session) = {
+    val q = for (i <- SessionInfos if i.userName === name) yield i
+    q.elements
+  }  
 }

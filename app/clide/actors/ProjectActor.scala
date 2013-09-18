@@ -30,7 +30,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
         session.user == user.name &&
         !session.active        
       }.map { session =>
-        sessionActors.get(session.id.get).getOrElse {
+        sessionActors.get(session.id).getOrElse {
           context.actorOf(Props(classOf[SessionActor],session.id,sessions,user,this.info))
         }
       }.getOrElse {
@@ -56,17 +56,16 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   
   def receive = {
     case msg@SessionChanged(info) =>
-      if (!info.active && sessions.exists(_.user == info.user))
+      if (!info.active && sessions.exists(i =>
+        i.id != info.id && i.user == info.user && i.active == false))
         sender ! CloseSession
       sessions -= info
-      sessions += info
-      info.id.map { id =>
-        sessionActors += id -> sender
-      }      
+      sessions += info      
+      sessionActors += info.id -> sender   
       sessionActors.values.foreach(_.forward(msg))
     case msg@SessionStopped(info) =>
       sessions -= info
-      sessionActors -= info.id.get
+      sessionActors -= info.id
       sessionActors.values.foreach(_.forward(msg))
     case WrappedProjectMessage(user,level,msg) =>
       this.user = user

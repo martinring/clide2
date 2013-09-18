@@ -7,11 +7,13 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
   currentdir = -1
   queue = []
   selections = { }
+  state = 'disconnected'
   
   get = (username, project, init) ->
     ws = new WebSocket(pc.fileBrowser(username,project).webSocketURL())
     queue.push(JSON.stringify(init)) if init?    
     socket= ws
+    $timeout((-> state = 'connecting'),0)
     ws.onmessage = (e) ->
       msg = JSON.parse(e.data)
       console.log "received: ", e.data
@@ -49,14 +51,15 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
             currentdir = msg.info.id
             console.log dirs[currentdir]),0)
     ws.onopen = (e) ->      
+      $timeout((-> state = 'connected'),0)
       for msg in queue
         console.log 'sending: ', JSON.stringify(msg)
         ws.send(msg)
-      queue = []
+      queue = []      
     ws.onclose = (e) ->
       listeners = undefined
       socket = undefined
-      console.log e
+      $timeout((-> state= 'disconnected'),0)
 
   send = (message) -> switch socket?.readyState
     when WebSocket.CONNECTING
@@ -67,6 +70,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
       socket.send(data)      
 
   return (
+    state: -> state
     current: -> dirs[currentdir]
     selections: selections
     init: (username, project, init) ->
