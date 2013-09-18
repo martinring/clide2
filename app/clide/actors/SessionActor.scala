@@ -20,7 +20,7 @@ class SessionActor(
   var session: SessionInfo = null
   var peer = context.system.deadLetters
   var activeFile: Option[Long] = None  
-  var openFiles = Map[Long,OpenedFile]()
+  var openFiles = Map[Long,FileInfo]()  
   var fileServers = Map[Long,ActorRef]()
   
   val colors = current.configuration.getStringList("clide.sessionColors").get.toSet
@@ -55,15 +55,18 @@ class SessionActor(
     case RequestSessionInfo =>
       sender ! SessionInit(
           session,
-          collaborators,
-          openFiles.values.toSet,
-          activeFile)
+          collaborators)
+      openFiles.values.foreach { file =>
+        fileServers.get(file.id).map(_ ! OpenFile).getOrElse {
+          context.parent ! WrappedProjectMessage(user,level,WithPath(file.path,OpenFile))
+        }
+      }
     case EnterSession =>
       setActive(true)
       peer = sender
       context.watch(peer)
-      peer ! EventSocket(self)      
-      context.parent ! SessionChanged(session)
+      peer ! EventSocket(self)
+      context.parent ! SessionChanged(session)      
     case LeaveSession | EOF =>
       setActive(false)
       peer = context.system.deadLetters
@@ -78,9 +81,9 @@ class SessionActor(
       }
       context.parent ! SessionStopped(session)
     case SwitchFile(id) => if (activeFile != Some(id)) {
-      log.info("open file")
-      if (openFiles.contains(id)) {
-        activeFile = Some(id)
+      log.info("open file")      
+      activeFile = Some(id)
+      if (openFiles.contains(id)) {        
         peer ! FileSwitched(activeFile)
       } else {
         DB.withSession { implicit session: Session => 
@@ -90,7 +93,12 @@ class SessionActor(
         }        
       }   
     }
-    case CloseFile(id) =>             
+    case AcknowledgeEdit => // TODO: CONCURRENCY STUFF!!!
+      activeFile.map(fileServers += _ -> sender)
+      peer ! AcknowledgeEdit
+    case Edited(op) =>
+      peer ! Edited(op)
+    case CloseFile(id) =>
       openFiles.get(id).map { file =>
         fileServers.get(id).map(_ ! EOF)
         peer ! FileClosed(id)
@@ -106,23 +114,30 @@ class SessionActor(
         activeFile = openFiles.keys.headOption
         peer ! FileSwitched(activeFile)
       }
-    case msg @ Edit(_,_) =>
+    case msg @ Edit(_,_) =>      
       activeFile.map{ id => 
-        fileServers.get(id).map(_ ! msg).getOrElse {
-          context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).info.path, msg))
+        fileServers.get(id).map{ ref =>
+          log.info("forwarding edit to ref")
+          ref ! msg
+        }.getOrElse {
+          log.info("forwarding edit to path")
+          context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
         } 
       }.getOrElse {
         sender ! DoesntExist
       }
     case msg @ OTState(f,s,r) =>
       val of = OpenedFile(f,s,r)
-      DB.withSession { implicit session: Session =>
-        OpenedFiles.create(this.session.id, of)
-      }
-      openFiles += f.id -> of
-      fileServers += f.id -> sender
-      activeFile = Some(f.id)
+      if (!openFiles.contains(f.id)) {
+        DB.withSession { implicit session: Session =>
+          OpenedFiles.create(this.session.id, f.id)      
+        }
+        openFiles += f.id -> f
+      }              
+      fileServers += f.id -> sender      
       peer ! FileOpened(of)
+      if (activeFile == Some(f.id))
+        peer ! FileSwitched(activeFile)
     case Terminated(ref) =>
       log.info("going idle due to termination")
       receive(LeaveSession)
@@ -145,7 +160,7 @@ class SessionActor(
       context.parent ! SessionChanged(res)
       res      
     }
-    openFiles = OpenedFiles.get(this.session.id).map(i => i.info.id -> i).toMap
+    openFiles = OpenedFiles.get(this.session.id).map(i => i.id -> i).toMap
     collaborators -= this.session
   }
 }

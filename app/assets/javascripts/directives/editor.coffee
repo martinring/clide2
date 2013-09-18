@@ -15,7 +15,7 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
     scope.$watch (-> scope.$eval(iAttrs.file)), (n,o) ->       
       if n? 
         file = Session.getOpenFile(n)      
-        if file?
+        if file
           if file.doc? # swap
             cm.swapDoc(file.doc)
             cm.focus()
@@ -27,7 +27,7 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
             file.client.sendOperation = (revision, operation) ->
               Session.edit(file.info.id,revision,operation.actions)
 
-            file.client.applyOperations = adapter.applyOperation
+            file.client.applyOperation = adapter.applyOperation
 
             adapter.registerCallbacks
               change: (op) -> file.client.applyClient(op)

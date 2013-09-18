@@ -45,7 +45,10 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       }.forward(EnterSession)
     case msg @ WithPath(_,OpenFile) =>
       log.info("open file")
-      root.forward(msg)      
+      root.forward(msg)
+    case msg @ WithPath(_,Edit(_,_)) =>
+      log.info("edit file")
+      root.forward(msg)
   }
   
   def read: Receive = {

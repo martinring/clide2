@@ -14,14 +14,12 @@ case class OpenedFile(info: FileInfo, state: String, revision: Long)
 
 object OpenedFile { implicit val writes = Json.writes[OpenedFile] }
 
-object OpenedFiles extends Table[(Long,Long,Long,String)]("openFiles") {
+object OpenedFiles extends Table[(Long,Long)]("openFiles") {
   implicit val pathMapper = MappedTypeMapper.base[Seq[String], String](
       _.mkString("/") , _.split('/').toSeq.filter(!_.isEmpty()))
     
   def sessionId   = column[Long]("session")
-  def fileId      = column[Long]("file")  
-  def revision    = column[Long]("revision")
-  def state       = column[String]("state")
+  def fileId      = column[Long]("file")
   
   def session = foreignKey("fk_openFile_session", sessionId, SessionInfos)(_.id,
       onUpdate = ForeignKeyAction.Cascade, 
@@ -31,18 +29,18 @@ object OpenedFiles extends Table[(Long,Long,Long,String)]("openFiles") {
       onDelete = ForeignKeyAction.Cascade)
   def pk = primaryKey("pk_openFile", (sessionId,fileId))
         
-  def * = sessionId ~ fileId ~ revision ~ state
+  def * = sessionId ~ fileId
     
   def get(sessionId: Long)(implicit session: Session) = {
     val q = for {
       openFile <- OpenedFiles if openFile.sessionId === sessionId
       file <- openFile.file
-    } yield (openFile,file)
-    q.elements.map{ case (o,f) => OpenedFile(f,o._4,o._3)}
+    } yield file
+    q.elements
   }
   
-  def create(session: Long, f: OpenedFile)(implicit s: Session) = {
-    this.insert((session,f.info.id,f.revision,f.state))
+  def create(session: Long, file: Long)(implicit s: Session) = {
+    this.insert((session,file))
   }    
   
   def delete(session: Long, file: Long)(implicit s: Session) = {

@@ -67,7 +67,7 @@
           </li>
           <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
             <h3>Collaboration</h3>            
-            <div ng-show="session.state='connected'">
+            <div ng-show="session.state=='connected'">
               <p ng-show='session.me'>
                 <span><span class='label' style='background-color:{{session.me.color}}'>You</span> are logged in as {{session.me.user}}. <span>
                 <ng-pluralize count='session.collaborators.length' 
@@ -86,7 +86,7 @@
               Connecting to server...
             </div>            
             <div class='alert alert-warning' ng-show='session.state=="disconnected"'>
-              The connection to the server file system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a ng-click='reconnectSession()'>reconnect</a>.
+              The connection to the collaboration system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a ng-click='reconnectSession()'>reconnect</a>.
             </div>
           </li>
           <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
@@ -126,12 +126,12 @@
       <div id='content'>
         <div class="tabs">
           <ul class="headers">
-            <li ng-repeat='file in session.openFiles' ng-class='{active: session.activeFile==file.info.id}'>
+            <li ng-repeat='file in session.openFiles' ng-class='{active: session.activeFile==file.info.id}' ng-show='session.state=="connected"'>
               <span ng-click='openFile(file.info)'>{{file.info.name}}</span>
               <button type="button" class="close" ng-click='closeFile(file.info.id)' aria-hidden="true">&times;</button>
             </li>
           </ul>
-          <div class="content" ng-show='session.activeFile'>
+          <div class="content" ng-show='session.state=="connected" && session.activeFile'>
             <editor file='session.activeFile'></editor>
           </div>
         </div>

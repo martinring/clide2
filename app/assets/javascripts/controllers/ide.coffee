@@ -27,6 +27,9 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
     Files.init($routeParams.user, $routeParams.project)
     Files.explore($scope.path)
 
+  $scope.reconnectSession = ->
+    Session.init($routeParams.user, $routeParams.project)    
+
   $scope.start = () ->
     $scope.state = 'ide'
   

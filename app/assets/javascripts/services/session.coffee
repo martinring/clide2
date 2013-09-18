@@ -1,5 +1,5 @@
 ### @service services:Session ###
-define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
+define ['routes','collab/Operation'], (routes,Operation) -> ($q,$http,$timeout,Toasts) ->
   pc = routes.clide.web.controllers.Projects
 
   queue = []
@@ -10,7 +10,13 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
     collaborators: null
     openFiles: null
     activeFile: null
-    me: null
+    me: null  
+
+  getOpenFile = (id) ->
+    for file in session.openFiles
+      if file.info.id is id
+        return file
+    return false
 
   remove = (id) ->
     for s, i in session.collaborators
@@ -29,6 +35,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
     ws = new WebSocket(pc.session(username,project).webSocketURL())
     queue.push(JSON.stringify(init)) if init?
     socket = ws
+    $timeout((-> session.state = 'connecting'),0)    
     ws.onmessage = (e) ->
       msg = JSON.parse(e.data)
       console.log "received: ", e.data
@@ -36,24 +43,22 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
         when 'string'
           switch msg
             when 'ack'
-              console.log 'ack'
+              getOpenFile(session.activeFile).client?.serverAck()
             else
-              Toasts.push 'danger', "internal error: unknown message: #{msg}"
-        when 'array'
-          console.log 'edit'
-        when 'object'
+              Toasts.push 'danger', "internal error: unknown message: #{msg}"        
+        when 'object'        
+          if msg.length?
+            getOpenFile(session.activeFile).client?.applyServer(Operation.fromJSON(msg))
           switch msg.t
             when 'e'
               Toasts.push 'danger', msg.c
-            when 'welcome'              
-              session.openFiles = msg.openFiles
-              session.activeFile = msg.activeFile            
+            when 'welcome'
+              session.openFiles = []              
               $timeout ->
                 session.me = msg.info
                 session.collaborators = msg.others
             when 'opened'
-              session.openFiles.push(msg.c)            
-              session.activeFile = msg.c.info.id
+              session.openFiles.push(msg.c)
               $timeout ->            
                 session.activeFile = msg.c.info.id #TODO: HACK
             when 'close'
@@ -93,11 +98,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
       socket.send(data)      
 
   return (
-    getOpenFile: (id) ->
-      for file in session.openFiles
-        if file.info.id is id
-          return file
-      return false
+    getOpenFile: getOpenFile    
     info: session      
     init: (username, project, init) ->
       socket or get(username, project, init)
