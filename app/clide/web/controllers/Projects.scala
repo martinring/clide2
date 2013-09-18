@@ -23,6 +23,7 @@ import clide.actors._
 import Messages._
 import Events._
 import scala.concurrent.Future
+import clide.collaboration.Operation
 
 object Projects extends Controller with UserRequests {  
   def index(username: String) = UserRequest.async { request =>
@@ -50,15 +51,21 @@ object Projects extends Controller with UserRequests {
       message = WithUser(username,WithProject(name,StartSession)),
       serialize = { msg => Logger.info(msg.toString); serialize(msg) },
       deserialize = { json =>
-        (json \ "t").asOpt[String] match {
-          case None => ForgetIt
-          case Some(t) => t match {
-            case "init" => 
-              RequestSessionInfo
-            case "open" =>
-              SwitchFile((json \ "id").as[Long])
-          }
+        (json \ "r").asOpt[Long] match {
+          case None => (json \ "t").asOpt[String] match {
+	        case None => ForgetIt
+	        case Some(t) => t match {
+	          case "init" => 
+	            RequestSessionInfo
+	          case "open" =>
+	            SwitchFile((json \ "id").as[Long])
+	          case "close" =>
+	            CloseFile((json \ "id").as[Long])
+	        }
+	      }
+          case Some(rev) => Edit(rev,(json\"o").as[Operation](Operation.SourceOperationFormat))
         }
+        
       })
   
   def fileBrowser(username: String, name: String) = ActorSocket(

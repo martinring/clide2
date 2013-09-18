@@ -77,11 +77,11 @@ class SessionActor(
         q.delete
       }
       context.parent ! SessionStopped(session)
-    case SwitchFile(id) => if (activeFile != Some(id)) {      
+    case SwitchFile(id) => if (activeFile != Some(id)) {
       log.info("open file")
       if (openFiles.contains(id)) {
         activeFile = Some(id)
-        sender ! FileSwitched(id)
+        peer ! FileSwitched(activeFile)
       } else {
         DB.withSession { implicit session: Session => 
           FileInfos.get(id).firstOption.map { info =>
@@ -90,6 +90,30 @@ class SessionActor(
         }        
       }   
     }
+    case CloseFile(id) =>             
+      openFiles.get(id).map { file =>
+        fileServers.get(id).map(_ ! EOF)
+        peer ! FileClosed(id)
+      }.getOrElse {
+        peer ! DoesntExist
+      }
+      DB.withSession { implicit session: Session =>
+        OpenedFiles.delete(this.session.id,id)
+      }
+      openFiles -= id
+      fileServers -= id
+      if (activeFile.map(_ == id).getOrElse(false)) {
+        activeFile = openFiles.keys.headOption
+        peer ! FileSwitched(activeFile)
+      }
+    case msg @ Edit(_,_) =>
+      activeFile.map{ id => 
+        fileServers.get(id).map(_ ! msg).getOrElse {
+          context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).info.path, msg))
+        } 
+      }.getOrElse {
+        sender ! DoesntExist
+      }
     case msg @ OTState(f,s,r) =>
       val of = OpenedFile(f,s,r)
       DB.withSession { implicit session: Session =>

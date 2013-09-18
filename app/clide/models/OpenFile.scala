@@ -44,4 +44,9 @@ object OpenedFiles extends Table[(Long,Long,Long,String)]("openFiles") {
   def create(session: Long, f: OpenedFile)(implicit s: Session) = {
     this.insert((session,f.info.id,f.revision,f.state))
   }    
+  
+  def delete(session: Long, file: Long)(implicit s: Session) = {
+    val q = for (f <- OpenedFiles if f.sessionId === session && f.fileId === file) yield f
+    q.delete
+  }
 }

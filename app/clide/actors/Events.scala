@@ -7,6 +7,7 @@ import play.api.libs.json._
 import akka.actor.ActorRef
 import play.api.libs.iteratee._
 import clide.actors.Messages.Message
+import clide.collaboration.Operation
 
 object Events {
   trait Event  
@@ -50,8 +51,11 @@ object Events {
       activeFile: Option[Long]) extends SessionEvent
   case class SessionChanged(info: SessionInfo) extends SessionEvent
   case class SessionStopped(info: SessionInfo) extends SessionEvent
-  case class FileSwitched(id: Long) extends SessionEvent
+  case class FileSwitched(id: Option[Long]) extends SessionEvent
+  case class FileClosed(id: Long) extends SessionEvent
   case class FileOpened(file: OpenedFile) extends SessionEvent
+  case class Edited(op: Operation) extends SessionEvent
+  case object AcknowledgeEdit extends SessionEvent
   case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent
   
   case class UserProjectInfos(
@@ -100,7 +104,10 @@ object Events {
     case FileDeleted(f) => "rmfile" of f
     case FileId(i) => "file" of i
     case FileSwitched(i) => "switch" of i
+    case FileClosed(i) => "close" of i
     case FileOpened(i) => "opened" of i
+    case Edited(o) => Json.toJson(o)
+    case AcknowledgeEdit => JsString("ack")    
     case _ => error("couldnt translate")
   }
 }

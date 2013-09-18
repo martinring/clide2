@@ -58,28 +58,36 @@
                 This folder is empty. Create a <a ng-click='createFile(files.currentDir.info)'>new file</a> or <a ng-click='createFolder(files.currentDir.info)'>folder</a> to get started.
               </div>
             </div>
-            <div class='alert alert-info' ng-show='fileConnection()=="connecting"'>
+            <div class='alert alert-info' ng-show='files.state=="connecting"'>
               Connecting to server...
             </div>            
-            <div class='alert alert-warning' ng-show='fileConnection()=="disconnected"'>
+            <div class='alert alert-warning' ng-show='files.state=="disconnected"'>
               The connection to the server file system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a ng-click='reconnect()'>reconnect</a>.
             </div>
           </li>
           <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
             <h3>Collaboration</h3>            
-            <p ng-show='session.me'>
-              <span><span class='label' style='background-color:{{session.me.color}}'>You</span> are logged in as {{session.me.user}}. <span>
-              <ng-pluralize count='session.collaborators.length' 
-                            when="{'0': 'You are currently the only user in this project.',
-                                   '1': 'One other user is participating in this project:',
-                                   '2': 'Two other users are participating in this project:',
-                                   'other': '{} other users are participating in this project:'}">
-              </ng-pluralize>
-            <ul class='list-group'>                    
-              <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
-                <span class='label' style='background-color:{{user.color}}'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-if='user.active'>online</span><span class='badge' ng-if='!user.active'>offline</span>
-              </li>
-            </ul>
+            <div ng-show="session.state='connected'">
+              <p ng-show='session.me'>
+                <span><span class='label' style='background-color:{{session.me.color}}'>You</span> are logged in as {{session.me.user}}. <span>
+                <ng-pluralize count='session.collaborators.length' 
+                              when="{'0': 'You are currently the only user in this project.',
+                                     '1': 'One other user is participating in this project:',
+                                     '2': 'Two other users are participating in this project:',
+                                     'other': '{} other users are participating in this project:'}">
+                </ng-pluralize>
+              <ul class='list-group'>                    
+                <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
+                  <span class='label' style='background-color:{{user.color}}'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-if='user.active'>online</span><span class='badge' ng-if='!user.active'>offline</span>
+                </li>
+              </ul>
+            </div>
+            <div class='alert alert-info' ng-show='session.state=="connecting"'>
+              Connecting to server...
+            </div>            
+            <div class='alert alert-warning' ng-show='session.state=="disconnected"'>
+              The connection to the server file system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a ng-click='reconnectSession()'>reconnect</a>.
+            </div>
           </li>
           <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
             <h3>Edit</h3>   
@@ -118,9 +126,9 @@
       <div id='content'>
         <div class="tabs">
           <ul class="headers">
-            <li ng-repeat='file in session.openFiles' ng-class='{active: session.activeFile==file.info.id}' ng-click='openFile(file.info)'>
-              {{file.info.name}}
-              <button type="button" class="close" aria-hidden="true">&times;</button>
+            <li ng-repeat='file in session.openFiles' ng-class='{active: session.activeFile==file.info.id}'>
+              <span ng-click='openFile(file.info)'>{{file.info.name}}</span>
+              <button type="button" class="close" ng-click='closeFile(file.info.id)' aria-hidden="true">&times;</button>
             </li>
           </ul>
           <div class="content" ng-show='session.activeFile'>
