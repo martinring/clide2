@@ -68,7 +68,7 @@
           <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
             <h3>Collaboration</h3>            
             <p ng-show='session.me'>
-              <span><span class='label' style='background-color:#119900'>You</span> are logged in as {{session.me.user}}. <span>
+              <span><span class='label' style='background-color:{{session.me.color}}'>You</span> are logged in as {{session.me.user}}. <span>
               <ng-pluralize count='session.collaborators.length' 
                             when="{'0': 'You are currently the only user in this project.',
                                    '1': 'One other user is participating in this project:',
@@ -77,40 +77,23 @@
               </ng-pluralize>
             <ul class='list-group'>                    
               <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
-                <span class='label' style='background-color:#119900'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-if='user.active'>online</span><span class='badge' ng-if='!user.active'>offline</span>
+                <span class='label' style='background-color:{{user.color}}'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-if='user.active'>online</span><span class='badge' ng-if='!user.active'>offline</span>
               </li>
             </ul>
           </li>
           <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
             <h3>Edit</h3>   
-            <ul class='treeview'>
-              <li>
-                <div class='icon'><i class='icon-angle-right'></i></div>
-                <div class='title'>
-                  <span class='name'>Clipboard</span>
-                </div>
-                <ul class='treeview'>
-                  <li>
-                    <i class='icon-cut'></i>
-                    <div class='title'>
-                      <span class='name'>Cut</span>
-                    </div>
-                  </li>
-                  <li>
-                    <i class='icon-copy'></i>
-                    <div class='title'>
-                      <span class='name'>Copy</span>
-                    </div>
-                  </li>
-                  <li>
-                    <i class='icon-paste'></i>
-                    <div class='title'>
-                      <span class='name'>Paste</span>
-                    </div>
-                  </li>              
-                </ul>
-              </li>
-            </ul>
+            <div class='list-group'>
+              <a class='list-group-item'>
+                <i class='icon-cut'></i> Cut
+              </a>
+              <a class='list-group-item'>
+                <i class='icon-copy'></i> Copy
+              </a>
+              <a class='list-group-item'>
+                <i class='icon-paste'></i> Paste
+              </a>                              
+            </div>
           </li>
           <li class="section" id='section-view' ng-class='{active: sidebarSection=="view"}' ng-click='sidebarSection="view"'>
             <h3>View</h3>            
@@ -135,15 +118,13 @@
       <div id='content'>
         <div class="tabs">
           <ul class="headers">
-            <li ng-repeat='file in openFiles'                 
-                ng-click='selectFile(file)'
-                context-menu='fileContextMenu(file)'
-                ng-class='{active: currentFile==file}'>
-              {{file.name}} <button type="button" class="close" ng-click='closeFile(file)' aria-hidden="true">&times;</button>
+            <li ng-repeat='file in session.openFiles' ng-class='{active: session.activeFile==file.info.id}' ng-click='openFile(file.info)'>
+              {{file.info.name}}
+              <button type="button" class="close" aria-hidden="true">&times;</button>
             </li>
           </ul>
-          <div class="content" ng-show='currentFile'>
-            <editor file='currentFile'></editor>
+          <div class="content" ng-show='session.activeFile'>
+            <editor file='session.activeFile'></editor>
           </div>
         </div>
       </div>

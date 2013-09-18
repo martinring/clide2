@@ -53,7 +53,10 @@ object Projects extends Controller with UserRequests {
         (json \ "t").asOpt[String] match {
           case None => ForgetIt
           case Some(t) => t match {
-            case "init" => RequestSessionInfo
+            case "init" => 
+              RequestSessionInfo
+            case "open" =>
+              SwitchFile((json \ "id").as[Long])
           }
         }
       })
@@ -72,8 +75,6 @@ object Projects extends Controller with UserRequests {
               WithPath((json \ "path").as[Seq[String]], ExplorePath)
             case "new" =>
               WithPath((json \ "path").as[Seq[String]], NewFile)
-            case "open" =>
-              WithPath((json \ "path").as[Seq[String]], OpenFile)
             case "touchFile" => 
               WithPath((json \ "path").as[Seq[String]], TouchFile)
             case "touchFolder" => 

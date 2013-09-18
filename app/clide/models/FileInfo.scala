@@ -55,7 +55,7 @@ object FileInfos extends Table[FileInfo]("files") {
   
   def projectPath = index("project_path", (projectId,path), unique = true)
   
-  def *        = id ~ projectId ~ path ~ deleted ~ exists ~ isDirectory ~ parentId <> (FileInfo.apply _, FileInfo.unapply _)
+  def * = id ~ projectId ~ path ~ deleted ~ exists ~ isDirectory ~ parentId <> (FileInfo.apply _, FileInfo.unapply _)
   
   def create(project: Long, path: Seq[String], deleted: Boolean, exists: Boolean, isDirectory: Boolean, parent: Option[Long])(implicit session: Session) = {
     val autoinc = this.id.? ~ this.projectId ~ this.path ~ this.deleted ~ this.exists ~ this.isDirectory ~ this.parentId returning this.id    

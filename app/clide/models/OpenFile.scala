@@ -10,12 +10,18 @@ import java.sql.Date
 import play.api.libs.json._
 import scala.slick.lifted.ForeignKeyAction
   
-object OpenFiles extends Table[(Long,Long)]("openFiles") {
+case class OpenedFile(info: FileInfo, state: String, revision: Long)
+
+object OpenedFile { implicit val writes = Json.writes[OpenedFile] }
+
+object OpenedFiles extends Table[(Long,Long,Long,String)]("openFiles") {
   implicit val pathMapper = MappedTypeMapper.base[Seq[String], String](
       _.mkString("/") , _.split('/').toSeq.filter(!_.isEmpty()))
     
   def sessionId   = column[Long]("session")
   def fileId      = column[Long]("file")  
+  def revision    = column[Long]("revision")
+  def state       = column[String]("state")
   
   def session = foreignKey("fk_openFile_session", sessionId, SessionInfos)(_.id,
       onUpdate = ForeignKeyAction.Cascade, 
@@ -25,10 +31,17 @@ object OpenFiles extends Table[(Long,Long)]("openFiles") {
       onDelete = ForeignKeyAction.Cascade)
   def pk = primaryKey("pk_openFile", (sessionId,fileId))
         
-  def * = sessionId ~ fileId
+  def * = sessionId ~ fileId ~ revision ~ state
     
-  def get(sessionId: Long) = for {
-    openFile <- OpenFiles if openFile.sessionId === sessionId
-    file <- openFile.file
-  } yield file  
+  def get(sessionId: Long)(implicit session: Session) = {
+    val q = for {
+      openFile <- OpenedFiles if openFile.sessionId === sessionId
+      file <- openFile.file
+    } yield (openFile,file)
+    q.elements.map{ case (o,f) => OpenedFile(f,o._4,o._3)}
+  }
+  
+  def create(session: Long, f: OpenedFile)(implicit s: Session) = {
+    this.insert((session,f.info.id,f.revision,f.state))
+  }    
 }

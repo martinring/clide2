@@ -12,6 +12,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   import clide.actors.Events._
     
   var user: UserInfo = null
+  var level = ProjectAccessLevel.None
   var root: ActorRef     = context.system.deadLetters
   
   var sessions      = Set[SessionInfo]()
@@ -25,6 +26,12 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       sender         ! DeletedProject(info)
       context.parent ! DeletedProject(info)
       context.stop(self)
+  }
+  
+  def write: Receive = {
+    case StartFileBrowser =>
+      val browser = context.actorOf(Props(classOf[FileBrowser],true,root))
+      browser.forward(StartFileBrowser)
     case StartSession =>
       sessions.find { session =>
         session.user == user.name &&
@@ -36,18 +43,15 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       }.getOrElse {
         context.actorOf(Props(classOf[SessionActor],None,sessions,user,this.info))
       }.forward(EnterSession)
-  }
-  
-  def write: Receive = {
-    case StartFileBrowser =>
-      val browser = context.actorOf(Props(classOf[FileBrowser],true,root))
-      browser.forward(StartFileBrowser)
+    case msg @ WithPath(_,OpenFile) =>
+      log.info("open file")
+      root.forward(msg)      
   }
   
   def read: Receive = {
     case StartFileBrowser =>
       val browser = context.actorOf(Props(classOf[FileBrowser],false,root))
-      browser.forward(StartFileBrowser)
+      browser.forward(StartFileBrowser)    
   }
   
   def none: Receive = {
@@ -69,6 +73,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       sessionActors.values.foreach(_.forward(msg))
     case WrappedProjectMessage(user,level,msg) =>
       this.user = user
+      this.level = level
       level match {
         case ProjectAccessLevel.Admin =>
           (admin orElse write orElse read orElse none)(msg)

@@ -13,6 +13,7 @@ class Server(initialState: Document) {
   
   def text = state.content
   def revision = history.length
+  def getHistory = history.view
     
   def applyOperation(rev: Int, operation: Operation): Try[Operation] = {
     val result = for {

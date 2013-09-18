@@ -5,19 +5,34 @@ import clide.models._
 import play.api.Play.current
 import play.api.db.slick._
 import scala.slick.driver.H2Driver.simple._
+import scala.util.Random
+import scala.collection.JavaConversions._
 
 class SessionActor(
     var id: Option[Long],
     var collaborators: Set[SessionInfo],
-    var user: UserInfo,
+    var user: UserInfo,    
     var project: ProjectInfo) extends Actor with ActorLogging {
   import clide.actors.Messages._
   import clide.actors.Events._
   
+  val level = ProjectAccessLevel.Admin // TODO
   var session: SessionInfo = null
   var peer = context.system.deadLetters
-  var activeFile: Option[Long] = None
-  var openFiles = Map[Long,FileInfo]()
+  var activeFile: Option[Long] = None  
+  var openFiles = Map[Long,OpenedFile]()
+  var fileServers = Map[Long,ActorRef]()
+  
+  val colors = current.configuration.getStringList("clide.sessionColors").get.toSet
+  
+  def randomColor(): String = {
+    var remaining = colors
+    collaborators.foreach(remaining -= _.color)
+    if (remaining.size > 0)
+      remaining.toSeq(Random.nextInt(remaining.size))
+    else
+      colors.toSeq(Random.nextInt(colors.size))
+  }
           
   def setActive(value: Boolean) = DB.withSession { implicit session: Session =>
     this.session = this.session.copy(active = value)
@@ -62,6 +77,28 @@ class SessionActor(
         q.delete
       }
       context.parent ! SessionStopped(session)
+    case SwitchFile(id) => if (activeFile != Some(id)) {      
+      log.info("open file")
+      if (openFiles.contains(id)) {
+        activeFile = Some(id)
+        sender ! FileSwitched(id)
+      } else {
+        DB.withSession { implicit session: Session => 
+          FileInfos.get(id).firstOption.map { info =>
+            context.parent ! WrappedProjectMessage(user,level,WithPath(info.path,OpenFile))
+          } 
+        }        
+      }   
+    }
+    case msg @ OTState(f,s,r) =>
+      val of = OpenedFile(f,s,r)
+      DB.withSession { implicit session: Session =>
+        OpenedFiles.create(this.session.id, of)
+      }
+      openFiles += f.id -> of
+      fileServers += f.id -> sender
+      activeFile = Some(f.id)
+      peer ! FileOpened(of)
     case Terminated(ref) =>
       log.info("going idle due to termination")
       receive(LeaveSession)
@@ -74,16 +111,17 @@ class SessionActor(
         SessionInfos.update(i_)
         i_
       }      
-    }.getOrElse {      
+    }.getOrElse {
       val res = SessionInfos.create(
         user = this.user.name,
+        color = randomColor(),
         project = project.id,
         activeFile = activeFile,
         active = true)
       context.parent ! SessionChanged(res)
       res      
     }
-    openFiles = OpenFiles.get(this.session.id).map(i => i.id -> i).toMap
+    openFiles = OpenedFiles.get(this.session.id).map(i => i.info.id -> i).toMap
     collaborators -= this.session
   }
 }

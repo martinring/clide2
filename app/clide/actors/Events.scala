@@ -46,10 +46,13 @@ object Events {
   case class SessionInit(
       info: SessionInfo, 
       collaborators: Set[SessionInfo],
-      openFiles: Set[FileInfo],
+      openFiles: Set[OpenedFile],
       activeFile: Option[Long]) extends SessionEvent
   case class SessionChanged(info: SessionInfo) extends SessionEvent
-  case class SessionStopped(info: SessionInfo) extends SessionEvent  
+  case class SessionStopped(info: SessionInfo) extends SessionEvent
+  case class FileSwitched(id: Long) extends SessionEvent
+  case class FileOpened(file: OpenedFile) extends SessionEvent
+  case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent
   
   case class UserProjectInfos(
       userProjects: Set[ProjectInfo],
@@ -96,6 +99,8 @@ object Events {
     case FileCreated(f) => "newfile" of f
     case FileDeleted(f) => "rmfile" of f
     case FileId(i) => "file" of i
+    case FileSwitched(i) => "switch" of i
+    case FileOpened(i) => "opened" of i
     case _ => error("couldnt translate")
   }
 }

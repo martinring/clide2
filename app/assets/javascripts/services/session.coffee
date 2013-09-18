@@ -8,7 +8,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
   session =
     collaborators: null
     openFiles: null
-    activeFiles: null
+    activeFile: null
     me: null
 
   remove = (id) ->
@@ -35,15 +35,24 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
         when 'e'
           Toasts.push 'danger', msg.c
         when 'welcome'
-          $timeout((->
+          $timeout ->
             session.me = msg.info
             session.collaborators = msg.others
             session.openFiles = msg.openFiles
-            session.activeFile = msg.activeFile),0)
+            session.activeFile = msg.activeFile
+        when 'opened'
+          $timeout ->            
+            session.openFiles.push(msg.c)            
+            session.activeFile = msg.c.id
+        when 'switch'
+          $timeout -> 
+            session.activeFile = msg.c
         when 'session_changed'
-          $timeout((->update(msg.c)),0)
+          $timeout ->
+            update(msg.c)
         when 'session_stopped'
-          $timeout((->remove(msg.c.id)),0)
+          $timeout ->
+            remove(msg.c.id)
     ws.onopen = (e) ->
       console.log 'opened'
       for msg in queue
@@ -68,9 +77,9 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
       socket or get(username, project, init)
       send 
         t: 'init'
-    create: (path) -> send
-      t: 'new'
-      path: path or dirs[currentdir].info.path or []
+    openFile: (id) -> send
+      t: 'open'
+      id: id
     leave: ->
       socket.close()
   )

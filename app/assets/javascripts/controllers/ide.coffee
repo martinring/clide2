@@ -41,9 +41,8 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   $scope.openFile = (file) ->
     if file.isDirectory
       $scope.browseTo(file.path)
-    else    
-      $scope.currentFile = file.id    
-      Files.open(file.path)    
+    else          
+      Session.openFile(file.id)    
     
   $scope.deleteFile = (file) ->
     if file.isDirectory
