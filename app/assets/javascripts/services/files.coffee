@@ -4,35 +4,38 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
   
   socket  = undefined
   dirs = { }
-  currentdir = -1
   queue = []
-  selections = { }
-  state = 'disconnected'
+
+  currentDirId = null
+
+  files =
+    currentDir: null
+    state: 'closed'
   
   get = (username, project, init) ->
     ws = new WebSocket(pc.fileBrowser(username,project).webSocketURL())
     queue.push(JSON.stringify(init)) if init?    
     socket= ws
-    $timeout((-> state = 'connecting'),0)
+    $timeout((-> files.state = 'connecting'),0)
     ws.onmessage = (e) ->
       msg = JSON.parse(e.data)
       console.log "received: ", e.data
       switch msg.t
         when 'e'
-          Toasts.push 'danger', msg.c      
+          Toasts.push 'danger', msg.c
         when 'newfile'
           f = -> dirs[msg.c.parent]?.files.push msg.c
-          if msg.c.parent is currentdir
+          if msg.c.parent is currentDirId
             $timeout f, 0
           else f()
         when 'rmfile'
-          f = ->          
-            if dirs[msg.c.parent]?              
+          f = ->
+            if dirs[msg.c.parent]?
               for file, j in dirs[msg.c.parent].files
                 if file.id is msg.c.id
                   dirs[msg.c.parent].files.splice(j,1)
                   return
-          if msg.c.parent is currentdir
+          if msg.c.parent is currentDirId
             $timeout f, 0
           else f()
         when 'folder'
@@ -43,15 +46,15 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
             path.push
               name: segment
               path: p
-          $timeout((->            
-            dirs[msg.info.id] = 
+          $timeout((->
+            dirs[msg.info.id] =
               info: msg.info
               path: path
-              files: msg.files              
-            currentdir = msg.info.id
-            console.log dirs[currentdir]),0)
+              files: msg.files
+            currentDirId = msg.info.id
+            files.currentDir = dirs[currentDirId]),0)
     ws.onopen = (e) ->      
-      $timeout((-> state = 'connected'),0)
+      $timeout((-> files.state = 'connected'),0)
       for msg in queue
         console.log 'sending: ', JSON.stringify(msg)
         ws.send(msg)
@@ -59,7 +62,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
     ws.onclose = (e) ->
       listeners = undefined
       socket = undefined
-      $timeout((-> state= 'disconnected'),0)
+      $timeout((-> files.state= 'disconnected'),0)
 
   send = (message) -> switch socket?.readyState
     when WebSocket.CONNECTING
@@ -70,9 +73,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
       socket.send(data)      
 
   return (
-    state: -> state
-    current: -> dirs[currentdir]
-    selections: selections
+    info: files
     init: (username, project, init) ->
       socket or get(username, project, init)
     explore: (path) -> send
@@ -100,5 +101,5 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
       t: 'new'
       path: path or dirs[currentdir].info.path or []
     leave: ->
-      socket.close()
+      socket.close()      
   )

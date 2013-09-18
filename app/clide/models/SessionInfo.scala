@@ -15,11 +15,12 @@ import scala.slick.lifted.ForeignKeyAction
 case class SessionInfo(
     id: Long,
     user: String,
+    color: String,
     project: Long,
-    activeFile: Option[Long],
+    activeFile: Option[Long],    
     active: Boolean) {
   override def equals(other: Any) = other match {
-    case SessionInfo(id,_,_,_,_) => id == this.id
+    case SessionInfo(id,_,_,_,_,_) => id == this.id
     case _ => false
   }
 }
@@ -30,6 +31,7 @@ object SessionInfo { implicit val json = Json.format[SessionInfo] }
 object SessionInfos extends Table[SessionInfo]("sessions") {
   def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def userName     = column[String]("name")
+  def color        = column[String]("color")
   def projectId    = column[Long]("project")
   def activeFileId = column[Option[Long]]("activeFile")
   def active       = column[Boolean]("active")
@@ -43,12 +45,12 @@ object SessionInfos extends Table[SessionInfo]("sessions") {
       onUpdate = ForeignKeyAction.Cascade, 
       onDelete = ForeignKeyAction.Cascade)
       
-  def * = id ~ userName ~ projectId ~ activeFileId ~ active <> (SessionInfo.apply _, SessionInfo.unapply _)     
+  def * = id ~ userName ~ color ~ projectId ~ activeFileId ~ active <> (SessionInfo.apply _, SessionInfo.unapply _)     
   
-  def create(user: String, project: Long, activeFile: Option[Long], active: Boolean)(implicit session: Session) = {
-    val q = this.id.? ~ this.userName ~ this.projectId ~ this.activeFileId ~ this.active returning this.id
-    val id = q.insert((None,user,project,activeFile,active))
-    SessionInfo(id,user,project,activeFile,active)
+  def create(user: String, color: String, project: Long, activeFile: Option[Long], active: Boolean)(implicit session: Session) = {
+    val q = this.id.? ~ this.userName ~ this.color ~ this.projectId ~ this.activeFileId ~ this.active returning this.id
+    val id = q.insert((None,user,color,project,activeFile,active))
+    SessionInfo(id,user,color,project,activeFile,active)
   }
   
   def update(info: SessionInfo)(implicit session: Session) = {

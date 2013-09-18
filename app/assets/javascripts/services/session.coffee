@@ -3,23 +3,26 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
   pc = routes.clide.web.controllers.Projects
 
   queue = []
-  socket  = undefined
-  me = null
-  collaborators = null
+  socket  = undefined  
+
+  session =
+    collaborators: null
+    openFiles: null
+    activeFiles: null
+    me: null
 
   remove = (id) ->
-    for session, i in collaborators
-      if session.id is id
-        return collaborators.splice(i,1)
+    for s, i in session.collaborators
+      if s.id is id
+        return session.collaborators.splice(i,1)
 
   update = (info) ->
-    for session, i in collaborators
-      if session.id is info.id
-        console.log 'updating', info, i
+    for s, i in session.collaborators
+      if s.id is info.id        
         for k, v of info          
-          collaborators[i][k] = v
+          session.collaborators[i][k] = v
         return true
-    collaborators.push(info)
+    session.collaborators.push(info)
   
   get = (username, project, init) ->
     ws = new WebSocket(pc.session(username,project).webSocketURL())
@@ -33,8 +36,10 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
           Toasts.push 'danger', msg.c
         when 'welcome'
           $timeout((->
-            me = msg.info
-            collaborators = msg.others),0)
+            session.me = msg.info
+            session.collaborators = msg.others
+            session.openFiles = msg.openFiles
+            session.activeFile = msg.activeFile),0)
         when 'session_changed'
           $timeout((->update(msg.c)),0)
         when 'session_stopped'
@@ -46,7 +51,6 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
         ws.send(msg)
       queue = []
     ws.onclose = (e) ->
-      listeners = undefined
       socket = undefined
       console.log e
 
@@ -59,8 +63,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout,Toasts) ->
       socket.send(data)      
 
   return (
-    me: -> me
-    collaborators: -> collaborators
+    info: session
     init: (username, project, init) ->
       socket or get(username, project, init)
       send 

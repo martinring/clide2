@@ -31,7 +31,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
         !session.active        
       }.map { session =>
         sessionActors.get(session.id).getOrElse {
-          context.actorOf(Props(classOf[SessionActor],session.id,sessions,user,this.info))
+          context.actorOf(Props(classOf[SessionActor],Some(session.id),sessions,user,this.info))
         }
       }.getOrElse {
         context.actorOf(Props(classOf[SessionActor],None,sessions,user,this.info))

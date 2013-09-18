@@ -38,7 +38,11 @@ class SessionActor(
       peer ! SessionStopped(info)
     }
     case RequestSessionInfo =>
-      sender ! SessionInit(session,collaborators)
+      sender ! SessionInit(
+          session,
+          collaborators,
+          openFiles.values.toSet,
+          activeFile)
     case EnterSession =>
       setActive(true)
       peer = sender

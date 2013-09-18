@@ -33,7 +33,7 @@ object FileInfo {
   }
 }
 
-object FileInfos extends Table[FileInfo]("openFiles") {
+object FileInfos extends Table[FileInfo]("files") {
   implicit val pathMapper = MappedTypeMapper.base[Seq[String], String](
       _.mkString("/") , _.split('/').toSeq.filter(!_.isEmpty()))
     

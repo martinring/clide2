@@ -17,13 +17,11 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
 
   Session.init($routeParams.user, $routeParams.project)
 
-  $scope.me = Session.me
-  $scope.collaborators = Session.collaborators
+  $scope.session = Session.info
+  $scope.files = Files.info
 
   $scope.browseTo = Files.browseTo
-  $scope.currentDir = Files.current
-  $scope.traffic = Files.traffic
-  $scope.fileConnection = Files.state
+  $scope.currentDir = Files.current  
 
   $scope.reconnect = ->
     Files.init($routeParams.user, $routeParams.project)
@@ -32,7 +30,6 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   $scope.start = () ->
     $scope.state = 'ide'
   
-  $scope.state = 'login'
   $scope.sidebar = true
   $scope.root = null
   $scope.openFiles = []
