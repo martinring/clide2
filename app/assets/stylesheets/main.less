@@ -12,6 +12,9 @@
 @import 'sidebar.less';
 @import 'statusbar.less';
 
+@import 'fonts.less';
+@import 'isabelle.less';
+
 body {
   -webkit-transition: background-color 0.5s ease;
   background-color: #fff;
@@ -70,7 +73,16 @@ a {
   top: 0 !important;
   bottom: 0 !important;
   height: auto !important;
+  .CodeMirror-gutters {
+    border-right: 1px dashed #ddd;
+    background-color: white;    
+    .CodeMirror-linenumber {
+      color: #ddd;
+    }
+  }
 }
+
+
 
 .cm-keyword {
   color: blue !important;  

@@ -1,5 +1,5 @@
 ### @service services:Session ###
-define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/AnnotationStream'], (routes,Operation,CMAdapter,Client,AnnotationStream) -> ($q,$rootScope,$http,Toasts) ->
+define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/AnnotationStream','modes/isabelle/defaultWords'], (routes,Operation,CMAdapter,Client,AnnotationStream,idw) -> ($q,$rootScope,$http,Toasts) ->
   pc = routes.clide.web.controllers.Projects
 
   queue = []
@@ -22,7 +22,9 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
 
     nfile.id   = file.info.id
     nfile.name = file.info.name  
-    nfile.doc  = CodeMirror.Doc(file.state)
+    nfile.doc  = CodeMirror.Doc file.state,
+      name: 'isabelle'
+      words: idw
     
     client  = new Client(file.revision)
     adapter = new CMAdapter(nfile.doc)

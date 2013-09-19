@@ -17,6 +17,8 @@
     <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-animate.js'></script>
     <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-resource.js'></script>
     <script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/codemirror.min.js'></script>
+    <script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/addon/mode/overlay.js'></script>
+    <script type='text/javascript' src='@routes.Assets.at("javascripts/modes/isabelle.js").url'></script>
     @helper.requireJs(core=routes.Assets.at("javascripts/require.js").url, module=routes.Assets.at("javascripts/main").url)
   </head>
   <body ng-controller='AppController' ng-class='{ ide: ide }'>

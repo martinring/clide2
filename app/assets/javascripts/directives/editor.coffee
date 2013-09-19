@@ -8,7 +8,7 @@ define ['routes'], (routes) -> () ->
   scope: 
     document: '&'
     lineNumbers: '&'
-    readOnly: '&'
+    readOnly: '&'    
 
   link: (scope, iElem, iAttrs, controller) ->
     window.countMe = (window.countMe or 0) + 1
