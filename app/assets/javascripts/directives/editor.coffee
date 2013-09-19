@@ -1,49 +1,30 @@
 ### @directive directives:editor ###
-define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/AnnotationStream'], (routes,Operation,CMAdapter,Client,AnnotationStream) -> (Dialog,Session,Toasts,$timeout,$q) -> 
+define ['routes'], (routes) -> () -> 
   restrict: 'E'
   transclude: true
   template: '<textarea></textarea>'
   replace: true
 
+  scope: 
+    document: '&'
+    lineNumbers: '&'
+    readOnly: '&'
+
   link: (scope, iElem, iAttrs, controller) ->
     window.countMe = (window.countMe or 0) + 1
 
-    cm = CodeMirror.fromTextArea iElem[0],      
-      lineNumbers: true
-      undoDepth: 0 # disable
+    cm = CodeMirror.fromTextArea iElem[0],
+      undoDepth:   0 # disable
 
-    scope.$watch (-> scope.$eval(iAttrs.file)), (n,o) ->       
-      if n? 
-        file = Session.getOpenFile(n)      
-        if file
-          if file.doc? # swap
-            cm.swapDoc(file.doc)
-            cm.focus()
-          else # init
-            file.doc    = CodeMirror.Doc(file.state)
-            file.client = new Client(file.revision)
-            adapter     = new CMAdapter(cm,file.doc)
+    scope.$watch 'lineNumbers()', (n,o) ->
+      console.log 'lineNumbers:', n
+      cm.setOption('lineNumbers',n or true)
+      cm.refresh()
 
-            file.client.sendOperation = (revision, operation) ->
-              Session.edit(file.info.id,revision,operation.actions)
-
-            file.client.applyOperation = adapter.applyOperation
-
-            adapter.registerCallbacks
-              change: (op) -> file.client.applyClient(op)
-
-            if file.pending?
-              for op in file.pending
-                if op is 'ack'
-                  file.client.serverAck()
-                if typeof op is 'array'
-                  file.client.applyServer(Operation.fromJSON(msg.op))
-
-            cm.swapDoc(file.doc)
-            $timeout -> # TODO: HACK
-              cm.refresh()
-              cm.focus()
-        else # invalid id
-          Toasts.push 'danger', 'internal error: the editor has been set to invalid file id'
-      else
-        cm.swapDoc(CodeMirror.Doc("###"))
+    scope.$watch 'readOnly()', (n,o) ->
+      console.log 'readOnly:', n
+      cm.setOption('readOnly',n or false)      
+          
+    scope.$watch 'document()', (n,o) -> 
+      console.log n
+      if n? then cm.swapDoc(n) else cm.swapDoc(CodeMirror.Doc(""))

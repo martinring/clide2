@@ -1,22 +1,54 @@
 ### @service services:Session ###
-define ['routes','collab/Operation'], (routes,Operation) -> ($q,$http,$timeout,Toasts) ->
+define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/AnnotationStream'], (routes,Operation,CMAdapter,Client,AnnotationStream) -> ($q,$rootScope,$http,Toasts) ->
   pc = routes.clide.web.controllers.Projects
 
   queue = []
   socket  = undefined  
-  
+
+  clients = { }
+
   session =
     state: 'closed'
     collaborators: null
     openFiles: null
-    activeFile: null
-    me: null  
+    activeFileId: null
+    me: null
 
-  getOpenFile = (id) ->
-    for file in session.openFiles
-      if file.info.id is id
-        return file
-    return false
+  session.activeDoc = ->
+    session.openFiles?[session.activeFileId]?.doc
+
+  apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f)
+
+  initFile = (file) ->
+    nfile = session.openFiles[file.info.id] or { }
+
+    nfile.id   = file.info.id
+    nfile.name = file.info.name  
+    nfile.doc  = CodeMirror.Doc(file.state)
+    
+    client  = new Client(file.revision)
+    adapter = new CMAdapter(nfile.doc)
+
+    client.applyOperation = adapter.applyOperation
+    client.sendOperation  = (rev,op) ->
+      if (nfile.id isnt session.activeFileId)
+        Toast.push 'danger', 'internal error: edit inactive file (todo)'
+      else send
+        r: rev
+        o: op.actions
+
+    adapter.registerCallbacks
+      change: (op) -> client.applyClient(op)
+
+    nfile.$ack   = () -> client.serverAck()
+    nfile.$apply = (os) -> client.applyServer(os)
+
+    unless session.openFiles[file.info.id]?
+      session.openFiles[file.info.id] = (nfile)
+
+    console.log session.openFiles
+
+  getOpenFile = (id) -> session.openFiles[id] or false    
 
   remove = (id) ->
     for s, i in session.collaborators
@@ -35,7 +67,8 @@ define ['routes','collab/Operation'], (routes,Operation) -> ($q,$http,$timeout,T
     ws = new WebSocket(pc.session(username,project).webSocketURL())
     queue.push(JSON.stringify(init)) if init?
     socket = ws
-    $timeout((-> session.state = 'connecting'),0)    
+    apply -> 
+      session.state = 'connecting'
     ws.onmessage = (e) ->
       msg = JSON.parse(e.data)
       console.log "received: ", e.data
@@ -43,50 +76,49 @@ define ['routes','collab/Operation'], (routes,Operation) -> ($q,$http,$timeout,T
         when 'string'
           switch msg
             when 'ack'
-              getOpenFile(session.activeFile).client?.serverAck()
+              getOpenFile(session.activeFileId).$ack()
             else
               Toasts.push 'danger', "internal error: unknown message: #{msg}"        
         when 'object'        
           if msg.length?
-            getOpenFile(session.activeFile).client?.applyServer(Operation.fromJSON(msg))
+            getOpenFile(session.activeFileId).$apply(Operation.fromJSON(msg))
           switch msg.t
             when 'e'
               Toasts.push 'danger', msg.c
             when 'welcome'
-              session.openFiles = []              
-              $timeout ->
+              session.openFiles = { }
+              apply ->
                 session.me = msg.info
                 session.collaborators = msg.others
             when 'opened'
-              session.openFiles.push(msg.c)
-              $timeout ->            
-                session.activeFile = msg.c.info.id #TODO: HACK
+              apply -> initFile(msg.c)
             when 'close'
-              $timeout ->
-                for f, i in session.openFiles
-                  if f.info.id is msg.c
-                    return session.openFiles.splice(i,1)
-                session.activeFile = null
+              apply ->                
+                delete session.openFiles[msg.c]
+                session.activeFileId = null
             when 'switch'
-              session.activeFile = msg.c
-              $timeout -> 
-                session.activeFile = msg.c
+              apply ->
+                session.activeFileId = msg.c
             when 'session_changed'
-              $timeout ->
+              apply ->
                 update(msg.c)
             when 'session_stopped'
-              $timeout ->
+              apply ->
                 remove(msg.c.id)
     ws.onopen = (e) ->
-      $timeout -> session.state = 'connected'
+      apply -> session.state = 'connected'
       console.log 'opened'
       for msg in queue
         console.log 'sending: ', JSON.stringify(msg)
         ws.send(msg)
       queue = []
-    ws.onclose = (e) ->
-      $timeout -> session.state = 'disconnected'
-      socket = undefined
+    ws.onclose = (e) ->      
+      socket = undefined        
+      session.collaborators = null
+      session.openFiles = null
+      session.activeFileId = null
+      session.me = null
+      apply -> session.state = 'disconnected'
       console.log e
 
   send = (message) -> switch socket?.readyState
@@ -110,12 +142,7 @@ define ['routes','collab/Operation'], (routes,Operation) -> ($q,$http,$timeout,T
     closeFile: (id) -> send
       t: 'close'
       id: id
-    edit: (id,rev,actions) ->
-      if (id isnt session.activeFile)
-        Toast.push 'danger', 'internal error: edit inactive file (todo)'
-      else send
-        r: rev
-        o: actions
-    leave: ->
-      socket.close()
+    close: ->
+      queue = []
+      socket?.close()
   )

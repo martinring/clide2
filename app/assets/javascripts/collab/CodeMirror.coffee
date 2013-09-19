@@ -44,7 +44,7 @@ define ['collab/Operation'], (Operation) ->
         return null
 
   class CodeMirrorAdapter
-    constructor: (@cm,@doc) ->      
+    constructor: (@doc) ->
       @doc.on "beforeChange", @onChange
 
     # Removes all event listeners from the CodeMirror instance.
@@ -62,7 +62,7 @@ define ['collab/Operation'], (Operation) ->
                          .retain(doc.getValue().length-to) # could be cached
       
     # Apply an operation to a CodeMirror instance.
-    @applyOperationToCodeMirror: (operation, cm, doc) -> cm.operation ->
+    @applyOperationToCodeMirror: (operation, doc) -> 
       index = 0
       for a in operation.actions
         switch Operation.actionType(a)
@@ -91,5 +91,5 @@ define ['collab/Operation'], (Operation) ->
 
     applyOperation: (operation) =>
       @silent = true
-      CodeMirrorAdapter.applyOperationToCodeMirror operation, @cm, @doc
+      CodeMirrorAdapter.applyOperationToCodeMirror operation, @doc
       @silent = false

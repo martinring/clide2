@@ -126,13 +126,13 @@
       <div id='content'>
         <div class="tabs">
           <ul class="headers">
-            <li ng-repeat='file in session.openFiles' ng-class='{active: session.activeFile==file.info.id}' ng-show='session.state=="connected"'>
-              <span ng-click='openFile(file.info)'>{{file.info.name}}</span>
-              <button type="button" class="close" ng-click='closeFile(file.info.id)' aria-hidden="true">&times;</button>
+            <li ng-repeat='file in session.openFiles' ng-class='{active: session.activeFileId==file.id}' ng-show='session.state=="connected"'>
+              <span ng-click='openFile(file.id)'>{{file.name}}</span>
+              <button type="button" class="close" ng-click='closeFile(file.id)' aria-hidden="true">&times;</button>
             </li>
           </ul>
-          <div class="content" ng-show='session.state=="connected" && session.activeFile'>
-            <editor file='session.activeFile'></editor>
+          <div class="content" ng-show='session.state=="connected" && session.activeDoc()'>
+            <editor document='session.activeDoc()' lineNumbers='true'></editor>
           </div>
         </div>
       </div>

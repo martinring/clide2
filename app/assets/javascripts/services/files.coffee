@@ -100,6 +100,6 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
     create: (path) -> send
       t: 'new'
       path: path or dirs[currentdir].info.path or []
-    leave: ->
-      socket.close()      
+    close: ->
+      socket?.close()
   )

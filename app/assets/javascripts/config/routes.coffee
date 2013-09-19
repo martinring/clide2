@@ -3,7 +3,7 @@ define ['routes'], (routes) -> ($routeProvider, $locationProvider) ->
   $locationProvider.html5Mode(true)
 
   $routeProvider.when '/'  
-    redirectTo: '/login'    
+    redirectTo: '/login'
   $routeProvider.when '/login'
     title:       'login'
     templateUrl: '/client/partials/login.html'

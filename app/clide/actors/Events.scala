@@ -106,6 +106,7 @@ object Events {
     case FileOpened(i) => "opened" of i
     case Edited(o) => Json.toJson(o)
     case AcknowledgeEdit => JsString("ack")    
+    case DoesntExist => "e" of "internal error: the referenced resource doesn't exist on the server"
     case _ => error("couldnt translate")
   }
 }
