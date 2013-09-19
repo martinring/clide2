@@ -91,8 +91,7 @@
   box-shadow: 0 0 4px #000;
   .breadcrumb {
     padding: 0 0 2px 0;
-    margin-bottom: 4px;
-    border-bottom: 1px dashed lightGray;
+    margin-bottom: 4px;    
     & > li + li:before {
       content: "/";
       padding: 0 0 0 3px;
@@ -113,13 +112,26 @@
       padding: 2px 16px;
       margin: 0 -16px;    
       border: none;
+      .icon-stop {
+        margin-left: 3px;
+      }
+      &.active {        
+        padding-left: 8px;
+        color: @text-color;
+        border-left: 8px solid @brand-primary;
+        background-color: transparent;
+        &:hover,
+        &:focus {          
+          background-color: @list-group-hover-bg;
+        }
+      }
     }
     margin: 0;
     margin-bottom: 8px;
     padding: 0;
     list-style: none;
-    opacity: 0.6;
-    -webkit-transition: opacity @quick-transition ease;
+    /*opacity: 0.6;
+    -webkit-transition: opacity @quick-transition ease;*/
     
     position: relative;
 

@@ -99,6 +99,9 @@ class SessionActor(
       peer ! AcknowledgeEdit
     case Edited(f,op) =>     
       peer ! Edited(f,op)
+    case SetColor(value) =>
+      session = session.copy(color = value)
+      context.parent ! SessionChanged(session)      
     case CloseFile(id) =>
       openFiles.get(id).map { file =>
         fileServers.get(id).map(_ ! EOF)
@@ -112,7 +115,7 @@ class SessionActor(
       openFiles -= id
       fileServers -= id
       if (session.activeFile.map(_ == id).getOrElse(false)) {
-        session.copy(activeFile = openFiles.keys.headOption)
+        session = session.copy(activeFile = openFiles.keys.headOption)
         peer ! FileSwitched(session.activeFile)
         context.parent ! SessionChanged(session)
       }

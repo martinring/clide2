@@ -47,6 +47,9 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
     else
       Session.openFile(file.id or file)
 
+  $scope.setColor = (color) ->
+    Session.setColor(color)
+
   $scope.closeFile = (id) ->
     Session.closeFile(id)
     

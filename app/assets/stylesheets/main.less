@@ -73,12 +73,16 @@ a {
   top: 0 !important;
   bottom: 0 !important;
   height: auto !important;
+  .CodeMirror-linenumber {
+    color: #ddd;
+    padding: 0 8px 0 8px;
+    min-width: 24px;
+    text-align: right;
+  }  
   .CodeMirror-gutters {
-    border-right: 1px dashed #ddd;
+    border-right: none;
     background-color: white;    
-    .CodeMirror-linenumber {
-      color: #ddd;
-    }
+
   }
 }
 

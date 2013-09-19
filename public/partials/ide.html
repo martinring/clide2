@@ -45,16 +45,15 @@
             </ul>            
             <div class='list-group' ng-show='files.state=="connected"'>
               <a ng-repeat='file in files.currentDir.files | orderBy:["-isDirectory","+name"]'
-                 ng-click='selectFile(file)'
-                 ng-dblclick='openFile(file)'
+                 ng-click='openFile(file)'
                  class='list-group-item'
-                 ng-class='{ active: file.id==selectedFile, open: file.doc!=null, "text-muted": file.deleted }'>
+                 ng-class='{ active: file.id==session.activeFileId, open: file.doc!=null, "text-muted": file.deleted }'>
                  <i class='icon-fixed-width' ng-class='{ "icon-folder-close": file.isDirectory, "icon-file": !file.isDirectory }'></i> {{file.name}}
-                 <span class='pull-right' ng-show='file.id==selectedFile'>
+                 <!--<span class='pull-right' ng-show='file.id==activeFileId'>
                    <i ng-click='deleteFile(file)' class='icon-fixed-width icon-trash'></i>
-                 </span>
+                 </span>-->
                  <span class='pull-right'>
-                   <i class='icon-user icon-fixed-width' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id} ' title='{{user.user}}' style='color:{{user.color}}'></i>
+                   <i ng-if='file.id==session.activeFileId' class='icon-stop' title='{{session.me.name}}' ng-style="{color: session.me.color}"></i><i class='icon-stop' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id} ' title='{{user.user}}' ng-style='{color: user.color}'></i>
                  </span>
               </a>              
               <div class='placeholder' ng-if='files.currentDir.files.length == 0'>
@@ -69,16 +68,43 @@
             </div>
           </li>
           <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
-            <h3>Collaboration</h3>            
+            <div class='pull-right' style='position:relative'>
+              <a class='btn btn-default dropdown-toggle' title='click to choose color' ng-style="{'border-color':session.me.color,'background-color':session.me.color}"><i class='icon-user'></i></a>
+              <ul class="dropdown-menu" role='menu'>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#a4c400')"><i class='icon-fixed-width icon-stop' style='color:#a4c400'></i> Lime</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#60a917')"><i class='icon-fixed-width icon-stop' style='color:#60a917'></i> Green</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#008a00')"><i class='icon-fixed-width icon-stop' style='color:#008a00'></i> Emerald</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#00aba9')"><i class='icon-fixed-width icon-stop' style='color:#00aba9'></i> Teal</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#1ba1e2')"><i class='icon-fixed-width icon-stop' style='color:#1ba1e2'></i> Cyan</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#0050ef')"><i class='icon-fixed-width icon-stop' style='color:#0050ef'></i> Cobalt</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#6a00ff')"><i class='icon-fixed-width icon-stop' style='color:#6a00ff'></i> Indigo</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#aa00ff')"><i class='icon-fixed-width icon-stop' style='color:#aa00ff'></i> Violet</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#f472d0')"><i class='icon-fixed-width icon-stop' style='color:#f472d0'></i> Pink</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#d80073')"><i class='icon-fixed-width icon-stop' style='color:#d80073'></i> Magenta</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#a20025')"><i class='icon-fixed-width icon-stop' style='color:#a20025'></i> Crimson</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#e51400')"><i class='icon-fixed-width icon-stop' style='color:#e51400'></i> Red</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#fa6800')"><i class='icon-fixed-width icon-stop' style='color:#fa6800'></i> Orange</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#f0a30a')"><i class='icon-fixed-width icon-stop' style='color:#f0a30a'></i> Amber</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#e3c800')"><i class='icon-fixed-width icon-stop' style='color:#e3c800'></i> Yellow</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#825a2c')"><i class='icon-fixed-width icon-stop' style='color:#825a2c'></i> Brown</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#6d8764')"><i class='icon-fixed-width icon-stop' style='color:#6d8764'></i> Olive</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#647687')"><i class='icon-fixed-width icon-stop' style='color:#647687'></i> Steel</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#76608a')"><i class='icon-fixed-width icon-stop' style='color:#76608a'></i> Mauve</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('#a0522d')"><i class='icon-fixed-width icon-stop' style='color:#a0522d'></i> Sienna</a></li>
+              </ul>                
+            </div>  
+            <h3>Collaboration</h3>      
             <div ng-show="session.state=='connected'">
-              <p ng-show='session.me'>
-                <span><span class='label' style='background-color:{{session.me.color}}'>You</span> are logged in as {{session.me.user}}. <span>
+              <div ng-show='session.me'>                
+                <p>
                 <ng-pluralize count='session.collaborators.length' 
                               when="{'0': 'You are currently the only user in this project.',
                                      '1': 'One other user is participating in this project:',
                                      '2': 'Two other users are participating in this project:',
                                      'other': '{} other users are participating in this project:'}">
                 </ng-pluralize>
+                </p>
+              </div>
               <ul class='list-group'>                    
                 <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
                   <span class='label' style='background-color:{{user.color}}'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-if='user.active'>online</span><span class='badge' ng-if='!user.active'>offline</span>
@@ -130,8 +156,9 @@
         <div class="tabs">
           <ul class="headers">
             <li ng-repeat='file in session.openFiles' ng-class='{active: session.activeFileId==file.id}' ng-show='session.state=="connected"'>
-              <span ng-click='openFile(file.id)'>{{file.name}} </span>
-              <i class='icon-user' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id}' title='{{user.user}}' style='color:{{user.color}}'></i><button type="button" class="close" ng-click='closeFile(file.id)' aria-hidden="true">&times;</button>
+              <i class='icon-stop icon-fixed-width' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id}' title='{{user.user}}' style='color:{{user.color}}'></i>
+              <span ng-click='openFile(file.id)'>{{file.name}}</span>
+              <button type="button" class="close" ng-click='closeFile(file.id)' aria-hidden="true">&times;</button>
             </li>
           </ul>
           <div class="content" ng-show='session.state=="connected" && session.activeDoc()'>

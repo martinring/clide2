@@ -1,5 +1,5 @@
-### @service services:Session ###
-define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/AnnotationStream','modes/isabelle/defaultWords'], (routes,Operation,CMAdapter,Client,AnnotationStream,idw) -> ($q,$rootScope,$http,Toasts) ->
+### @service services:BackstageSession ###
+define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
   pc = routes.clide.web.controllers.Projects
 
   queue = []
@@ -12,58 +12,8 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
     activeFileId: null
     me: null
 
-  session.activeDoc = ->
-    session.openFiles?[session.activeFileId]?.doc
+  apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f)
 
-  apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f) else f()
-
-  initFile = (file) ->
-    nfile = session.openFiles[file.info.id] or { }
-
-    nfile.id   = file.info.id
-    nfile.name = file.info.name  
-    nfile.doc  = CodeMirror.Doc file.state,
-      name: 'isabelle'
-      words: idw
-    
-    client  = new Client(file.revision)
-    adapter = new CMAdapter(nfile.doc)
-
-    client.applyOperation = adapter.applyOperation
-    client.sendOperation  = (rev,op) ->
-      if (nfile.id isnt session.activeFileId)
-        Toast.push 'danger', 'internal error: edit inactive file (todo)'
-      else send
-        r: rev
-        o: op.actions
-
-    adapter.registerCallbacks
-      change: (op) -> client.applyClient(op)
-
-    nfile.$ack   = () -> client.serverAck()
-    nfile.$apply = (os) -> client.applyServer(os)
-
-    unless session.openFiles[file.info.id]?
-      session.openFiles[file.info.id] = (nfile)
-
-    console.log session.openFiles
-
-  getOpenFile = (id) -> session.openFiles[id] or false    
-
-  remove = (id) ->
-    for s, i in session.collaborators
-      if s.id is id
-        return session.collaborators.splice(i,1)
-
-  update = (info) ->
-    for s, i in session.collaborators
-      if s.id is info.id        
-        for k, v of info          
-          session.collaborators[i][k] = v
-        session.collaborators[i].activeFile = info.activeFile
-        return true
-    session.collaborators.push(info)
-  
   get = (username, project, init) ->
     ws = new WebSocket(pc.session(username,project).webSocketURL())
     queue.push(JSON.stringify(init)) if init?
@@ -143,11 +93,6 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
     closeFile: (id) -> send
       t: 'close'
       id: id
-    setColor: (color) -> 
-      session.me.color = color      
-      send
-        t: 'color'
-        c: color
     close: ->
       queue = []
       socket?.close()

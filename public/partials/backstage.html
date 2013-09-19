@@ -23,8 +23,9 @@
           <h2>Profile</h2>
           <p><img class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=400'></img></p>          
           <ul class='list-unstyled icons-ul'>
-          <li><i class='icon-li icon-male'></i>{{user}}</li>
-          <li><i class='icon-li icon-envelope'></i>{{email}}</li>
+          <li><i class='icon-li icon-user'></i> {{user}}</li>
+          <li><i class='icon-li icon-envelope'></i> {{email}}</li>
+          <li><i class='icon-li icon-sign-blank' style='color:#119900'></i><span class='dropdown-toggle' data-toggle='dropdown'>change preferred color...</span></li>
           <li><i class='icon-li icon-signout'></i><a ng-click='logout()'>log out</a></li>
           </ul>
         </div>
@@ -39,7 +40,7 @@
           <h2>About clide</h2>
           <p>You are looking at version {{version}}.</p>
           <p>Copyright 2011-2013 by <a href='http://github.com/martinring'>Martin Ring</a>.</p>
-          <p>The source code is hosted on <a href='http://github.com/martinring/clide2'>github</a>.</p>              
+          <p>The source code is hosted on <a href='http://github.com/martinring/clide2'>github</a>.</p>
         </div>              
       </div>      
     </div>      

@@ -169,8 +169,8 @@
 @dropdown-link-active-bg:        @component-active-bg;
 
 @dropdown-link-color:            @gray-dark;
-@dropdown-link-hover-color:      #fff;
-@dropdown-link-hover-bg:         @dropdown-link-active-bg;
+@dropdown-link-hover-color:      @text-color;
+@dropdown-link-hover-bg:         rgba(0,0,0,0.1);
 
 @dropdown-link-disabled-color:   @text-muted;
 
@@ -807,7 +807,15 @@ input[type="color"],
   border-width: 0;
 }
 
-label {
+.label {
+  border-radius: 0;
+}
+
+.badge {
+  border-radius: 0;
+}
+
+label {  
   font-weight: normal;
 }
 

@@ -61,11 +61,12 @@ object Messages {
   
   case object EOF extends Message
   
-  trait SessionMessage extends Message  
+  trait SessionMessage extends Message
   case object EnterSession extends SessionMessage
   case object LeaveSession extends SessionMessage
   case object CloseSession extends SessionMessage
   case object RequestSessionInfo extends SessionMessage
+  case class SetColor(value: String) extends SessionMessage
   case class SwitchFile(id: Long) extends SessionMessage
   case class CloseFile(id: Long) extends SessionMessage
   case class Edit(revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage

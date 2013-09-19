@@ -20,7 +20,8 @@ object ApplicationBuild extends Build {
         "angular-animate"  -> "ngAnimate",
         "angular-cookies"  -> "ngCookies",
         "angular-route"    -> "ngRoute",
-        "angular-resource" -> "ngResource"),
+        "angular-resource" -> "ngResource",
+        "ui-bootstrap"     -> "ui.bootstrap"),
     Angular.moduleDirs ++= Map(
         "controllers" -> ("controller", "Controller", true),
         "directives" -> ("directive","",false),

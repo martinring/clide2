@@ -48,7 +48,7 @@ object Events {
       info: SessionInfo, 
       collaborators: Set[SessionInfo]) extends SessionEvent
   case class SessionChanged(info: SessionInfo) extends SessionEvent
-  case class SessionStopped(info: SessionInfo) extends SessionEvent
+  case class SessionStopped(info: SessionInfo) extends SessionEvent  
   case class FileSwitched(id: Option[Long]) extends SessionEvent
   case class FileClosed(id: Long) extends SessionEvent
   case class FileOpened(file: OpenedFile) extends SessionEvent

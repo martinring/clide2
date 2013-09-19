@@ -61,6 +61,8 @@ object Projects extends Controller with UserRequests {
 	            SwitchFile((json \ "id").as[Long])
 	          case "close" =>
 	            CloseFile((json \ "id").as[Long])
+	          case "color" =>
+	            SetColor((json \ "c").as[String])
 	        }
 	      }
           case Some(rev) => Edit(rev,(json\"o").as[Operation](Operation.SourceOperationFormat))
