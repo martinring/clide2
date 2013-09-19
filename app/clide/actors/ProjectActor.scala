@@ -43,18 +43,16 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       }.getOrElse {
         context.actorOf(Props(classOf[SessionActor],None,sessions,user,this.info))
       }.forward(EnterSession)
-    case msg @ WithPath(_,OpenFile) =>
-      log.info("open file")
-      root.forward(msg)
-    case msg @ WithPath(_,Edit(_,_)) =>
-      log.info("edit file")
+    case msg @ WithPath(_,_: FileWriteMessage) =>
       root.forward(msg)
   }
   
   def read: Receive = {
     case StartFileBrowser =>
       val browser = context.actorOf(Props(classOf[FileBrowser],false,root))
-      browser.forward(StartFileBrowser)    
+      browser.forward(StartFileBrowser)
+    case msg @ WithPath(_,_: FileReadMessage) =>
+      root.forward(msg)
   }
   
   def none: Receive = {

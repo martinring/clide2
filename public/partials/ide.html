@@ -53,6 +53,9 @@
                  <span class='pull-right' ng-show='file.id==selectedFile'>
                    <i ng-click='deleteFile(file)' class='icon-fixed-width icon-trash'></i>
                  </span>
+                 <span class='pull-right'>
+                   <i class='icon-user icon-fixed-width' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id} ' title='{{user.user}}' style='color:{{user.color}}'></i>
+                 </span>
               </a>              
               <div class='placeholder' ng-if='files.currentDir.files.length == 0'>
                 This folder is empty. Create a <a ng-click='createFile(files.currentDir.info)'>new file</a> or <a ng-click='createFolder(files.currentDir.info)'>folder</a> to get started.
@@ -127,8 +130,8 @@
         <div class="tabs">
           <ul class="headers">
             <li ng-repeat='file in session.openFiles' ng-class='{active: session.activeFileId==file.id}' ng-show='session.state=="connected"'>
-              <span ng-click='openFile(file.id)'>{{file.name}}</span>
-              <button type="button" class="close" ng-click='closeFile(file.id)' aria-hidden="true">&times;</button>
+              <span ng-click='openFile(file.id)'>{{file.name}} </span>
+              <i class='icon-user' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id}' title='{{user.user}}' style='color:{{user.color}}'></i><button type="button" class="close" ng-click='closeFile(file.id)' aria-hidden="true">&times;</button>
             </li>
           </ul>
           <div class="content" ng-show='session.state=="connected" && session.activeDoc()'>

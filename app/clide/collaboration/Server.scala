@@ -15,7 +15,7 @@ class Server(initialState: Document) {
   def revision = history.length
   def getHistory = history.view
     
-  def applyOperation(rev: Long, operation: Operation): Try[Operation] = {
+  def applyOperation(operation: Operation, rev: Long): Try[Operation] = {
     val result = for {
 	  concurrentOps <- Try {
 	    require((0 to revision) contains rev, "invalid revision: " + rev)	    

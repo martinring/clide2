@@ -19,7 +19,6 @@ class SessionActor(
   val level = ProjectAccessLevel.Admin // TODO
   var session: SessionInfo = null
   var peer = context.system.deadLetters
-  var activeFile: Option[Long] = None  
   var openFiles = Map[Long,FileInfo]()  
   var fileServers = Map[Long,ActorRef]()
   
@@ -80,24 +79,26 @@ class SessionActor(
         q.delete
       }
       context.parent ! SessionStopped(session)
-    case SwitchFile(id) => if (activeFile != Some(id)) {
-      log.info("open file")      
-      activeFile = Some(id)
+    case SwitchFile(id) => if (session.activeFile != Some(id)) {
+      log.info("open file")
+      session = session.copy(activeFile = Some(id))
       if (openFiles.contains(id)) {        
-        peer ! FileSwitched(activeFile)
+        peer ! FileSwitched(session.activeFile)
+        
       } else {
         DB.withSession { implicit session: Session => 
           FileInfos.get(id).firstOption.map { info =>
             context.parent ! WrappedProjectMessage(user,level,WithPath(info.path,OpenFile))
           } 
         }        
-      }   
+      }
+      context.parent ! SessionChanged(session)
     }
     case AcknowledgeEdit => // TODO: CONCURRENCY STUFF!!!
-      activeFile.map(fileServers += _ -> sender)
+      session.activeFile.map(fileServers += _ -> sender)
       peer ! AcknowledgeEdit
-    case Edited(op) =>
-      peer ! Edited(op)
+    case Edited(f,op) =>     
+      peer ! Edited(f,op)
     case CloseFile(id) =>
       openFiles.get(id).map { file =>
         fileServers.get(id).map(_ ! EOF)
@@ -110,12 +111,13 @@ class SessionActor(
       }
       openFiles -= id
       fileServers -= id
-      if (activeFile.map(_ == id).getOrElse(false)) {
-        activeFile = openFiles.keys.headOption
-        peer ! FileSwitched(activeFile)
+      if (session.activeFile.map(_ == id).getOrElse(false)) {
+        session.copy(activeFile = openFiles.keys.headOption)
+        peer ! FileSwitched(session.activeFile)
+        context.parent ! SessionChanged(session)
       }
     case msg @ Edit(_,_) =>      
-      activeFile.map{ id => 
+      session.activeFile.map{ id => 
         fileServers.get(id).map{ ref =>
           log.info("forwarding edit to ref")
           ref ! msg
@@ -136,11 +138,15 @@ class SessionActor(
       }              
       fileServers += f.id -> sender      
       peer ! FileOpened(of)
-      if (activeFile == Some(f.id))
-        peer ! FileSwitched(activeFile)
+      if (session.activeFile == Some(f.id))
+        peer ! FileSwitched(session.activeFile)
     case Terminated(ref) =>
       log.info("going idle due to termination")
       receive(LeaveSession)
+  }
+  
+  override def postStop() = DB.withSession { implicit session: Session =>
+    SessionInfos.update(this.session)   
   }
   
   override def preStart() = DB.withSession { implicit session: Session =>
@@ -155,7 +161,7 @@ class SessionActor(
         user = this.user.name,
         color = randomColor(),
         project = project.id,
-        activeFile = activeFile,
+        activeFile = None,
         active = true)
       context.parent ! SessionChanged(res)
       res      

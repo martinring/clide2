@@ -5,8 +5,6 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
   queue = []
   socket  = undefined  
 
-  clients = { }
-
   session =
     state: 'closed'
     collaborators: null
@@ -60,6 +58,7 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
       if s.id is info.id        
         for k, v of info          
           session.collaborators[i][k] = v
+        session.collaborators[i].activeFile = info.activeFile
         return true
     session.collaborators.push(info)
   
@@ -80,8 +79,8 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
             else
               Toasts.push 'danger', "internal error: unknown message: #{msg}"        
         when 'object'        
-          if msg.length?
-            getOpenFile(session.activeFileId).$apply(Operation.fromJSON(msg))
+          if msg.f? and msg.o?
+            getOpenFile(msg.f).$apply(Operation.fromJSON(msg.o))
           switch msg.t
             when 'e'
               Toasts.push 'danger', msg.c

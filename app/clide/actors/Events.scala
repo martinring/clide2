@@ -52,7 +52,7 @@ object Events {
   case class FileSwitched(id: Option[Long]) extends SessionEvent
   case class FileClosed(id: Long) extends SessionEvent
   case class FileOpened(file: OpenedFile) extends SessionEvent
-  case class Edited(op: Operation) extends SessionEvent
+  case class Edited(file: Long, op: Operation) extends SessionEvent
   case object AcknowledgeEdit extends SessionEvent
   case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent
   
@@ -104,7 +104,7 @@ object Events {
     case FileSwitched(i) => "switch" of i
     case FileClosed(i) => "close" of i
     case FileOpened(i) => "opened" of i
-    case Edited(o) => Json.toJson(o)
+    case Edited(file,o) => Json.obj("f"->file,"o"->o)
     case AcknowledgeEdit => JsString("ack")    
     case DoesntExist => "e" of "internal error: the referenced resource doesn't exist on the server"
     case _ => error("couldnt translate")
