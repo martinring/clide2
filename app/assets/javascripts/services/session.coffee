@@ -87,7 +87,8 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
             when 'e'
               Toasts.push 'danger', msg.c
             when 'welcome'
-              session.openFiles = { }
+              session.openFiles = { }              
+              document.getElementById('theme').href = "/client/stylesheets/colors/#{msg.info.color}.css"
               apply ->
                 session.me = msg.info
                 session.collaborators = msg.others
@@ -144,7 +145,8 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
       t: 'close'
       id: id
     setColor: (color) -> 
-      session.me.color = color      
+      session.me.color = color
+      document.getElementById('theme').href = "/client/stylesheets/colors/#{color}.css"
       send
         t: 'color'
         c: color

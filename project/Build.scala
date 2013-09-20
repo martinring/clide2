@@ -13,7 +13,7 @@ object ApplicationBuild extends Build {
     
   val main = play.Project(appName, appVersion, appDependencies).settings(Angular.defaultSettings:_*).settings(    
     scalaVersion := "2.10.2",    
-    lessEntryPoints <<= (sourceDirectory in Compile)(base => base / "assets" / "stylesheets" ** "main.less"),
+    lessEntryPoints <<= (sourceDirectory in Compile)(base => base / "assets" / "stylesheets" / "colors" * "*.less"),
     requireJs += "main.js",
     requireJsShim += "main.js",
     Angular.otherModules ++= Map(

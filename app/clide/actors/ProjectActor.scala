@@ -14,7 +14,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   var user: UserInfo = null
   var level = ProjectAccessLevel.None
   var root: ActorRef     = context.system.deadLetters
-  
+    
   var sessions      = Set[SessionInfo]()
   var sessionActors = Map[Long,ActorRef]() 
        
@@ -25,7 +25,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       }
       sender         ! DeletedProject(info)
       context.parent ! DeletedProject(info)
-      context.stop(self)
+      context.stop(self)     
   }
   
   def write: Receive = {

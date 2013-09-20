@@ -34,6 +34,7 @@ object Messages {
   case class WithProject(name: String, message: ProjectMessage) extends UserMessage
   case object BrowseProjects extends UserMessage
   case class StartSession(project: String) extends UserMessage
+  case object StartBackstageSession extends UserMessage
     
   case class WrappedProjectMessage(
       user: UserInfo,
@@ -44,8 +45,8 @@ object Messages {
   object DeleteProject extends ProjectMessage 
   
   case class WithPath(path: Seq[String], message: FileMessage) extends ProjectMessage with FileMessage
-  case object StartFileBrowser extends ProjectMessage
-  case object StartSession     extends ProjectMessage
+  case object StartFileBrowser      extends ProjectMessage
+  case object StartSession          extends ProjectMessage  
 
   trait FileMessage        extends Message
   trait FileReadMessage    extends FileMessage

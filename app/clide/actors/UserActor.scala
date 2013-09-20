@@ -16,20 +16,25 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
   
   var logins   = Map[String,LoginInfo]()
   var projects = Map[String,ProjectInfo]()
+  var otherProjects = Map[ProjectInfo,ProjectAccessLevel.Value]()
+  var backstagePeer: Option[ActorRef] = None
 
   override def preStart() {
     log.info("initializing user actor")    
     logins = DB.withSession { implicit session: Session =>
       LoginInfos.getForUser(user.name).elements.map(l => l.key -> l).toMap
-    }    
-    projects = DB.withSession { implicit session: scala.slick.session.Session => 
+    }
+    projects = DB.withSession { implicit session: scala.slick.session.Session =>
       ProjectInfos.byOwner(user.name).map(p => p.name -> p).toMap
+    }
+    otherProjects = DB.withSession { implicit session: scala.slick.session.Session =>
+      ProjectAccessLevels.getUserProjects(user.name).elements.toMap
     }
     log.info("creating project actors")
     projects.foreach { case (name,project) =>
       context.actorOf(Props(classOf[ProjectActor],project),name)
     }
-  }  
+  }
   
   def authenticate(key: String): Either[AuthEvent,LoginInfo] = 
     logins.get(key).toRight(SessionTimedOut) // TODO: Handle Timeouts    
@@ -43,6 +48,8 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
     // EVENTS
     case DeletedProject(project) =>
       projects -= project.name
+    case Terminated(peer) =>
+      backstagePeer = backstagePeer.filter(_ != peer)
   }
   
   def anonymous: Receive = {
@@ -85,6 +92,11 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       context.actorOf(Props(classOf[ProjectActor], project), project.name)
       sender ! CreatedProject(project)
       context.system.eventStream.publish(CreatedProject(project))
+    
+    case StartBackstageSession =>
+      backstagePeer = Some(sender)
+      context.watch(sender)
+      sender ! EventSocket(self)
       
     case WithProject(name,msg) =>
       projects.get(name) match {

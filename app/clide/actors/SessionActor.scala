@@ -84,7 +84,6 @@ class SessionActor(
       session = session.copy(activeFile = Some(id))
       if (openFiles.contains(id)) {        
         peer ! FileSwitched(session.activeFile)
-        
       } else {
         DB.withSession { implicit session: Session => 
           FileInfos.get(id).firstOption.map { info =>
