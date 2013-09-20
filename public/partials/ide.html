@@ -46,7 +46,8 @@
             <div class='list-group' ng-show='files.state=="connected"'>
               <a ng-repeat='file in files.currentDir.files | orderBy:["-isDirectory","+name"]'
                  ng-click='openFile(file)'                
-                 class='list-group-item bordercolor-{{session.me.color}}'
+                 class='list-group-item'
+                 context-menu='fileContextMenu(file)'
                  ng-class='{ active: file.id==session.activeFileId, open: file.doc!=null, "text-muted": file.deleted }'>
                  <i class='icon-fixed-width' ng-class='{ "icon-folder-close": file.isDirectory, "icon-file": !file.isDirectory }'></i> {{file.name}}
                  <!--<span class='pull-right' ng-show='file.id==activeFileId'>
@@ -68,14 +69,14 @@
             </div>
           </li>
           <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
-            <div ng-show='session.state=="connected"' class='pull-right' style='position:relative'>
-              <a class='btn btn-primary dropdown-toggle color-{{session.me.color}}' title='click to choose color'><i class='icon-user'></i></a>
+            <div ng-show='session.state=="connected"' class='pull-right' style='position:relative'>              
+              <span class='btn dropdown-toggle bgcolor-{{session.me.color}}' style='color:white' title='click to choose color'><i class='icon-user'></i></span>
               <ul class="dropdown-menu" role='menu'>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('crimson')"><i class='icon-fixed-width icon-stop color-crimson'></i> Crimson</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('red')"><i class='icon-fixed-width icon-stop color-red'></i> Red</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('orange')"><i class='icon-fixed-width icon-stop color-orange'></i> Orange</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('yellow')"><i class='icon-fixed-width icon-stop color-yellow'></i> Yellow</a></li>
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('lime')"><i class='icon-fixed-width icon-stop color-lime'></i> Lime</a></li>
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('green')"><i class='icon-fixed-width icon-stop color-green'></i> Green</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('lime')"><i class='icon-fixed-width icon-stop color-lime'></i> Lime</a></li>              
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('cyan')"><i class='icon-fixed-width icon-stop color-cyan'></i> Cyan</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('blue')"><i class='icon-fixed-width icon-stop color-blue'></i> Blue</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('violet')"><i class='icon-fixed-width icon-stop color-violet'></i> Violet</a></li>
@@ -83,19 +84,19 @@
             </div>  
             <h3>Collaboration</h3>      
             <div ng-show="session.state=='connected'">
-              <div ng-show='session.me'>                
-                <p>
-                <ng-pluralize count='session.collaborators.length' 
-                              when="{'0': 'You are currently the only user in this project.',
-                                     '1': 'One other user is participating in this project:',
-                                     '2': 'Two other users are participating in this project:',
-                                     'other': '{} other users are participating in this project:'}">
-                </ng-pluralize>
+              <div ng-show='session.me'>
+                <p>                
+                  <ng-pluralize count='session.collaborators.length' 
+                                when="{'0': 'You are currently the only user in this project.',
+                                       '1': 'One other user is participating in this project:',
+                                       '2': 'Two other users are participating in this project:',
+                                       'other': '{} other users are participating in this project:'}">
+                  </ng-pluralize>
                 </p>
               </div>
               <ul class='list-group'>                    
                 <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
-                  <span class='label bgcolor-{{user.color}}'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-if='user.active'>online</span><span class='badge' ng-if='!user.active'>offline</span>
+                  <span class='label bgcolor-{{user.color}}'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
                 </li>
               </ul>
             </div>

@@ -1,5 +1,5 @@
 ### @service services:Session ###
-define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/AnnotationStream','modes/isabelle/defaultWords'], (routes,Operation,CMAdapter,Client,AnnotationStream,idw) -> ($q,$rootScope,$http,Toasts) ->
+define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations','modes/isabelle/defaultWords'], (routes,Operation,CMAdapter,Client,Annotations,idw) -> ($q,$rootScope,$http,Toasts) ->
   pc = routes.clide.web.controllers.Projects
 
   queue = []
@@ -21,11 +21,19 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
     nfile = session.openFiles[file.info.id] or { }
 
     nfile.id   = file.info.id
-    nfile.name = file.info.name  
-    nfile.doc  = CodeMirror.Doc file.state,
-      name: 'isabelle'
-      words: idw
+    nfile.name = file.info.name        
+    if file.info.mimeType is 'text/isabelle'  
+      console.log 'true'
+      nfile.doc  = CodeMirror.Doc file.state,
+        name: 'isabelle'
+        words: idw
+    else
+      nfile.doc = CodeMirror.Doc file.state, (file.info.mimeType or 'text/plain')
     
+    #### TODO: Move in own module ####    
+
+    ##################################
+
     client  = new Client(file.revision)
     adapter = new CMAdapter(nfile.doc)
 
@@ -36,6 +44,7 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
       else send
         r: rev
         o: op.actions
+        c: nfile.doc.indexFromPos(nfile.doc.getCursor())        
 
     adapter.registerCallbacks
       change: (op) -> client.applyClient(op)

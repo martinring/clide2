@@ -15,9 +15,8 @@ import clide.collaboration.Operation
 case class Revision(file: Long, id: Long, op: Operation)
 
 object Revisions extends Table[Revision]("revisions") {
-  implicit val opMapper = MappedTypeMapper.base[Operation, String](
-    Operation.SourceOperationFormat.writes(_).toString , s => Operation.SourceOperationFormat.reads(Json.parse(s)).get)
-    
+  import Mappers._
+  
   def fileId  = column[Long]("fileId")
   def id      = column[Long]("id")
   def content = column[Operation]("content")

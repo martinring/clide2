@@ -39,8 +39,8 @@ define ->
 
   class Operation
     constructor: ->
-      @actions = []    
-      @inputLength = 0    
+      @actions = []
+      @inputLength = 0
       @outputLength = 0
   
     equals = (other) ->

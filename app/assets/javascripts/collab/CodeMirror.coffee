@@ -1,4 +1,4 @@
-define ['collab/Operation'], (Operation) ->
+define ['collab/Operation','collab/Annotations'], (Operation,Annotations) ->
   skipOne = (state) ->
     if state.remaining.length > 0
       switch typeof state.remaining[0]
@@ -60,7 +60,7 @@ define ['collab/Operation'], (Operation) ->
                          .delete(length)
                          .insert(change.text.join('\n') )
                          .retain(doc.getValue().length-to) # could be cached
-      
+
     # Apply an operation to a CodeMirror instance.
     @applyOperationToCodeMirror: (operation, doc) -> 
       index = 0

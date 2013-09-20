@@ -72,8 +72,8 @@ object Messages {
   case object RequestSessionInfo extends SessionMessage
   case class SetColor(value: String) extends SessionMessage
   case class SwitchFile(id: Long) extends SessionMessage
-  case class CloseFile(id: Long) extends SessionMessage
-  case class Edit(revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
+  case class CloseFile(id: Long) extends SessionMessage  
+  case class Edit(revision: Long, operation: Operation, cursor: Int) extends SessionMessage with FileWriteMessage
   case class Annotate(revision: Long, annotation: AnnotationStream) extends SessionMessage    
   
   // JSON 

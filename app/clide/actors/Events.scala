@@ -36,11 +36,12 @@ object Events {
   case object WrongPassword extends AuthEvent
   case object SessionTimedOut extends AuthEvent
   case object NotLoggedIn extends AuthEvent
-  case object NotAllowed extends AuthEvent
+  case object NotAllowed extends AuthEvent  
   case class Validated(user: UserInfo) extends AuthEvent
   
   trait ProjectEvent extends Event
   case class CreatedProject(project: ProjectInfo) extends ProjectEvent
+  case class ProjectCouldNotBeCreated(reason: String) extends ProjectEvent
   case class DeletedProject(project: ProjectInfo) extends ProjectEvent
   case class ChangedProjectUserLevel(project: ProjectInfo, user: String, level: ProjectAccessLevel.Value) extends ProjectEvent
       
@@ -64,6 +65,7 @@ object Events {
   import Results._
   implicit def defaultResult(event: Event): SimpleResult = event match {
     case CreatedProject(info) => Ok(Json.toJson(info))
+    case ProjectCouldNotBeCreated(reason) => BadRequest(reason)
     case DeletedProject(info) => Ok
     case DoesntExist => NotFound("The requested resource doesn't exist (anymore).")
     case SessionTimedOut => Unauthorized("timeout")

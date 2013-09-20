@@ -101,32 +101,28 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
           result.error = 'Please enter a name'
 
   $scope.fileContextMenu = (file) ->
-    if (file.files?) 
+    if (file.isDirectory) 
       file.expand = true
-      [
-        icon: 'plus'
-        text: 'New File'
-        action: -> $scope.createFile(file)
+      [       
+        icon: 'folder-open'
+        text: 'Open'
+        action: -> $scope.openFile(file)      
       ,
-        icon: 'plus-sign-alt'
-        text: 'New Folder'
-        action: -> $scope.createFolder(file)
-      ,
-        icon: 'remove'
+        icon: 'trash'
         text: 'Delete'
         action: -> $scope.deleteFile(file)
       ]
     else 
-      openOrClose = if $scope.openFiles.indexOf(file) >= 0      
-          icon: null
+      openOrClose = if $scope.session.activeFileId is file.id     
+          icon: 'remove'
           text: 'Close'
-          action: -> $scope.closeFile(file)
+          action: -> $scope.closeFile(file.id)
         else
           icon: 'edit'
-          text: 'Open'
-          action: -> $scope.selectFile(file)
-      [ openOrClose,    
-        icon: 'remove'
+          text: 'Edit'
+          action: -> $scope.openFile(file)
+      [ openOrClose,
+        icon: 'trash'
         text: 'Delete'
         action: -> $scope.deleteFile(file)
       ]    

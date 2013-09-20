@@ -9,6 +9,9 @@ import clide.actors._
 import java.util.UUID
 import scala.slick.session.Session
 import play.api.Logger
+import scala.util.matching.Regex
+import javax.validation.constraints.Null
+import scala.runtime.RichChar
 
 class UserActor(var user: UserInfo) extends Actor with ActorLogging {
   import Messages._
@@ -86,12 +89,18 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       sender ! LoggedOut(user)
       context.system.eventStream.publish(LoggedOut(user))
     
-    case CreateProject(name,description) =>
-      val project = DB.withSession { implicit session: Session => ProjectInfos.create(name,user.name,description) }
-      projects += name -> project      
-      context.actorOf(Props(classOf[ProjectActor], project), project.name)
-      sender ! CreatedProject(project)
-      context.system.eventStream.publish(CreatedProject(project))
+    case CreateProject(name,description) =>      
+      if (name.toSeq.exists(!_.isLetterOrDigit)) {
+        sender ! ProjectCouldNotBeCreated("The name must only consist of letters and digits")
+      } else if (projects.contains(name)) {
+        sender ! ProjectCouldNotBeCreated("A project with this name already exists")
+      } else {        
+        val project = DB.withSession { implicit session: Session => ProjectInfos.create(name,user.name,description) }
+        projects += name -> project
+        context.actorOf(Props(classOf[ProjectActor], project), project.name)
+        sender ! CreatedProject(project)
+        context.system.eventStream.publish(CreatedProject(project))
+      }
     
     case StartBackstageSession =>
       backstagePeer = Some(sender)

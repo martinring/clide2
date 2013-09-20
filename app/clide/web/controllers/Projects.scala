@@ -65,7 +65,7 @@ object Projects extends Controller with UserRequests {
 	            SetColor((json \ "c").as[String])
 	        }
 	      }
-          case Some(rev) => Edit(rev,(json\"o").as[Operation](Operation.SourceOperationFormat))
+          case Some(rev) => Edit(rev,(json\"o").as[Operation](Operation.SourceOperationFormat),(json\"c").as[Int])
         }
         
       })

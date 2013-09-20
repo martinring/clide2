@@ -118,7 +118,7 @@ class SessionActor(
         peer ! FileSwitched(session.activeFile)
         context.parent ! SessionChanged(session)
       }
-    case msg @ Edit(_,_) =>      
+    case msg @ Edit(_,_,_) =>      
       session.activeFile.map{ id => 
         fileServers.get(id).map{ ref =>
           log.info("forwarding edit to ref")
@@ -138,13 +138,21 @@ class SessionActor(
         }
         openFiles += f.id -> f
       }              
-      fileServers += f.id -> sender      
+      fileServers += f.id -> sender
+      context.watch(sender)
       peer ! FileOpened(of)
       if (session.activeFile == Some(f.id))
         peer ! FileSwitched(session.activeFile)
     case Terminated(ref) =>
-      log.info("going idle due to termination")
-      receive(LeaveSession)
+      if (ref == peer) {
+	    log.info("going idle due to termination")
+	    receive(LeaveSession)
+      } else {
+        fileServers.find(_._2 == ref).map { case (id,_) =>
+          fileServers -= id
+          receive(CloseFile(id))
+        }
+      }
   }
   
   override def postStop() = DB.withSession { implicit session: Session =>

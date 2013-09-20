@@ -29,17 +29,9 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
 
   $scope.projectContextMenu = (project) ->
     [
-      icon: 'remove'
+      icon: 'trash'
       text: "delete '#{project.name}'"
       action: -> $scope.deleteProject(project)
-    ,  
-      icon: 'print'
-      text: "print '#{project.name}'"
-      action: -> alert('Printing')
-    ,
-      icon: null
-      text: "do something else..."
-      action: -> alert('Commiting Suicide')    
     ]
 
   $scope.createProject = (name,description,error) -> Dialog.push

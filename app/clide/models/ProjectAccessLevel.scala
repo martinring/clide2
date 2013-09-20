@@ -19,8 +19,7 @@ object ProjectAccessLevel extends Enumeration {
 }
 
 object ProjectAccessLevels extends Table[(Long,String,ProjectAccessLevel.Value)]("rights") {
-  implicit val levelMapper = MappedTypeMapper.base[ProjectAccessLevel.Value, Int](
-      _.id , ProjectAccessLevel.apply _)
+  import Mappers._
   
   def projectId = column[Long]("project")
   def userName  = column[String]("user")

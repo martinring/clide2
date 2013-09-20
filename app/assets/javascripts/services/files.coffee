@@ -28,8 +28,8 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
           if msg.c.parent is currentDirId
             $timeout f, 0
           else f()
-        when 'rmfile'
-          f = ->
+        when 'rmfile'        
+          f = ->            
             if dirs[msg.c.parent]?
               for file, j in dirs[msg.c.parent].files
                 if file.id is msg.c.id
@@ -37,7 +37,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
                   return
           if msg.c.parent is currentDirId
             $timeout f, 0
-          else f()
+          else f()          
         when 'folder'
           path = [{name: '$home', path: []}]
           for segment, i in msg.info.path

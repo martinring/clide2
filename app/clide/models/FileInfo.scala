@@ -13,7 +13,8 @@ import scala.slick.lifted.ForeignKeyAction
 case class FileInfo(
   id: Long,
   project: Long,
-  path: Seq[String],  
+  path: Seq[String],
+  mimeType: Option[String],
   deleted: Boolean,
   exists: Boolean,
   isDirectory: Boolean,
@@ -26,6 +27,7 @@ object FileInfo {
         "name" -> f.path.lastOption,
         "project" -> f.project,
         "path" -> f.path,
+        "mimeType" -> f.mimeType,
         "deleted" -> f.deleted,
         "exists" -> f.exists,
         "isDirectory" -> f.isDirectory,
@@ -40,6 +42,7 @@ object FileInfos extends Table[FileInfo]("files") {
   def id          = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def projectId   = column[Long]("projectId")  
   def path        = column[Seq[String]]("path")
+  def mimeType    = column[Option[String]]("mimeType")
   def deleted     = column[Boolean]("deleted")
   def exists      = column[Boolean]("exists")
   def isDirectory = column[Boolean]("isDirectory")
@@ -55,12 +58,12 @@ object FileInfos extends Table[FileInfo]("files") {
   
   def projectPath = index("project_path", (projectId,path), unique = true)
   
-  def * = id ~ projectId ~ path ~ deleted ~ exists ~ isDirectory ~ parentId <> (FileInfo.apply _, FileInfo.unapply _)
+  def * = id ~ projectId ~ path ~ mimeType ~ deleted ~ exists ~ isDirectory ~ parentId <> (FileInfo.apply _, FileInfo.unapply _)
   
-  def create(project: Long, path: Seq[String], deleted: Boolean, exists: Boolean, isDirectory: Boolean, parent: Option[Long])(implicit session: Session) = {
-    val autoinc = this.id.? ~ this.projectId ~ this.path ~ this.deleted ~ this.exists ~ this.isDirectory ~ this.parentId returning this.id    
-    val id = autoinc.insert((None,project,path,deleted,exists,isDirectory,parent))
-    FileInfo(id,project,path,deleted,exists,isDirectory,parent)
+  def create(project: Long, path: Seq[String], mimeType: Option[String], deleted: Boolean, exists: Boolean, isDirectory: Boolean, parent: Option[Long])(implicit session: Session) = {
+    val autoinc = this.id.? ~ this.projectId ~ this.path ~ this.mimeType ~ this.deleted ~ this.exists ~ this.isDirectory ~ this.parentId returning this.id    
+    val id = autoinc.insert((None,project,path,mimeType,deleted,exists,isDirectory,parent))
+    FileInfo(id,project,path,mimeType,deleted,exists,isDirectory,parent)
   }  
   
   def get(project: ProjectInfo, path: Seq[String]) = for {

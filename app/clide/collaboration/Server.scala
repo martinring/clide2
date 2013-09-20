@@ -13,13 +13,13 @@ class Server(initialState: Document) {
   
   def text = state.content
   def revision = history.length
-  def getHistory = history.view
-    
+  def getHistory = history.view  
+  
   def applyOperation(operation: Operation, rev: Long): Try[Operation] = {
     val result = for {
 	  concurrentOps <- Try {
 	    require((0 to revision) contains rev, "invalid revision: " + rev)	    
-	    history.view(rev.toInt, revision) // TODO: Long Revisions 
+	    history.view(rev.toInt, revision) // TODO: Long Revisions
 	  }
 	  operation <- concurrentOps.foldLeft(Success(operation): Try[Operation]) {
 	    case (a,b) => a.flatMap(a => Operation.transform(a,b).map(_._1)) }
