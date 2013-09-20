@@ -113,6 +113,6 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       
     case Validate => sender ! Validated(user)
     
-    case BrowseProjects => sender ! UserProjectInfos(projects.values.toSet,Set())
+    case BrowseProjects => sender ! UserProjectInfos(projects.values.toSet,otherProjects.keySet)
   }
 }

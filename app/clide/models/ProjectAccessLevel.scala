@@ -34,12 +34,25 @@ object ProjectAccessLevels extends Table[(Long,String,ProjectAccessLevel.Value)]
   def level     = column[ProjectAccessLevel.Value]("policy")  
   def *         = projectId ~ userName ~ level
   
+  def change(project: Long, user: String, level: ProjectAccessLevel.Value)(implicit session: Session) = {
+    level match {
+      case ProjectAccessLevel.None =>
+        Query(ProjectAccessLevels).filter(l => l.projectId === project && l.userName === user).delete
+      case level => // TODO: Transaction?
+        val q = Query(ProjectAccessLevels).filter(l => l.projectId === project && l.userName === user) 
+        q.firstOption match {
+          case None          => ProjectAccessLevels.insert((project,user,level))
+          case Some((p,u,l)) => q.update((p,u,level)) 
+        }
+    }
+  }
+  
   def getUserProjects(user: String) = for {
     ai <- ProjectAccessLevels if ai.userName === user
     p  <- ai.project
   } yield (p, ai.level)
   
   def getProjectUsers(project: Long) = for {
-    ai <- ProjectAccessLevels if ai.projectId === project    
+    ai <- ProjectAccessLevels if ai.projectId === project
   } yield (ai.userName -> ai.level)
 }

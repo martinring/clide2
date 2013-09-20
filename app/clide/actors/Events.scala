@@ -42,6 +42,7 @@ object Events {
   trait ProjectEvent extends Event
   case class CreatedProject(project: ProjectInfo) extends ProjectEvent
   case class DeletedProject(project: ProjectInfo) extends ProjectEvent
+  case class ChangedProjectUserLevel(project: ProjectInfo, user: String, level: ProjectAccessLevel.Value) extends ProjectEvent
       
   trait SessionEvent extends Event  
   case class SessionInit(

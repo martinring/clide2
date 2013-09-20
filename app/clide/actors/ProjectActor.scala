@@ -25,7 +25,14 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       }
       sender         ! DeletedProject(info)
       context.parent ! DeletedProject(info)
-      context.stop(self)     
+      context.stop(self)
+      
+    case ChangeProjectUserLevel(user,level) =>
+      DB.withSession { implicit session: Session =>
+        ProjectAccessLevels.change(info.id, user, level)
+      }
+      sessionActors.values.foreach(_ ! ChangedProjectUserLevel(info, user, level))
+      context.parent ! ChangedProjectUserLevel(info, user, level)
   }
   
   def write: Receive = {

@@ -24,6 +24,7 @@ object Messages {
   case class Anonymous(message: UserMessage) extends UserMessageWrapper
   // TODO: Should be private
   case class External(sender: UserInfo, message: UserMessage) extends UserMessageWrapper
+  case class Internal(message: UserMessage) extends UserMessageWrapper
   
   trait UserMessage  
   case object Validate extends UserMessage
@@ -46,7 +47,9 @@ object Messages {
   
   case class WithPath(path: Seq[String], message: FileMessage) extends ProjectMessage with FileMessage
   case object StartFileBrowser      extends ProjectMessage
-  case object StartSession          extends ProjectMessage  
+  case object StartSession          extends ProjectMessage
+  
+  case class ChangeProjectUserLevel(user: String, level: ProjectAccessLevel.Value) extends ProjectMessage
 
   trait FileMessage        extends Message
   trait FileReadMessage    extends FileMessage
