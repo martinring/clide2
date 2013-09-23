@@ -21,12 +21,12 @@ alter table "files" add constraint "fk_fileInfos_project" foreign key("projectId
 alter table "logins" add constraint "fk_login_user" foreign key("user") references "users"("name") on update CASCADE on delete CASCADE;
 alter table "openFiles" add constraint "fk_openFile_file" foreign key("file") references "files"("id") on update CASCADE on delete CASCADE;
 alter table "openFiles" add constraint "fk_openFile_session" foreign key("session") references "sessions"("id") on update CASCADE on delete CASCADE;
-alter table "rights" add constraint "fk_right_project" foreign key("project") references "projects"("id") on update CASCADE on delete CASCADE;
 alter table "rights" add constraint "fk_right_user" foreign key("user") references "users"("name") on update CASCADE on delete CASCADE;
+alter table "rights" add constraint "fk_right_project" foreign key("project") references "projects"("id") on update CASCADE on delete CASCADE;
 alter table "projects" add constraint "fk_project_user" foreign key("owner") references "users"("name") on update CASCADE on delete CASCADE;
 alter table "revisions" add constraint "fk_revision_file" foreign key("fileId") references "files"("id") on update CASCADE on delete CASCADE;
-alter table "sessions" add constraint "fk_session_project" foreign key("project") references "projects"("id") on update CASCADE on delete CASCADE;
 alter table "sessions" add constraint "fk_session_user" foreign key("name") references "users"("name") on update CASCADE on delete CASCADE;
+alter table "sessions" add constraint "fk_session_project" foreign key("project") references "projects"("id") on update CASCADE on delete CASCADE;
 alter table "sessions" add constraint "fk_session_file" foreign key("activeFile") references "files"("id") on update SET NULL on delete SET NULL;
 
 # --- !Downs
@@ -36,12 +36,12 @@ alter table "files" drop constraint "fk_fileInfos_project";
 alter table "logins" drop constraint "fk_login_user";
 alter table "openFiles" drop constraint "fk_openFile_file";
 alter table "openFiles" drop constraint "fk_openFile_session";
-alter table "rights" drop constraint "fk_right_project";
 alter table "rights" drop constraint "fk_right_user";
+alter table "rights" drop constraint "fk_right_project";
 alter table "projects" drop constraint "fk_project_user";
 alter table "revisions" drop constraint "fk_revision_file";
-alter table "sessions" drop constraint "fk_session_project";
 alter table "sessions" drop constraint "fk_session_user";
+alter table "sessions" drop constraint "fk_session_project";
 alter table "sessions" drop constraint "fk_session_file";
 drop table "files";
 drop table "logins";

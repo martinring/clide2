@@ -1,5 +1,5 @@
 ### @service services:Session ###
-define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/Annotations','modes/isabelle/defaultWords'], (routes,Operation,CMAdapter,Client,Annotations,idw) -> ($q,$rootScope,$http,Toasts) ->
+define ['routes','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords'], (routes,Operation,CMAdapter,Client,Annotations,idw) -> ($q,$rootScope,$http,Toasts) ->
   pc = routes.clide.web.controllers.Projects
 
   queue = []
@@ -28,11 +28,7 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
         name: 'isabelle'
         words: idw
     else
-      nfile.doc = CodeMirror.Doc file.state, (file.info.mimeType or 'text/plain')
-    
-    #### TODO: Move in own module ####    
-
-    ##################################
+      nfile.doc = CodeMirror.Doc file.state, (file.info.mimeType or 'text/plain')    
 
     client  = new Client(file.revision)
     adapter = new CMAdapter(nfile.doc)
@@ -48,6 +44,7 @@ define ['routes','collab/Operation','collab/CodeMirror','collab/Client','collab/
 
     adapter.registerCallbacks
       change: (op) -> client.applyClient(op)
+      annotate: (a) -> client.applyClientAnnotation(annotation)
 
     nfile.$ack   = () -> client.serverAck()
     nfile.$apply = (os) -> client.applyServer(os)

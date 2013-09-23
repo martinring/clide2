@@ -14,7 +14,9 @@ define ['routes'], (routes) -> () ->
     window.countMe = (window.countMe or 0) + 1
 
     cm = CodeMirror.fromTextArea iElem[0],
-      undoDepth:   0 # disable      
+      undoDepth:   0 # disable
+
+    window.cm = cm
 
     scope.$watch 'lineNumbers()', (n,o) ->
       console.log 'lineNumbers:', n

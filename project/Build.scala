@@ -9,11 +9,13 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(    
     "com.typesafe.akka"  %% "akka-testkit"        % "2.2.0"    % "test",
     "com.typesafe"       %% "play-plugins-mailer" % "2.1.0",
-    "com.typesafe.play"  %% "play-slick"          % "0.5.0.2-SNAPSHOT")
+    "com.typesafe.play"  %% "play-slick"          % "0.5.0.2")
     
   val main = play.Project(appName, appVersion, appDependencies).settings(Angular.defaultSettings:_*).settings(    
-    scalaVersion := "2.10.2",    
-    lessEntryPoints <<= (sourceDirectory in Compile)(base => base / "assets" / "stylesheets" * "main.less"),
+    scalaVersion := "2.10.2",        
+    resolvers += Resolver.url("github repo for play-slick",
+      url("https://raw.github.com/loicdescotte/loicdescotte.github.com/master/releases/"))
+      (Resolver.ivyStylePatterns),
     requireJs += "main.js",
     requireJsShim += "main.js",
     Angular.otherModules ++= Map(
@@ -28,7 +30,17 @@ object ApplicationBuild extends Build {
         "filters" -> ("filter","",false),
         "services" -> ("service","",true)),
     resourceGenerators in Compile <+= LessCompiler,
+    resourceGenerators in Compile <+= JavascriptCompiler(fullCompilerOptions = None),
     resourceGenerators in Compile <+= Angular.ModuleCompiler,
-    resourceGenerators in Compile <+= Angular.BoilerplateGenerator
+    resourceGenerators in Compile <+= Angular.BoilerplateGenerator,
+    lessEntryPoints         <<= (sourceDirectory in Compile){ base => 
+      base / "assets" / "stylesheets" * "main.less" },
+    coffeescriptEntryPoints <<= (sourceDirectory in Compile){ base => 
+      base / "assets" ** "*.coffee" },
+    javascriptEntryPoints <<= (sourceDirectory in Compile){ base => 
+      (base / "assets" ** "*.js") --- 
+      (base / "assets" / "libs" / "bootstrap" / "assets" ** "*") --- 
+      (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
+
   )
 }

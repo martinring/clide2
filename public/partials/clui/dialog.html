@@ -4,47 +4,47 @@
       <div class='col-sm-6 col-sm-offset-3'>
         <h2 class='title' ng-bind='dialog.current.title'></h2>
         <form role='form'>
-        <p class='text-danger' ng-show='dialog.current.error' ng-bind='dialog.current.error'></p>
-        <span ng-bind='dialog.current.text'></span>
-        <div class='form-group' ng-repeat='query in dialog.current.queries' ng-switch='query.type'>
-          <span ng-switch-when='text'>
-            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
-            <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index==0' type='text' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
-            <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index>0' type='text' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
-          </span>
-          <span ng-switch-when='email'>
-            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
-            <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index==0' type='email' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
-            <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index>0' type='email' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
-          </span>  
-          <span ng-switch-when='password'>
-            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
-            <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index==0' type='password' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
-            <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index>0' type='password' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
-          </span>                              
-          <span ng-switch-when='checkbox'>                                
-            <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' type='checkbox' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
-            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
-          </span>
-          <span ng-switch-when='textarea'>
-            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
-            <textarea class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>                
-          </span>
-          <span ng-switch-when='select'>
-            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
-            <select class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'
-                    ng-options='option.text for option in query.options'>
-            </select>
-          </span>
-          <span ng-switch-default>
-            <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
-            <input class='form-control' type="{{query.type}}" ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>
-          </span>
-        </div>
-        <div class='clearfix'></div>
-        <div class='pull-right'>
-          <button class='btn' ng-disabled='dialog.current.wait' type='{{button.type}}' ng-repeat='button in dialog.current.buttons' ng-class='{ "btn-primary": $index==0, "btn-default": $index!=0 }' ng-click='dialog.next(button.action)'>{{button.text}}</button>
-        </div>        
+          <p class='text-danger' ng-show='dialog.current.error' ng-bind='dialog.current.error'></p>
+          <p ng-bind='dialog.current.text'></p>
+          <div class='form-group' ng-repeat='query in dialog.current.queries' ng-switch='query.type'>
+            <span ng-switch-when='text'>
+              <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+              <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index==0' type='text' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
+              <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index>0' type='text' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+            </span>
+            <span ng-switch-when='email'>
+              <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+              <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index==0' type='email' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
+              <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index>0' type='email' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+            </span>  
+            <span ng-switch-when='password'>
+              <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+              <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index==0' type='password' placehoder='{{query.placeholder}}' ng-model='query.value' autofocus></input>
+              <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-if='$index>0' type='password' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+            </span>                              
+            <span ng-switch-when='checkbox'>                                
+              <input class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' type='checkbox' placehoder='{{query.placeholder}}' ng-model='query.value'></input>
+              <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+            </span>
+            <span ng-switch-when='textarea'>
+              <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+              <textarea class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>                
+            </span>
+            <span ng-switch-when='select'>
+              <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+              <select class='form-control' ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'
+                      ng-options='option.text for option in query.options'>
+              </select>
+            </span>
+            <span ng-switch-default>
+              <label for='dialog-{{query.name}}' ng-bind='query.text'></label>
+              <input class='form-control' type="{{query.type}}" ng-disabled='dialog.current.wait' id='dialog-{{query.name}}' ng-model='query.value'></textarea>
+            </span>
+          </div>
+          <div class='clearfix'></div>
+          <div class='pull-right'>
+            <button class='btn' ng-disabled='dialog.current.wait' type='{{button.type}}' ng-repeat='button in dialog.current.buttons' ng-class='{ "btn-primary": $index==0, "btn-default": $index!=0 }' ng-click='dialog.next(button.action)'>{{button.text}}</button>
+          </div>        
         </form>
       </div>
     </div>

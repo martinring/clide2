@@ -1,4 +1,4 @@
-define ['collab/Operation','collab/Annotations'], (Operation,Annotations) ->
+define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annotations) ->
   skipOne = (state) ->
     if state.remaining.length > 0
       switch typeof state.remaining[0]
@@ -46,6 +46,7 @@ define ['collab/Operation','collab/Annotations'], (Operation,Annotations) ->
   class CodeMirrorAdapter
     constructor: (@doc) ->
       @doc.on "beforeChange", @onChange
+      @doc.on "beforeSelectionChange", @onSelectionChange
 
     # Removes all event listeners from the CodeMirror instance.
     detach: =>
@@ -74,14 +75,39 @@ define ['collab/Operation','collab/Annotations'], (Operation,Annotations) ->
           when 'delete'
             from = doc.posFromIndex(index)
             to = doc.posFromIndex(index - a)
-            doc.replaceRange "", from, to      
+            doc.replaceRange "", from, to
+
+    @annotationFromCodeMirrorSelection: (doc,selection) ->
+      anchor = doc.indexFromPos(selection.anchor)
+      head   = doc.indexFromPos(selection.head)
+
+      length = doc.getValue().length # TODO: see above
+                  
+      if anchor is head
+        return new Annotations().plain(anchor)
+                                .annotate(0,'cursor')
+                                .plain(length - anchor)
+      else if anchor < head
+        return new Annotations().plain(anchor)
+                                .annotate(0,'cursor')
+                                .annotate(head - anchor,'selection')
+                                .plain(length - head)
+      else
+        return new Annotations().plain(head)
+                                .annotate(anchor - head,'selection')
+                                .annotate(0,'cursor')                           
+                                .plain(length - anchor)
 
     registerCallbacks: (cb) =>
       @callbacks = cb
 
     onChange: (doc, change) =>
-      unless @silent        
+      unless @silent      
         @trigger "change", CodeMirrorAdapter.operationFromCodeMirrorChange(change, doc)
+
+    onSelectionChange: (doc, change) =>
+      unless @silent      
+        @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(doc, change)
 
     getValue: => @doc.getValue()
 

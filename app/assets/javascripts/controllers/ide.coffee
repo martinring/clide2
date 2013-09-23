@@ -43,7 +43,8 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
 
   $scope.openFile = (file) ->
     if file.isDirectory
-      $scope.browseTo(file.path)
+      file.loading = true
+      $scope.browseTo(file.path, file.id)
     else
       Session.openFile(file.id or file)
 

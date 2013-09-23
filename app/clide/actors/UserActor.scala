@@ -10,7 +10,6 @@ import java.util.UUID
 import scala.slick.session.Session
 import play.api.Logger
 import scala.util.matching.Regex
-import javax.validation.constraints.Null
 import scala.runtime.RichChar
 
 class UserActor(var user: UserInfo) extends Actor with ActorLogging {

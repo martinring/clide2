@@ -3,7 +3,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
   pc = routes.clide.web.controllers.Projects
   
   socket  = undefined
-  dirs = { }
+  dirs = []
   queue = []
 
   currentDirId = null
@@ -79,7 +79,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
     explore: (path) -> send
       t: 'explore'
       path: path
-    browseTo: (path) -> send
+    browseTo: (path,id) -> send
       t: 'browse'
       path: path
     touchFile: (path) -> send
@@ -99,7 +99,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
       path: path
     create: (path) -> send
       t: 'new'
-      path: path or dirs[currentdir].info.path or []
+      path: path or dirs[currentDirId].info.path or []
     close: ->
       socket?.close()
   )

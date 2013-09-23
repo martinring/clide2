@@ -49,7 +49,7 @@
                  class='list-group-item'
                  context-menu='fileContextMenu(file)'
                  ng-class='{ active: file.id==session.activeFileId, open: file.doc!=null, "text-muted": file.deleted }'>
-                 <i class='icon-fixed-width' ng-class='{ "icon-folder-close": file.isDirectory, "icon-file": !file.isDirectory }'></i> {{file.name}}
+                 <i class="icon-folder-open icon-fixed-width" ng-show='file.loading'></i><i ng-show='!file.loading' class='icon-fixed-width' ng-class='{ "icon-folder-close": file.isDirectory, "icon-file": !file.isDirectory }'></i> {{file.name}}
                  <!--<span class='pull-right' ng-show='file.id==activeFileId'>
                    <i ng-click='deleteFile(file)' class='icon-fixed-width icon-trash'></i>
                  </span>-->
