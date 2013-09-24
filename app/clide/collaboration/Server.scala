@@ -33,12 +33,12 @@ class Server(initialState: Document) {
 	}
   }
   
-  def transformAnnotation(rev: Int, as: AnnotationStream): Try[AnnotationStream] = for {
+  def transformAnnotation(rev: Int, as: Annotations): Try[Annotations] = for {
       concurrentOps <- Try {
         require((0 to revision) contains rev, "invalid revision: " + rev)
         history.view(rev, revision)
       }
-      annotation <- concurrentOps.foldLeft(Success(as): Try[AnnotationStream]) {
-        case (a,b) => a.flatMap(a => AnnotationStream.transform(a,b)) }      
+      annotation <- concurrentOps.foldLeft(Success(as): Try[Annotations]) {
+        case (a,b) => a.flatMap(a => Annotations.transform(a,b)) }      
   } yield annotation    
 }

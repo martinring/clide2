@@ -3,9 +3,8 @@ package clide.collaboration
 import play.api.libs.json._
 import scala.util._
 import scala.annotation.tailrec
-import clide.util.compare._
 
-sealed trait Annotation
+sealed trait Annotation { val length: Int }
 case class Plain(length: Int) extends Annotation
 case class Annotate(length: Int, content: Map[String,String]) extends Annotation
 
@@ -31,72 +30,66 @@ object AnnotationDiff {
   case class ChangeLength(n: Int) extends AnnotationDiff
   case class ChangeContent(c: Map[String,String]) extends AnnotationDiff
   case class Delete(n: Int) extends AnnotationDiff
-  case class Insert(a: AnnotationStream) extends AnnotationDiff
+  case class Insert(a: Annotations) extends AnnotationDiff
   
-  def diff(a: AnnotationStream, b: AnnotationStream): Map[Int,AnnotationDiff] = {
+  def diff(a: Annotations, b: Annotations): Map[Int,AnnotationDiff] = {
     
     null
   }
 }
 
-case class AnnotationStream(annotations: List[Annotation]) extends AnyVal {
-  override def toString = Json.stringify(Json.toJson(this)(AnnotationStream.AnnotationStreamFormat))
+case class Annotations(annotations: List[Annotation]) extends AnyVal {
+  override def toString = Json.stringify(Json.toJson(this)(Annotations.AnnotationsFormat))
 }
 
-object AnnotationStream {
-  implicit object AnnotationStreamFormat extends Format[AnnotationStream] {
+object Annotations {
+  implicit object AnnotationsFormat extends Format[Annotations] {
     def reads(json: JsValue) = 
-      Json.fromJson[List[Annotation]](json).map(AnnotationStream.apply)
-    def writes(value: AnnotationStream) = 
+      Json.fromJson[List[Annotation]](json).map(Annotations.apply)
+    def writes(value: Annotations) = 
       Json.toJson(value.annotations)
-  }
-      
-  private def extend(n: Int, as: List[Annotation]): List[Annotation] = as match {
-    case Plain(m)::xs      => Plain(n+m)::xs
-    case Annotate(m,c)::xs => Annotate(n+m,c)::xs
-    case xs                => Plain(n)::xs
-  }
+  }     
   
   private def addPlain(n: Int, as: List[Annotation]): List[Annotation] = as match {
     case Plain(m)::xs => Plain(n+m)::xs
-    case xs => Plain(n)::xs
+    case xs if n > 0 => Plain(n)::xs
+    case _ => as
   }
   
   private def addAnnotate(n: Int, c: Map[String,String], as: List[Annotation]): List[Annotation] = as match {
     case Annotate(m,c2)::xs if c2 == c => Annotate(n+m,c)::xs
     case xs => Annotate(n,c)::xs
   }
+  
+  private def add(a: Annotation, as: List[Annotation]): List[Annotation] = a match {
+    case Plain(n) => addPlain(n,as)
+    case Annotate(n,c) => addAnnotate(n,c,as)
+  }
+  
+  private def addWithLength(n: Int, a: Annotation, as: List[Annotation]): List[Annotation] = a match {
+    case Plain(_)      => addPlain(n,as)
+    case Annotate(_,c) => addAnnotate(n,c,as)
+  }
        
-  def transform(as: AnnotationStream, os: Operation): Try[AnnotationStream] = {  
+  def transform(a: Annotations, o: Operation): Try[Annotations] = Try {  
     @tailrec
-    def loop(as: List[Annotation], os: List[Action], xs: List[Annotation]): Try[List[Annotation]] = (as,os,xs) match {
-      case (Nil,Nil,xs) => Success(xs)
-      case (aa@(a::as),bb@(b::bs),xs) => (a,b) match {
-        case (_,Insert(i)) => loop(aa,bs,extend(i.length,xs))        
-        case (Plain(n),Retain(m)) => (n <=> m) match {
-          case LT => loop(as,Retain(m-n)::bs,addPlain(n,xs))
-          case EQ => loop(as,bs,addPlain(n,xs))
-          case GT => loop(Plain(n-m)::as,bs,addPlain(m,xs))
-        }
-        case (Annotate(n,c),Retain(m)) => (n <=> m) match {
-          case LT => loop(as,Retain(m-n)::bs,addAnnotate(n,c,xs))
-          case EQ => loop(as,bs,addAnnotate(n,c,xs))
-          case GT => loop(Annotate(n-m,c)::as,bs,addAnnotate(m,c,xs))
-        }
-        case (Plain(r),Delete(d)) => (r <=> d) match {
-          case LT => loop(as,Delete(d-r)::bs,xs)
-          case EQ => loop(as,bs,xs)
-          case GT => loop(Plain(r-d)::as,bs,xs)
-        }
-        case (Annotate(r,c),Delete(d)) => (r <=> d) match {
-          case LT => loop(as,Delete(d-r)::bs,xs)
-          case EQ => loop(as,bs,xs)
-          case GT => loop(Annotate(r-d,c)::as,bs,xs)
-        }        
-      }
-      case (Nil,Insert(i)::bs,xs) => loop(Nil,bs,addPlain(i.length,xs))      
-      case _ => Failure(new Exception("the annotation stream could not be transformed"))
+    def loop(as: List[Annotation], os: List[Action], result: List[Annotation]): List[Annotation] = as match {
+      case a::ass => os match {
+        case Insert(s)::oss =>
+          loop(as,os,addWithLength(s.length,a,result))
+        case Retain(n)::oss if a.length < n =>  
+          loop(ass,Retain(n-a.length)::oss,add(a,result))
+        case Retain(n)::oss =>
+          loop(addWithLength(a.length - n, a, ass),oss,addWithLength(n,a,result))
+        case Delete(n)::oss if a.length < n =>  
+          loop(ass,Retain(n-a.length)::oss,result)
+        case Delete(n)::oss =>
+          loop(addWithLength(a.length - n, a, ass),oss,result)
+      }        
+      case Nil => os match {
+        case Nil => result
+      }        
     }
-    loop(as.annotations,os.actions,Nil).map { a => AnnotationStream(a.reverse) } 
+    Annotations(loop(a.annotations,o.actions,Nil).reverse)
   }
 } 

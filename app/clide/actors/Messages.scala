@@ -3,7 +3,7 @@ package clide.actors
 import clide.models._
 import play.api.libs.json.Json
 import clide.collaboration.Operation
-import clide.collaboration.AnnotationStream
+import clide.collaboration.Annotations
 
 object Messages {
   trait Message	
@@ -74,7 +74,7 @@ object Messages {
   case class SwitchFile(id: Long) extends SessionMessage
   case class CloseFile(id: Long) extends SessionMessage  
   case class Edit(revision: Long, operation: Operation, cursor: Int) extends SessionMessage with FileWriteMessage
-  case class Annotate(revision: Long, annotation: AnnotationStream) extends SessionMessage    
+  case class Annotate(revision: Long, annotation: Annotations) extends SessionMessage    
   
   // JSON 
   implicit val readCreateProject = Json.reads[CreateProject]  
