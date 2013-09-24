@@ -40,6 +40,9 @@ define ['collaboration/Operation'], (Operation) ->
     add: (a) ->
       if isPlain(a) then @plain(a) else @annotate(a.l,a.c)
 
+    @isPlain: isPlain
+    @isAnnotate: isAnnotate
+
     compose: (other) -> other
 
     ###
@@ -82,3 +85,12 @@ define ['collaboration/Operation'], (Operation) ->
         throw new Error("output length doesnt match")
 
       return result
+
+    @fromJSON: (annotations) ->
+      result = new Annotations()
+      for a in annotations
+        if isPlain(a)
+          result.plain(a)
+        else 
+          result.annotate(a.l,a.c)
+      return result    

@@ -1,16 +1,30 @@
 define ->   
   class Client       
     constructor: (revision) ->
-      @revision = revision # the next expected revision number
-      @state = new Synchronized # start state      
+      @revision          = revision # the next expected revision number
+      @state             = new Synchronized # start state
+      @annotation        = null
+      @annotationTimeout = null
+
+    setAnnotationTimeout: () ->
+      instance = this
+      f = -> 
+        instance.annotationTimeout = null
+        instance.annotate(instance.annotation) if instance.annotation?
+      @annotationTimeout = window.setTimeout f, 50 # Maximum of 20 Annotations per second
 
     setState: (state) ->
       @state = state
 
     applyClient: (operation) ->
+      @annotation = @annotation?.transform(operation)
       @setState @state.applyClient(this, operation)
 
+    annotate: (annotation) ->      
+      @state.annotate(this, annotation)
+
     applyServer: (operation) ->
+      @annotation = @annotation?.transform(operation)
       @revision++
       @setState @state.applyServer(this, operation)
 
@@ -24,84 +38,96 @@ define ->
     transformAnnotation: (annotation) ->
       @state.transformAnnotation annotation
 
-    sendOperation: (revision, operation, annotation) ->
+    sendAnnotation: (revision, annotation) ->
+      throw new Error("sendAnnotation must be defined in child class")
+
+    sendOperation: (revision, operation) ->
       throw new Error("sendOperation must be defined in child class")
 
     applyOperation: (operation) ->
-      throw new Error("applyOperation must be defined in child class")
-
-    applyAnnotation: (annotation) ->
-      throw new Error("applyOperation must be defined in child class")
+      throw new Error("applyOperation must be defined in child class")    
 
     class Synchronized      
       applyClient: (client, operation) ->
         client.sendOperation client.revision, operation
-        new AwaitingConfirm(operation,annotation)
+        new AwaitingConfirm(operation)
 
-      applyServer: (client, operation, annotation) ->
-        client.applyOperation operation, annotation
+      applyServer: (client, operation) ->
+        client.applyOperation operation
         this
 
       serverAck: (client) ->
         throw new Error("There is no pending operation.")
 
+      annotate: (client, annotation) ->
+        client.annotation = null
+        if client.annotationTimeout?
+          client.annotation = annotation
+        else
+          client.sendAnnotation client.revision, annotation
+          client.setAnnotationTimeout()
+
       transformAnnotation: (annotation) ->
         annotation
     
     class AwaitingConfirm
-      constructor: (operation,annotation) ->
-        @operation = operation
+      constructor: (outstanding) ->
+        @outstanding = outstanding
 
       applyClient: (client, operation) ->
-        new AwaitingWithBuffer(@operation, operation)
+        new AwaitingWithBuffer(@outstanding, operation)
 
-      applyClientAnnotation: (client, annotation) ->
-        
+      applyServer: (client, operation) ->
+        pair = operation.constructor.transform(@outstanding, operation)
+        client.applyOperation pair[1]
+        new AwaitingConfirm(pair[0])
 
-      applyServer: (client, operation, annotation) ->
-        if operation?
-          pair = operation.constructor.transform(@operation, operation)
-          client.applyOperation pair[1]
-          return new AwaitingConfirm(pair[0])
-        else if @operation and annotation?
-          annon = annotation.constructor.transform(annotation,@operation)
-          client.applyAnnotation(annon)
-          return this
+      serverAck: (client) -> 
+        if not client.annotationTimeout? and client.annotation?
+          client.sendAnnotation client.revision, client.annotation
+          client.annotation = null
+          client.setAnnotationTimeout()
+        new Synchronized
 
-      serverAck: (client) -> new Synchronized
+      annotate: (client, annotation) ->
+        client.annotation = annotation
 
       transformAnnotation: (annotation) ->
-        annotation.transform @operation
+        annotation.transform @outstanding
 
       resend: (client) ->
-        client.sendOperation client.revision, @operation
+        client.sendOperation client.revision, @outstanding
 
     class AwaitingWithBuffer 
-      constructor: (operation, buffer) ->
-        @operation = operation        
-        @buffer      = buffer        
+      constructor: (outstanding, buffer) ->
+        @outstanding = outstanding
+        @buffer = buffer  
 
       applyClient: (client, operation) ->        
         # Compose the user's changes onto the buffer
         newBuffer = @buffer.compose(operation)
-        new AwaitingWithBuffer(@operation, newBuffer)
+        new AwaitingWithBuffer(@outstanding, newBuffer)
 
-      applyClientAnnotation: (client, annotation) -> 
-
-
-      applyServer: (client, operation, annotation) ->
+      applyServer: (client, operation) ->
         transform = operation.constructor.transform
-        pair1 = transform(@operation, operation)
+        pair1 = transform(@outstanding, operation)
         pair2 = transform(@buffer, pair1[1])
         client.applyOperation pair2[1]
         new AwaitingWithBuffer(pair1[0], pair2[0])
 
       serverAck: (client) ->
         client.sendOperation client.revision, @buffer
+        if not client.annotationTimeout? and client.annotation?
+          client.sendAnnotation client.revision, client.annotation
+          client.annotation = null
+          client.setAnnotationTimeout()
         new AwaitingConfirm(@buffer)
 
+      annotate: (client, annotation) ->
+        client.annotation = annotation
+
       transformAnnotation: (annotation) ->
-        annotation.transform(@operation).transform @buffer
+        annotation.transform(@outstanding).transform @buffer
 
       resend: (client) ->
-        client.sendOperation client.revision, @operation
+        client.sendOperation client.revision, @outstanding

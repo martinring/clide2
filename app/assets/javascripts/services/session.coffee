@@ -34,20 +34,28 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     adapter = new CMAdapter(nfile.doc)
 
     client.applyOperation = adapter.applyOperation
-    client.sendOperation  = (rev,op) ->
+    client.sendOperation = (rev,op) ->
       if (nfile.id isnt session.activeFileId)
         Toast.push 'danger', 'internal error: edit inactive file (todo)'
       else send
         r: rev
         o: op.actions
-        c: nfile.doc.indexFromPos(nfile.doc.getCursor())        
+    client.sendAnnotation = (rev,an) ->
+      if (nfile.id isnt session.activeFileId)
+        Toast.push 'danger', 'internal error: annotate inactive file (todo)'
+      else send
+        r: rev
+        a: an.annotations
 
     adapter.registerCallbacks
       change: (op) -> client.applyClient(op)
-      annotate: (a) -> client.applyClientAnnotation(annotation)
+      annotate: (a) -> client.annotate(a)
 
     nfile.$ack   = () -> client.serverAck()
     nfile.$apply = (os) -> client.applyServer(os)
+    nfile.$annotate = (a,u) -> # TODO: include user
+      a = client.transformAnnotation(a)
+      adapter.applyAnnotation(a,u)
 
     unless session.openFiles[file.info.id]?
       session.openFiles[file.info.id] = (nfile)
@@ -69,6 +77,12 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         session.collaborators[i].activeFile = info.activeFile
         return true
     session.collaborators.push(info)
+
+  getUser = (id) ->
+    for s in session.collaborators
+      if s.id is id
+        return s
+    return null    
   
   get = (username, project, init) ->
     ws = new WebSocket(pc.session(username,project).webSocketURL())
@@ -89,6 +103,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         when 'object'        
           if msg.f? and msg.o?
             getOpenFile(msg.f).$apply(Operation.fromJSON(msg.o))
+          else if msg.f? and msg.a?
+            user = null            
+            getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),getUser(msg.u))
           switch msg.t
             when 'e'
               Toasts.push 'danger', msg.c

@@ -54,7 +54,7 @@ object Messages {
   trait FileMessage        extends Message
   trait FileReadMessage    extends FileMessage
   trait FileWriteMessage   extends FileMessage
-  case object OpenFile     extends FileReadMessage
+  case class OpenFile(user: SessionInfo) extends FileReadMessage
   case object BrowseFolder extends FileReadMessage
   case object ExplorePath  extends FileReadMessage
   case object TouchFile    extends FileWriteMessage
@@ -73,8 +73,8 @@ object Messages {
   case class SetColor(value: String) extends SessionMessage
   case class SwitchFile(id: Long) extends SessionMessage
   case class CloseFile(id: Long) extends SessionMessage  
-  case class Edit(revision: Long, operation: Operation, cursor: Int) extends SessionMessage with FileWriteMessage
-  case class Annotate(revision: Long, annotation: Annotations) extends SessionMessage    
+  case class Edit(revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
+  case class Annotate(revision: Long, annotation: Annotations) extends SessionMessage with FileReadMessage    
   
   // JSON 
   implicit val readCreateProject = Json.reads[CreateProject]  

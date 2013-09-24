@@ -8,6 +8,7 @@ import akka.actor.ActorRef
 import play.api.libs.iteratee._
 import clide.actors.Messages.Message
 import clide.collaboration.Operation
+import clide.collaboration.Annotations
 
 object Events {
   trait Event  
@@ -55,6 +56,7 @@ object Events {
   case class FileClosed(id: Long) extends SessionEvent
   case class FileOpened(file: OpenedFile) extends SessionEvent
   case class Edited(file: Long, op: Operation) extends SessionEvent
+  case class Annotated(file: Long, user: Long, an: Annotations) extends SessionEvent
   case object AcknowledgeEdit extends SessionEvent
   case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent
   
@@ -108,6 +110,7 @@ object Events {
     case FileClosed(i) => "close" of i
     case FileOpened(i) => "opened" of i
     case Edited(file,o) => Json.obj("f"->file,"o"->o)
+    case Annotated(file,user,a) => Json.obj("f"->file,"a"->a,"u"->user)
     case AcknowledgeEdit => JsString("ack")    
     case DoesntExist => "e" of "internal error: the referenced resource doesn't exist on the server"
     case _ => error("couldnt translate")

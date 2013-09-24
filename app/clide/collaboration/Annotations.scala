@@ -32,8 +32,7 @@ object AnnotationDiff {
   case class Delete(n: Int) extends AnnotationDiff
   case class Insert(a: Annotations) extends AnnotationDiff
   
-  def diff(a: Annotations, b: Annotations): Map[Int,AnnotationDiff] = {
-    
+  def diff(a: Annotations, b: Annotations): Map[Int,AnnotationDiff] = {    
     null
   }
 }

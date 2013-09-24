@@ -57,7 +57,7 @@ class SessionActor(
           collaborators)
       openFiles.values.foreach { file =>
         fileServers.get(file.id).map(_ ! OpenFile).getOrElse {
-          context.parent ! WrappedProjectMessage(user,level,WithPath(file.path,OpenFile))
+          context.parent ! WrappedProjectMessage(user,level,WithPath(file.path,OpenFile(this.session)))
         }
       }
     case EnterSession =>
@@ -87,7 +87,7 @@ class SessionActor(
       } else {
         DB.withSession { implicit session: Session => 
           FileInfos.get(id).firstOption.map { info =>
-            context.parent ! WrappedProjectMessage(user,level,WithPath(info.path,OpenFile))
+            context.parent ! WrappedProjectMessage(user,level,WithPath(info.path,OpenFile(this.session)))
           } 
         }        
       }
@@ -98,6 +98,8 @@ class SessionActor(
       peer ! AcknowledgeEdit
     case Edited(f,op) =>     
       peer ! Edited(f,op)
+    case Annotated(f,u,an) =>
+      peer ! Annotated(f,u,an)
     case SetColor(value) =>
       session = session.copy(color = value)
       context.parent ! SessionChanged(session)      
@@ -118,7 +120,19 @@ class SessionActor(
         peer ! FileSwitched(session.activeFile)
         context.parent ! SessionChanged(session)
       }
-    case msg @ Edit(_,_,_) =>      
+    case msg @ Edit(_,_) =>      
+      session.activeFile.map{ id => 
+        fileServers.get(id).map{ ref =>
+          log.info("forwarding edit to ref")
+          ref ! msg
+        }.getOrElse {
+          log.info("forwarding edit to path")
+          context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
+        } 
+      }.getOrElse {
+        sender ! DoesntExist
+      }
+    case msg @ Annotate(_,_) =>
       session.activeFile.map{ id => 
         fileServers.get(id).map{ ref =>
           log.info("forwarding edit to ref")

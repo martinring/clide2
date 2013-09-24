@@ -47,6 +47,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
     constructor: (@doc) ->
       @doc.on "beforeChange", @onChange
       @doc.on "beforeSelectionChange", @onSelectionChange
+      @annotations = {}
 
     # Removes all event listeners from the CodeMirror instance.
     detach: =>
@@ -63,8 +64,8 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
                          .retain(doc.getValue().length-to) # could be cached
 
     # Apply an operation to a CodeMirror instance.
-    @applyOperationToCodeMirror: (operation, doc) -> 
-      index = 0
+    @applyOperationToCodeMirror: (operation, doc) ->
+      index = 0 # TODO: Iterate Line/Column based
       for a in operation.actions
         switch Operation.actionType(a)
           when 'retain'        
@@ -85,17 +86,15 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
                   
       if anchor is head
         return new Annotations().plain(anchor)
-                                .annotate(0,'cursor')
+                                .annotate(0,{'c':'cursor'})
                                 .plain(length - anchor)
       else if anchor < head
-        return new Annotations().plain(anchor)
-                                .annotate(0,'cursor')
-                                .annotate(head - anchor,'selection')
+        return new Annotations().plain(anchor)                                
+                                .annotate(head - anchor,{'c':'selection'})
                                 .plain(length - head)
       else
         return new Annotations().plain(head)
-                                .annotate(anchor - head,'selection')
-                                .annotate(0,'cursor')                           
+                                .annotate(anchor - head,{'c':'selection'})                                
                                 .plain(length - anchor)
 
     registerCallbacks: (cb) =>
@@ -117,5 +116,36 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
 
     applyOperation: (operation) =>
       @silent = true
-      CodeMirrorAdapter.applyOperationToCodeMirror operation, @doc
-      @silent = false
+      cm = @doc.getEditor()
+      if cm? then cm.operation =>
+        CodeMirrorAdapter.applyOperationToCodeMirror operation, @doc
+      else
+        CodeMirrorAdapter.applyOperationToCodeMirror operation, @doc  
+      @silent = false  
+
+    applyAnnotation: (annotation, user) =>
+      cm = @doc.getEditor()
+      existing = @annotations[user]
+      if existing? then for marker in existing
+        marker.clear()
+      if cm? then cm.operation =>
+        @annotations[user] = []
+        index = 0 # TODO: Iterate Line/Column based
+        for a in annotation.annotations
+          if Annotations.isPlain(a)
+            index += a
+          else
+            from = @doc.posFromIndex(index)            
+            if a.l > 0
+              index += a.l
+              to     = @doc.posFromIndex(index)
+              @annotations[user].push @doc.markText from, to,
+                className: a.c.c + " " + user.color
+                inclusiveLeft: false
+                inclusiveRight: true
+            else
+              widget = document.createElement("span")              
+              widget.setAttribute('class', a.c.c + " " + user.color)
+              @annotations[user].push @doc.setBookmark from,
+                widget: widget
+                insertLeft: true

@@ -27,7 +27,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
   def file: File     = Play.getFile(project.root + info.path.mkString(File.pathSeparator))    
   
   var otActive = false
-  var clients = Set[ActorRef]()
+  var clients = Map[ActorRef,SessionInfo]()
   var server: Server = null
   
   def initOt() {
@@ -50,23 +50,31 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
     case ExplorePath =>
       context.parent.forward(BrowseFolder)
       
-    case OpenFile =>
+    case OpenFile(user) =>
       if (!otActive) initOt()
-      clients += sender
+      clients += sender -> user
       context.watch(sender)
       sender ! OTState(this.info, server.text, server.revision)
       
-    case Edit(rev,ops,cursor) =>
+    case Annotate(rev,as) =>
       if (!otActive) initOt()
-      clients += sender
-      context.watch(sender)      
+      server.transformAnnotation(rev.toInt, as) match { // TODO: Ugly: rev.toInt
+        case Failure(e) =>
+          // TODO
+          log.warning("annotation could not be transformed")
+        case Success(a) =>
+          clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a))
+      }
+      
+    case Edit(rev,ops) =>
+      if (!otActive) initOt()         
       server.applyOperation(ops,rev) match {
         case Failure(e) =>
           // TODO
           log.warning("edit couldnt be applied")
         case Success(o) =>
           DB.withSession { implicit session: Session => Revisions.insert(Revision(info.id,server.revision,o)) }
-          clients.filter(_ != sender).foreach(_ ! Edited(info.id, o))
+          clients.keys.filter(_ != sender).foreach(_ ! Edited(info.id, o))
           sender ! AcknowledgeEdit
       }      
       

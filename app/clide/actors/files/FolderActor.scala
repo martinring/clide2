@@ -54,11 +54,11 @@ class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String) 
     case WithPath(Seq(), msg) => receiveMessages(msg)            
     case WithPath(Seq(name), Delete) => 
       getExisting(name).map(_.forward(Delete))      
-    case WithPath(Seq(name), OpenFile) =>
-      getFile(name).forward(OpenFile)
+    case WithPath(Seq(name), msg@OpenFile(_)) =>
+      getFile(name).forward(msg)
     case WithPath(Seq(name), TouchFile) =>
       getFile(name).forward(TouchFile)
-    case WithPath(Seq(name), msg@Edit(_,_,_)) =>
+    case WithPath(Seq(name), msg@Edit(_,_)) =>
       log.info("forward")
       getFile(name).forward(msg)
     case WithPath(Seq(name,tail@_*), ExplorePath) =>
