@@ -121,7 +121,7 @@ define ->
       a1 = as1[i1++]
       a2 = as2[i2++]
       loop
-        break if typeof a1 is "undefined" and typeof a2 is "undefined"
+        break unless a1? or a2?
         if isDelete(a1)
           operation["delete"] a1
           a1 = as1[i1++]
