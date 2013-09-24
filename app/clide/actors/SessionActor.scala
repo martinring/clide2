@@ -56,7 +56,7 @@ class SessionActor(
           session,
           collaborators)
       openFiles.values.foreach { file =>
-        fileServers.get(file.id).map(_ ! OpenFile).getOrElse {
+        fileServers.get(file.id).map(_ ! OpenFile(this.session)).getOrElse {
           context.parent ! WrappedProjectMessage(user,level,WithPath(file.path,OpenFile(this.session)))
         }
       }

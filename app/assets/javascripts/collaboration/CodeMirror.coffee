@@ -79,8 +79,8 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             doc.replaceRange "", from, to
 
     @annotationFromCodeMirrorSelection: (doc,selection) ->
-      anchor = doc.indexFromPos(selection.anchor)
-      head   = doc.indexFromPos(selection.head)
+      anchor = doc.indexFromPos(doc.selection.anchor)
+      head   = doc.indexFromPos(doc.selection.head)
 
       length = doc.getValue().length # TODO: see above
                   
@@ -89,12 +89,14 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
                                 .annotate(0,{'c':'cursor'})
                                 .plain(length - anchor)
       else if anchor < head
-        return new Annotations().plain(anchor)                                
+        return new Annotations().plain(anchor)
+                                .annotate(0,{'c':'cursor'})
                                 .annotate(head - anchor,{'c':'selection'})
                                 .plain(length - head)
       else
         return new Annotations().plain(head)
-                                .annotate(anchor - head,{'c':'selection'})                                
+                                .annotate(anchor - head,{'c':'selection'})
+                                .annotate(0,{'c':'cursor'})
                                 .plain(length - anchor)
 
     registerCallbacks: (cb) =>
