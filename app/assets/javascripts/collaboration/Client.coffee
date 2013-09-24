@@ -11,7 +11,7 @@ define ->
       f = -> 
         instance.annotationTimeout = null
         instance.annotate(instance.annotation) if instance.annotation?
-      @annotationTimeout = window.setTimeout f, 50 # Maximum of 20 Annotations per second
+      @annotationTimeout = window.setTimeout f, 250 # Maximum of 4 Annotations per second
 
     setState: (state) ->
       @state = state

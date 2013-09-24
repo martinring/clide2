@@ -122,8 +122,8 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
                 delete session.openFiles[msg.c]
                 session.activeFileId = null
             when 'switch'
-              apply ->
-                session.activeFileId = msg.c
+              apply ->                
+                session.activeFileId = msg.c                                            
             when 'session_changed'
               apply ->
                 update(msg.c)

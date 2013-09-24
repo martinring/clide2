@@ -79,8 +79,8 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             doc.replaceRange "", from, to
 
     @annotationFromCodeMirrorSelection: (doc,selection) ->
-      anchor = doc.indexFromPos(doc.selection.anchor)
-      head   = doc.indexFromPos(doc.selection.head)
+      anchor = doc.indexFromPos(selection.anchor)
+      head   = doc.indexFromPos(selection.head)
 
       length = doc.getValue().length # TODO: see above
                   
@@ -89,15 +89,15 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
                                 .annotate(0,{'c':'cursor'})
                                 .plain(length - anchor)
       else if anchor < head
-        return new Annotations().plain(anchor)
-                                .annotate(0,{'c':'cursor'})
+        return new Annotations().plain(anchor)                                
                                 .annotate(head - anchor,{'c':'selection'})
+                                .annotate(0,{'c':'cursor'})
                                 .plain(length - head)
       else
         return new Annotations().plain(head)
-                                .annotate(anchor - head,{'c':'selection'})
                                 .annotate(0,{'c':'cursor'})
-                                .plain(length - anchor)
+                                .annotate(anchor - head,{'c':'selection'})                                
+                                .plain(length - anchor)  
 
     registerCallbacks: (cb) =>
       @callbacks = cb
@@ -150,4 +150,25 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
               widget.setAttribute('class', a.c.c + " " + user.color)
               @annotations[user.id].push @doc.setBookmark from,
                 widget: widget
-                insertLeft: true
+                insertLeft: true        
+      else # TODO: Refactor out (duplicate code!)
+        @annotations[user.id] = []
+        index = 0 # TODO: Iterate Line/Column based
+        for a in annotation.annotations
+          if Annotations.isPlain(a)
+            index += a
+          else
+            from = @doc.posFromIndex(index)            
+            if a.l > 0
+              index += a.l
+              to     = @doc.posFromIndex(index)
+              @annotations[user.id].push @doc.markText from, to,
+                className: a.c.c + " " + user.color
+                inclusiveLeft: false
+                inclusiveRight: true
+            else
+              widget = document.createElement("span")              
+              widget.setAttribute('class', a.c.c + " " + user.color)
+              @annotations[user.id].push @doc.setBookmark from,
+                widget: widget
+                insertLeft: true        
