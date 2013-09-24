@@ -1,6 +1,8 @@
 package clide.isabelle
 
 import akka.actor.Actor
+import clide.actors.Events._
+import clide.actors.Messages._
 
 class Highlighter extends Actor {
   def receive = {

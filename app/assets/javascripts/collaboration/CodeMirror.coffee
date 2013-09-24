@@ -125,11 +125,11 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
 
     applyAnnotation: (annotation, user) =>
       cm = @doc.getEditor()
-      existing = @annotations[user]
+      existing = @annotations[user.id]
       if existing? then for marker in existing
         marker.clear()
       if cm? then cm.operation =>
-        @annotations[user] = []
+        @annotations[user.id] = []
         index = 0 # TODO: Iterate Line/Column based
         for a in annotation.annotations
           if Annotations.isPlain(a)
@@ -139,13 +139,13 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             if a.l > 0
               index += a.l
               to     = @doc.posFromIndex(index)
-              @annotations[user].push @doc.markText from, to,
+              @annotations[user.id].push @doc.markText from, to,
                 className: a.c.c + " " + user.color
                 inclusiveLeft: false
                 inclusiveRight: true
             else
               widget = document.createElement("span")              
               widget.setAttribute('class', a.c.c + " " + user.color)
-              @annotations[user].push @doc.setBookmark from,
+              @annotations[user.id].push @doc.setBookmark from,
                 widget: widget
                 insertLeft: true
