@@ -41,6 +41,15 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   $scope.selectFile = (file) ->
     $scope.selectedFile = file.id
 
+  $scope.invite = () ->
+    Dialog.push
+      title: "invite a collaborator"
+      text:  "note that you can not only invite other users but also non-human collaborators that can assist you. You might want to try 'isabelle' for instance."
+      queries: ['username']
+      buttons: ['Ok','Cancel']
+      done: (answer, result) -> if (answer is 'Ok')
+        Session.invite(result.username)
+
   $scope.openFile = (file) ->
     if file.isDirectory
       file.loading = true

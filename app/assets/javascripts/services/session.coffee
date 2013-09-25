@@ -167,6 +167,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     closeFile: (id) -> send
       t: 'close'
       id: id
+    invite: (name) -> send
+      t: 'invite'
+      u: name
     setColor: (color) -> 
       session.me.color = color
       #document.getElementById('theme').href = "/client/stylesheets/colors/#{color}.css"

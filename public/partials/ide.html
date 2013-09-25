@@ -99,6 +99,7 @@
                   <span class='label bgcolor-{{user.color}}'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
                 </li>
               </ul>
+              <p><a ng-click='invite()'>invite a collaborator...</a></p>
             </div>
             <div class='alert alert-info' ng-show='session.state=="connecting"'>
               Connecting to server...
