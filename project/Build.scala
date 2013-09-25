@@ -6,22 +6,29 @@ object ApplicationBuild extends Build {
   val appName         = "clide"
   val appVersion      = "2.0-SNAPSHOT"
 
-  val appDependencies = Seq(    
-    "com.typesafe.akka"  %% "akka-testkit"        % "2.2.0"    % "test",
-    "com.typesafe"       %% "play-plugins-mailer" % "2.1.0",
-    "com.typesafe.play"  %% "play-slick"          % "0.5.0.2")
-
   override def rootProject = Some(main)
 
-  val common = Project("clide-common", file("modules/clide-common"))
+  val coreDependencies = Seq(
+    "com.typesafe.akka" %% "akka-actor"  % "2.2.0",
+    "com.typesafe.akka" %% "akka-remote" % "2.2.0"
+  )
 
-  val isabelle = Project("clide-isabelle", file("modules/clide-isabelle")).dependsOn(common)
+  val core = Project(s"${appName}-core", file("modules/clide-core"))
+             .settings(
+    libraryDependencies ++= coreDependencies
+  )
+
+  val appDependencies = Seq(    
+    "com.typesafe.akka"  %% "akka-testkit"        % "2.2.0" % "test",
+    "com.typesafe.akka"  %% "akka-remote"         % "2.2.0",
+    "com.typesafe"       %% "play-plugins-mailer" % "2.1.0",
+    "com.typesafe.play"  %% "play-slick"          % "0.5.0.2")
 
   val main = play.Project(
     appName, 
     appVersion, 
     appDependencies,
-    path = file("modules/clide-ui")
+    path = file("modules/clide")
   ).settings(Angular.defaultSettings:_*).settings(
     scalaVersion := "2.10.2",    
     resolvers += Resolver.url("github repo for play-slick",
@@ -53,5 +60,15 @@ object ApplicationBuild extends Build {
       (base / "assets" / "libs" / "bootstrap" / "assets" ** "*") --- 
       (base / "assets" / "libs" / "bootstrap" / "js" / "tests" ** "*") --- 
       (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
-  ).dependsOn(common)
+  )
+
+  val isabelleDependencies = Seq(
+    "com.typesafe.akka" %% "akka-actor"  % "2.2.0",
+    "com.typesafe.akka" %% "akka-remote" % "2.2.0"
+  )
+
+  val isabelle = Project(s"${appName}-isabelle", file("modules/clide-isabelle"))
+                .dependsOn(main).settings(
+    libraryDependencies ++= isabelleDependencies
+  )
 }

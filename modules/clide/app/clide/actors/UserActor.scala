@@ -16,10 +16,10 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
   import Messages._
   import Events._
   
-  var logins   = Map[String,LoginInfo]()
+  var logins = Map[String,LoginInfo]()
   var projects = Map[String,ProjectInfo]()
   var otherProjects = Map[ProjectInfo,ProjectAccessLevel.Value]()
-  var backstagePeer: Option[ActorRef] = None
+  var backstagePeers: Set[ActorRef] = Set.empty
 
   override def preStart() {
     log.info("initializing user actor")    
@@ -51,7 +51,7 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
     case DeletedProject(project) =>
       projects -= project.name
     case Terminated(peer) =>
-      backstagePeer = backstagePeer.filter(_ != peer)
+      backstagePeers -= peer
   }
   
   def anonymous: Receive = {
@@ -102,7 +102,7 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       }
     
     case StartBackstageSession =>
-      backstagePeer = Some(sender)
+      backstagePeers += sender
       context.watch(sender)
       sender ! EventSocket(self)
       

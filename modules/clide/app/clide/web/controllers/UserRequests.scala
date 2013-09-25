@@ -20,13 +20,17 @@ import play.api.Logger
 import scala.util.Success
 import scala.util.Failure
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.concurrent.Akka
 
 trait UserRequests { this: Controller =>
   implicit val timeout = Timeout(2.5 seconds)
   implicit def ask(act: ActorRef) = akka.pattern.ask(act)
   implicit val system = play.api.libs.concurrent.Akka.system
   implicit val executionContext = play.api.libs.concurrent.Akka.system.dispatcher
-  val server = clide.actors.Infrastructure.userServer
+  def server = clide.actors.Infrastructure.server.getOrElse {
+    throw new Exception("clide actor system has not been initialized yet")
+  }
+  
   val Messages = clide.actors.Messages
   
   class UserAskRequest[A](val ask: (UserMessage => Future[Event]),

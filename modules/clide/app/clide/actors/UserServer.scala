@@ -15,6 +15,7 @@ class UserServer extends Actor with ActorLogging {
   
   def receive = {    
     case SignUp(name,email,password) =>
+      log.info("attempting to sign up")
       val user = UserInfo(name,email,UserInfos.passwordHash(name, password))
       DB.withSession { implicit session: scala.slick.session.Session => UserInfos.insert(user) }
       context.actorOf(Props(classOf[UserActor],user), user.name)

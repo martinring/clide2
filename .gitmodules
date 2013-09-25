@@ -1,3 +1,0 @@
-[submodule "modules/clide-ui/app/assets/libs/bootstrap"]
-	path = modules/clide-ui/app/assets/libs/bootstrap
-	url = https://github.com/twbs/bootstrap.git

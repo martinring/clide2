@@ -13,10 +13,10 @@ object Global extends GlobalSettings {
   override def onStart(app: Application) {    
     import clide.actors._
     Logger.info("initializing actor infrastructure")    
-    Infrastructure.userServer = Akka.system.actorOf(Props[UserServer], "users")    
+    Infrastructure.initialize()
   }
   
   override def onStop(app: Application) {
-    
+    Infrastructure.shutdown()
   }
 }
