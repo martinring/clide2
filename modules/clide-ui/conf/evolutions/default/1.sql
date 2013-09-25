@@ -25,9 +25,9 @@ alter table "rights" add constraint "fk_right_user" foreign key("user") referenc
 alter table "rights" add constraint "fk_right_project" foreign key("project") references "projects"("id") on update CASCADE on delete CASCADE;
 alter table "projects" add constraint "fk_project_user" foreign key("owner") references "users"("name") on update CASCADE on delete CASCADE;
 alter table "revisions" add constraint "fk_revision_file" foreign key("fileId") references "files"("id") on update CASCADE on delete CASCADE;
-alter table "sessions" add constraint "fk_session_file" foreign key("activeFile") references "files"("id") on update SET NULL on delete SET NULL;
 alter table "sessions" add constraint "fk_session_user" foreign key("name") references "users"("name") on update CASCADE on delete CASCADE;
 alter table "sessions" add constraint "fk_session_project" foreign key("project") references "projects"("id") on update CASCADE on delete CASCADE;
+alter table "sessions" add constraint "fk_session_file" foreign key("activeFile") references "files"("id") on update SET NULL on delete SET NULL;
 
 # --- !Downs
 
@@ -40,9 +40,9 @@ alter table "rights" drop constraint "fk_right_user";
 alter table "rights" drop constraint "fk_right_project";
 alter table "projects" drop constraint "fk_project_user";
 alter table "revisions" drop constraint "fk_revision_file";
-alter table "sessions" drop constraint "fk_session_file";
 alter table "sessions" drop constraint "fk_session_user";
 alter table "sessions" drop constraint "fk_session_project";
+alter table "sessions" drop constraint "fk_session_file";
 drop table "files";
 drop table "logins";
 alter table "openFiles" drop constraint "pk_openFile";

@@ -1,18 +1,25 @@
 import sbt._
 import Keys._
 import play.Project._
-import scala.collection.mutable.StringBuilder
 
 object ApplicationBuild extends Build {
   val appName         = "clide"
   val appVersion      = "2.0-SNAPSHOT"
+
   val appDependencies = Seq(    
     "com.typesafe.akka"  %% "akka-testkit"        % "2.2.0"    % "test",
     "com.typesafe"       %% "play-plugins-mailer" % "2.1.0",
     "com.typesafe.play"  %% "play-slick"          % "0.5.0.2")
-    
-  val main = play.Project(appName, appVersion, appDependencies).settings(Angular.defaultSettings:_*).settings(    
-    scalaVersion := "2.10.2",        
+
+  override def rootProject = Some(main)
+      
+  val main = play.Project(
+    appName, 
+    appVersion, 
+    appDependencies,
+    path = file("modules/clide-ui")
+  ).settings(Angular.defaultSettings:_*).settings(
+    scalaVersion := "2.10.2",    
     resolvers += Resolver.url("github repo for play-slick",
       url("https://raw.github.com/loicdescotte/loicdescotte.github.com/master/releases/"))
       (Resolver.ivyStylePatterns),
@@ -41,6 +48,5 @@ object ApplicationBuild extends Build {
       (base / "assets" ** "*.js") --- 
       (base / "assets" / "libs" / "bootstrap" / "assets" ** "*") --- 
       (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
-
   )
 }
