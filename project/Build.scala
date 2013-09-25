@@ -12,7 +12,11 @@ object ApplicationBuild extends Build {
     "com.typesafe.play"  %% "play-slick"          % "0.5.0.2")
 
   override def rootProject = Some(main)
-      
+
+  val common = Project("clide-common", file("modules/clide-common"))
+
+  val isabelle = Project("clide-isabelle", file("modules/clide-isabelle")).dependsOn(common)
+
   val main = play.Project(
     appName, 
     appVersion, 
@@ -49,5 +53,5 @@ object ApplicationBuild extends Build {
       (base / "assets" / "libs" / "bootstrap" / "assets" ** "*") --- 
       (base / "assets" / "libs" / "bootstrap" / "js" / "tests" ** "*") --- 
       (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
-  )
+  ).dependsOn(common)
 }
