@@ -33,9 +33,9 @@ object ApplicationBuild extends Build {
         "ui-bootstrap"     -> "ui.bootstrap"),
     Angular.moduleDirs ++= Map(
         "controllers" -> ("controller", "Controller", true),
-        "directives" -> ("directive","",false),
-        "filters" -> ("filter","",false),
-        "services" -> ("service","",true)),
+        "directives"  -> ("directive","",false),
+        "filters"     -> ("filter","",false),
+        "services"    -> ("service","",true)),
     resourceGenerators in Compile <+= LessCompiler,
     resourceGenerators in Compile <+= JavascriptCompiler(fullCompilerOptions = None),
     resourceGenerators in Compile <+= Angular.ModuleCompiler,
@@ -47,6 +47,7 @@ object ApplicationBuild extends Build {
     javascriptEntryPoints <<= (sourceDirectory in Compile){ base => 
       (base / "assets" ** "*.js") --- 
       (base / "assets" / "libs" / "bootstrap" / "assets" ** "*") --- 
+      (base / "assets" / "libs" / "bootstrap" / "js" / "tests" ** "*") --- 
       (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
   )
 }
