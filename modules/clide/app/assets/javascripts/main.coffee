@@ -1,10 +1,15 @@
 # RequireJS configuration
 require.config
+  paths:
+    'codemirror': 'vendor/codemirror/codemirror'
   shim:
+    'codemirror':
+      exports: 'CodeMirror'
     'routes':
       exports: 'jsRoutes'
 
-require ['app','collaboration/Operation','collaboration/Annotations'], (app,Operation,Annotation) ->    
+
+require ['app'], (app) ->
   app.run ($rootScope, Session, Files) ->
     $rootScope.$on '$routeChangeSuccess', (e,n,o) ->
       $rootScope.ide   = n.$$route.ide

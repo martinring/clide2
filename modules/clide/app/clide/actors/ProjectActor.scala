@@ -78,7 +78,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
     case msg@SessionStopped(info) =>
       sessions -= info
       sessionActors -= info.id
-      sessionActors.values.foreach(_.forward(msg))
+      sessionActors.values.foreach(_.forward(msg))          
     case WrappedProjectMessage(user,level,msg) =>
       this.user = user
       this.level = level

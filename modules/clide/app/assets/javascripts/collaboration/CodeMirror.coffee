@@ -1,5 +1,5 @@
 define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annotations) ->
-  skipOne = (state) ->
+  ###skipOne = (state) ->
     if state.remaining.length > 0
       switch typeof state.remaining[0]
         when 'number'
@@ -41,7 +41,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             console.error 'unknown annotation type'
       else
         stream.skipToEnd()
-        return null
+        return null###
 
   class CodeMirrorAdapter
     constructor: (@doc) ->
@@ -141,16 +141,20 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             if a.l > 0
               index += a.l
               to     = @doc.posFromIndex(index)
+              className = if a.c.c.indexOf("selection") >= 0 then a.c.c + " " + user.color else a.c.c              
               @annotations[user.id].push @doc.markText from, to,
-                className: a.c.c + " " + user.color
+                className: className
                 inclusiveLeft: false
                 inclusiveRight: true
             else
-              widget = document.createElement("span")              
-              widget.setAttribute('class', a.c.c + " " + user.color)
+              widget = document.createElement("span")
+              if a.c.c.indexOf("cursor") >= 0
+                widget.setAttribute('class', a.c.c + " " + user.color)
+              else
+                widget.setAttribute('class', a.c.c)
               @annotations[user.id].push @doc.setBookmark from,
                 widget: widget
-                insertLeft: true        
+                insertLeft: true             
       else # TODO: Refactor out (duplicate code!)
         @annotations[user.id] = []
         index = 0 # TODO: Iterate Line/Column based
@@ -162,13 +166,17 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             if a.l > 0
               index += a.l
               to     = @doc.posFromIndex(index)
+              className = if a.c.c.indexOf("selection") >= 0 then a.c.c + " " + user.color else a.c.c              
               @annotations[user.id].push @doc.markText from, to,
-                className: a.c.c + " " + user.color
+                className: className
                 inclusiveLeft: false
                 inclusiveRight: true
             else
-              widget = document.createElement("span")              
-              widget.setAttribute('class', a.c.c + " " + user.color)
+              widget = document.createElement("span")
+              if a.c.c.indexOf("cursor") >= 0
+                widget.setAttribute('class', a.c.c + " " + user.color)
+              else
+                widget.setAttribute('class', a.c.c)
               @annotations[user.id].push @doc.setBookmark from,
                 widget: widget
                 insertLeft: true        

@@ -26,16 +26,18 @@ object Messages {
   case class External(sender: UserInfo, message: UserMessage) extends UserMessageWrapper
   case class Internal(message: UserMessage) extends UserMessageWrapper
   
-  trait UserMessage  
+  trait UserMessage extends Message
   case object Validate extends UserMessage
   case class Login(password: String) extends UserMessage
   case object Logout extends UserMessage  
   case class CreateProject(name: String, description: Option[String]) extends UserMessage   
-  case class WithUser(name: String, message: UserMessage) extends UserMessage  
+  case class WithUser(name: String, message: UserMessage) extends UserMessage with SessionMessage  
   case class WithProject(name: String, message: ProjectMessage) extends UserMessage
   case object BrowseProjects extends UserMessage
+  case class Invite(project: String) extends UserMessage 
   case class StartSession(project: String) extends UserMessage
   case object StartBackstageSession extends UserMessage
+  case object RequestBackstageInfo extends UserMessage with SessionMessage
     
   case class WrappedProjectMessage(
       user: UserInfo,
@@ -44,7 +46,7 @@ object Messages {
   
   trait ProjectMessage extends Message
   object DeleteProject extends ProjectMessage 
-  
+ 
   case class WithPath(path: Seq[String], message: FileMessage) extends ProjectMessage with FileMessage
   case object StartFileBrowser      extends ProjectMessage
   case object StartSession          extends ProjectMessage

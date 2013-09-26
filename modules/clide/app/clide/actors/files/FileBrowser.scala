@@ -15,7 +15,7 @@ class FileBrowser(write: Boolean, var target: ActorRef) extends Actor with Actor
       target ! Register
       context.watch(target)
       context.watch(peer)
-      peer ! EventSocket(self)
+      peer ! EventSocket(self,"files")
     case m: FileMessage =>
       log.info(m.toString)
       target ! m

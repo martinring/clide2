@@ -46,6 +46,10 @@ object Projects extends Controller with UserRequests {
     request.askFor(username)(WithProject(name,DeleteProject)).map(defaultResult)
   }
   
+  def invite(username: String, name: String) = UserRequest.async(parse.json) { request =>
+    request.askFor(username)(WithUser((request.body \ "user").as[String],Invite(name))).map(defaultResult)
+  }
+  
   def session(username: String, name: String) = ActorSocket(
       user = username,
       message = WithUser(username,WithProject(name,StartSession)),
@@ -63,6 +67,8 @@ object Projects extends Controller with UserRequests {
 	            CloseFile((json \ "id").as[Long])
 	          case "color" =>
 	            SetColor((json \ "c").as[String])
+	          case "invite" =>
+	            ChangeProjectUserLevel((json \ "u").as[String], ProjectAccessLevel.Write)
 	        }
 	      }
           case Some(rev) => (json\"o").asOpt[Operation] match {

@@ -4,12 +4,14 @@ GET     /api/auth/validateSession           clide.web.controllers.Authentication
 POST    /api/auth/signup                    clide.web.controllers.Authentication.signup
 GET     /api/auth/logout                    clide.web.controllers.Authentication.logout
 
+GET     /api/users/:user/backstage          clide.web.controllers.Backstage.session(user)
+
 # Projects
 GET     /api/projects/:user                 clide.web.controllers.Projects.index(user)
 PUT     /api/projects/:user                 clide.web.controllers.Projects.put(user)
 DELETE  /api/projects/:user/:name           clide.web.controllers.Projects.delete(user,name)
-GET     /api/projects/:user/:name/@files    clide.web.controllers.Projects.fileBrowser(user,name)
-GET     /api/projects/:user/:name/@session  clide.web.controllers.Projects.session(user,name)
+GET     /api/projects/:user/:name/files     clide.web.controllers.Projects.fileBrowser(user,name)
+GET     /api/projects/:user/:name/session   clide.web.controllers.Projects.session(user,name)
 
 # Javascript routing
 GET     /client/javascripts/routes.js       clide.web.controllers.Application.javascriptRoutes

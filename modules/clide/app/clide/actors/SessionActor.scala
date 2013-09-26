@@ -64,7 +64,7 @@ class SessionActor(
       setActive(true)
       peer = sender
       context.watch(peer)
-      peer ! EventSocket(self)
+      peer ! EventSocket(self,"session")
       context.parent ! SessionChanged(session)      
     case LeaveSession | EOF =>
       setActive(false)
@@ -167,6 +167,9 @@ class SessionActor(
           receive(CloseFile(id))
         }
       }
+    case msg@ChangeProjectUserLevel(_,_) => // HACK: replace with invitation      
+      log.info("invite hack")
+      context.parent.forward(WrappedProjectMessage(user,level,msg))
   }
   
   override def postStop() = DB.withSession { implicit session: Session =>

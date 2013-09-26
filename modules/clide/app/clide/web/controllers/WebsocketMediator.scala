@@ -25,7 +25,7 @@ class WebsocketMediator extends Actor with ActorLogging {
       client = sender
       context.watch(client)
       ref ! message
-    case EventSocket(peer) =>
+    case EventSocket(peer,_) =>
       log.info("forwarding event socket")
       this.peer = peer
       context.watch(peer)

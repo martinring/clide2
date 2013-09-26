@@ -19,7 +19,7 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
   var logins = Map[String,LoginInfo]()
   var projects = Map[String,ProjectInfo]()
   var otherProjects = Map[ProjectInfo,ProjectAccessLevel.Value]()
-  var backstagePeers: Set[ActorRef] = Set.empty
+  var backstagePeers: Map[ActorRef,LoginInfo] = Map()
 
   override def preStart() {
     log.info("initializing user actor")    
@@ -49,9 +49,21 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
     case External(user,msg) => (external(user) orElse anonymous)(msg)
     // EVENTS
     case DeletedProject(project) =>
-      projects -= project.name
+      projects -= project.name    
     case Terminated(peer) =>
       backstagePeers -= peer
+    case msg@ChangedProjectUserLevel(project, user, level) =>
+      if (user == this.user.name) {
+        println("thats me!")
+        otherProjects += project -> level
+        backstagePeers.keys.foreach(_ ! msg)        
+      } else {
+        println("who is it?")
+        context.actorSelection(s"../$user").tell(msg,sender)
+      }
+    case msg if backstagePeers.contains(sender) => // TODO: Move to backstage actor
+      log.info("direct message via backstage: {}",msg)
+      identified(backstagePeers(sender))(msg)
   }
   
   def anonymous: Receive = {
@@ -70,8 +82,17 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
     case _ => sender ! NotAllowed
   }
   
-  def external(user: UserInfo): Receive = {    
-    case _ => sender ! NotAllowed
+  def external(user: UserInfo): Receive = {
+    case WithProject(name,msg) =>
+      projects.get(name) match {
+        case Some(project) =>
+          context.actorSelection(s"$name").tell(
+            WrappedProjectMessage(user, ProjectAccessLevel.Write,msg),sender)
+        case None => sender ! DoesntExist
+      } 
+    case msg =>
+      log.info("external "+ msg.toString)
+      sender ! NotAllowed
   }
           
   def identified(login: LoginInfo): Receive = {        
@@ -102,9 +123,9 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       }
     
     case StartBackstageSession =>
-      backstagePeers += sender
+      backstagePeers += sender -> login
       context.watch(sender)
-      sender ! EventSocket(self)
+      sender ! EventSocket(self,"backstage")
       
     case WithProject(name,msg) =>
       projects.get(name) match {
@@ -117,7 +138,7 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
     case WithUser(name,msg) =>
       Logger.info(s"${user.name} received $msg for $name")
       if (name == user.name) (identified(login) orElse anonymous)(msg)
-      else context.actorSelection(s"../$name").tell(External(user,msg),sender)     
+      else context.actorSelection(s"../$name").tell(External(user,msg),sender)
       
     case Validate => sender ! Validated(user)
     

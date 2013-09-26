@@ -63,12 +63,15 @@ object ApplicationBuild extends Build {
   )
 
   val isabelleDependencies = Seq(
-    "com.typesafe.akka" %% "akka-actor"  % "2.2.0",
-    "com.typesafe.akka" %% "akka-remote" % "2.2.0"
+    "com.typesafe.akka" %% "akka-actor"   % "2.2.0",
+    "com.typesafe.akka" %% "akka-remote"  % "2.2.0",
+    "org.scala-lang"    %  "scala-swing"  % "2.10.2",
+    "org.scala-lang"    %  "scala-actors" % "2.10.2"
   )
 
   val isabelle = Project(s"${appName}-isabelle", file("modules/clide-isabelle"))
                 .dependsOn(main).settings(
+    scalaVersion := "2.10.2",
     libraryDependencies ++= isabelleDependencies
   )
 }

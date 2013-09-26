@@ -15,7 +15,7 @@ object Events {
   case object TimeOut extends Event
   case object UnexpectedTermination extends Event
     
-  case class EventSocket(in: ActorRef) extends Event
+  case class EventSocket(in: ActorRef, id: String) extends Event
   case object Welcome extends Event
   
   trait FileEvent extends Event
@@ -111,7 +111,8 @@ object Events {
     case FileOpened(i) => "opened" of i
     case Edited(file,o) => Json.obj("f"->file,"o"->o)
     case Annotated(file,user,a) => Json.obj("f"->file,"a"->a,"u"->user)
-    case AcknowledgeEdit => JsString("ack")    
+    case AcknowledgeEdit => JsString("ack")
+    case NotAllowed => "e" of "internal error: forbidden action"
     case DoesntExist => "e" of "internal error: the referenced resource doesn't exist on the server"
     case _ => error("couldnt translate")
   }
