@@ -151,7 +151,7 @@
               <button type="button" class="close" ng-click='closeFile(file.id)' aria-hidden="true">&times;</button>
             </li>
           </ul>
-          <div class="content {{session.me.color}}" ng-show='session.state=="connected" && session.activeDoc()'>
+          <div ng-show='session.state=="connected" && session.activeDoc()' class="content {{session.me.color}}">
             <editor document='session.activeDoc()' lineNumbers='true'></editor>
           </div>
         </div>

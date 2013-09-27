@@ -9,7 +9,7 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
     $location.path '/login'
     Toasts.push 'warning', 'You need to log in to view the requested resource!'
     return  
-
+  
   Files.init($routeParams.user, $routeParams.project)
   Files.explore($scope.path)
 
@@ -19,7 +19,7 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
   $scope.files = Files.info
 
   $scope.browseTo = Files.browseTo
-  $scope.currentDir = Files.current  
+  $scope.currentDir = Files.current
 
   $scope.reconnect = ->
     Files.init($routeParams.user, $routeParams.project)
