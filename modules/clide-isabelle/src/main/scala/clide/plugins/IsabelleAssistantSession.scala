@@ -43,7 +43,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     }
     session.commands_changed += { change =>
       log.info(s"commands changed")
-    }    
+    }
     session.start(List("HOL"))    
   }
   
@@ -55,7 +55,9 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     }
   }
   
-  def fileChanged(file: OpenedFile, change: Operation, after: OpenedFile) =
+  def fileChanged(file: OpenedFile, change: Operation, after: OpenedFile) = {
+    log.info("change")
+    processFile(after).map(annotate(after, _))
     thys.get(file.path).foreach { file =>
       val (_,edits) = change.actions.foldLeft((0,Nil : List[Text.Edit])) { 
         case ((i,edits),Retain(n)) =>
@@ -65,28 +67,38 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
         case ((i,edits),Insert(s)) =>
           (i+s.length,Text.Edit.insert(i,s) :: edits)
       }
-      log.info(s"edits on file ${file.path}: $edits")
+      log.info(s"edits in file ${file.path}: $edits")
       session.update((file.nodeName, Document.Node.Edits[Text.Edit,Text.Perspective](edits)) :: Nil)
     }
+  }
       
   
   def fileClosed(file: OpenedFile) {
     thys.get(file.path).map { file =>
       thys -= file.path
-      
     }
   }  
   
   def processFile(file: OpenedFile) = Some {
     Annotations(session.thy_load.base_syntax.scan(file.state).map { case t: isabelle.Token =>
         (if (t.is_command) {
-          Annotate(t.content.length(),Map("c"->"cm-keyword"))	       
+          Annotate(t.source.length(),Map("c"->"cm-keyword"))	       
 	    } else if (t.is_comment) {
-	      Annotate(t.content.length(),Map("c"->"cm-comment"))
+	      Annotate(t.source.length(),Map("c"->"cm-comment"))
+	    } else if (t.is_begin) {
+	      Annotate(t.source.length(),Map("c"->"cm-keyword"))
+	    } else if (t.is_end) {
+	      Annotate(t.source.length(),Map("c"->"cm-keyword"))
+	    } else if (t.is_keyword) {
+	      Annotate(t.source.length(),Map("c"->"cm-keyword"))
+	    } else if (t.is_text) {
+	      Annotate(t.content.length(),Map("c"->"cm-quote"))
+	    } else if (t.is_comment) {
+	      Annotate(t.content.length(),Map("c"->"cm-comment"))	      
 	    } else if (t.is_string) {
 	      Annotate(t.content.length(),Map("c"->"cm-string"))          
         } else Plain(t.content.length()))
-      })
+      })    
   }
   
   override def postStop() {

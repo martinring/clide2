@@ -64,7 +64,7 @@ abstract class Assistant extends Actor with ActorLogging {
       log.info("connected to clide")
       login()
     case DoesntExist =>
-      log.info(s"user $username hasnt been signed up yet")      
+      log.info(s"user $username hasnt been signed up yet")
       signup()
     case WrongPassword =>
       log.error(s"user $username is already signed up with different password")
@@ -76,7 +76,7 @@ abstract class Assistant extends Actor with ActorLogging {
       log.info(s"logged in")
       server ! IdentifiedFor(username,login.key,StartBackstageSession)
       loginInfo = login
-      context.become(loggedIn)    
+      context.become(loggedIn)
   }
   
   override def preStart = {
@@ -88,5 +88,7 @@ abstract class Assistant extends Actor with ActorLogging {
   
   override def postStop = {
     context.system.shutdown()
+    context.system.awaitTermination()
+    sys.exit()
   }
 }

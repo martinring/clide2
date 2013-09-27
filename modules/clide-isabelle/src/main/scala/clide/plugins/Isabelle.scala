@@ -17,7 +17,7 @@ import clide.collaboration.Annotation
 
 object Isabelle extends App {
   val system = ActorSystem("clide-isabelle",ConfigFactory.load.getConfig("clide-isabelle"))    
-  system.actorOf(Props[IsabelleAssistant],"plugin")
-  readLine()
-  system.shutdown()
+  val plugin = system.actorOf(Props[IsabelleAssistant],"plugin")
+  readLine()  
+  plugin ! PoisonPill
 }
