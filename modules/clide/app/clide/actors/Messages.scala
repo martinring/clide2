@@ -37,7 +37,7 @@ object Messages {
   case class Invite(project: String) extends UserMessage 
   case class StartSession(project: String) extends UserMessage
   case object StartBackstageSession extends UserMessage
-  case object RequestBackstageInfo extends UserMessage with SessionMessage
+  case object RequestBackstageInfo extends UserMessage with SessionMessage  
     
   case class WrappedProjectMessage(
       user: UserInfo,

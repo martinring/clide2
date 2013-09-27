@@ -18,11 +18,11 @@ abstract class Assistant extends Actor with ActorLogging {
     context.watch(act)
   }
   
-  val config   = context.system.settings.config
+  lazy val config   = context.system.settings.config
   
-  val username = config.getString("assistant.username")
-  val password = config.getString("assistant.password")
-  val email    = config.getString("assistant.email")
+  lazy val username = config.getString("assistant.username")
+  lazy val password = config.getString("assistant.password")
+  lazy val email    = config.getString("assistant.email")
 
   var server   = context.system.deadLetters
   var peer     = context.system.deadLetters
@@ -44,7 +44,7 @@ abstract class Assistant extends Actor with ActorLogging {
       loginInfo = null
       context.unbecome()
       log.info("logged out")
-      context.system.shutdown()
+      self ! PoisonPill
     case EventSocket(peer,"backstage") =>
       log.info("connected to backstage session")
       this.peer = peer
@@ -58,7 +58,7 @@ abstract class Assistant extends Actor with ActorLogging {
   def receive = {
     case ActorIdentity("server",None) =>
       log.error("couldn't reach the server")
-      context.system.shutdown()
+      self ! PoisonPill
     case ActorIdentity("server",Some(ref)) =>
       server = ref
       log.info("connected to clide")
@@ -68,7 +68,7 @@ abstract class Assistant extends Actor with ActorLogging {
       signup()
     case WrongPassword =>
       log.error(s"user $username is already signed up with different password")
-      context.system.shutdown()
+      self ! PoisonPill
     case SignedUp(info) =>
       log.info(s"signed up")
       login()
@@ -85,4 +85,8 @@ abstract class Assistant extends Actor with ActorLogging {
     val server = context.actorSelection(path)
     server ! Identify("server")
   }  
+  
+  override def postStop = {
+    context.system.shutdown()
+  }
 }

@@ -28,9 +28,12 @@ define ->
       @revision++
       @setState @state.applyServer(this, operation)
 
-    serverAck: ->
+    serverAckEdit: ->
       @revision++
       @setState @state.serverAck(this)
+
+    serverAckAnnotation: ->
+      console.log 'annotation acknowledged'
 
     serverReconnect: ->
       @state.resend? this

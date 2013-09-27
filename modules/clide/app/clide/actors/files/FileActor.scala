@@ -62,8 +62,9 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
         case Failure(e) =>
           // TODO
           log.warning("annotation could not be transformed")
-        case Success(a) =>
+        case Success(a) =>          
           clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a))
+          sender ! AcknowledgeAnnotation
       }
       
     case Edit(rev,ops) =>

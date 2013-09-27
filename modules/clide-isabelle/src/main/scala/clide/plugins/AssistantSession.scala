@@ -11,21 +11,30 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
   var activeFiles = Map[Long,Long]()
   var info: SessionInfo = null
   var collaborators = Set[SessionInfo]()
-  var files = Map[Long,OpenedFile]()
+  var files = Map[Long,OpenedFile]()      
   
-  def processFile(file: OpenedFile): Option[Annotations]  
-  def processFileChange(before: OpenedFile, change: Operation, after: OpenedFile): Option[Annotations] = processFile(after)  
-    
+  def fileAdded(file: OpenedFile)
+  def fileChanged(file: OpenedFile, change: Operation, after: OpenedFile)
+  def fileClosed(file: OpenedFile)  
+   
+  def annotate(file: OpenedFile, annotations: Annotations) = {
+    peer ! clide.actors.Messages.Annotate(file.revision, annotations)
+  }
+  
+  def startup() { }
+  
+  def shutdown() { }
+  
   def receive = {    
     case EventSocket(ref,"session") =>
       log.info("session started")
       peer = ref
       log.info("requesting session info")
-      peer ! RequestSessionInfo
+      peer ! RequestSessionInfo      
     case SessionInit(info, collaborators) =>
       log.info("session info received")
       this.info = info
-      this.collaborators = collaborators
+      this.collaborators = collaborators      
       collaborators.foreach { info =>
         if (info.active && info.activeFile.isDefined) {
           log.info(s"${info.user} is looking at ${info.activeFile.get}")
@@ -35,21 +44,18 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
       activeFiles.values.toSeq.distinct.foreach { id =>
         peer ! SwitchFile(id)
       }
+      startup()
     case FileOpened(file@OpenedFile(info,content,revision)) =>
-      for {
-        as <- processFile(file)
-      } peer ! clide.actors.Messages.Annotate(revision,as)      
-      log.info(file.toString)
       files += info.id -> file
-    case Edited(file,operation) =>
-      log.info(file.toString + ": " + operation)
-      files.get(file).map { case file@OpenedFile(info,content,revision) =>        
-        val next = OpenedFile(info,new Document(content).apply(operation).get.content,revision + 1)
-        files += file.info.id -> next
-        for {
-          as <- processFileChange(file, operation, next)
-        } peer ! clide.actors.Messages.Annotate(next.revision,as)        
-      }    
+      fileAdded(file)
+    case FileClosed(file) =>
+      fileClosed(files(file))
+      files -= file
+    case Edited(file,operation) =>      
+      val prev = files(file)
+      val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
+      files += file -> next
+      fileChanged(prev, operation, next)
     case SessionChanged(info) =>
       if (info.active && info.activeFile.isDefined) {
         log.info(s"${info.user} is looking at ${info.activeFile.get}")        
@@ -59,5 +65,9 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
         log.info(s"${info.user} is inactive")
         activeFiles -= info.id
       }
-  }  
+  }
+  
+  override def postStop() {
+    shutdown()
+  }
 }

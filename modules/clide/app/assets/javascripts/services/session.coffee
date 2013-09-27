@@ -38,12 +38,14 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       if (nfile.id isnt session.activeFileId)
         Toast.push 'danger', 'internal error: edit inactive file (todo)'
       else send
+        f: nfile.id # TODO: handle on server!
         r: rev
         o: op.actions
     client.sendAnnotation = (rev,an) ->
       if (nfile.id isnt session.activeFileId)
         Toast.push 'danger', 'internal error: annotate inactive file (todo)'
       else send
+        f: nfile.id
         r: rev
         a: an.annotations
 
@@ -51,7 +53,8 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       change: (op) -> client.applyClient(op)
       annotate: (a) -> client.annotate(a)
 
-    nfile.$ack   = () -> client.serverAck()
+    nfile.$ackEdit = () -> client.serverAckEdit()
+    nfile.$ackAnnotation = () -> client.serverAckAnnotation()
     nfile.$apply = (os) -> client.applyServer(os)
     nfile.$annotate = (a,u) -> # TODO: include user
       a = client.transformAnnotation(a)
@@ -96,8 +99,10 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       switch typeof msg
         when 'string'
           switch msg
-            when 'ack'
-              getOpenFile(session.activeFileId).$ack()
+            when 'ack_edit'
+              getOpenFile(session.activeFileId).$ackEdit()
+            when 'ack_annotate'
+              getOpenFile(session.activeFileId).$ackAnnotation()
             else
               Toasts.push 'danger', "internal error: unknown message: #{msg}"        
         when 'object'        
@@ -161,15 +166,18 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       socket or get(username, project, init)
       send 
         t: 'init'
-    openFile: (id) -> send
-      t: 'open'
-      id: id
-    closeFile: (id) -> send
-      t: 'close'
-      id: id
-    invite: (name) -> send
-      t: 'invite'
-      u: name
+    openFile: (id) -> unless session.activeFileId is id
+      send
+        t: 'open'
+        id: id
+    closeFile: (id) -> 
+      send
+        t: 'close'
+        id: id
+    invite: (name) -> 
+      send
+        t: 'invite'
+        u: name
     setColor: (color) -> 
       session.me.color = color
       #document.getElementById('theme').href = "/client/stylesheets/colors/#{color}.css"

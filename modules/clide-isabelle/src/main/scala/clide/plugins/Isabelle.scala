@@ -15,8 +15,9 @@ import clide.collaboration.Plain
 import clide.collaboration.Annotations
 import clide.collaboration.Annotation
 
-object Isabelle extends App {  
-  val system = ActorSystem("clide-isabelle",ConfigFactory.load.getConfig("clide-isabelle")) 
-  implicit val dispatcher = system.dispatcher 
+object Isabelle extends App {
+  val system = ActorSystem("clide-isabelle",ConfigFactory.load.getConfig("clide-isabelle"))    
   system.actorOf(Props[IsabelleAssistant],"plugin")
+  readLine()
+  system.shutdown()
 }

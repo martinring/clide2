@@ -58,6 +58,7 @@ object Events {
   case class Edited(file: Long, op: Operation) extends SessionEvent
   case class Annotated(file: Long, user: Long, an: Annotations) extends SessionEvent
   case object AcknowledgeEdit extends SessionEvent
+  case object AcknowledgeAnnotation extends SessionEvent
   case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent
   
   case class UserProjectInfos(
@@ -111,7 +112,8 @@ object Events {
     case FileOpened(i) => "opened" of i
     case Edited(file,o) => Json.obj("f"->file,"o"->o)
     case Annotated(file,user,a) => Json.obj("f"->file,"a"->a,"u"->user)
-    case AcknowledgeEdit => JsString("ack")
+    case AcknowledgeEdit => JsString("ack_edit")
+    case AcknowledgeAnnotation => JsString("ack_annotation")
     case NotAllowed => "e" of "internal error: forbidden action"
     case DoesntExist => "e" of "internal error: the referenced resource doesn't exist on the server"
     case _ => error("couldnt translate")
