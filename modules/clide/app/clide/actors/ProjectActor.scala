@@ -6,6 +6,7 @@ import play.api.Play.current
 import play.api.db.slick._
 import scala.slick.driver.H2Driver.simple._
 import clide.actors.files._
+import org.h2.jdbc.JdbcSQLException
 
 class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   import clide.actors.Messages._
@@ -28,11 +29,14 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       context.stop(self)
       
     case ChangeProjectUserLevel(user,level) =>
-      DB.withSession { implicit session: Session =>
+      try { DB.withSession { implicit session: Session =>
         ProjectAccessLevels.change(info.id, user, level)
-      }
-      sessionActors.values.foreach(_ ! ChangedProjectUserLevel(info, user, level))
-      context.parent ! ChangedProjectUserLevel(info, user, level)
+        sessionActors.values.foreach(_ ! ChangedProjectUserLevel(info, user, level))
+        context.parent ! ChangedProjectUserLevel(info, user, level)
+      } } catch {
+        case e: JdbcSQLException =>
+          sender ! DoesntExist  
+      }      
   }
   
   def write: Receive = {

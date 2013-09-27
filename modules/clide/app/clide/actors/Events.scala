@@ -80,7 +80,7 @@ object Events {
         "email" -> info.email))
     case UserProjectInfos(u,c) => Ok(Json.obj(
         "userProjects" -> Json.toJson(u),
-        "collaborating" -> Json.toJson(u)))    
+        "collaborating" -> Json.toJson(c)))    
   }
   
   private def error(error: String) = Json.obj("t"->"e","c"->error)

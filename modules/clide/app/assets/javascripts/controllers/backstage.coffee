@@ -25,7 +25,9 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
     $scope.selectedProject = project
 
   Projects.get($scope.user).then (projects) ->
-    $scope.projects = projects
+    console.log projects
+    $scope.projects = projects.userProjects
+    $scope.otherProjects = projects.collaborating
 
   $scope.projectContextMenu = (project) ->
     [
@@ -60,4 +62,4 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
             $scope.selectedProject = null
 
   $scope.start = () ->
-    $location.path "/#{Auth.user.username}/#{$scope.selectedProject.name}/"
+    $location.path "/#{$scope.selectedProject.owner}/#{$scope.selectedProject.name}/"

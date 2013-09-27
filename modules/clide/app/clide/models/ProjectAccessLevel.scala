@@ -47,9 +47,9 @@ object ProjectAccessLevels extends Table[(Long,String,ProjectAccessLevel.Value)]
   }
   
   def getUserProjects(user: String) = for {
-    ai <- ProjectAccessLevels if ai.userName === user
-    p  <- ai.project
-  } yield (p, ai.level)
+    a <- ProjectAccessLevels if a.userName === user
+    p <- a.project
+  } yield (p, a.level)
   
   def getProjectUsers(project: Long) = for {
     ai <- ProjectAccessLevels if ai.projectId === project

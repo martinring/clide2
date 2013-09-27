@@ -30,8 +30,10 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       ProjectInfos.byOwner(user.name).map(p => p.name -> p).toMap
     }
     otherProjects = DB.withSession { implicit session: scala.slick.session.Session =>
-      ProjectAccessLevels.getUserProjects(user.name).elements.toMap
+      ProjectAccessLevels.getUserProjects(user.name).elements.toMap.filter(_._1.owner != user.name)
     }
+    for (project <- otherProjects.keys)
+      log.info(s"${user.name} collaborates in ${project.name} of ${project.owner}")
     log.info("creating project actors")
     projects.foreach { case (name,project) =>
       context.actorOf(Props(classOf[ProjectActor],project),name)
@@ -142,6 +144,7 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
       
     case Validate => sender ! Validated(user)
     
-    case BrowseProjects => sender ! UserProjectInfos(projects.values.toSet,otherProjects.keySet)
+    case BrowseProjects =>      
+      sender ! UserProjectInfos(projects.values.toSet,otherProjects.keySet)
   }
 }

@@ -27,11 +27,7 @@ import clide.collaboration.{Operation,Annotations}
 
 object Projects extends Controller with UserRequests {  
   def index(username: String) = UserRequest.async { request =>
-    request.askFor(username)(BrowseProjects).map {
-      case UserProjectInfos(own,other) =>
-        Ok(Json.toJson(own))
-      case other => defaultResult(other)
-    }
+    request.askFor(username)(BrowseProjects).map(defaultResult)    
   }     
   
   def put(username: String) = UserRequest.async(parse.json) { request =>
