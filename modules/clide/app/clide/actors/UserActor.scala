@@ -80,18 +80,20 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
         logins += key -> login
         sender ! LoggedIn(user, login)
         context.system.eventStream.publish(LoggedIn(user,login))
-      }
+      }      
+        
     case _ => sender ! NotAllowed
   }
   
-  def external(user: UserInfo): Receive = {
+  def external(user: UserInfo): Receive = {       
     case WithProject(name,msg) =>
       projects.get(name) match {
         case Some(project) =>
           context.actorSelection(s"$name").tell(
             WrappedProjectMessage(user, ProjectAccessLevel.Write,msg),sender)
         case None => sender ! DoesntExist
-      } 
+      }
+      
     case msg =>
       log.info("external "+ msg.toString)
       sender ! NotAllowed

@@ -32,7 +32,7 @@ object Application extends Controller with UserRequests {
     request.ask(Validate).map {
       case Validated(info) =>
         if (path.isEmpty()) Redirect(s"${info.name}/backstage")
-        else Ok(clide.web.views.html.index())
+        else if (path == "login") Ok(clide.web.views.html.index()).withNewSession else Ok(clide.web.views.html.index())
       case _               => notLoggedIn
     }
   }
