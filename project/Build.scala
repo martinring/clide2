@@ -9,7 +9,8 @@ object ApplicationBuild extends Build {
 
   override def rootProject = Some(web)
 
-  val coreDependencies = Seq(akka.actor,akka.remote,slick)  
+  val coreDependencies = 
+    Seq(akka.actor,akka.remote,slick)  
 
   val core = Project(s"${appName}-core", file("modules/clide-core"))
              .settings(
@@ -17,12 +18,11 @@ object ApplicationBuild extends Build {
     libraryDependencies ++= coreDependencies
   )
 
-  val appDependencies = Seq(akka.testkit,akka.remote,
-    "com.typesafe"       %% "play-plugins-mailer" % "2.1.0",
-    "com.typesafe.play"  %% "play-slick"          % "0.5.0.2")
-
+  val appDependencies = 
+    Seq(akka.testkit,akka.remote,playplugins.slick,playplugins.mailer)
+    
   val web = play.Project(
-    appName, 
+    s"${appName}-web", 
     appVersion, 
     appDependencies,
     path = file("modules/clide-web")
@@ -59,7 +59,8 @@ object ApplicationBuild extends Build {
       (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
   )
 
-  val isabelleDependencies = Seq(akka.actor,akka.remote,scala.swing,scala.actors)    
+  val isabelleDependencies = 
+    Seq(akka.actor,akka.remote,akka.kernel,scala.swing,scala.actors)    
 
   val isabelle = Project(s"${appName}-isabelle", file("modules/clide-isabelle"))
                 .dependsOn(web).settings(

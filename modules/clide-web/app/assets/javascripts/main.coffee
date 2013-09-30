@@ -19,5 +19,5 @@ require ['app'], (app) ->
         Session.close()
         
   angular.element(document).ready ->
-    angular.bootstrap document, ['clide']
+    angular.bootstrap document, ['clide-web']
     angular.element(document.getElementById('loading')).remove()    

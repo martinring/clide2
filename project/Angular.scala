@@ -135,7 +135,7 @@ object Angular {
       builder ++= "],function("
       builder ++= (configs.toSeq).mkString(",")
       builder ++= "){var app=angular.module('"+appName+"',["
-      builder ++= (moduleDirs.keys.map(f=>"'clide."+f+"'") ++ otherModules.values.map(f=>"'"+f+"'")).mkString(",") 
+      builder ++= (moduleDirs.keys.map(f=>"'"+appName+"."+f+"'") ++ otherModules.values.map(f=>"'"+f+"'")).mkString(",") 
       builder ++= "]);"
       builder ++= configs.map(f=>"app.config("+f+");").mkString
       builder ++= "app.value('version','"+appVersion+"');return app"
