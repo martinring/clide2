@@ -4,7 +4,13 @@ import play.api.libs.json._
 import scala.util._
 import scala.annotation.tailrec
 
-sealed trait Annotation { val length: Int }
+sealed trait Annotation { 
+  val length: Int
+  def withLength(n: Int): Annotation = this match {
+    case Plain(_) => Plain(n)
+    case Annotate(_,c) => Annotate(n,c)
+  }
+}
 case class Plain(length: Int) extends Annotation
 case class Annotate(length: Int, content: Map[String,String]) extends Annotation
 
@@ -37,14 +43,36 @@ object AnnotationDiff {
   }
 }
 
-case class Annotations(annotations: List[Annotation]) extends AnyVal {
+case class Annotations(annotations: Vector[Annotation] = Vector.empty) extends AnyVal {
   override def toString = Json.stringify(Json.toJson(this)(Annotations.AnnotationsFormat))
+  
+  def annotate(n: Int, c: Map[String,String]): Annotations = {
+    annotations.lastOption match {
+      case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c))
+      case _ => Annotations(annotations :+ Annotate(n,c))
+    }
+  }
+  
+  def plain(n: Int): Annotations = {
+    annotations.lastOption match {
+      case Some(Plain(m)) => Annotations(annotations.init :+ Plain(n+m))
+      case _ => Annotations(annotations :+ Plain(n))
+    }
+  }
+  
+  def :+ (a: Annotation): Annotations = {
+    (annotations.lastOption,a) match {
+      case (Some(Plain(n)),Plain(m)) => Annotations(annotations.init :+ Plain(n+m))
+      case (Some(Annotate(n,c)),Annotate(m,d)) if c == d => Annotations(annotations.init :+ Annotate(n+m,c))
+      case _ => Annotations(annotations :+ a)
+    }
+  }
 }
 
 object Annotations {
   implicit object AnnotationsFormat extends Format[Annotations] {
     def reads(json: JsValue) = 
-      Json.fromJson[List[Annotation]](json).map(Annotations.apply)
+      Json.fromJson[Vector[Annotation]](json).map(Annotations.apply)
     def writes(value: Annotations) = 
       Json.toJson(value.annotations)
   }     
@@ -69,17 +97,17 @@ object Annotations {
     case Plain(_)      => addPlain(n,as)
     case Annotate(_,c) => addAnnotate(n,c,as)
   }
-       
+  
   def transform(a: Annotations, o: Operation): Try[Annotations] = Try {  
     @tailrec
-    def loop(as: List[Annotation], os: List[Action], result: List[Annotation]): List[Annotation] = as match {
+    def loop(as: List[Annotation], os: List[Action], result: Annotations): Annotations = as match {
       case a::ass => os match {
         case Insert(s)::oss =>
-          loop(as,os,addWithLength(s.length,a,result))
+          loop(as,os,result :+ a.withLength(s.length))
         case Retain(n)::oss if a.length < n =>  
-          loop(ass,Retain(n-a.length)::oss,add(a,result))
+          loop(ass,Retain(n-a.length)::oss,result :+ a)
         case Retain(n)::oss =>
-          loop(addWithLength(a.length - n, a, ass),oss,addWithLength(n,a,result))
+          loop(addWithLength(a.length - n, a, ass),oss,result :+ a.withLength(n))
         case Delete(n)::oss if a.length < n =>  
           loop(ass,Retain(n-a.length)::oss,result)
         case Delete(n)::oss =>
@@ -87,8 +115,9 @@ object Annotations {
       }        
       case Nil => os match {
         case Nil => result
-      }        
+        case _ => sys.error("lengths don't match")
+      }
     }
-    Annotations(loop(a.annotations,o.actions,Nil).reverse)
+    loop(a.annotations.toList,o.actions,Annotations())
   }
-} 
+}

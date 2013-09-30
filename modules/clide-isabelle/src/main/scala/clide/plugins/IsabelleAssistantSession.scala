@@ -80,25 +80,13 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
   }  
   
   def processFile(file: OpenedFile) = Some {
-    Annotations(session.thy_load.base_syntax.scan(file.state).map { case t: isabelle.Token =>
-        (if (t.is_command) {
-          Annotate(t.source.length(),Map("c"->"cm-keyword"))	       
-	    } else if (t.is_comment) {
-	      Annotate(t.source.length(),Map("c"->"cm-comment"))
-	    } else if (t.is_begin) {
-	      Annotate(t.source.length(),Map("c"->"cm-keyword"))
-	    } else if (t.is_end) {
-	      Annotate(t.source.length(),Map("c"->"cm-keyword"))
-	    } else if (t.is_keyword) {
-	      Annotate(t.source.length(),Map("c"->"cm-keyword"))
-	    } else if (t.is_text) {
-	      Annotate(t.content.length(),Map("c"->"cm-quote"))
-	    } else if (t.is_comment) {
-	      Annotate(t.content.length(),Map("c"->"cm-comment"))	      
-	    } else if (t.is_string) {
-	      Annotate(t.content.length(),Map("c"->"cm-string"))          
-        } else Plain(t.content.length()))
-      })    
+    session.thy_load.base_syntax.scan(file.state).foldLeft(Annotations()) {
+      case (as,t) =>
+        val l = t.source.length
+        if (t.is_comment) as.annotate(l, Map("c"->"cm-comment"))
+        else if (t.is_string) as.annotate(l, Map("c"->"cm-string"))
+        else as.plain(l)
+    }
   }
   
   override def postStop() {

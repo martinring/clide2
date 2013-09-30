@@ -89,6 +89,6 @@ abstract class Assistant extends Actor with ActorLogging {
   override def postStop = {
     context.system.shutdown()
     context.system.awaitTermination()
-    sys.exit()
+    sys.exit(0)
   }
 }
