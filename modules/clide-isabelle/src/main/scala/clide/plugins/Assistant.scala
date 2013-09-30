@@ -10,11 +10,11 @@ abstract class Assistant extends Actor with ActorLogging {
   def createSession(project: ProjectInfo): ActorRef    
   
   /** May be overridden to modify invitation behaviour **/
-  def onInvitation(project: ProjectInfo) = {
+  def onInvitation(project: ProjectInfo) = if (!sessions.contains(project.id)) {
     log.info(s"starting session for ${project.owner}/${project.name}")
     val act = createSession(project)
     server.tell(IdentifiedFor(loginInfo.user,loginInfo.key,WithUser(project.owner,WithProject(project.name,StartSession))),act)
-    sessions += act
+    sessions += project.id -> act
     context.watch(act)
   }
   
@@ -26,7 +26,7 @@ abstract class Assistant extends Actor with ActorLogging {
 
   var server   = context.system.deadLetters
   var peer     = context.system.deadLetters
-  var sessions = Set[ActorRef]()
+  var sessions = Map[Long,ActorRef]()
   var loginInfo: LoginInfo = null
   
   def login() = {
@@ -53,6 +53,14 @@ abstract class Assistant extends Actor with ActorLogging {
     case UserProjectInfos(own,other) =>
       log.info("received project infos")
       (own ++ other).foreach(onInvitation)
+    case ChangedProjectUserLevel(project, user, level) if (user == loginInfo.user) =>      
+      if (level >= ProjectAccessLevel.Read)
+        onInvitation(project)
+    case CreatedProject(project) =>
+      onInvitation(project)
+    case DeletedProject(project) =>
+      // TODO!
+      log.info("TODO: project deleted")
   }   
   
   def receive = {

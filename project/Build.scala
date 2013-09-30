@@ -1,36 +1,33 @@
 import sbt._
 import Keys._
 import play.Project._
+import Dependencies._
 
 object ApplicationBuild extends Build {
   val appName         = "clide"
   val appVersion      = "2.0-SNAPSHOT"
 
-  override def rootProject = Some(main)
+  override def rootProject = Some(web)
 
-  val coreDependencies = Seq(
-    "com.typesafe.akka" %% "akka-actor"  % "2.2.0",
-    "com.typesafe.akka" %% "akka-remote" % "2.2.0"
-  )
+  val coreDependencies = Seq(akka.actor,akka.remote,slick)  
 
   val core = Project(s"${appName}-core", file("modules/clide-core"))
              .settings(
+    scalaVersion := scala.version,
     libraryDependencies ++= coreDependencies
   )
 
-  val appDependencies = Seq(    
-    "com.typesafe.akka"  %% "akka-testkit"        % "2.2.0" % "test",
-    "com.typesafe.akka"  %% "akka-remote"         % "2.2.0",
+  val appDependencies = Seq(akka.testkit,akka.remote,
     "com.typesafe"       %% "play-plugins-mailer" % "2.1.0",
     "com.typesafe.play"  %% "play-slick"          % "0.5.0.2")
 
-  val main = play.Project(
+  val web = play.Project(
     appName, 
     appVersion, 
     appDependencies,
-    path = file("modules/clide")
+    path = file("modules/clide-web")
   ).settings(Angular.defaultSettings:_*).settings(
-    scalaVersion := "2.10.2",    
+    scalaVersion := scala.version,
     resolvers += Resolver.url("github repo for play-slick",
       url("https://raw.github.com/loicdescotte/loicdescotte.github.com/master/releases/"))
       (Resolver.ivyStylePatterns),
@@ -62,16 +59,11 @@ object ApplicationBuild extends Build {
       (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
   )
 
-  val isabelleDependencies = Seq(
-    "com.typesafe.akka" %% "akka-actor"   % "2.2.0",
-    "com.typesafe.akka" %% "akka-remote"  % "2.2.0",
-    "org.scala-lang"    %  "scala-swing"  % "2.10.2",
-    "org.scala-lang"    %  "scala-actors" % "2.10.2"
-  )
+  val isabelleDependencies = Seq(akka.actor,akka.remote,scala.swing,scala.actors)    
 
   val isabelle = Project(s"${appName}-isabelle", file("modules/clide-isabelle"))
-                .dependsOn(main).settings(
-    scalaVersion := "2.10.2",
+                .dependsOn(web).settings(
+    scalaVersion := scala.version,
     libraryDependencies ++= isabelleDependencies
   )
 }

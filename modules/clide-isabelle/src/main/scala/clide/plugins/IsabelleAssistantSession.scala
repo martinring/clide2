@@ -38,13 +38,10 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
   
   override def startup() {
     session = new Session(new isabelle.Thy_Load(Set.empty, isabelle.Outer_Syntax.empty))
-    session.phase_changed += { phase =>
-      log.info(s"phase: $phase")
-    }
-    session.commands_changed += { change =>
-      log.info(s"commands changed")
-    }
-    session.start(List("HOL"))    
+    session.phase_changed    += (context.self ! _)
+    session.commands_changed += (context.self ! _)
+    session.syslog_messages  += (context.self ! _)    
+    session.start(List("HOL"))
   }
   
   def fileAdded(file: OpenedFile) {
@@ -68,6 +65,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
           (i+s.length,Text.Edit.insert(i,s) :: edits)
       }
       log.info(s"edits in file ${file.path}: $edits")
+     
       session.update((file.nodeName, Document.Node.Edits[Text.Edit,Text.Perspective](edits)) :: Nil)
     }
   }
@@ -83,11 +81,22 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     session.thy_load.base_syntax.scan(file.state).foldLeft(Annotations()) {
       case (as,t) =>
         val l = t.source.length
-        if (t.is_comment) as.annotate(l, Map("c"->"cm-comment"))
-        else if (t.is_string) as.annotate(l, Map("c"->"cm-string"))
+        if      (t.is_comment)   as.annotate(l, Map("c"->"cm-comment"))
+        else if (t.is_string)    as.annotate(l, Map("c"->"cm-string")) 
+        else if (t.is_sym_ident && Symbol.decode(t.source) != t.source) as.annotate(l, Map("c"->"sym","s"->Symbol.decode(t.source)))
+        else if (t.is_sym_ident) as.annotate(l,Map("c"->"sym"))
         else as.plain(l)
     }
   }
+  
+  def isabelleMessages: Receive = {
+    case phase: Session.Phase =>
+      log.info("phase: " + phase.toString)
+    case change: Session.Commands_Changed =>
+      log.info(change.toString)
+  }
+  
+  override def receive = isabelleMessages orElse super.receive
   
   override def postStop() {
     session.stop()

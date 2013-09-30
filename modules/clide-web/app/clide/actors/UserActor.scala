@@ -52,6 +52,7 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
     // EVENTS
     case DeletedProject(project) =>
       projects -= project.name    
+      backstagePeers.keys.foreach(_ ! DeletedProject(project))
     case Terminated(peer) =>
       backstagePeers -= peer
     case msg@ChangedProjectUserLevel(project, user, level) =>
@@ -123,7 +124,7 @@ class UserActor(var user: UserInfo) extends Actor with ActorLogging {
         projects += name -> project
         context.actorOf(Props(classOf[ProjectActor], project), project.name)
         sender ! CreatedProject(project)
-        context.system.eventStream.publish(CreatedProject(project))
+        backstagePeers.keys.foreach(_ ! CreatedProject(project))
       }
     
     case StartBackstageSession =>

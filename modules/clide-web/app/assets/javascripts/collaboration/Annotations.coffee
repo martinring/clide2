@@ -42,6 +42,8 @@ define ['collaboration/Operation'], (Operation) ->
 
     @isPlain: isPlain
     @isAnnotate: isAnnotate
+    @len: length
+    @withLength: withLength
 
     compose: (other) -> other
 

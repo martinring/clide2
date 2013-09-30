@@ -79,7 +79,7 @@ class SessionActor(
         q.delete
       }
       context.parent ! SessionStopped(session)
-    case SwitchFile(id) => if (session.activeFile != Some(id)) {
+    case SwitchFile(id) =>
       log.info("open file")
       session = session.copy(activeFile = Some(id))
       if (openFiles.contains(id)) {        
@@ -92,7 +92,6 @@ class SessionActor(
         }        
       }
       context.parent ! SessionChanged(session)
-    }
     case AcknowledgeEdit => // TODO: CONCURRENCY STUFF!!!
       session.activeFile.map(fileServers += _ -> sender)
       peer ! AcknowledgeEdit
@@ -174,6 +173,10 @@ class SessionActor(
   
   override def postStop() = DB.withSession { implicit session: Session =>
     SessionInfos.update(this.session)   
+  }
+  
+  override def preRestart(reason:Throwable, message:Option[Any]){
+    log.error(reason, "Unhandled exception for message: {}", message)
   }
   
   override def preStart() = DB.withSession { implicit session: Session =>

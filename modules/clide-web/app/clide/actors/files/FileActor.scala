@@ -100,6 +100,9 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
   
   def receive = receiveMessages orElse receiveFileEvents
   
+  override def preRestart(reason:Throwable, message:Option[Any]){
+    log.error(reason, "Unhandled exception for message: {}", message)
+  }
   
   override def preStart() {
     initFileEventSource()

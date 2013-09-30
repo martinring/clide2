@@ -22,7 +22,7 @@ object Annotation {
         length <- (obj \ "l").validate[Int]
         content <- (obj \ "c").validate[Map[String,String]]
       } yield Annotate(length,content)
-      case _                         => JsError("cant parse action: expected number or object")
+      case _ => JsError("cant parse action: expected number or object")
     }
     def writes(a: Annotation): JsValue = a match {
       case Plain(n) => JsNumber(n)

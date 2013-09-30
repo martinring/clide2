@@ -82,8 +82,19 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
       @silent = false
 
     annotate: (c,user,from,to) =>
-      if to? 
-        className = if c.c.indexOf("selection") >= 0 then "#{c.c} #{user.color}" else c.c        
+      if to?
+        className = switch c.c
+          when 'selection'
+            "selection #{user.color}"
+          when 'sym'
+            ""
+          else
+            @doc.markText from, to,
+              className: c.c
+              inclusiveLeft: false
+              inclusiveRight: true
+
+        className = if c.c.indexOf("selection") >= 0 then "#{c.c} #{user.color}" else c.c          
         @doc.markText from, to,
           className: className
           inclusiveLeft: false
@@ -97,13 +108,16 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
           insertLeft: true      
 
     applyAnnotation: (annotation, user) =>
-      cm = @doc.getEditor()
-      existing = @annotations[user.id]
-      if existing? then for marker in existing
-        marker.clear()
-      if cm? then cm.operation =>
+      cm       = @doc.getEditor()
+      existing = @annotations[user.id]      
+
+      work = =>
+        if existing? then for marker in existing
+          marker.clear()
+
         @annotations[user.id] = []
-        index = 0 # TODO: Iterate Line/Column based
+
+        index = 0 # TODO: Iterate Line/Column based with cm.eachLine
         for a in annotation.annotations
           if Annotations.isPlain(a)
             index += a
@@ -114,18 +128,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
               to = @doc.posFromIndex(index)
               @annotations[user.id].push @annotate(a.c,user,from,to)
             else
-              @annotations[user.id].push @annotate(a.c,user,from)                        
-      else # TODO: Refactor out (duplicate code!)
-        @annotations[user.id] = []
-        index = 0 # TODO: Iterate Line/Column based
-        for a in annotation.annotations
-          if Annotations.isPlain(a)
-            index += a
-          else
-            from = @doc.posFromIndex(index)
-            if a.l > 0
-              index += a.l
-              to = @doc.posFromIndex(index)
-              @annotations[user.id].push @annotate(a.c,user,from,to)
-            else
-              @annotations[user.id].push @annotate(a.c,user,from)
+              @annotations[user.id].push @annotate(a.c,user,from)        
+
+      if cm? then cm.operation => work()
+      else work()
