@@ -10,10 +10,29 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
   
   implicit class OpenedIsabelleFile(val underlying: OpenedFile) {
     def path     = underlying.info.path.mkString("/")
+    
     def nodeName = Document.Node.Name(
-        underlying.info.path.mkString("/"),
-        project.root,
-        underlying.info.path.lastOption.getOrElse("<unknown>"))
+      path, project.root,
+      underlying.info.path.lastOption.getOrElse("<unknown>"))
+      
+    def nodeHeader = 
+      Exn.capture {
+        sessionThyLoad.check_thy_text(nodeName, underlying.state)
+      } match {
+        case Exn.Res(header) => header
+        case Exn.Exn(exn) => Document.Node.bad_header(Exn.message(exn))
+      }
+      
+    def perspective = 
+      Text.Perspective(List(Text.Range(0,Integer.MAX_VALUE)))
+      
+    def initEdits = {
+      val name = nodeName
+      List(session.header_edit(name, nodeHeader),
+           name -> Document.Node.Clear(),
+           name -> Document.Node.Edits(List(Text.Edit.insert(0,underlying.state))),
+           name -> Document.Node.Perspective(perspective))
+    }
   }
    
   val sessionThyLoad = new Thy_Load(base_syntax = Outer_Syntax.empty) {
@@ -25,8 +44,8 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     
     override def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A = {
       thys.get(name.node) match {
-        case None => super.with_thy_text(name, f)
-        case Some(file) => // TODO: No file system access!!!
+        case None => super.with_thy_text(name, f) // TODO: No file system access!!!
+        case Some(file) => 
           val text = file.state
           Symbol.decode_strict(text)
           f(text)
@@ -68,8 +87,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
      
       session.update((file.nodeName, Document.Node.Edits[Text.Edit,Text.Perspective](edits)) :: Nil)
     }
-  }
-      
+  }     
   
   def fileClosed(file: OpenedFile) {
     thys.get(file.path).map { file =>

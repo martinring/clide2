@@ -11,7 +11,7 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
   var activeFiles       = Map[Long,Long]()
   var info: SessionInfo = null
   var collaborators     = Set[SessionInfo]()
-  var files             = Map[Long,OpenedFile]()      
+  var files             = Map[Long,OpenedFile]()
   
   def fileAdded(file: OpenedFile)
   def fileChanged(file: OpenedFile, change: Operation, after: OpenedFile)

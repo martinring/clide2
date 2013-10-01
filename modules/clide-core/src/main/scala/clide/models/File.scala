@@ -19,6 +19,15 @@ case class FilePath(parent: FolderPath, name: String) extends Path {
   override def toString = s"${parent.toString}/$name"
 }
 
-object Test {
-  ProjectRoot / "app" / "files" /> "test.thy"
+case class Folder {  
 }
+
+case class FileInfo(
+  id: Long,
+  project: Long,
+  path: Seq[String],
+  mimeType: Option[String],
+  deleted: Boolean,
+  exists: Boolean,
+  isDirectory: Boolean,
+  parent: Option[Long])
