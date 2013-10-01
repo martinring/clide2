@@ -14,28 +14,3 @@ import clide.collaboration.Operation
 
 case class Revision(file: Long, id: Long, op: Operation)
 
-object Revisions extends Table[Revision]("revisions") {
-  import Mappers._
-  
-  def fileId  = column[Long]("fileId")
-  def id      = column[Long]("id")
-  def content = column[Operation]("content")
-  
-  def file = foreignKey("fk_revision_file", fileId, FileInfos)(_.id, 
-      onUpdate = ForeignKeyAction.Cascade,
-      onDelete = ForeignKeyAction.Cascade)
-  
-  def fileRevision = index("file_revision", (fileId,id), unique = true)
-  
-  def * = fileId ~ id ~ content <> (Revision,Revision.unapply _)
-  
-  def get(file: Long)(implicit session: Session) = 
-    Query(Revisions).filter(_.fileId === file)
-                    .sortBy(_.id.asc)
-                    .map(_.content)
-                    .elements    
-  
-  def clear(file: Long)(implicit session: Session) = 
-    Query(Revisions).filter(_.fileId === file)
-                    .delete    
-}

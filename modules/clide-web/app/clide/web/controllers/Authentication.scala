@@ -1,7 +1,8 @@
 package clide.web.controllers
 
 import play.api.mvc.{Controller,Action}
-import scala.slick.driver.H2Driver.simple._
+import clide.persistence.Database._
+import clide.persistence.Database.profile.simple._
 import play.api.Play.current
 import play.api.db.slick.DB
 import play.api.data.Form

@@ -1,10 +1,11 @@
 package clide.actors
 
-import scala.slick.driver.H2Driver.simple._
 import play.api.db.slick.DB
 import play.api.Play.current
 import akka.actor._
 import clide.models._
+import clide.persistence.Database._
+import clide.persistence.Database.profile.simple._
 import clide.actors._
 import java.util.UUID
 import scala.slick.session.Session

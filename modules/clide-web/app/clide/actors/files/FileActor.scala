@@ -4,9 +4,10 @@ import clide.models.ProjectInfo
 import akka.actor._
 import clide.collaboration._
 import clide.models._
+import clide.persistence.Database._
 import play.api.Play.current
 import play.api.db.slick.DB
-import scala.slick.driver.H2Driver.simple._
+import clide.persistence.Database.profile.simple._
 import play.api.db.slick.Session
 import java.io.File
 import clide.actors._

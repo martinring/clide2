@@ -8,8 +8,9 @@ import play.api.Play.current
 import java.io.File
 import akka.actor.ActorLogging
 import clide.models._
+import clide.persistence.Database._
 import play.api.db.slick.DB
-import scala.slick.driver.H2Driver.simple._
+import clide.persistence.Database.profile.simple._
 import play.api.db.slick.Session
 import clide.actors._
 

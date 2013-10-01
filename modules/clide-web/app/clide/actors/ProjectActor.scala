@@ -2,9 +2,10 @@ package clide.actors
 
 import akka.actor._
 import clide.models._
+import clide.persistence.Database._
+import clide.persistence.Database.profile.simple._
 import play.api.Play.current
 import play.api.db.slick._
-import scala.slick.driver.H2Driver.simple._
 import clide.actors.files._
 import org.h2.jdbc.JdbcSQLException
 
@@ -101,14 +102,14 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   override def preStart() {
     root = context.actorOf(Props(classOf[FolderActor], info, None, "files"),"files")    
     sessions = DB.withSession { implicit session =>
-      val u = for (session <- clide.models.SessionInfos if session.projectId === info.id) yield session.active
+      val u = for (session <- SessionInfos if session.projectId === info.id) yield session.active
       u.update(false)
-      val q = for (session <- clide.models.SessionInfos if session.projectId === info.id) yield session      
+      val q = for (session <- SessionInfos if session.projectId === info.id) yield session      
       val r = q.elements.toSet
       r.map(_.user).map { user =>
         val redundant = r.filter(_.user == user)
         if (redundant.size > 1) redundant.tail.foreach { info =>
-          val q = for (session <- clide.models.SessionInfos if session.id === info.id) yield session
+          val q = for (session <- SessionInfos if session.id === info.id) yield session
           q.delete
         }
         redundant.head

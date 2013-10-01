@@ -41,11 +41,11 @@ object Action {
 }
 
 case class Operation(actions: List[Action]) extends AnyVal {
-  override def toString = Json.stringify(Json.toJson(Operation.this)(Operation.SourceOperationFormat))
+  override def toString = Json.stringify(Json.toJson(Operation.this)(Operation.Format))
 }
 
 object Operation {
-  implicit object SourceOperationFormat extends Format[Operation] {
+  implicit object Format extends Format[Operation] {
     def reads(json: JsValue) = 
       Json.fromJson[List[Action]](json).map(Operation.apply)
     def writes(value: Operation) = 

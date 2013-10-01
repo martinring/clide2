@@ -2,9 +2,10 @@ package clide.actors
 
 import akka.actor._
 import clide.models._
+import clide.persistence.Database._
+import clide.persistence.Database.profile.simple._
 import play.api.Play.current
 import play.api.db.slick._
-import scala.slick.driver.H2Driver.simple._
 import scala.util.Random
 import scala.collection.JavaConversions._
 
@@ -35,7 +36,7 @@ class SessionActor(
           
   def setActive(value: Boolean) = DB.withSession { implicit session: Session =>
     this.session = this.session.copy(active = value)
-    val q = for (info <- clide.models.SessionInfos if info.id === id) yield info        
+    val q = for (info <- SessionInfos if info.id === id) yield info        
     q.update(this.session)
     this.session
   }
@@ -75,7 +76,7 @@ class SessionActor(
       context.unwatch(peer)
       peer = context.system.deadLetters           
       DB.withSession { implicit session: Session =>
-        val q = for (info <- clide.models.SessionInfos if info.id === id) yield info
+        val q = for (info <- SessionInfos if info.id === id) yield info
         q.delete
       }
       context.parent ! SessionStopped(session)
