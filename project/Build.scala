@@ -9,8 +9,10 @@ object ApplicationBuild extends Build {
 
   override def rootProject = Some(web)
 
-  val coreDependencies = 
-    Seq(akka.actor,akka.remote,slick)  
+  val coreDependencies = Seq(
+    akka.actor,
+    akka.remote,
+    slick)  
 
   val core = Project(s"${appName}-core", file("modules/clide-core"))
              .settings(
@@ -18,9 +20,13 @@ object ApplicationBuild extends Build {
     libraryDependencies ++= coreDependencies
   )
 
-  val appDependencies = 
-    Seq(akka.testkit,akka.remote,playplugins.slick,playplugins.mailer)
-    
+  val appDependencies = Seq(
+    akka.testkit,
+    akka.remote,
+    atmos.trace,
+    playplugins.slick,
+    playplugins.mailer)
+  
   val web = play.Project(
     s"${appName}-web", 
     appVersion, 
@@ -59,8 +65,12 @@ object ApplicationBuild extends Build {
       (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
   )
 
-  val isabelleDependencies = 
-    Seq(akka.actor,akka.remote,akka.kernel,scala.swing,scala.actors)    
+  val isabelleDependencies = Seq(
+    akka.actor,
+    akka.remote,
+    akka.kernel,
+    scala.swing,
+    scala.actors)    
 
   val isabelle = Project(s"${appName}-isabelle", file("modules/clide-isabelle"))
                 .dependsOn(web).settings(
