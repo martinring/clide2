@@ -26,12 +26,24 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     def perspective = 
       Text.Perspective(List(Text.Range(0,Integer.MAX_VALUE)))
       
-    def initEdits = {
+    def initEdits: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
       val name = nodeName
       List(session.header_edit(name, nodeHeader),
            name -> Document.Node.Clear(),
            name -> Document.Node.Edits(List(Text.Edit.insert(0,underlying.state))),
            name -> Document.Node.Perspective(perspective))
+    }
+    
+    def opToEdits(operation: Operation): List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
+      val (_,edits) = operation.actions.foldLeft((0,Nil : List[Text.Edit])) { 
+        case ((i,edits),Retain(n)) =>
+          (i+n,edits)
+        case ((i,edits),Delete(n)) =>
+          (i+n,Text.Edit.remove(i,Seq.fill(n)('-').mkString) :: edits)
+        case ((i,edits),Insert(s)) =>
+          (i+s.length,Text.Edit.insert(i,s) :: edits)
+      }
+      (nodeName, Document.Node.Edits[Text.Edit,Text.Perspective](edits)) :: Nil
     }
   }
    
@@ -53,47 +65,32 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     }
   }
   
-  var session: Session = null
+  var session: Session = null    
   
   override def startup() {
     session = new Session(new isabelle.Thy_Load(Set.empty, isabelle.Outer_Syntax.empty))
     session.phase_changed    += (context.self ! _)
     session.commands_changed += (context.self ! _)
-    session.syslog_messages  += (context.self ! _)    
+    session.syslog_messages  += (context.self ! _)
     session.start(List("HOL"))
   }
   
   def fileAdded(file: OpenedFile) {
     log.info("{}: {}", file.path, file.info.mimeType)
-    if (file.info.mimeType == "text/x-isabelle") {
+    if (file.info.mimeType == Some("text/x-isabelle")) {
       log.info(s"I am watching ${file.path}")
       thys += file.path -> file
     }
   }
   
   def fileChanged(file: OpenedFile, change: Operation, after: OpenedFile) = {
-    log.info("change")
-    processFile(after).map(annotate(after, _))
-    thys.get(file.path).foreach { file =>
-      val (_,edits) = change.actions.foldLeft((0,Nil : List[Text.Edit])) { 
-        case ((i,edits),Retain(n)) =>
-          (i+n,edits)
-        case ((i,edits),Delete(n)) =>
-          (i+n,Text.Edit.remove(i,Seq.fill(n)('-').mkString) :: edits)
-        case ((i,edits),Insert(s)) =>
-          (i+s.length,Text.Edit.insert(i,s) :: edits)
-      }
-      log.info(s"edits in file ${file.path}: $edits")
-     
-      session.update((file.nodeName, Document.Node.Edits[Text.Edit,Text.Perspective](edits)) :: Nil)
-    }
-  }     
+    thys.get(file.path).foreach { file => session.update(file.opToEdits(change)) }
+  }
   
-  def fileClosed(file: OpenedFile) {
-    thys.get(file.path).map { file =>
-      thys -= file.path
-    }
-  }  
+  def fileClosed(file: OpenedFile) = {
+    // TODO: Unwatch
+    thys.get(file.path).map { file => thys -= file.path }
+  }
   
   def processFile(file: OpenedFile) = Some {
     session.thy_load.base_syntax.scan(file.state).foldLeft(Annotations()) {
@@ -108,8 +105,11 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
   }
   
   def isabelleMessages: Receive = {
-    case phase: Session.Phase =>
-      log.info("phase: " + phase.toString)
+    case Session.Ready =>
+      log.info("session is ready... initializing")
+      session.update(thys.values.toList.flatMap(_.initEdits))
+    case output: Isabelle_Process.Output =>
+      log.info(output.message.toString)
     case change: Session.Commands_Changed =>
       log.info(change.toString)
   }
