@@ -92,7 +92,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     thys.get(file.path).map { file => thys -= file.path }
   }
   
-  def processFile(file: OpenedFile) = Some {
+  def processFile(file: OpenedFile) = Some {    
     session.thy_load.base_syntax.scan(file.state).foldLeft(Annotations()) {
       case (as,t) =>
         val l = t.source.length
