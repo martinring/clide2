@@ -10,11 +10,7 @@ object Dependencies {
     val kernel  = "com.typesafe.akka" %% "akka-kernel"  % version
     val testkit = "com.typesafe.akka" %% "akka-testkit" % version % "test"
   }
-
-  object atmos {
-    val trace = "com.typesafe.atmos" % "trace-akka-2.2.1_2.10" % "1.3.0"
-  }
-
+  
   object scala {
     val version = "2.10.2"
     val swing   = "org.scala-lang" % "scala-swing"  % version

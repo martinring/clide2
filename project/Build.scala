@@ -2,6 +2,8 @@ import sbt._
 import Keys._
 import play.Project._
 import Dependencies._
+import com.typesafe.sbt.SbtAtmos.{Atmos,atmosSettings}
+import com.typesafe.sbt.SbtAtmosPlay.atmosPlaySettings
 
 object ApplicationBuild extends Build {
   val appName         = "clide"
@@ -23,7 +25,6 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     akka.testkit,
     akka.remote,
-    atmos.trace,
     playplugins.slick,
     playplugins.mailer)
   
@@ -32,7 +33,9 @@ object ApplicationBuild extends Build {
     appVersion, 
     appDependencies,
     path = file("modules/clide-web")
-  ).settings(Angular.defaultSettings:_*).settings(
+  ).settings(Angular.defaultSettings:_*)  
+  .settings(atmosPlaySettings: _*)
+  .settings(
     scalaVersion := scala.version,
     resolvers += Resolver.url("github repo for play-slick",
       url("https://raw.github.com/loicdescotte/loicdescotte.github.com/master/releases/"))
@@ -76,5 +79,5 @@ object ApplicationBuild extends Build {
                 .dependsOn(web).settings(
     scalaVersion := scala.version,
     libraryDependencies ++= isabelleDependencies
-  )
+  ).configs(Atmos).settings(atmosSettings: _*)
 }
