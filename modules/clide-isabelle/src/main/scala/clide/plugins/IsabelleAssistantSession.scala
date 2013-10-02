@@ -6,7 +6,7 @@ import clide.collaboration._
 class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(project: ProjectInfo) {
   import isabelle._    
   
-  var thys = Map[String, OpenedFile]()
+  var thys = Map[Document.Node.Name, OpenedFile]()
   
   implicit class OpenedIsabelleFile(val underlying: OpenedFile) {
     def path     = underlying.info.path.mkString("/")
@@ -55,7 +55,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     }
     
     override def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A = {
-      thys.get(name.node) match {
+      thys.get(name) match {
         case None => super.with_thy_text(name, f) // TODO: No file system access!!!
         case Some(file) => 
           val text = file.state
@@ -79,28 +79,26 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     log.info("{}: {}", file.path, file.info.mimeType)
     if (file.info.mimeType == Some("text/x-isabelle")) {
       log.info(s"I am watching ${file.path}")
-      thys += file.path -> file
+      thys += file.nodeName -> file
     }
   }
   
   def fileChanged(file: OpenedFile, change: Operation, after: OpenedFile) = {
-    thys.get(file.path).foreach { file => session.update(file.opToEdits(change)) }
+    thys.get(file.nodeName).foreach { file => session.update(file.opToEdits(change)) }
   }
   
   def fileClosed(file: OpenedFile) = {
     // TODO: Unwatch
-    thys.get(file.path).map { file => thys -= file.path }
+    thys.get(file.nodeName).map { file => thys -= file.nodeName }
   }
   
-  def processFile(file: OpenedFile) = Some {    
-    session.thy_load.base_syntax.scan(file.state).foldLeft(Annotations()) {
-      case (as,t) =>
-        val l = t.source.length
-        if      (t.is_comment)   as.annotate(l, Map("c"->"cm-comment"))
-        else if (t.is_string)    as.annotate(l, Map("c"->"cm-string")) 
-        else if (t.is_sym_ident && Symbol.decode(t.source) != t.source) as.annotate(l, Map("c"->"sym","s"->Symbol.decode(t.source)))
-        else if (t.is_sym_ident) as.annotate(l,Map("c"->"sym"))
-        else as.plain(l)
+  def processFile(file: OpenedFile) = {    
+    val snap = session.snapshot(file.nodeName, Nil)
+    IsabelleMarkup.textClass(snap, Text.Range(0,file.state.length)).foldLeft(new Annotations) { case (as,info) =>
+      info.info match {
+        case None    => as.plain(info.range.length)
+        case Some(c) => as.annotate(info.range.length,Map("c"->c))
+      }
     }
   }
   
@@ -111,7 +109,12 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     case output: Isabelle_Process.Output =>
       log.info(output.message.toString)
     case change: Session.Commands_Changed =>
-      log.info(change.toString)
+      change.nodes.foreach { node =>
+        thys.get(node).map { file =>
+          log.info("annotating " + file.nodeName)
+          annotate(file, processFile(file))
+        }
+      }
   }
   
   override def receive = isabelleMessages orElse super.receive
