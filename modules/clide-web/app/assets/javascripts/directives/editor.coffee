@@ -8,7 +8,9 @@ define ['routes','codemirror'], (routes,CodeMirror) -> () ->
   scope: 
     document: '&'
     lineNumbers: '&'
-    readOnly: '&'    
+    readOnly: '&'
+    fontSize: '&'
+    font: '&'
 
   link: (scope, iElem, iAttrs, controller) ->
     window.countMe = (window.countMe or 0) + 1
@@ -18,15 +20,21 @@ define ['routes','codemirror'], (routes,CodeMirror) -> () ->
 
     window.cm = cm
 
-    scope.$watch 'lineNumbers()', (n,o) ->
-      console.log 'lineNumbers:', n
+    scope.$watch 'lineNumbers()', (n,o) ->      
       cm.setOption('lineNumbers',n or true)
       cm.refresh()
 
-    scope.$watch 'readOnly()', (n,o) ->
-      console.log 'readOnly:', n
-      cm.setOption('readOnly',n or false)      
-          
-    scope.$watch 'document()', (n,o) -> 
+    scope.$watch 'readOnly()', (n,o) ->      
+      cm.setOption('readOnly',n or false)
+
+    scope.$watch 'font()', (n,o) ->      
+      cm.getWrapperElement().style.fontFamily = n
+      cm.refresh()
+
+    scope.$watch 'fontSize()', (n,o) ->
       console.log n
+      cm.getWrapperElement().style.fontSize = n
+      cm.refresh()
+          
+    scope.$watch 'document()', (n,o) ->       
       if n? then cm.swapDoc(n) else cm.swapDoc(CodeMirror.Doc(""))

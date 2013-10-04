@@ -102,7 +102,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     }
   }
   
-  def isabelleMessages: Receive = {
+  def receiveIsabelle: Receive = {
     case Session.Ready =>
       log.info("session is ready... initializing")
       session.update(thys.values.toList.flatMap(_.initEdits))
@@ -117,7 +117,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
       }
   }
   
-  override def receive = isabelleMessages orElse super.receive
+  override def receive = receiveIsabelle orElse super.receive
   
   override def postStop() {
     session.stop()

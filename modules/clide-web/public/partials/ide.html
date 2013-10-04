@@ -123,22 +123,38 @@
             </div>
           </li>
           <li class="section" id='section-view' ng-class='{active: sidebarSection=="view"}' ng-click='sidebarSection="view"'>
-            <h3>View</h3>            
-            <div class='content'>
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-            </div>         
+            <h3>View</h3>
+            <div class='form-group'>
+              <div class='checkbox'>
+                <label>
+                  <input type='checkbox' ng-model='showLineNumbers'> Show Line Numbers
+                </label>
+              </div>
+            </div>
+            <div class='form-group'>
+              Base Font Family
+              <select ng-model='editorFont' class='form-control'>
+                <option value='Inconsolata'>Inconsolata (default)</option>
+                <optgroup label='Monospaced Fonts'>                
+                  <option ng-repeat='font in fonts.monospace' value='{{font}}'>{{font}}</option>
+                </optgroup>
+                <optgroup label='Mathematical Fonts'>
+                  <option ng-repeat='font in fonts.math' value='{{font}}'>{{font}}</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class='form-group'>
+              Font Size
+              <input type='number' ng-model='editorFontSize' class='form-control'/>
+            </div>
           </li>
           <li class="section" id='section-settings' ng-class='{active: sidebarSection=="settings"}' ng-click='sidebarSection="settings"'>
             <h3>Settings</h3>            
-            <div class='content'>
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-            </div>         
+                  
           </li>
           <li class="section" id='section-help' ng-class='{active: sidebarSection=="help"}' ng-click='sidebarSection="help"'>
             <h3>Help</h3>  
-            <div class='content'>
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-            </div>                   
+            (c) 2012-2013 by Martin Ring
           </li>
         </ul>
       </nav>
@@ -152,7 +168,7 @@
             </li>
           </ul>
           <div ng-show='session.state=="connected" && session.activeDoc()' class="content {{session.me.color}}">
-            <editor document='session.activeDoc()' lineNumbers='true'></editor>
+            <editor document='session.activeDoc()' fontSize='editorFontSize' font='editorFont' lineNumbers='showLineNumbers'></editor>
           </div>
         </div>
       </div>

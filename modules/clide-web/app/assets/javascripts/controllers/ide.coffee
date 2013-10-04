@@ -1,5 +1,5 @@
 ### @controller controllers:IdeController ###
-define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, Toasts, Session, Files) ->    
+define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $routeParams, Dialog, Auth, Toasts, Session, Files) ->    
   $scope.path = 
     if $routeParams.path? and $routeParams isnt ''
       $routeParams.path.split('/')
@@ -30,6 +30,11 @@ define ['routes'], (routes) -> ($scope, $location, $routeParams, Dialog, Auth, T
 
   $scope.start = () ->
     $scope.state = 'ide'
+
+  $scope.fonts      = fonts
+  $scope.editorFont = fonts.monospace[0]
+  $scope.showLineNumbers = true
+  $scope.editorFontSize = 15
   
   $scope.sidebar = true
   $scope.root = null

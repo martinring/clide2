@@ -9,7 +9,7 @@ require.config
       exports: 'jsRoutes'
 
 
-require ['app'], (app) ->
+require ['app','util/fonts'], (app) ->
   app.run ($rootScope, Session, Files) ->
     $rootScope.$on '$routeChangeSuccess', (e,n,o) ->
       $rootScope.ide   = n.$$route.ide
@@ -20,4 +20,4 @@ require ['app'], (app) ->
         
   angular.element(document).ready ->
     angular.bootstrap document, ['clide-web']
-    angular.element(document.getElementById('loading')).remove()    
+    angular.element(document.getElementById('loading')).remove()

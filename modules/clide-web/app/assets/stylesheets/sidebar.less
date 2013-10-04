@@ -1,5 +1,5 @@
 #sidebarContainer {
-  -webkit-transition: left @fancy-transition ease;  
+  .transition(left @fancy-transition ease);
   bottom: 0;
   left: -(@sidebar-width);
   position: fixed;
@@ -37,7 +37,7 @@
   margin: 0;
   padding: 0;
   li {    
-    -webkit-transition: opacity @quick-transition ease;
+    .transition(opacity @quick-transition ease);
     cursor: pointer;    
     line-height: @ribbon-width;
     opacity: 0.4;
@@ -70,14 +70,14 @@
   bottom: 0;
   left: 0;
   right: 0;
-  -webkit-transition: -webkit-transform @fancy-transition ease;
+  .transition-transform(@fancy-transition ease);
   &:hover {
     opacity: 1;
   }
 }
 
 .sidebar #sidebarButton {
-  -webkit-transform: rotate(-180deg);
+  .rotate(-180deg);
 }
 
 #sidebar {
@@ -99,7 +99,7 @@
     }
   }
   .section {
-    input {
+    input, select {
       background-color: white;
     }
     .command {      
@@ -184,7 +184,7 @@
       height: 28px;
       padding: 0px 16px;            
       position: relative;
-      -webkit-transition: background-color @quick-transition ease;
+      .transition(background-color @quick-transition ease);
 
       .icon {        
         float: left;
@@ -243,7 +243,7 @@
 
 #search {
   z-index: 7;
-  -webkit-transition: background-color @quick-transition ease;
+  .transition(background-color @quick-transition ease);
   position: absolute;
   left: 0;
   top: 0;
