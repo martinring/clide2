@@ -15,14 +15,11 @@ import play.api.libs.json._
 import play.api.mvc._
 import akka.actor.ActorRef
 import clide.models._
-import clide.actors._
-import clide.actors.Infrastructure._
+import clide.actors.Events._
+import clide.actors.Messages._
 import scala.concurrent.Future
 
-object Application extends Controller with UserRequests {
-  import Messages._
-  import Events._
-  
+object Application extends Controller with UserRequests { 
   def index(path: String) = UserRequest.async { implicit request =>
     def notLoggedIn: SimpleResult = path match {
       case "login" => Ok(clide.web.views.html.index()).withNewSession
@@ -38,21 +35,20 @@ object Application extends Controller with UserRequests {
   
   // -- Javascript routing
   def javascriptRoutes = Action { implicit request =>
-  import routes.javascript._
-    Ok(
-      Routes.javascriptRouter("jsRoutes")(
-        routes.javascript.Application.index,      
-        routes.javascript.Authentication.login,
-        routes.javascript.Authentication.logout,   
-        routes.javascript.Authentication.validateSession,
-        routes.javascript.Authentication.signup,
-        routes.javascript.Projects.index,        
-        routes.javascript.Projects.put,
-        routes.javascript.Projects.delete,
-        routes.javascript.Projects.session,
-        routes.javascript.Projects.fileBrowser
-      )
-    ).as("text/javascript") 
-  }
-
+    import routes.javascript._
+      Ok(
+        Routes.javascriptRouter("jsRoutes")(
+          routes.javascript.Application.index,      
+          routes.javascript.Authentication.login,
+          routes.javascript.Authentication.logout,   
+          routes.javascript.Authentication.validateSession,
+          routes.javascript.Authentication.signup,
+          routes.javascript.Projects.index,        
+          routes.javascript.Projects.put,
+          routes.javascript.Projects.delete,
+          routes.javascript.Projects.session,
+          routes.javascript.Projects.fileBrowser
+        )
+      ).as("text/javascript") 
+  }  
 }

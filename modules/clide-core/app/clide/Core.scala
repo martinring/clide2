@@ -11,7 +11,7 @@ import clide.persistence.DAL
 import scala.slick.session.Session
 
 object Core extends Bootable {
-  val system   = ActorSystem("clide-core",ConfigFactory.load.getConfig("clide-core"))
+  val system   = ActorSystem("clide",ConfigFactory.load.getConfig("clide"))
   val config   = system.settings.config
   
   val profile = {

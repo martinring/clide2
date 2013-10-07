@@ -8,10 +8,12 @@ import play.api.Logger
 import clide.models.ProjectAccessLevel
 
 object Backstage extends Controller with UserRequests {
+  import clide.web.json.Conversions.serializeEvent
+  
   def session(username: String) = ActorSocket(
 	user = username,
 	message = WithUser(username,StartBackstageSession),
-	serialize = { msg => Logger.info(msg.toString); serialize(msg) },
+	serialize = { msg => Logger.info(msg.toString); serializeEvent(msg) },
 	deserialize = { json =>
 	  (json \ "t").asOpt[String] match {
 	    case None => ForgetIt

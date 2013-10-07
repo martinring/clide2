@@ -1,5 +1,11 @@
 package clide.web.controllers
 
+import clide.actors.Events._
+import clide.web.json.Conversions._
+import play.api.mvc._
+import play.api.mvc.Results._
+import play.api.libs.json.Json
+
 trait DefaultResults {
   implicit def defaultResult(event: Event): SimpleResult = event match {
     case CreatedProject(info) => Ok(Json.toJson(info))

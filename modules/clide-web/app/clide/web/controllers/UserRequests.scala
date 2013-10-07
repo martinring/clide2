@@ -27,7 +27,8 @@ trait UserRequests { this: Controller =>
   implicit def ask(act: ActorRef) = akka.pattern.ask(act)
   implicit val system = play.api.libs.concurrent.Akka.system
   implicit val executionContext = play.api.libs.concurrent.Akka.system.dispatcher
-  def server = clide.actors.Infrastructure.server.getOrElse {
+  
+  def server = clide.web.Global.server.getOrElse {
     throw new Exception("clide actor system has not been initialized yet")
   }
   

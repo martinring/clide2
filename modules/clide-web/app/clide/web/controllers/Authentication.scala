@@ -1,8 +1,6 @@
 package clide.web.controllers
 
 import play.api.mvc.{Controller,Action}
-import clide.persistence.Database._
-import clide.persistence.Database.profile.simple._
 import play.api.Play.current
 import play.api.db.slick.DB
 import play.api.data.Form
@@ -28,16 +26,11 @@ object Authentication extends Controller with UserRequests {
   )
   
   // -- Signup
-  val signupForm = Form(
-    tuple(
-      "username" -> text.verifying("name is already in use", name => 
-        !Seq("login","logout","signup","assets").contains(name) &&
-       DB.withSession { implicit session => !UserInfos.getByName(name).firstOption.isDefined }),
-      "email" -> email.verifying("email is already registered", email =>
-       DB.withSession { implicit session => !UserInfos.getByEmail(email).firstOption.isDefined }),
-      "password" -> text(minLength=8)
-    )
-  )
+  val signupForm = Form(tuple(
+    "username" -> text,       
+    "email" -> email,
+    "password" -> text(minLength=8)
+  ))
 
   /**
    * Handle login form submission.

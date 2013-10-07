@@ -1,31 +1,17 @@
 package clide.web.controllers
 
 import play.api.mvc._
-import play.api.db.slick.DB
-import scala.slick.driver.BasicProfile._
-import scala.slick.driver.H2Driver.simple._
-import play.api.Play.current
 import play.api.libs.json._
-import scala.concurrent.duration._
-import models._
-import org.h2.jdbc.JdbcSQLException
-import play.api.libs.concurrent.Akka
-import akka.util.Timeout
-import scala.concurrent.ExecutionContext.Implicits.global
-import play.api.libs.iteratee.Concurrent
-import play.api.libs.iteratee.Iteratee
-import play.Logger
-import akka.actor.PoisonPill
-import akka.actor.ActorDSL._
-import akka.actor.ActorRefFactory
-import clide.models._
-import clide.actors._
-import Messages._
-import Events._
+import clide.actors.Messages._
+import clide.actors.Events._
+import clide.web.json.Conversions._
 import scala.concurrent.Future
-import clide.collaboration.{Operation,Annotations}
+import clide.models.ProjectAccessLevel
+import clide.collaboration.Operation
+import clide.collaboration.Annotations
+import play.api.Logger
 
-object Projects extends Controller with UserRequests {  
+object Projects extends Controller with UserRequests with DefaultResults {  
   def index(username: String) = UserRequest.async { request =>
     request.askFor(username)(BrowseProjects).map(defaultResult)    
   }     
@@ -49,7 +35,7 @@ object Projects extends Controller with UserRequests {
   def session(username: String, name: String) = ActorSocket(
       user = username,
       message = WithUser(username,WithProject(name,StartSession)),
-      serialize = { msg => Logger.info(msg.toString); serialize(msg) },
+      serialize = { msg => Logger.info(msg.toString); serializeEvent(msg) },
       deserialize = { json =>
         (json \ "r").asOpt[Long] match {
           case None => (json \ "t").asOpt[String] match {
@@ -80,7 +66,7 @@ object Projects extends Controller with UserRequests {
   def fileBrowser(username: String, name: String) = ActorSocket(
       user = username,
       message = WithUser(username,WithProject(name,StartFileBrowser)),
-      serialize = { serialize },
+      serialize = { serializeEvent },
       deserialize = { json =>
         (json \ "t").asOpt[String] match {
           case None => ForgetIt

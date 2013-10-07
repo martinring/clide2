@@ -3,9 +3,11 @@ package clide.web.json
 import play.api.libs.json._
 import clide.models._
 import clide.collaboration._
+import clide.actors.Events._
+import clide.actors.Messages.{CreateProject}
 
 object Conversions {
-  implicit object FileInfoWrites = extends Writes[FileInfo] {
+  implicit object FileInfoWrites extends Writes[FileInfo] {
     def writes(f: FileInfo) = Json.obj(
         "id" -> f.id,
         "name" -> f.path.lastOption,
@@ -73,6 +75,8 @@ object Conversions {
     def writes(value: Operation) = 
       Json.toJson(value.actions)
   }
+  
+  implicit val CreateProjectReads = Json.reads[CreateProject]
   
   private def error(error: String) = Json.obj("t"->"e","c"->error)
   
