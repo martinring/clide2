@@ -2,7 +2,6 @@ package clide.web.controllers
 
 import play.api.mvc.{Controller,Action}
 import play.api.Play.current
-import play.api.db.slick.DB
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json._

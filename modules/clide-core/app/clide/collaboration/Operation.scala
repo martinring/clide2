@@ -16,7 +16,7 @@ sealed trait Action {
     case Retain(n) => n.toString
     case Insert(s) => "\""+s+"\""
     case Delete(n) => (-n).toString
-  }
+  }   
 }
 /** Skip the next `n` positions */
 case class Retain(n: Int) extends Action { require(n>=0) }
@@ -25,13 +25,24 @@ case class Insert(s: String) extends Action
 /** Delete the next `n` characters */
 case class Delete(n: Int) extends Action { require(n>=0) }
 
+object Action {
+  def read(s: String): Action = s.head match {
+    case '-' => Delete(s.tail.toInt)
+    case '\"' => Insert(s.tail.init)
+    case _ => Retain(s.toInt)
+  }
+}
+
 case class Operation(actions: List[Action]) extends AnyVal {
-  override def toString = "[" + actions.mkString(",") + "]"  
+  override def toString = "[" + actions.mkString(",") + "]"
 }
 
 object Operation {
-  def serialize(op: Operation): String = op.toString
-  def deserialize(s: String): Operation = Operation(Nil) // TODO!!!
+  def serialize(op: Operation): String  = op.toString
+  def deserialize(s: String): Operation = {
+    require(s.startsWith("[") && s.endsWith("]"))
+    Operation(s.tail.init.split(",").map(Action.read _).toList)         
+  }
   
   private def addRetain(n: Int, ops: List[Action]): List[Action] = ops match {
     case Retain(m)::xs => Retain(n+m)::xs

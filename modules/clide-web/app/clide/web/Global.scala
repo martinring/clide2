@@ -9,16 +9,26 @@ import akka.util.Timeout
 import scala.concurrent.Await
 
 object Global extends GlobalSettings {
-  var server: Option[ActorRef] = None
+  var serverPath: String = "not configured"
   
-  override def onStart(app: Application) {    
+  var serverOption: Option[ActorRef] = None
+  
+  def server: ActorRef = serverOption.filter(!_.isTerminated) getOrElse {
+    Logger.warn("server terminated")
+    Logger.info("system must wait for new server connection")
+    import play.api.Play.current
+    val resolution = Akka.system.actorSelection(serverPath).resolveOne(10 seconds)
+    serverOption = Some(Await.result(resolution, 10 seconds))
+    Logger.info("reconnected")
+    server
+  }
+  
+  override def onStart(app: Application) {   
     import clide.actors._
+    
     Logger.info("initializing actor infrastructure")    
-    val serverPath = app.configuration.getString("server-path").getOrElse {
-      sys.error("No server path configured")
-    }
-    implicit val dispatcher = Akka.system(app).dispatcher
-    val resolution = Akka.system(app).actorSelection(serverPath).resolveOne(10 seconds)
-    server = Some(Await.result(resolution,10 seconds))
+    serverPath = app.configuration.getString("server-path").get            
+    val resolution = Akka.system(app).actorSelection(serverPath).resolveOne(10 seconds)    
+    serverOption = Some(Await.result(resolution,10 seconds))
   }  
 }

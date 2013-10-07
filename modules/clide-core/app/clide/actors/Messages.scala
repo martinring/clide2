@@ -44,7 +44,7 @@ object Messages {
       message: ProjectMessage)
   
   trait ProjectMessage extends Message
-  object DeleteProject extends ProjectMessage 
+  case object DeleteProject extends ProjectMessage 
  
   case class WithPath(path: Seq[String], message: FileMessage) extends ProjectMessage with FileMessage
   case object StartFileBrowser      extends ProjectMessage

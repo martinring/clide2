@@ -16,8 +16,8 @@ class DAL(override val profile: ExtendedDriver) extends
     Revisions,
     SessionInfos,
     UserInfos)
-  
-  def create(implicit session: Session) {
+   
+  def create(implicit session: Session) {    
     tables.map(_.ddl).reduce(_++_).create
   }
 }

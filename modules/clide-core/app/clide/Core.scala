@@ -38,6 +38,12 @@ object Core extends Bootable {
 }
 
 object CoreApp extends App {
+  args match {
+    case Array("schema") =>
+      println("creating database schema")
+      Core.DB.withSession{ implicit session: Session => Core.DAL.create }      
+    case _ => 
+  }  
   Core.startup()
   readLine()
   Core.shutdown()

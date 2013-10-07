@@ -25,17 +25,21 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
   var server: Server = null
   
   def initOt() {
-    val revs = DB.withSession { implicit session: Session => Revisions.get(info.id).toList }
-    server = new Server(Document(""))
-    log.info(f"reapplying ${revs.length} operations")
-    for ((op,rev) <- revs.zipWithIndex) {
-      server.applyOperation(op,rev) match {
-        case Success(o) => // <- good          
-        case Failure(e) => // <- bad ;)
-          log.error(s"unable to apply revision $op (${e.getMessage}")
-      } 
+    DB.withSession { implicit session: Session => 
+      val revs = Revisions.get(info.id).toSeq
+      server = new Server(Document(""))
+      log.info(f"reapplying ${revs.length} operations")
+      for ((op,rev) <- revs.zipWithIndex) {
+        server.applyOperation(op,rev) match {
+          case Success(o) => // <- good     
+            log.info(o.toString)
+          case Failure(e) => // <- bad ;)
+            log.error(s"unable to apply revision $op (${e.getMessage}")
+        }
+      }
+      log.info(server.text)
+      otActive = true
     }    
-    otActive = true
   }
   
   def receiveMessages: Receive = {
