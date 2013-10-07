@@ -35,9 +35,7 @@ object ApplicationBuild extends Build {
   )
 
   val appDependencies = Seq(
-    akka.testkit,
-    akka.remote,
-    playplugins.slick,
+    akka.remote,    
     playplugins.mailer)
   
   val web = play.Project(

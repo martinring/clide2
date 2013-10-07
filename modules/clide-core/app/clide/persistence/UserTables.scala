@@ -4,28 +4,31 @@ import clide.models._
 import java.sql.Date
 import slick.lifted.ForeignKeyAction
 import java.security.MessageDigest
+import scala.slick.lifted.MappedProjection
 
 trait UserTables { this: Profile =>
   import profile.simple._
   
-  object UserInfos extends Table[UserInfo]("users") {  
+  object UserInfos extends Table[UserInfo with Password]("users") {  
     def name     = column[String]("name", O.PrimaryKey)
     def email    = column[String]("email")
     def password = column[Array[Byte]]("password")
-    def *        = name ~ email <> (UserInfo.apply _, UserInfo.unapply _)
-    def withPassword = name ~ email ~ password        
+    def *        = name ~ email ~ password <> (UserInfoWithPassword.apply _, UserInfoWithPassword.unapply _)
     
     def get(name: String)(implicit session: Session) = 
-      Query(UserInfos).filter(_.name === name).firstOption    
+      Query(UserInfos).filter(_.name === name).firstOption
     
     def getAll(implicit session: Session) = 
-      Query(UserInfos).elements                    
+      Query(UserInfos).elements          
     
     def getByEmail(email: String)(implicit session: Session) = 
       Query(UserInfos).filter(_.email === email).firstOption
+      
+    def authenticate(user: UserInfo with Password)(implicit session: Session) =
+      Query(UserInfos).filter(_.name === user.name).filter(_.password === user.password).exists
     
     def insert(user: UserInfo with Password)(implicit session: Session) = {
-      withPassword.insert(user.name, user.email, user.password)
+      name ~ email ~ password insert (user.name, user.email, user.password)
     }  
   } 
     

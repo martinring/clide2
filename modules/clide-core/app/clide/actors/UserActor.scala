@@ -62,7 +62,7 @@ class UserActor(var user: UserInfo with Password) extends Actor with ActorLoggin
   
   def anonymous: Receive = {
     case Login(password) =>
-      if (UserInfo.passwordHash(user.name, password) != user.password) {
+      if (user.authenticate(password)) {
         log.info("login attempt failed")
         sender ! WrongPassword
       } else {
