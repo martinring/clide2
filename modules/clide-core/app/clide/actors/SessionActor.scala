@@ -23,7 +23,7 @@ class SessionActor(
   var openFiles = Map[Long,FileInfo]()  
   var fileServers = Map[Long,ActorRef]()
   
-  val colors = clide.Core.config.getStringList("clide.sessionColors").toSet
+  val colors = context.system.settings.config.getStringList("sessionColors").toSet
   
   def randomColor(): String = {
     var remaining = colors

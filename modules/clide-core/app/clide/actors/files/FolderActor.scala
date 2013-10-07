@@ -79,7 +79,7 @@ class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String) 
     case ExplorePath => receiveMessages(BrowseFolder)    
 	case BrowseFolder =>
 	  log.info(children.toString)
-      sender ! FolderContent(info,children.values.toSeq)
+      sender ! FolderContent(info,children.values.toList)
 	case TouchFolder =>
 	  // Touched
     case Delete =>

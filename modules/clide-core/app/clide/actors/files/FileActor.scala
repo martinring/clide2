@@ -18,14 +18,14 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
   import Events._  
     
   var info: FileInfo = null  
-  val file = new File(project.root + info.path.mkString(File.pathSeparator)) // TODO    
+  def file = new File(project.root + info.path.mkString(File.pathSeparator)) // TODO    
   
   var otActive = false
   var clients = Map[ActorRef,SessionInfo]()
   var server: Server = null
   
   def initOt() {
-    val revs = DB.withSession { implicit session: Session => Revisions.get(info.id).toSeq }
+    val revs = DB.withSession { implicit session: Session => Revisions.get(info.id).toList }
     server = new Server(Document(""))
     log.info(f"reapplying ${revs.length} operations")
     for ((op,rev) <- revs.zipWithIndex) {
