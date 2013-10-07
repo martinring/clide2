@@ -14,11 +14,23 @@ object ApplicationBuild extends Build {
   val coreDependencies = Seq(
     akka.actor,
     akka.remote,
-    slick)  
+    akka.kernel,
+    scala.reflect,
+    slick,h2,slf4j)
+
+  val commonSettings = Seq(
+    scalaVersion      := scala.version,
+    resourceDirectory in Compile <<= baseDirectory / "conf",
+    resourceDirectory in Test <<= baseDirectory / "conf",
+    sourceDirectory in Compile <<= baseDirectory / "app",
+    scalaSource in Compile <<= baseDirectory / "app",
+    javaSource in Compile <<= baseDirectory / "app",
+    sourceDirectory in Test <<= baseDirectory / "test",
+    scalaSource in Test <<= baseDirectory / "test",
+    javaSource in Test <<= baseDirectory / "test")
 
   val core = Project(s"${appName}-core", file("modules/clide-core"))
-             .settings(
-    scalaVersion := scala.version,
+             .settings(commonSettings:_*).settings(    
     libraryDependencies ++= coreDependencies
   )
 
@@ -33,7 +45,7 @@ object ApplicationBuild extends Build {
     appVersion, 
     appDependencies,
     path = file("modules/clide-web")
-  ).settings(Angular.defaultSettings:_*)  
+  ).dependsOn(core).settings(Angular.defaultSettings:_*)  
   .settings(atmosPlaySettings: _*)
   .settings(
     scalaVersion := scala.version,
@@ -76,7 +88,7 @@ object ApplicationBuild extends Build {
     scala.actors)    
 
   val isabelle = Project(s"${appName}-isabelle", file("modules/clide-isabelle"))
-                .dependsOn(web).settings(
+                .dependsOn(core).settings(
     scalaVersion := scala.version,
     libraryDependencies ++= isabelleDependencies
   ).configs(Atmos).settings(atmosSettings: _*)

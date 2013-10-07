@@ -1,7 +1,7 @@
 .tabs {  
   ul.headers {  
     cursor: default;
-    -webkit-user-select: none;
+    .user-select(none);
     position: absolute;    
     top: 0;
     left: 0;
@@ -25,8 +25,8 @@
       padding: 0 6px 0 8px;
       background: #ddd;
       color: #777;
-      -webkit-transition: -webkit-transform @quick-transition ease;
-      -webkit-transform: translate(0,2px);
+      .transition-transform(@quick-transition ease);
+      .translate(0,2px);
       .close {
         float: none;
         color: inherit;
@@ -38,19 +38,19 @@
         font-family: icon;
         font-size: 16px;
         opacity: 0.5;
-        -webkit-transition: opacity @quick-transition ease;
+        .transition(opacity @quick-transition ease);
         &:hover {
           opacity: 1;
         }
       }
       &:hover {
         background-color: white;
-        -webkit-transform: none;
+        .translate(0,0);
       }
       &.active {
         color: white;
         background: @brand-primary;
-        -webkit-transform: none;      } 
+        .translate(0,0);      } 
     }
   }
 

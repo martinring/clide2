@@ -2,9 +2,11 @@ import sbt._
 
 object Dependencies {
   val slick = "com.typesafe.slick" %% "slick" % "1.0.1"
+  val h2    = "com.h2database" % "h2" % "1.3.166"
+  val slf4j = "org.slf4j" % "slf4j-nop" % "1.6.4"
 
   object akka {
-    val version = "2.2.0"
+    val version = "2.2.1"
     val actor   = "com.typesafe.akka" %% "akka-actor"   % version
     val remote  = "com.typesafe.akka" %% "akka-remote"  % version
     val kernel  = "com.typesafe.akka" %% "akka-kernel"  % version
@@ -13,8 +15,9 @@ object Dependencies {
   
   object scala {
     val version = "2.10.2"
-    val swing   = "org.scala-lang" % "scala-swing"  % version
-    val actors  = "org.scala-lang" % "scala-actors" % version
+    val swing   = "org.scala-lang" % "scala-swing"   % version
+    val actors  = "org.scala-lang" % "scala-actors"  % version
+    val reflect = "org.scala-lang" % "scala-reflect" % version
   }
 
   object playplugins {
