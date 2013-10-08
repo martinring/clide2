@@ -41,6 +41,7 @@ class UserServer extends Actor with ActorLogging {
     DB.withSession { implicit session: Session => 
       val users = UserInfos.getAll
       users.foreach { user => context.actorOf(Props(classOf[UserActor], user), user.name) } 
-    }     
+    }
+    log.info("waiting for requests")
   }
 }

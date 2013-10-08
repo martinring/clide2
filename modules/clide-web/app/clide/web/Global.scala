@@ -7,28 +7,25 @@ import akka.actor._
 import scala.concurrent.duration._
 import akka.util.Timeout
 import scala.concurrent.Await
+import scala.concurrent.Promise
+import akka.pattern._
 
 object Global extends GlobalSettings {
-  var serverPath: String = "not configured"
+  implicit val timeout      = Timeout(10 seconds)
+  private val serverMonitor = Promise[ActorRef]()
   
-  var serverOption: Option[ActorRef] = None
-  
-  def server: ActorRef = serverOption.filter(!_.isTerminated) getOrElse {
-    Logger.warn("server terminated")
-    Logger.info("system must wait for new server connection")
+  def server: ActorRef = {
     import play.api.Play.current
-    val resolution = Akka.system.actorSelection(serverPath).resolveOne(10 seconds)
-    serverOption = Some(Await.result(resolution, 10 seconds))
-    Logger.info("reconnected")
-    server
+    implicit val dispatcher = Akka.system.dispatcher
+    val resolution = serverMonitor.future.flatMap(ref => ask(ref,ServerMonitor.Request))      
+    Await.result(resolution.mapTo[ServerMonitor.Reply].map(_.ref), 10 seconds)
   }
   
-  override def onStart(app: Application) {   
-    import clide.actors._
-    
-    Logger.info("initializing actor infrastructure")    
-    serverPath = app.configuration.getString("server-path").get            
-    val resolution = Akka.system(app).actorSelection(serverPath).resolveOne(10 seconds)    
-    serverOption = Some(Await.result(resolution,10 seconds))
+  override def onStart(app: Application) {
+    import play.api.Play.current
+    val serverPath = app.configuration.getString("server-path").get
+    serverMonitor.success {
+      Akka.system.actorOf(Props(classOf[ServerMonitor], serverPath), "server-monitor")
+    }
   }  
 }

@@ -9,7 +9,7 @@ object ApplicationBuild extends Build {
   val appName         = "clide"
   val appVersion      = "2.0-SNAPSHOT"
 
-  override def rootProject = Some(web)
+  override def rootProject = Some(bundle)
 
   val coreDependencies = Seq(
     akka.actor,
@@ -90,4 +90,11 @@ object ApplicationBuild extends Build {
     scalaVersion := scala.version,
     libraryDependencies ++= isabelleDependencies
   ).configs(Atmos).settings(atmosSettings: _*)
+
+  val bundle = play.Project(
+    s"$appName-bundle",
+    appVersion,
+    Seq(),
+    path=file("modules/clide-bundle")
+  ).dependsOn(core,isabelle,web)
 }
