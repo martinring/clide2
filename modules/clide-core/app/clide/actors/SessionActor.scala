@@ -137,10 +137,10 @@ class SessionActor(
     case msg @ Annotate(_,_) =>
       session.activeFile.map{ id => 
         fileServers.get(id).map{ ref =>
-          log.info("forwarding edit to ref")
+          log.info("forwarding annotation to ref")
           ref ! msg
         }.getOrElse {
-          log.info("forwarding edit to path")
+          log.info("forwarding annotation to path")
           context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
         } 
       }.getOrElse {

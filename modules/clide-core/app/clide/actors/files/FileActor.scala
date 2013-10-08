@@ -31,9 +31,8 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
       log.info(f"reapplying ${revs.length} operations")
       for ((op,rev) <- revs.zipWithIndex) {
         server.applyOperation(op,rev) match {
-          case Success(o) => // <- good     
-            log.info(o.toString)
-          case Failure(e) => // <- bad ;)
+          case Success(o) => // <- good            
+          case Failure(e) => // <- bad ;) TODO
             log.error(s"unable to apply revision $op (${e.getMessage}")
         }
       }
@@ -125,7 +124,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
           info = FileInfos.create(
             project = project.id,
             path    = parent.path :+ name,
-            mimeType = Some("x-isabelle"), // TODO:  MimeTypes.forFileName(name),
+            mimeType = Some("text/x-isabelle"), // TODO:  MimeTypes.forFileName(name),
             deleted = false,
             exists  = false,
             isDirectory = false,
