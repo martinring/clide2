@@ -48,11 +48,8 @@
                  ng-click='openFile(file)'                
                  class='list-group-item'
                  context-menu='fileContextMenu(file)'
-                 ng-class='{ active: file.id==session.activeFileId, open: file.doc!=null, "text-muted": file.deleted }'>
+                 ng-class='{ active: file.id==session.me.activeFile, open: file.doc!=null, "text-muted": file.deleted }'>
                  <i class="icon-folder-open icon-fixed-width" ng-show='file.loading'></i><i ng-show='!file.loading' class='icon-fixed-width' ng-class='{ "icon-folder-close": file.isDirectory, "icon-file": !file.isDirectory }'></i> {{file.name}}
-                 <!--<span class='pull-right' ng-show='file.id==activeFileId'>
-                   <i ng-click='deleteFile(file)' class='icon-fixed-width icon-trash'></i>
-                 </span>-->
                  <span class='pull-right'>
                    <i class='icon-stop color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id} ' title='{{user.user}}'></i>
                  </span>
@@ -161,7 +158,7 @@
       <div id='content'>
         <div class="tabs">
           <ul class="headers">
-            <li ng-repeat='file in session.openFiles' ng-class='{active: session.activeFileId==file.id}' ng-show='session.state=="connected"'>
+            <li ng-repeat='file in session.openFiles' ng-class='{active: session.me.activeFile==file.id}' ng-show='session.state=="connected"'>
               <i class='icon-stop icon-fixed-width color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id}' title='{{user.user}}'></i>
               <span ng-click='openFile(file.id)'>{{file.name}}</span>
               <button type="button" class="close" ng-click='closeFile(file.id)' aria-hidden="true">&times;</button>

@@ -126,7 +126,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $routePara
         action: -> $scope.deleteFile(file)
       ]
     else 
-      openOrClose = if $scope.session.activeFileId is file.id     
+      openOrClose = if $scope.session.me.activeFile is file.id     
           icon: 'remove'
           text: 'Close'
           action: -> $scope.closeFile(file.id)

@@ -8,12 +8,11 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
   session =
     state: 'closed'
     collaborators: null
-    openFiles: null
-    activeFileId: null
+    openFiles: null    
     me: null
 
   session.activeDoc = ->
-    session.openFiles?[session.activeFileId]?.doc
+    session.openFiles?[session.me.activeFile]?.doc
 
   apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f) else f()
 
@@ -35,14 +34,14 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
 
     client.applyOperation = adapter.applyOperation
     client.sendOperation = (rev,op) ->
-      if (nfile.id isnt session.activeFileId)
+      if (nfile.id isnt session.me.activeFile)
         Toast.push 'danger', 'internal error: edit inactive file (todo)'
       else send
         f: nfile.id # TODO: handle on server!
         r: rev
         o: op.actions
     client.sendAnnotation = (rev,an) ->
-      if (nfile.id isnt session.activeFileId)
+      if (nfile.id isnt session.me.activeFile)
         Toast.push 'danger', 'internal error: annotate inactive file (todo)'
       else send
         f: nfile.id
@@ -59,9 +58,8 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     nfile.$annotate = (a,u) -> # TODO: include user
       a = client.transformAnnotation(a)
       adapter.applyAnnotation(a,u)
-
-    unless session.openFiles[file.info.id]?
-      session.openFiles[file.info.id] = (nfile)
+    
+    session.openFiles[file.info.id] = (nfile)
 
     console.log session.openFiles
 
@@ -100,9 +98,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         when 'string'
           switch msg
             when 'ack_edit'
-              getOpenFile(session.activeFileId).$ackEdit()
+              getOpenFile(session.me.activeFile).$ackEdit()
             when 'ack_annotate'
-              getOpenFile(session.activeFileId).$ackAnnotation()
+              getOpenFile(session.me.activeFile).$ackAnnotation()
             else
               Toasts.push 'danger', "internal error: unknown message: #{msg}"        
         when 'object'        
@@ -118,17 +116,19 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
               session.openFiles = { }              
               #document.getElementById('theme').href = "/client/stylesheets/colors/#{msg.info.color}.css"
               apply ->
-                session.me = msg.info
+                session.me = msg.info                
                 session.collaborators = msg.others
             when 'opened'
               apply -> initFile(msg.c)
+            when 'failed'
+              Toasts.push("danger","the initialization of the requested file failed on the server")
             when 'close'
               apply ->                
                 delete session.openFiles[msg.c]
-                session.activeFileId = null
+                session.me.activeFile = null
             when 'switch'
               apply ->                
-                session.activeFileId = msg.c                                            
+                session.me.activeFile = msg.c                                            
             when 'session_changed'
               apply ->
                 update(msg.c)
@@ -146,7 +146,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       socket = undefined        
       session.collaborators = null
       session.openFiles = null
-      session.activeFileId = null
+      session.me.activeFile = null
       session.me = null
       apply -> session.state = 'disconnected'
       console.log e
@@ -166,7 +166,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       socket or get(username, project, init)
       send 
         t: 'init'
-    openFile: (id) -> unless session.activeFileId is id
+    openFile: (id) -> unless session.me.activeFile is id
       send
         t: 'open'
         id: id

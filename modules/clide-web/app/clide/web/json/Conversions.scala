@@ -99,6 +99,7 @@ object Conversions {
     case SessionInit(s,cs) => Json.obj("t"->"welcome","info"->s,"others"->cs)
     case SessionChanged(s) => "session_changed" of s
     case SessionStopped(s) => "session_stopped" of s    
+    case FileInitFailed(f) => "failed" of f
     case FileCreated(f) => "newfile" of f
     case FileDeleted(f) => "rmfile" of f
     case FileId(i) => "file" of i

@@ -49,10 +49,24 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
       context.parent.forward(BrowseFolder)
       
     case OpenFile(user) =>
-      if (!otActive) initOt()
-      clients += sender -> user
-      context.watch(sender)
-      sender ! OTState(this.info, server.text, server.revision)
+      log.info(s"opening for ${user.user}")
+      if (!otActive) {
+        try {
+          initOt()
+          clients += sender -> user
+          context.watch(sender)
+          sender ! OTState(this.info, server.text, server.revision)
+        }
+        catch {
+          case e: Throwable =>
+            log.error(e, "init failed")            
+            sender ! FileInitFailed(this.info.id)
+        }
+      } else {
+        clients += sender -> user
+        context.watch(sender)
+        sender ! OTState(this.info, server.text, server.revision)
+      }
       
     case Annotate(rev,as) =>
       if (!otActive) initOt()
@@ -78,7 +92,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
       }      
       
     case TouchFile =>
-      // Touched
+      log.info("touched")
       
     case Delete => // TODO !!      
       info = info.copy(deleted = true)

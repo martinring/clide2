@@ -99,7 +99,7 @@ trait FileTables { this: Profile with ProjectTables with Mappers =>
     
     def * = fileId ~ id ~ content <> (Revision,Revision.unapply _)
     
-    def get(file: Long)(implicit session: Session) = 
+    def get(file: Long)(implicit session: Session) =
       Query(Revisions).filter(_.fileId === file)
                       .sortBy(_.id.asc)
                       .map(_.content)

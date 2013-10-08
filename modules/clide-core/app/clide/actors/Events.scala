@@ -9,6 +9,8 @@ object Events {
   trait Event  
   case object TimeOut extends Event
   case object UnexpectedTermination extends Event
+  
+  case class FileInitFailed(file: Long) extends Event
     
   case class EventSocket(in: ActorRef, id: String) extends Event
   case object Welcome extends Event

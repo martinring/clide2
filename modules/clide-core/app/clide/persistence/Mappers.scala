@@ -13,18 +13,6 @@ trait Mappers {
   implicit val ProjectAccessLevelMapper = 
     MappedTypeMapper.base[ProjectAccessLevel.Value, Int](_.id , ProjectAccessLevel.apply _)
       
-  implicit val OperationMapper = {
-    def serialize(op: Operation): Array[Byte] = {
-      val bytes = new ByteArrayOutputStream()
-      val out   = new ObjectOutputStream(bytes)
-      out.writeObject(op)
-      bytes.toByteArray
-    }
-    def deserialize(bytes: Array[Byte]) = {
-      val stream = new ByteArrayInputStream(bytes)
-      val in     = new ObjectInputStream(stream)
-      in.readObject().asInstanceOf[Operation]
-    }
-    MappedTypeMapper.base[Operation, Array[Byte]](serialize,deserialize)
-  }                 
+  implicit val OperationMapper = 
+    MappedTypeMapper.base[Operation, String](Operation.write,Operation.read)                 
 }

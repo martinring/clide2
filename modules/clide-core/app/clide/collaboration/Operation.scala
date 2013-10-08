@@ -37,7 +37,13 @@ case class Operation(actions: List[Action]) extends AnyVal {
   override def toString = actions.mkString(",")
 }
 
-object Operation {    
+object Operation {
+  def read(s: String): Operation = 
+    Operation(s.split(",").map(Action.read).toList)
+    
+  def write(o: Operation): String =
+    o.toString
+  
   private def addRetain(n: Int, ops: List[Action]): List[Action] = ops match {
     case Retain(m)::xs => Retain(n+m)::xs
     case xs            => Retain(n)::xs

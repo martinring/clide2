@@ -7,6 +7,7 @@ import clide.Core.DAL._
 import clide.Core.DAL.profile.simple._
 import scala.util.Random
 import scala.collection.JavaConversions._
+import scala.collection.mutable.Map
 import scala.slick.session.Session
 
 class SessionActor(
@@ -20,8 +21,8 @@ class SessionActor(
   val level = ProjectAccessLevel.Admin // TODO
   var session: SessionInfo = null
   var peer = context.system.deadLetters
-  var openFiles = Map[Long,FileInfo]()  
-  var fileServers = Map[Long,ActorRef]()
+  val openFiles = Map[Long,FileInfo]()  
+  val fileServers = Map[Long,ActorRef]()
   
   val colors = context.system.settings.config.getStringList("sessionColors").toSet
   
@@ -35,12 +36,30 @@ class SessionActor(
   }
           
   def setActive(value: Boolean) = DB.withSession { implicit session: Session =>
-    this.session = this.session.copy(active = value) 
-    val q = for (info <- SessionInfos if info.id === id) yield info // TODO: Move to Schema        
-    q.update(this.session)
+    this.session = this.session.copy(active = value)            
+    SessionInfos.update(this.session)
+    context.parent ! SessionChanged(this.session)    
     this.session
   }
   
+  def switchFile(next: Option[Long]): Boolean = 
+    if (next.isEmpty || openFiles.contains(next.get)) DB.withSession { implicit session: Session =>
+      this.session = this.session.copy(activeFile = next)
+      context.parent ! SessionChanged(this.session)
+      peer           ! FileSwitched(this.session.activeFile)
+      SessionInfos.update(this.session)      
+      true
+    } else false
+  
+  def initializeFile(id: Long) = {
+    log.info("initializing file")
+    DB.withSession { implicit session: Session => // TODO: Move to File Actors
+      FileInfos.get(id).firstOption.fold(peer ! DoesntExist){ info => // TODO: Move to Schema
+        context.parent ! WrappedProjectMessage(user,level,WithPath(info.path,OpenFile(this.session)))
+      }
+    }
+  }
+    
   def receive = {
     // echoing
     case SessionChanged(info) => if (info != session) {
@@ -51,12 +70,12 @@ class SessionActor(
     case SessionStopped(info) => if (info != session) {
       collaborators -= info
       peer ! SessionStopped(info)
-    }
+    }    
     case RequestSessionInfo =>
       sender ! SessionInit(
           session,
           collaborators)
-      openFiles.values.foreach { file =>
+      openFiles.values.foreach { file => // TODO: Move in ResetFile or so
         fileServers.get(file.id).map(_ ! OpenFile(this.session)).getOrElse {
           context.parent ! WrappedProjectMessage(user,level,WithPath(file.path,OpenFile(this.session)))
         }
@@ -66,37 +85,23 @@ class SessionActor(
       peer = sender
       context.watch(peer)
       peer ! EventSocket(self,"session")
-      context.parent ! SessionChanged(session)      
     case LeaveSession | EOF =>
       setActive(false)
       peer = context.system.deadLetters
-      context.unwatch(sender)            
-      context.parent ! SessionChanged(session)
+      context.unwatch(sender) 
     case CloseSession =>
       context.unwatch(peer)
-      peer = context.system.deadLetters           
+      peer = context.system.deadLetters 
       DB.withSession { implicit session: Session =>
-        val q = for (info <- SessionInfos if info.id === id) yield info // TODO: Move to Schema
-        q.delete
+        SessionInfos.delete(this.session)        
       }
       context.parent ! SessionStopped(session)
+      context.stop(self)
     case SwitchFile(id) =>
-      log.info("open file")
-      session = session.copy(activeFile = Some(id))
-      if (openFiles.contains(id)) {        
-        peer ! FileSwitched(session.activeFile)
-      } else {
-        DB.withSession { implicit session: Session => 
-          FileInfos.get(id).firstOption.map { info => // TODO: Move to Schema
-            context.parent ! WrappedProjectMessage(user,level,WithPath(info.path,OpenFile(this.session)))
-          } 
-        }        
-      }
-      context.parent ! SessionChanged(session)
-    case AcknowledgeEdit => // TODO: CONCURRENCY STUFF!!!
-      session.activeFile.map(fileServers += _ -> sender)
+      if (!switchFile(Some(id))) initializeFile(id)      
+    case AcknowledgeEdit => // TODO: CONCURRENCY STUFF!!!      
       peer ! AcknowledgeEdit
-    case Edited(f,op) =>     
+    case Edited(f,op) =>
       peer ! Edited(f,op)
     case Annotated(f,u,an) =>
       peer ! Annotated(f,u,an)
@@ -104,23 +109,20 @@ class SessionActor(
       session = session.copy(color = value)
       context.parent ! SessionChanged(session)      
     case CloseFile(id) =>
+      DB.withSession { implicit session: Session =>
+        OpenedFiles.delete(this.session.id,id)
+      }
       openFiles.get(id).map { file =>
         fileServers.get(id).map(_ ! EOF)
         peer ! FileClosed(id)
       }.getOrElse {
         peer ! DoesntExist
-      }
-      DB.withSession { implicit session: Session =>
-        OpenedFiles.delete(this.session.id,id)
-      }
-      openFiles -= id
-      fileServers -= id
-      if (session.activeFile.exists(_ == id)) {
-        session = session.copy(activeFile = openFiles.keys.headOption)
-        peer ! FileSwitched(session.activeFile)
-        context.parent ! SessionChanged(session)
-      }
-    case msg @ Edit(_,_) =>      
+      }      
+      openFiles.remove(id)
+      fileServers.remove(id)
+      if (session.activeFile == Some(id))
+        switchFile(openFiles.keys.headOption)      
+    case msg @ Edit(_,_) =>
       session.activeFile.map{ id => 
         fileServers.get(id).map{ ref =>
           log.info("forwarding edit to ref")
@@ -130,7 +132,7 @@ class SessionActor(
           context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
         } 
       }.getOrElse {
-        sender ! DoesntExist
+        peer ! DoesntExist
       }
     case msg @ Annotate(_,_) =>
       session.activeFile.map{ id => 
@@ -142,8 +144,12 @@ class SessionActor(
           context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
         } 
       }.getOrElse {
-        sender ! DoesntExist
+        peer ! DoesntExist
       }
+    case msg @ FileInitFailed(f) =>
+      if (session.activeFile == Some(f))
+        switchFile(None)
+      peer ! msg
     case msg @ OTState(f,s,r) =>
       val of = OpenedFile(f,s,r)
       if (!openFiles.contains(f.id)) {
@@ -151,19 +157,20 @@ class SessionActor(
           OpenedFiles.create(this.session.id, f.id)      
         }
         openFiles += f.id -> f
-      }              
+      }
+      fileServers -= f.id
       fileServers += f.id -> sender
       context.watch(sender)
       peer ! FileOpened(of)
-      if (session.activeFile == Some(f.id))
-        peer ! FileSwitched(session.activeFile)
+      if (!switchFile(Some(f.id)))
+        log.error("couldnt switch file")
     case Terminated(ref) =>
       if (ref == peer) {
 	    log.info("going idle due to termination")
 	    receive(LeaveSession)
       } else {
         fileServers.find(_._2 == ref).map { case (id,_) =>
-          fileServers -= id
+          log.info(s"file $id failed")          
           receive(CloseFile(id))
         }
       }
@@ -195,9 +202,9 @@ class SessionActor(
         activeFile = None,
         active = true)
       context.parent ! SessionChanged(res)
-      res      
+      res
     }
-    openFiles = OpenedFiles.get(this.session.id).map(i => i.id -> i).toMap
+    openFiles ++= OpenedFiles.get(this.session.id).map(i => i.id -> i).toMap
     collaborators -= this.session
   }
 }

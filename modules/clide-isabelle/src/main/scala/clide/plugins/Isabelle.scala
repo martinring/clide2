@@ -14,10 +14,22 @@ import clide.collaboration.Annotate
 import clide.collaboration.Plain
 import clide.collaboration.Annotations
 import clide.collaboration.Annotation
+import akka.kernel.Bootable
 
-object Isabelle extends App {
-  val system = ActorSystem("clide-isabelle",ConfigFactory.load.getConfig("clide-isabelle"))    
-  val plugin = system.actorOf(Props[IsabelleAssistant],"plugin")
-  readLine()  
-  plugin ! PoisonPill
+object Isabelle extends Bootable {
+  val system = ActorSystem("clide-isabelle",ConfigFactory.load.getConfig("clide-isabelle"))
+  
+  def startup() {
+    val plugin = system.actorOf(Props[IsabelleAssistant],"plugin")
+  }
+  
+  def shutdown() {
+    system.shutdown()
+  }
+}
+
+object IsabelleApp extends App {
+  Isabelle.startup()
+  readLine()
+  Isabelle.shutdown()
 }
