@@ -34,16 +34,10 @@ object Action {
 }
 
 case class Operation(actions: List[Action]) extends AnyVal {
-  override def toString = "[" + actions.mkString(",") + "]"
+  override def toString = actions.mkString(",")
 }
 
-object Operation {
-  def serialize(op: Operation): String  = op.toString
-  def deserialize(s: String): Operation = {
-    require(s.startsWith("[") && s.endsWith("]"))
-    Operation(s.tail.init.split(",").map(Action.read _).toList)         
-  }
-  
+object Operation {    
   private def addRetain(n: Int, ops: List[Action]): List[Action] = ops match {
     case Retain(m)::xs => Retain(n+m)::xs
     case xs            => Retain(n)::xs

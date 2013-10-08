@@ -88,6 +88,7 @@ trait FileTables { this: Profile with ProjectTables with Mappers =>
   object Revisions extends Table[Revision]("revisions") {
     def fileId  = column[Long]("fileId")
     def id      = column[Long]("id")
+    
     def content = column[Operation]("content")
     
     def file = foreignKey("fk_revision_file", fileId, FileInfos)(_.id, 
