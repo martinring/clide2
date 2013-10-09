@@ -2,6 +2,7 @@ package clide.collaboration
 
 import scala.util._
 import scala.annotation.tailrec
+import clide.util.compare._
 
 /**
  * @author Martin Ring
@@ -37,8 +38,8 @@ object AnnotationDiff {
   }
 }
 
-case class Annotations(annotations: Vector[Annotation] = Vector.empty) extends AnyVal {
-  override def toString = annotations.mkString(";")    
+case class Annotations(annotations: List[Annotation]) extends AnyVal {
+  override def toString = annotations.mkString(";")
   
   def annotate(n: Int, c: Map[String,String]): Annotations = {
     annotations.lastOption match {
@@ -85,26 +86,26 @@ object Annotations {
     case Annotate(_,c) => addAnnotate(n,c,as)
   }
   
-  def transform(a: Annotations, o: Operation): Try[Annotations] = Try {  
+  def transform(a: Annotations, o: Operation): Try[Annotations] = {  
     @tailrec
-    def loop(as: List[Annotation], os: List[Action], result: Annotations): Annotations = as match {
-      case a::ass => os match {
-        case Insert(s)::oss =>
-          loop(as,os,result :+ a.withLength(s.length))
-        case Retain(n)::oss if a.length < n =>  
-          loop(ass,Retain(n-a.length)::oss,result :+ a)
-        case Retain(n)::oss =>
-          loop(addWithLength(a.length - n, a, ass),oss,result :+ a.withLength(n))
-        case Delete(n)::oss if a.length < n =>  
-          loop(ass,Retain(n-a.length)::oss,result)
-        case Delete(n)::oss =>
-          loop(addWithLength(a.length - n, a, ass),oss,result)
-      }        
-      case Nil => os match {
-        case Nil => result
-        case _ => sys.error("lengths don't match")
+    def loop(as: List[Annotation], bs: List[Action], xs: List[Annotation]): Try[List[Annotation]] = (as,bs,xs) match {
+      case (Nil,Nil,xs) => Success(xs)
+      case (aa@(a::as),bb@(b::bs),xs) => (a,b) match {        
+        case (a,Insert(i)) => loop(aa,bs,addWithLength(i.length,a,xs))
+        case (a,Retain(m)) => (a.length <=> m) match {
+          case LT => loop(as,Retain(m-a.length)::bs,addWithLength(a.length,a,xs))
+          case EQ => loop(as,bs,addWithLength(a.length,a,xs))
+          case GT => loop(addWithLength(a.length-m,a,as),bs,addWithLength(m,a,xs))
+        }
+        case (a,Delete(d)) => (a.length <=> d) match {
+          case LT => loop(as,Delete(d-a.length)::bs,xs)
+          case EQ => loop(as,bs,xs)
+          case GT => loop(addWithLength(a.length-d,a,as),bs,xs)
+        }         
       }
+      case (Nil,Insert(i)::bs,xs) => loop(Nil,bs,addPlain(i.length,xs))
+      case _ => Failure(new Exception("the annotation couldn't be transformed because they haven't been applied to the same document"))
     }
-    loop(a.annotations.toList,o.actions,Annotations())
+    loop(a.annotations,o.actions,Nil).map(as => Annotations(as.reverse))
   }
 }
