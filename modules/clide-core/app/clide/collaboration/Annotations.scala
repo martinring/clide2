@@ -38,7 +38,7 @@ object AnnotationDiff {
   }
 }
 
-case class Annotations(annotations: List[Annotation]) extends AnyVal {
+case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
   override def toString = annotations.mkString(";")
   
   def annotate(n: Int, c: Map[String,String]): Annotations = {

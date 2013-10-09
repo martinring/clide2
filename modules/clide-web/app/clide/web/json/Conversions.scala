@@ -49,7 +49,7 @@ object Conversions {
   
   implicit object AnnotationsFormat extends Format[Annotations] {
     def reads(json: JsValue) = 
-      Json.fromJson[Vector[Annotation]](json).map(Annotations.apply)
+      Json.fromJson[List[Annotation]](json).map(Annotations.apply)
     def writes(value: Annotations) = 
       Json.toJson(value.annotations)
   }  

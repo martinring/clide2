@@ -6,7 +6,7 @@ import clide.collaboration._
 class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(project: ProjectInfo) {
   import isabelle._    
   
-  var thys = Map[Document.Node.Name, OpenedFile]()
+  val thys = scala.collection.mutable.Map[Document.Node.Name, OpenedFile]()
   
   implicit class OpenedIsabelleFile(val underlying: OpenedFile) {
     def path     = underlying.info.path.mkString("/")
@@ -67,37 +67,39 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
   
   var session: Session = null
   
-  override def startup() {
+  override def preStart() {
     session = new Session(new isabelle.Thy_Load(Set.empty, isabelle.Outer_Syntax.empty))
     session.phase_changed    += (context.self ! _)
     session.commands_changed += (context.self ! _)
     session.syslog_messages  += (context.self ! _)
     session.start(List("HOL"))
+    super.preStart()
   }
   
   def fileAdded(file: OpenedFile) {
     log.info("{}: {}", file.path, file.info.mimeType)
     if (file.info.mimeType == Some("text/x-isabelle")) {
       log.info(s"I am watching ${file.path}")
-      thys += file.nodeName -> file
+      thys(file.nodeName) = file
     }
   }
   
   def fileChanged(file: OpenedFile, change: Operation, after: OpenedFile) = {
-    thys.get(file.nodeName).foreach { file => session.update(file.opToEdits(change)) }
+    thys(file.nodeName) = after    
+    session.update(file.opToEdits(change))
   }
   
   def fileClosed(file: OpenedFile) = {
     // TODO: Unwatch
-    thys.get(file.nodeName).map { file => thys -= file.nodeName }
+    thys.remove(file.nodeName)
   }
   
   def processFile(file: OpenedFile) = {    
     val snap = session.snapshot(file.nodeName, Nil)
-    IsabelleMarkup.textClass(snap, Text.Range(0,file.state.length)).foldLeft(new Annotations) { case (as,info) =>
+    IsabelleMarkup.getTokens(snap, Text.Range(0,file.state.length)).foldLeft(new Annotations) { case (as,info) =>
       info.info match {
-        case None    => as.plain(info.range.length)          
-        case Some(c) => as.annotate(info.range.length,Map("c"->c))
+        case Nil => as.plain(info.range.length)
+        case c   => as.annotate(info.range.length,Map("c"->c.mkString(" ")))
       }
     }
   }

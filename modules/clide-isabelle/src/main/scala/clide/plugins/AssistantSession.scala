@@ -5,13 +5,14 @@ import clide.models._
 import clide.actors.Events._
 import clide.actors.Messages.{RequestSessionInfo,SwitchFile,IdentifiedFor,WithUser}
 import clide.collaboration._
+import scala.collection.mutable._
 
 abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLogging {
   var peer              = context.system.deadLetters
-  var activeFiles       = Map[Long,Long]()
+  val activeFiles       = Map[Long,Long]()
   var info: SessionInfo = null
-  var collaborators     = Set[SessionInfo]()
-  var files             = Map[Long,OpenedFile]()
+  val collaborators     = Set[SessionInfo]()
+  val files             = Map[Long,OpenedFile]()
   
   def fileAdded(file: OpenedFile)
   def fileChanged(file: OpenedFile, change: Operation, after: OpenedFile)
@@ -24,9 +25,9 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
   
   def startup() { }
   
-  def shutdown() { }
+  def shutdown() { }   
   
-  def receive = {    
+  def receive = {
     case EventSocket(ref,"session") =>
       log.info("session started")
       peer = ref
@@ -35,7 +36,7 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
     case SessionInit(info, collaborators) =>
       log.info("session info received")
       this.info = info
-      this.collaborators = collaborators  
+      this.collaborators ++= collaborators  
       collaborators.foreach { info =>
         if (info.active && info.activeFile.isDefined) {
           log.info(s"${info.user} is looking at ${info.activeFile.get}")
@@ -47,24 +48,24 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
       }
       startup()
     case FileOpened(file@OpenedFile(info,content,revision)) =>
-      files += info.id -> file
+      files(info.id) = file
       fileAdded(file)
     case FileClosed(file) =>
       fileClosed(files(file))
-      files -= file
+      files.remove(file)
     case Edited(file,operation) =>
       val prev = files(file)
       val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
-      files += file -> next
+      files(file) = next
       fileChanged(prev, operation, next)
     case SessionChanged(info) =>
       if (info.active && info.activeFile.isDefined) {
         log.info(s"${info.user} is looking at ${info.activeFile.get}")
-        activeFiles += info.id -> info.activeFile.get
+        activeFiles(info.id) = info.activeFile.get
         peer ! SwitchFile(info.activeFile.get)
       } else {
         log.info(s"${info.user} is inactive")
-        activeFiles -= info.id
+        activeFiles.remove(info.id)
       }
   }
   
