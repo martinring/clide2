@@ -37,27 +37,27 @@ object Projects extends Controller with UserRequests with DefaultResults {
       message = WithUser(username,WithProject(name,StartSession)),
       serialize = { msg => Logger.info(msg.toString); serializeEvent(msg) },
       deserialize = { json =>
-        (json \ "r").asOpt[Long] match {
-          case None => (json \ "t").asOpt[String] match {
-	        case None => ForgetIt
-	        case Some(t) => t match {
-	          case "init" => 
-	            RequestSessionInfo
-	          case "open" =>
-	            SwitchFile((json \ "id").as[Long])
-	          case "close" =>
-	            CloseFile((json \ "id").as[Long])
-	          case "color" =>
-	            SetColor((json \ "c").as[String])
-	          case "invite" =>
-	            ChangeProjectUserLevel((json \ "u").as[String], ProjectAccessLevel.Write)
-	        }
-	      }
-          case Some(rev) => (json\"o").asOpt[Operation] match {
-            case Some(operation) => Edit(rev,operation)
+        ((json \ "f").asOpt[Long],(json \ "r").asOpt[Long]) match {          
+          case (Some(file),Some(rev)) => (json\"o").asOpt[Operation] match {
+            case Some(operation) => Edit(file,rev,operation)
             case None => (json\"a").asOpt[Annotations] match {
-              case Some(annotation) => Annotate(rev,annotation)
+              case Some(annotation) => Annotate(file,rev,annotation)
               case None => ForgetIt
+            }
+          }
+          case _ => (json \ "t").asOpt[String] match {
+            case None => ForgetIt
+            case Some(t) => t match {
+              case "init" => 
+                RequestSessionInfo
+              case "open" =>
+                SwitchFile((json \ "id").as[Long])
+              case "close" =>
+                CloseFile((json \ "id").as[Long])
+              case "color" =>
+                SetColor((json \ "c").as[String])
+              case "invite" =>
+                ChangeProjectUserLevel((json \ "u").as[String], ProjectAccessLevel.Write)
             }
           }
         }        

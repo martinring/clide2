@@ -123,29 +123,21 @@ class SessionActor(
       fileServers.remove(id)
       if (session.activeFile == Some(id))
         switchFile(openFiles.keys.headOption)      
-    case msg @ Edit(_,_) =>
-      session.activeFile.map{ id => 
-        fileServers.get(id).map{ ref =>
-          log.info("forwarding edit to ref")
-          ref ! msg
-        }.getOrElse {
-          log.info("forwarding edit to path")
-          context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
-        } 
-      }.getOrElse {
-        peer ! DoesntExist
+    case msg @ Edit(id,_,_) =>      
+      fileServers.get(id).map{ ref =>
+        log.info("forwarding edit to ref")
+        ref ! msg
+      } getOrElse {
+        log.info("forwarding edit to path")
+        context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
       }
-    case msg @ Annotate(_,_) =>
-      session.activeFile.map{ id => 
-        fileServers.get(id).map{ ref =>
-          log.info("forwarding annotation to ref")
-          ref ! msg
-        }.getOrElse {
-          log.info("forwarding annotation to path")
-          context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
-        } 
-      }.getOrElse {
-        peer ! DoesntExist
+    case msg @ Annotate(id,_,_) =>      
+      fileServers.get(id).map{ ref =>
+        log.info("forwarding annotation to ref")
+        ref ! msg
+      } getOrElse {
+        log.info("forwarding annotation to path")
+        context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
       }
     case msg @ FileInitFailed(f) =>
       if (session.activeFile == Some(f))

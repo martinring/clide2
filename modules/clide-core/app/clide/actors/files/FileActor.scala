@@ -68,7 +68,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
         sender ! OTState(this.info, server.text, server.revision)
       }
       
-    case Annotate(rev,as) =>
+    case Annotate(_,rev,as) =>
       if (!otActive) initOt()      
       server.transformAnnotation(rev.toInt, as) match { // TODO: Ugly: rev.toInt
         case Failure(e) =>
@@ -80,7 +80,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
           sender ! AcknowledgeAnnotation
       }
       
-    case Edit(rev,ops) =>
+    case Edit(_,rev,ops) =>
       if (!otActive) initOt()         
       server.applyOperation(ops,rev) match {
         case Failure(e) =>
