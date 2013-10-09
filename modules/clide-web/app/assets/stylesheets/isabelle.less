@@ -1,0 +1,273 @@
+@type: rgb(43,145,175);
+@keyword: blue;
+@string: rgb(3, 106, 7);
+@variable: #00009b;
+@verbatim: gray;
+@comment: rgb(76, 136, 107);
+
+ /* outer syntax */
+.cm-s-default {   
+  span.sup { 
+    font-size: 66%;
+    line-height: 0;
+    vertical-align: super;
+  }
+  span.sub { 
+    font-size: 66%;
+    line-height: 0;
+    vertical-align: sub;    
+  }
+  span.bold { 
+    font-weight: bold;    
+  }
+  .outputWidget {
+    height: 0;
+    visibility: hidden;
+    white-space: pre;
+    margin-left: 8px;
+    padding-left: 8px;
+    background: rgba(0,0,0,0.05);
+    border-left: 8px solid @brand-primary;    
+    &.error, &.failed {
+      border-left-color: @brand-danger;      
+    }
+    &.warning {
+      border-left-color: @brand-warning;
+    }
+  }
+  isabelle-symbol {
+    font-family: 'AMS';
+  }
+  span.indent {
+    font-family: Typewriter;
+    line-height: 0;
+  }  
+  span.keyword {
+    color: @keyword;
+  }
+  span.operator {
+
+  }
+  span.command {
+    color: @keyword;
+    font-weight: bold;
+  }
+  span.string {    
+    /*color: gray;*/
+    /*background: rgba(0,0,0,0.05);*/
+  }  
+  span.altstring {
+    background: rgba(0,0,0,0.05);
+  }
+  span.verbatim {
+    /*background: rgba(0,0,0,0.05);*/
+    color: @verbatim;
+    &.cm-ML, &.cm-ML_val {
+      font-family: Typewriter;
+    }    
+  }
+  span.comment {
+    color: @comment; 
+    font-family: Typewriter; 
+  }
+  span.malformed {
+    text-decoration: line-through;
+  }
+
+  span.command_span {
+
+  }
+  span.ignored_span {
+
+  }
+  span.malformed_span {
+
+  }
+  /* inner syntax */
+  span.tfree {
+    font-family: Math;
+    color: @type 
+  }
+  span.tvar {
+    color: @type 
+  }
+  span.entity {
+    color: black ;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  span.free, span.term {
+    font-family: Math;
+    color: purple ;
+  }
+  span.skolem {
+    color: #d2691e 
+  }
+  span.bound {
+    color: green 
+  }
+  span.var {
+    color: @variable 
+  }
+  span.numeral {
+
+  }
+  span.literal {
+
+  }
+  span.delimiter, span.control {
+    color: gray;    
+  }      
+  span.inner_string {
+    
+  }
+  span.inner_comment {
+
+  }
+  span.token_range {
+
+  }
+  span.sort {
+
+  }
+  span.typ {
+
+  }
+  span.term {
+
+  }
+  span.prop {
+
+  }
+
+  span.typing {
+    
+  }
+
+  span.attribute {
+    
+  }
+
+  span.method {
+
+  }
+
+
+  /* embedded source text */
+  span.ML_source {
+
+  }
+  span.doc_source {
+
+  }
+  span.antiq {
+
+  }
+
+    /* ML syntax */
+
+  span.ML_keyword {
+    color: @keyword
+  }
+  span.ML_delimiter {
+
+  }
+  span.ML_tvar {
+
+  }
+  span.ML_numeral {
+    color: red
+  }
+  span.ML_char {
+    color: @string
+  }
+  span.ML_string {
+    color: @string
+  }
+  span.ML_comment {
+    color: #8b0000
+  }
+  span.ML_malform {
+    color: #ff6a6a
+  }
+  span.ML_def {
+
+  }
+  span.ML_open {
+
+  }
+  span.ML_struct {
+
+  }
+  span.ML_typing {
+
+  }
+
+  span.error, span.bad {
+    background-color: fade(@brand-danger,50%)
+  }
+
+  span.warning{  
+    background-color:  @brand-warning;    
+  }
+
+  span.substitution {
+    &.cm-caligraphic { font-family: Caligraphic }
+    &.cm-fraktur     { font-family: Fraktur }
+    &.cm-number      { font-family: Caligraphic }
+    &.cm-ams         { font-family: AMS }
+  }
+}
+  
+div.gutter-state-running {
+  background: @brand-warning;
+  height: 26px;
+  border-left: 3px solid @brand-warning;
+}
+div.gutter-state-unprocessed {
+  height: 26px;
+  border-left: 3px solid @gray;
+}
+div.gutter-state-error {
+  height: 26px;
+  border-left: 3px solid @brand-danger;
+}
+div.gutter-state-failed {
+  height: 26px;
+  border-left: 3px solid @brand-danger;
+}
+div.gutter-state-warning {
+  height: 26px;
+  border-left: 3px solid @brand-warning;
+}
+.current_line.cm-control {
+  font-size: inherit !important;
+}
+
+/*
+  val PROTOCOL = "protocol"
+  val SYSTEM = "system"
+  val STDOUT = "stdout"
+  val STDERR = "stderr"
+  val EXIT = "exit"
+
+  val LEGACY = "legacy"
+
+  val NO_REPORT = "no_report"
+
+  val BAD = "bad"
+
+*/
+
+.inlineStates .active .outputWidget {  
+  height: auto;
+  visibility: visible;  
+}
+
+.inlineErrors .active .outputWidget {
+  &.error, &.failed, &.warning {
+    height: auto;
+    visibility: visible;
+  }
+}
