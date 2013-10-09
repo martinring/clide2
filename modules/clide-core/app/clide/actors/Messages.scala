@@ -54,7 +54,7 @@ object Messages {
 
   trait FileMessage        extends Message
   trait FileReadMessage    extends FileMessage
-  trait FileWriteMessage   extends FileMessage
+  trait FileWriteMessage   extends FileReadMessage
   case class OpenFile(user: SessionInfo) extends FileReadMessage
   case object BrowseFolder extends FileReadMessage
   case object ExplorePath  extends FileReadMessage

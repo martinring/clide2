@@ -25,6 +25,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
   var server: Server = null
   
   def initOt() {
+    log.info("initializing ot")
     DB.withSession { implicit session: Session => 
       val revs = Revisions.get(info.id).toSeq
       server = new Server(Document(""))
@@ -68,12 +69,13 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
       }
       
     case Annotate(rev,as) =>
-      if (!otActive) initOt()
+      if (!otActive) initOt()      
       server.transformAnnotation(rev.toInt, as) match { // TODO: Ugly: rev.toInt
         case Failure(e) =>
           // TODO
           log.warning("annotation could not be transformed")
-        case Success(a) =>          
+        case Success(a) =>
+          log.info("annotated")
           clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a))
           sender ! AcknowledgeAnnotation
       }
@@ -85,6 +87,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
           // TODO
           log.warning("edit couldnt be applied")
         case Success(o) =>
+          log.info("edited")
           DB.withSession { implicit session: Session => Revisions.insert(Revision(info.id,server.revision,o)) }
           clients.keys.filter(_ != sender).foreach(_ ! Edited(info.id, o))
           sender ! AcknowledgeEdit

@@ -92,11 +92,5 @@ abstract class Assistant extends Actor with ActorLogging {
     val path   = config.getString("assistant.server-path")
     val server = context.actorSelection(path)
     server ! Identify("server")
-  }  
-  
-  override def postStop = {
-    context.system.shutdown()
-    context.system.awaitTermination()
-    sys.exit(0)
-  }
+  }    
 }

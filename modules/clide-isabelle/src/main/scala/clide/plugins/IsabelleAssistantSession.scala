@@ -65,7 +65,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     }
   }
   
-  var session: Session = null    
+  var session: Session = null
   
   override def startup() {
     session = new Session(new isabelle.Thy_Load(Set.empty, isabelle.Outer_Syntax.empty))
@@ -96,7 +96,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     val snap = session.snapshot(file.nodeName, Nil)
     IsabelleMarkup.textClass(snap, Text.Range(0,file.state.length)).foldLeft(new Annotations) { case (as,info) =>
       info.info match {
-        case None    => as.plain(info.range.length)
+        case None    => as.plain(info.range.length)          
         case Some(c) => as.annotate(info.range.length,Map("c"->c))
       }
     }
@@ -121,5 +121,6 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
   
   override def postStop() {
     session.stop()
+    super.postStop()
   }
 }

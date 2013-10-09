@@ -6,7 +6,7 @@ import play.api._
 object Global extends GlobalSettings {  
   override def onStart(app: Application) {
     clide.Core.startup()    
-    clide.plugins.Isabelle.startup()    
+    clide.plugins.Isabelle.startup()
     clide.web.Global.onStart(app)
   }
   

@@ -3,6 +3,9 @@ package clide.collaboration
 import scala.util._
 import scala.annotation.tailrec
 
+/**
+ * @author Martin Ring
+ */
 sealed trait Annotation { 
   val length: Int
   def withLength(n: Int): Annotation = this match {
@@ -15,8 +18,12 @@ sealed trait Annotation {
     case Annotate(n,c) => "" // TODO
   }
 }
-case class Plain(length: Int) extends Annotation
-case class Annotate(length: Int, content: Map[String,String]) extends Annotation
+case class Plain(length: Int) extends Annotation {
+  override def toString = length.toString
+}
+case class Annotate(length: Int, content: Map[String,String]) extends Annotation {
+  override def toString = length.toString + ":{" + content.map{case(k,v)=>k+": " +v}.mkString(",") + "}"
+}
 
 object AnnotationDiff {
   trait AnnotationDiff
@@ -31,6 +38,8 @@ object AnnotationDiff {
 }
 
 case class Annotations(annotations: Vector[Annotation] = Vector.empty) extends AnyVal {
+  override def toString = annotations.mkString(";")    
+  
   def annotate(n: Int, c: Map[String,String]): Annotations = {
     annotations.lastOption match {
       case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c))

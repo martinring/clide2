@@ -18,6 +18,7 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
   def fileClosed(file: OpenedFile)
    
   def annotate(file: OpenedFile, annotations: Annotations) = {
+    log.info(s"annotating: ${file.info.path}: {}", annotations.toString)
     peer ! clide.actors.Messages.Annotate(file.revision, annotations)
   }
   

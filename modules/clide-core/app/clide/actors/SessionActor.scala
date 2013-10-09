@@ -55,11 +55,12 @@ class SessionActor(
     log.info("initializing file")
     DB.withSession { implicit session: Session => // TODO: Move to File Actors
       FileInfos.get(id).firstOption.fold(peer ! DoesntExist){ info => // TODO: Move to Schema
+        log.info("forwarding openfile to path")
         context.parent ! WrappedProjectMessage(user,level,WithPath(info.path,OpenFile(this.session)))
       }
     }
   }
-    
+
   def receive = {
     // echoing
     case SessionChanged(info) => if (info != session) {

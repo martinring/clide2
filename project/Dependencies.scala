@@ -12,6 +12,11 @@ object Dependencies {
     val kernel  = "com.typesafe.akka" %% "akka-kernel"  % version
     val testkit = "com.typesafe.akka" %% "akka-testkit" % version % "test"
   }
+
+  object spray {
+    val resolver = "spray" at "http://repo.spray.io/"
+    val json = "io.spray" %% "spray-json" % "1.2.5"
+  }
   
   object scala {
     val version = "2.10.2"

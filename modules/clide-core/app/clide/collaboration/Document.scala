@@ -5,7 +5,10 @@ import scala.reflect.ClassTag
 import akka.actor.{Actor,Props}
 import scala.annotation.tailrec
 
-case class Document(content: String) {  
+/**
+ * @Author Martin Ring
+ */
+case class Document(content: String) extends AnyVal {  
   def apply(op: Operation): Try[Document] = {
     @tailrec
     def loop(ops: List[Action], it: String, ot: String): Try[String] = (ops,it,ot) match {

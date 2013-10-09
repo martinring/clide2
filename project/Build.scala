@@ -15,6 +15,7 @@ object ApplicationBuild extends Build {
     akka.actor,
     akka.remote,
     akka.kernel,
+    spray.json,
     scala.reflect,
     slick,h2,slf4j)
 
@@ -31,6 +32,7 @@ object ApplicationBuild extends Build {
 
   val core = Project(s"${appName}-core", file("modules/clide-core"))
              .settings(commonSettings:_*).settings(    
+    resolvers += spray.resolver,
     libraryDependencies ++= coreDependencies
   )
 

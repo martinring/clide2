@@ -99,6 +99,10 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       }
   }
   
+  override def preRestart(reason:Throwable, message:Option[Any]){
+    log.error(reason, "Unhandled exception for message: {}", message)
+  }  
+  
   override def preStart() {
     root = context.actorOf(Props(classOf[FolderActor], info, None, "files"),"files")    
     sessions = DB.withSession { implicit session => // TODO: Move to Schema

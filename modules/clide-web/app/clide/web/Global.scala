@@ -11,14 +11,14 @@ import scala.concurrent.Promise
 import akka.pattern._
 
 object Global extends GlobalSettings {
-  implicit val timeout      = Timeout(10 seconds)
+  implicit val timeout      = Timeout(30 seconds)
   private val serverMonitor = Promise[ActorRef]()
   
   def server: ActorRef = {
     import play.api.Play.current
     implicit val dispatcher = Akka.system.dispatcher
     val resolution = serverMonitor.future.flatMap(ref => ask(ref,ServerMonitor.Request))      
-    Await.result(resolution.mapTo[ServerMonitor.Reply].map(_.ref), 10 seconds)
+    Await.result(resolution.mapTo[ServerMonitor.Reply].map(_.ref), 30 seconds)
   }
   
   override def onStart(app: Application) {
@@ -27,5 +27,5 @@ object Global extends GlobalSettings {
     serverMonitor.success {
       Akka.system.actorOf(Props(classOf[ServerMonitor], serverPath), "server-monitor")
     }
-  }  
+  }
 }

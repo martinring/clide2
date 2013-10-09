@@ -25,25 +25,11 @@ case class Insert(s: String) extends Action
 /** Delete the next `n` characters */
 case class Delete(n: Int) extends Action { require(n>=0) }
 
-object Action {
-  def read(s: String): Action = s.head match {
-    case '-' => Delete(s.tail.toInt)
-    case '\"' => Insert(s.tail.init)
-    case _ => Retain(s.toInt)
-  }
-}
-
 case class Operation(actions: List[Action]) extends AnyVal {
-  override def toString = actions.mkString(",")
+  override def toString = "[" + actions.mkString(",") + "]"
 }
 
 object Operation {
-  def read(s: String): Operation = 
-    Operation(s.split(",").map(Action.read).toList)
-    
-  def write(o: Operation): String =
-    o.toString
-  
   private def addRetain(n: Int, ops: List[Action]): List[Action] = ops match {
     case Retain(m)::xs => Retain(n+m)::xs
     case xs            => Retain(n)::xs

@@ -14,6 +14,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
   session.activeDoc = ->
     session.openFiles?[session.me.activeFile]?.doc
 
+  session.syncState = ->
+    session.openFiles?[session.me.activeFile]?.$syncState()
+
   apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f) else f()
 
   initFile = (file) ->
@@ -55,6 +58,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     nfile.$ackEdit = () -> client.serverAckEdit()
     nfile.$ackAnnotation = () -> client.serverAckAnnotation()
     nfile.$apply = (os) -> client.applyServer(os)
+    nfile.$syncState = -> client.syncState()
     nfile.$annotate = (a,u) -> # TODO: include user
       a = client.transformAnnotation(a)
       adapter.applyAnnotation(a,u)

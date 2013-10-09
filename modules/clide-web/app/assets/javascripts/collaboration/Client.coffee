@@ -38,6 +38,9 @@ define ->
     serverReconnect: ->
       @state.resend? this
 
+    syncState: ->
+      @state.syncState
+
     transformAnnotation: (annotation) ->
       @state.transformAnnotation annotation
 
@@ -62,6 +65,8 @@ define ->
       serverAck: (client) ->
         throw new Error("There is no pending operation.")
 
+      syncState: 0
+
       annotate: (client, annotation) ->
         client.annotation = null
         if client.annotationTimeout?
@@ -84,6 +89,8 @@ define ->
         pair = operation.constructor.transform(@outstanding, operation)
         client.applyOperation pair[1]
         new AwaitingConfirm(pair[0])
+
+      syncState: 1
 
       serverAck: (client) -> 
         if not client.annotationTimeout? and client.annotation?
@@ -117,6 +124,8 @@ define ->
         pair2 = transform(@buffer, pair1[1])
         client.applyOperation pair2[1]
         new AwaitingWithBuffer(pair1[0], pair2[0])
+
+      syncState: 2
 
       serverAck: (client) ->
         client.sendOperation client.revision, @buffer
