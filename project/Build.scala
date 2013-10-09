@@ -31,10 +31,10 @@ object ApplicationBuild extends Build {
     javaSource in Test <<= baseDirectory / "test")
 
   val core = Project(s"${appName}-core", file("modules/clide-core"))
-             .settings(commonSettings:_*).settings(    
+             .settings(commonSettings:_*).settings(
     resolvers += spray.resolver,
     libraryDependencies ++= coreDependencies
-  )
+  ).configs(Atmos).settings(atmosSettings:_*)
 
   val appDependencies = Seq(
     akka.remote,    
