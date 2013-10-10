@@ -25,7 +25,7 @@ object Isabelle extends Bootable {
   
   def shutdown() {
     system.shutdown()
-  }
+  }   
 }
 
 object IsabelleApp extends App {
