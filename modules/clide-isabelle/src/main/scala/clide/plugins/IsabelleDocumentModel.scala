@@ -41,15 +41,23 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
     (nodeName, Document.Node.Edits[Text.Edit,Text.Perspective](edits.reverse)) :: Nil
   }
   
-  def annotate: List[(String,Annotations)] = List(("inner",{
-    val snap = session.snapshot(nodeName, Nil)
-    IsabelleMarkup.getTokens(snap, snap.node.full_range).foldLeft(new Annotations) { case (as,info) =>
-      info.info match {
-        case Nil => as.plain(info.range.length)
-        case c   => as.annotate(info.range.length,Map("c"->c.mkString(" ")))
-      }
-    }
-  }))
+  def annotate: List[(String,Annotations)] = {
+    val snap = session.snapshot(nodeName,Nil)
+    log.info("markup: {}",snap.state.markup_to_XML(snap.version, snap.node, _ => true))
+    List(
+    "inner" -> {      
+      IsabelleMarkup.getTokens(snap, snap.node.full_range).foldLeft(new Annotations) { case (as,info) =>
+        info.info match {
+          case Nil => as.plain(info.range.length)
+          case c   => as.annotate(info.range.length,Map("c"->c.mkString(" ")))        
+    } } },
+    "messages" -> {      
+      IsabelleMarkup.getMessages(snap, snap.node.full_range).foldLeft(new Annotations) { case (as,info) =>
+        info.info match {
+          case Nil => as.plain(info.range.length)
+          case c   => as.annotate(info.range.length,c.toMap)
+    } } } )
+  }
   
   def changed(op: Operation) { // TODO
     session.update(opToEdits(op))

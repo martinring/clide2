@@ -17,4 +17,10 @@ object IsabelleMarkup {
       Some(inner),
       _ => { case (x, m) => List(m.info.markup.name) })   
   }
+  
+  def getMessages(snapshot: Document.Snapshot,range: Text.Range) = {
+    snapshot.cumulate_markup[List[(String,String)]](
+      range,Nil,Some(Set(ERROR,WARNING,BAD)),
+      _ => { case (x, m) => List("e" -> m.info.toString) })
+  }
 }

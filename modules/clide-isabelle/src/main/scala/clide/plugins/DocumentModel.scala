@@ -65,7 +65,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
       doc  = Document(init.state)
       info = init.info
       context.become(initialized)     
-      context.system.scheduler.schedule(1 second, 2 seconds, self, Flush)(context.dispatcher, self)
+      context.system.scheduler.schedule(1 second, 1 second, self, Flush)(context.dispatcher, self)
       initialize()
   }
 }

@@ -85,26 +85,27 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
       if to?
         className = switch c.c
           when 'selection'
-            "selection #{user.color}"
-          when 'sym'
-            ""
+            "selection #{user.color}"          
           else
             @doc.markText from, to,
               className: c.c
-
-        className = if c.c.indexOf("selection") >= 0 then "#{c.c} #{user.color}" else c.c          
         @doc.markText from, to,
           className: className
       else
         widget = document.createElement("span")
-        className = if c.c.indexOf("cursor") >= 0 then "#{c.c} #{user.color}" else c.c
+        className = switch c.c
+          when 'cursor'
+            "cursor #{user.color}"          
+          else
+            @doc.markText from, to,
+              className: c.c
         widget.setAttribute('class', className)
         @doc.setBookmark from,
           widget: widget
-          insertLeft: true      
+          insertLeft: true
 
     applyAnnotation: (annotation, user) =>
-      cm       = @doc.getEditor()      
+      cm       = @doc.getEditor()
 
       work = =>        
         if @annotations[user.id]?          
