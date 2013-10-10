@@ -7,14 +7,14 @@ object IsabelleMarkup {
   import Markup._
   
   val inner = Set(TVAR,FREE,SORT,TYP,TERM,PROP,ML_TYPING,TOKEN_RANGE,ENTITY,
-      ERROR,WARNING,
-      TYPING,FREE,SKOLEM,BOUND,VAR,TFREE,TVAR,ML_SOURCE,DOCUMENT_SOURCE,ML_KEYWORD)
+      KEYWORD, COMMAND, TYPING,FREE,SKOLEM,BOUND,VAR,TFREE,TVAR,ML_SOURCE,
+      DOCUMENT_SOURCE, ML_KEYWORD)
   
   def getTokens(snapshot: Document.Snapshot,range: Text.Range) = {                
     snapshot.cumulate_markup[List[String]](
       range,
       Nil,
-      None,
+      Some(inner),
       _ => { case (x, m) => List(m.info.markup.name) })   
   }
 }

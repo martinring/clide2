@@ -41,7 +41,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
           case (Some(file),Some(rev)) => (json\"o").asOpt[Operation] match {
             case Some(operation) => Edit(file,rev,operation)
             case None => (json\"a").asOpt[Annotations] match {
-              case Some(annotation) => Annotate(file,rev,annotation)
+              case Some(annotation) => Annotate(file,rev,annotation,(json\"n").as[String])
               case None => ForgetIt
             }
           }

@@ -68,7 +68,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
         sender ! OTState(this.info, server.text, server.revision)
       }
       
-    case Annotate(_,rev,as) =>
+    case Annotate(_,rev,as,name) =>
       if (!otActive) initOt()      
       server.transformAnnotation(rev.toInt, as) match { // TODO: Ugly: rev.toInt
         case Failure(e) =>
@@ -76,7 +76,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
           log.warning("annotation could not be transformed")
         case Success(a) =>
           log.info("annotated")
-          clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a))
+          clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a,name))
           sender ! AcknowledgeAnnotation
       }
       

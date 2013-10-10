@@ -3,7 +3,7 @@ package clide.plugins
 import clide.models._
 import clide.collaboration._
 import akka.actor._
-import scala.collection.mutable.Buffer
+import scala.collection.mutable.{Buffer,Map}
 import scala.concurrent.Promise
 import scala.concurrent.duration._
 import clide.actors.Messages
@@ -13,7 +13,7 @@ object DocumentModel {
   case class  Change(op: Operation)
   case class  Init(f: OpenedFile)
   case object Refresh
-  case object Flush 
+  case object Flush
 }
 
 abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends Actor with ActorLogging {
@@ -22,7 +22,8 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   private var info: FileInfo = null
   private var rev: Long     = 0
   private var doc: Document = Document("")
-  private val pending = Buffer.empty[Operation]  
+  private val pending     = Buffer.empty[Operation]
+  private val annotations = Map[String,Option[Annotations]]()
   
   def revision = rev
   def state    = doc.content
@@ -30,7 +31,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   
   def initialize()  
   def changed(op: Operation)
-  def annotate: Annotations
+  def annotate: List[(String,Annotations)]    
      
   private def flush() = {
     var result: Option[Operation] = None
@@ -53,7 +54,9 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
       flush()
     
     case Refresh =>
-      server ! clide.actors.Messages.Annotate(info.id, revision, annotate)
+      annotate.foreach { case (name, annotations) =>
+        server ! clide.actors.Messages.Annotate(info.id, revision, annotations, name)
+      }
   }
   
   def receive = {

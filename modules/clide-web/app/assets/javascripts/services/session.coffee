@@ -43,13 +43,14 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         f: nfile.id # TODO: handle on server!
         r: rev
         o: op.actions
-    client.sendAnnotation = (rev,an) ->
+    client.sendAnnotation = (rev,an,name) ->
       if (nfile.id isnt session.me.activeFile)
         Toast.push 'danger', 'internal error: annotate inactive file (todo)'
       else send
         f: nfile.id
         r: rev
         a: an.annotations
+        n: name
 
     adapter.registerCallbacks
       change: (op) -> client.applyClient(op)

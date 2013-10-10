@@ -91,14 +91,10 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
           else
             @doc.markText from, to,
               className: c.c
-              inclusiveLeft: false
-              inclusiveRight: true
 
         className = if c.c.indexOf("selection") >= 0 then "#{c.c} #{user.color}" else c.c          
         @doc.markText from, to,
           className: className
-          inclusiveLeft: false
-          inclusiveRight: true
       else
         widget = document.createElement("span")
         className = if c.c.indexOf("cursor") >= 0 then "#{c.c} #{user.color}" else c.c
@@ -108,12 +104,14 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
           insertLeft: true      
 
     applyAnnotation: (annotation, user) =>
-      cm       = @doc.getEditor()
-      existing = @annotations[user.id]      
+      cm       = @doc.getEditor()      
 
-      work = =>
-        if existing? then for marker in existing
-          marker.clear()
+      work = =>        
+        if @annotations[user.id]?          
+          console.log 'clearing markers'
+          for marker in @annotations[user.id]
+            console.log 'clearing marker'
+            marker.clear()
 
         @annotations[user.id] = []
 

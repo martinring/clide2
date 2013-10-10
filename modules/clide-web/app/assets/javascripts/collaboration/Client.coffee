@@ -44,7 +44,7 @@ define ->
     transformAnnotation: (annotation) ->
       @state.transformAnnotation annotation
 
-    sendAnnotation: (revision, annotation) ->
+    sendAnnotation: (revision, annotation, name) ->
       throw new Error("sendAnnotation must be defined in child class")
 
     sendOperation: (revision, operation) ->
@@ -72,7 +72,7 @@ define ->
         if client.annotationTimeout?
           client.annotation = annotation
         else
-          client.sendAnnotation client.revision, annotation
+          client.sendAnnotation client.revision, annotation, 'selection'
           client.setAnnotationTimeout()
 
       transformAnnotation: (annotation) ->
@@ -94,7 +94,7 @@ define ->
 
       serverAck: (client) -> 
         if not client.annotationTimeout? and client.annotation?
-          client.sendAnnotation client.revision, client.annotation
+          client.sendAnnotation client.revision, client.annotation, 'selection'
           client.annotation = null
           client.setAnnotationTimeout()
         new Synchronized
@@ -130,7 +130,7 @@ define ->
       serverAck: (client) ->
         client.sendOperation client.revision, @buffer
         if not client.annotationTimeout? and client.annotation?
-          client.sendAnnotation client.revision, client.annotation
+          client.sendAnnotation client.revision, client.annotation, 'selection'
           client.annotation = null
           client.setAnnotationTimeout()
         new AwaitingConfirm(@buffer)

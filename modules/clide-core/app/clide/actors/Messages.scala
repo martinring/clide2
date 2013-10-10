@@ -75,5 +75,5 @@ object Messages {
   case class SwitchFile(id: Long) extends SessionMessage
   case class CloseFile(id: Long) extends SessionMessage  
   case class Edit(id: Long, revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
-  case class Annotate(id: Long, revision: Long, annotation: Annotations) extends SessionMessage with FileReadMessage   
+  case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage
 }

@@ -107,7 +107,7 @@ object Conversions {
     case FileClosed(i) => "close" of i
     case FileOpened(i) => "opened" of i
     case Edited(file,o) => Json.obj("f"->file,"o"->o)
-    case Annotated(file,user,a) => Json.obj("f"->file,"a"->a,"u"->user)
+    case Annotated(file,user,a,name) => Json.obj("f"->file,"a"->a,"u"->user,"n"->name)
     case AcknowledgeEdit => JsString("ack_edit")
     case AcknowledgeAnnotation => JsString("ack_annotation")
     case NotAllowed => "e" of "internal error: forbidden action"

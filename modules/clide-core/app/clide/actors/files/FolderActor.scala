@@ -59,7 +59,7 @@ class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String) 
     case WithPath(Seq(name), msg@Edit(_,_,_)) =>
       log.info("forward {}", msg)
       getFile(name).forward(msg)
-    case WithPath(Seq(name), msg@Annotate(_,_,_)) =>
+    case WithPath(Seq(name), msg@Annotate(_,_,_,_)) =>
       log.info("forward {}", msg)
       getFile(name).forward(msg)
     case WithPath(Seq(name,tail@_*), ExplorePath) =>

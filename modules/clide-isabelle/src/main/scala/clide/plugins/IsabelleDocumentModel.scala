@@ -34,17 +34,14 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
     
   def opToEdits(operation: Operation): List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
     val (_,edits) = operation.actions.foldLeft((0,Nil : List[Text.Edit])) { 
-      case ((i,edits),Retain(n)) =>
-        (i+n,edits)
-      case ((i,edits),Delete(n)) =>
-        (i+n,Text.Edit.remove(i,Seq.fill(n)('-').mkString) :: edits)
-      case ((i,edits),Insert(s)) =>
-        (i+s.length,Text.Edit.insert(i,s) :: edits)
+      case ((i,edits),Retain(n)) => (i+n,edits)
+      case ((i,edits),Delete(n)) => (i+n,Text.Edit.remove(i,Seq.fill(n)('-').mkString) :: edits)
+      case ((i,edits),Insert(s)) => (i+s.length,Text.Edit.insert(i,s) :: edits)
     }
-    (nodeName, Document.Node.Edits[Text.Edit,Text.Perspective](edits)) :: Nil
+    (nodeName, Document.Node.Edits[Text.Edit,Text.Perspective](edits.reverse)) :: Nil
   }
   
-  def annotate: Annotations = {
+  def annotate: List[(String,Annotations)] = List(("inner",{
     val snap = session.snapshot(nodeName, Nil)
     IsabelleMarkup.getTokens(snap, snap.node.full_range).foldLeft(new Annotations) { case (as,info) =>
       info.info match {
@@ -52,7 +49,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
         case c   => as.annotate(info.range.length,Map("c"->c.mkString(" ")))
       }
     }
-  }
+  }))
   
   def changed(op: Operation) { // TODO
     session.update(opToEdits(op))

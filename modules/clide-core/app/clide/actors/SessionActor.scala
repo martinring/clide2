@@ -104,8 +104,8 @@ class SessionActor(
       peer ! AcknowledgeEdit
     case Edited(f,op) =>
       peer ! Edited(f,op)
-    case Annotated(f,u,an) =>
-      peer ! Annotated(f,u,an)
+    case Annotated(f,u,an,n) =>
+      peer ! Annotated(f,u,an,n)
     case SetColor(value) =>
       session = session.copy(color = value)
       context.parent ! SessionChanged(session)      
@@ -131,7 +131,7 @@ class SessionActor(
         log.info("forwarding edit to path")
         context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
       }
-    case msg @ Annotate(id,_,_) =>      
+    case msg @ Annotate(id,_,_,_) =>      
       fileServers.get(id).map{ ref =>
         log.info("forwarding annotation to ref")
         ref ! msg
