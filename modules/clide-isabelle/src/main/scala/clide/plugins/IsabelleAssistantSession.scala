@@ -10,7 +10,9 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
   var session: Session = null    
   
   def startup() {
-    session = new Session(new isabelle.Thy_Load(Set.empty, isabelle.Outer_Syntax.empty))
+    session = new Session(new isabelle.Thy_Load(Set.empty, isabelle.Outer_Syntax.empty) {
+      // TODO
+    })
     session.phase_changed += { p => p match {
       case Session.Startup  => chat("I'm starting up, please wait a second!")
       case Session.Shutdown => chat("I'm shutting down")
@@ -20,7 +22,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
                                self ! AssistantSession.Activate
     } }
     session.syslog_messages += { msg => chat(XML.content(msg.body)) }
-    session.start(List("HOL"))
+    session.start(List("HOL"))    
   }
   
   def fileAdded(file: OpenedFile) {

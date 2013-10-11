@@ -16,9 +16,13 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   
   def path     = file.path.mkString("/")
     
-  def nodeName = Document.Node.Name(
-    file.path.last, file.path.init.mkString("/"), plainName)
-      
+  def nodeName = {
+    val name = file.path.last
+    Thy_Header.thy_name(name).map { theory =>
+      Document.Node.Name(name, file.path.init.mkString("/"), theory)
+    }
+  }.get
+          
   def nodeHeader = 
     Exn.capture {
       session.thy_load.check_thy_text(nodeName, state)
