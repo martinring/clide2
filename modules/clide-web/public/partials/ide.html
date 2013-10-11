@@ -165,7 +165,7 @@
             </li>
           </ul>
           <div ng-show='session.state=="connected" && session.activeDoc()' class="content {{session.me.color}}">
-            <editor document='session.activeDoc()' fontSize='editorFontSize' font='editorFont' lineNumbers='showLineNumbers'></editor>
+            <editor document='session.activeDoc()' font='editorFont' font-size='editorFontSize' line-numbers='showLineNumbers'></editor>
           </div>
         </div>
       </div>
@@ -178,6 +178,7 @@
           </li>          
         </ul>
         <ul class="statusMessages">
+          <li>Font Size: {{editorFontSize}}</li>
           <li id="syncState">{{session.syncState()}}</li>
           <li id="traffic">{{traffic.in}}/{{traffic.out}}</li>
           <li id="sessionStatus" class="phase">

@@ -6,11 +6,11 @@ define ['routes','codemirror'], (routes,CodeMirror) -> () ->
   replace: true
 
   scope: 
-    document: '&'
+    document:    '&'
     lineNumbers: '&'
-    readOnly: '&'
-    fontSize: '&'
-    font: '&'
+    readOnly:    '&'
+    fontSize:    '&'
+    font:        '&'
 
   link: (scope, iElem, iAttrs, controller) ->
     window.countMe = (window.countMe or 0) + 1
@@ -21,7 +21,7 @@ define ['routes','codemirror'], (routes,CodeMirror) -> () ->
     window.cm = cm
 
     scope.$watch 'lineNumbers()', (n,o) ->      
-      cm.setOption('lineNumbers',n or true)
+      cm.setOption('lineNumbers', n)
       cm.refresh()
 
     scope.$watch 'readOnly()', (n,o) ->      
@@ -33,7 +33,7 @@ define ['routes','codemirror'], (routes,CodeMirror) -> () ->
 
     scope.$watch 'fontSize()', (n,o) ->
       console.log n
-      cm.getWrapperElement().style.fontSize = n
+      cm.getWrapperElement().style.fontSize = n + 'pt'
       cm.refresh()
           
     scope.$watch 'document()', (n,o) ->       

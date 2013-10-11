@@ -12,7 +12,7 @@ object IsabelleMarkup {
         case Markup.WARNING =>
           Annotate(0,Map("w"->XML.content(body))) :: body2.flatMap(annotations(_))
         case other =>
-          println("unhandled: " + other)
+          println("unhandled " + other + ": " + body)
           body2.flatMap(annotations(_))
       }                      
     case XML.Elem(markup, body) =>      

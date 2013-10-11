@@ -34,7 +34,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $routePara
   $scope.fonts      = fonts
   $scope.editorFont = fonts.monospace[0]
   $scope.showLineNumbers = true
-  $scope.editorFontSize = 15
+  $scope.editorFontSize = 12
   
   $scope.sidebar = true
   $scope.root = null
