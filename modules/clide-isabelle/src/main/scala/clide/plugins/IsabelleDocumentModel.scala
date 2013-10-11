@@ -42,7 +42,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   }
   
   def annotate: List[(String,Annotations)] = List(
-    "isabelle" -> Annotations(IsabelleMarkup.annotations(session.snapshot(nodeName,Nil))))  
+    "isabelle" -> IsabelleMarkup.annotations(session.snapshot(nodeName,Nil)))  
   
   def changed(op: Operation) { // TODO
     session.update(opToEdits(op))

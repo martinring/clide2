@@ -82,27 +82,25 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
       @silent = false
 
     annotate: (c,user,from,to) =>
-      if to?
-        className = switch c.c
-          when 'selection'
-            "selection #{user.color}"          
-          else
-            @doc.markText from, to,
-              className: c.c
-        @doc.markText from, to,
-          className: className
-      else
-        widget = document.createElement("span")
-        className = switch c.c
-          when 'cursor'
-            "cursor #{user.color}"          
-          else
-            @doc.markText from, to,
-              className: c.c
-        widget.setAttribute('class', className)
-        @doc.setBookmark from,
-          widget: widget
-          insertLeft: true
+      if c.e?        
+        if cm = @doc.getEditor()
+          widget = document.createElement("div")
+          widget.setAttribute('class','outputWidget error')
+          widget.innerText = c.e
+          widget = cm.addLineWidget from.line, widget
+          @annotations[user.id].push widget
+      if c.c?
+        if to?
+          marker = @doc.markText from, to,
+            className: c.c
+          @annotations[user.id].push marker
+        else
+          widget = document.createElement("span")
+          widget.setAttribute('class', c.c)
+          bookmark = @doc.setBookmark from,
+            widget: widget
+            insertLeft: true
+          @annotations[user.id].push bookmark        
 
     applyAnnotation: (annotation, user) =>
       cm       = @doc.getEditor()
@@ -125,9 +123,9 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             if a.l > 0
               index += a.l
               to = @doc.posFromIndex(index)
-              @annotations[user.id].push @annotate(a.c,user,from,to)
+              @annotate(a.c,user,from,to)
             else
-              @annotations[user.id].push @annotate(a.c,user,from)        
+               @annotate(a.c,user,from)        
 
       if cm? then cm.operation => work()
       else work()
