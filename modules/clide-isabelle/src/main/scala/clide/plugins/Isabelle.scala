@@ -15,11 +15,13 @@ import clide.collaboration.Plain
 import clide.collaboration.Annotations
 import clide.collaboration.Annotation
 import akka.kernel.Bootable
+import isabelle.Isabelle_System
 
 object Isabelle extends Bootable {
   val system = ActorSystem("clide-isabelle",ConfigFactory.load.getConfig("clide-isabelle"))
   
   def startup() {
+    Isabelle_System.init()
     val plugin = system.actorOf(Props[IsabelleAssistant],"plugin")
   }
   

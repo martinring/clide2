@@ -6,28 +6,25 @@ import clide.actors.Messages._
 import clide.actors.Events._
 import clide.models._
 
-abstract class Assistant extends Actor with ActorLogging {
-  def createSession(project: ProjectInfo): ActorRef    
+abstract class Assistant extends Actor with ActorLogging {  
+  def createSession(project: ProjectInfo): ActorRef
   
   /** May be overridden to modify invitation behaviour **/
-  def onInvitation(project: ProjectInfo) = if (!sessions.contains(project.id)) {
+  def onInvitation(project: ProjectInfo, me: LoginInfo) = {
     log.info(s"starting session for ${project.owner}/${project.name}")
     val act = createSession(project)
-    server.tell(IdentifiedFor(loginInfo.user,loginInfo.key,WithUser(project.owner,WithProject(project.name,StartSession))),act)
-    sessions += project.id -> act
+    server.tell(IdentifiedFor(me.user,me.key,WithUser(project.owner,WithProject(project.name,StartSession))),act)    
     context.watch(act)
   }
   
-  lazy val config   = context.system.settings.config
+  lazy val config     = context.system.settings.config
   
-  lazy val username = config.getString("assistant.username")
-  lazy val password = config.getString("assistant.password")
-  lazy val email    = config.getString("assistant.email")
-
-  var server   = context.system.deadLetters
-  var peer     = context.system.deadLetters
-  var sessions = Map[Long,ActorRef]()
-  var loginInfo: LoginInfo = null
+  lazy val username   = config.getString("assistant.username")
+  lazy val password   = config.getString("assistant.password")
+  lazy val email      = config.getString("assistant.email")
+  
+  lazy val serverPath = config.getString("assistant.server-path")
+  lazy val server     = context.actorOf(Props(classOf[clide.actors.util.ServerForwarder], serverPath), "server-forwarder")
   
   def login() = {
     log.info("attempting login")
@@ -39,58 +36,58 @@ abstract class Assistant extends Actor with ActorLogging {
     server ! SignUp(username,email,password)
   }
   
-  def loggedIn: Receive = {    
-    case LoggedOut(user) =>
-      loginInfo = null
-      context.unbecome()
-      log.info("logged out")
-      self ! PoisonPill
-    case EventSocket(peer,"backstage") =>
-      log.info("connected to backstage session")
-      this.peer = peer
-      log.info("requesting project infos")
-      peer ! BrowseProjects
-    case UserProjectInfos(own,other) =>
-      log.info("received project infos")
-      (own ++ other).foreach(onInvitation)
-    case ChangedProjectUserLevel(project, user, level) if (user == loginInfo.user) =>      
-      if (level >= ProjectAccessLevel.Read)
-        onInvitation(project)
-    case CreatedProject(project) =>
-      onInvitation(project)
-    case DeletedProject(project) =>
-      // TODO!
-      log.info("TODO: project deleted")
-  }   
+  def receive = loggedOut
   
-  def receive = {
-    case ActorIdentity("server",None) =>
-      log.error("couldn't reach the server")
-      self ! PoisonPill
-    case ActorIdentity("server",Some(ref)) =>
-      server = ref
-      log.info("connected to clide")
-      login()
-    case DoesntExist =>
-      log.info(s"user $username hasnt been signed up yet")
-      signup()
-    case WrongPassword =>
-      log.error(s"user $username is already signed up with different password")
-      self ! PoisonPill
-    case SignedUp(info) =>
-      log.info(s"signed up")
-      login()
-    case LoggedIn(info, login) => // TODO: UserInfo contains password hash!!!
-      log.info(s"logged in")
-      server ! IdentifiedFor(username,login.key,StartBackstageSession)
-      loginInfo = login
-      context.become(loggedIn)
+  def loggedOut: Receive = {
+    login()
+    
+    {
+      case DoesntExist =>
+        log.info(s"user $username hasnt been signed up yet")
+        signup()
+      case WrongPassword =>
+        log.error(s"user $username is already signed up with different password")
+        self ! PoisonPill
+      case SignedUp(info) =>
+        log.info(s"signed up")
+        login()
+      case LoggedIn(info, login) => // TODO: UserInfo contains password hash!!!        
+        context.become(loggedIn(login))
+    }
+  }  
+  
+  def loggedIn(loginInfo: LoginInfo): Receive = {
+    log.info(s"logged in")
+    server ! IdentifiedFor(username,loginInfo.key,StartBackstageSession)
+    
+    {
+      case LoggedOut(user) =>        
+        context.become(loggedOut)
+        log.info("logged out")
+        self ! PoisonPill
+      case EventSocket(peer,"backstage") =>
+        log.info("connected to backstage session")        
+        log.info("requesting project infos")
+        context.become(backstage(loginInfo,peer))
+        peer ! BrowseProjects
+    }
   }
   
-  override def preStart = {
-    log.info(s"starting assistant '$username'")
-    val path   = config.getString("assistant.server-path")
-    val server = context.actorSelection(path)
-    server ! Identify("server")
-  }    
+  def backstage(loginInfo: LoginInfo, peer: ActorRef): Receive = {
+    val sessions = Map.empty[Long,ActorRef]
+    
+    {
+      case UserProjectInfos(own,other) =>
+        log.info("received project infos")
+        (own ++ other).foreach(onInvitation(_,loginInfo))
+      case ChangedProjectUserLevel(project, user, level) if (user == loginInfo.user) =>      
+        if (level >= ProjectAccessLevel.Read)
+          onInvitation(project,loginInfo)
+      case CreatedProject(project) =>
+        onInvitation(project,loginInfo)
+      case DeletedProject(project) =>
+        // TODO!
+        log.info("TODO: project deleted")      
+    }
+  }
 }
