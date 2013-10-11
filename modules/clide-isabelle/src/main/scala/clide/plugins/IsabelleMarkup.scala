@@ -7,7 +7,7 @@ object IsabelleMarkup {
   def annotations(xml: XML.Tree, c: Option[Map[String,String]] = None): List[Annotation] = xml match {
     case XML.Wrapped_Elem(markup, body, body2) =>
       markup.name match {
-        case Markup.ERROR =>
+        case Markup.ERROR | Markup.BAD =>
           Annotate(0,Map("e"->XML.content(body))) :: body2.flatMap(annotations(_))
         case Markup.WARNING =>
           Annotate(0,Map("w"->XML.content(body))) :: body2.flatMap(annotations(_))
@@ -45,9 +45,11 @@ object IsabelleMarkup {
       }      
   }
       
-  def annotations(snapshot: Document.Snapshot): Annotations = {
+  def annotations(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {
     val xml = snapshot.state.markup_to_XML(snapshot.version, snapshot.node, _ => true)
-    xml.flatMap(annotations(_)).foldLeft(new Annotations) {
+    val xmlAnnons = xml.flatMap(annotations(_))
+    val headerErrors = header.errors.map(msg => Annotate(0,Map("e"->msg)))
+    (headerErrors ++ xmlAnnons).foldLeft(new Annotations) {
       case (as, Plain(n))      => as.plain(n)
       case (as, Annotate(n,c)) => as.annotate(n, c)
     }
