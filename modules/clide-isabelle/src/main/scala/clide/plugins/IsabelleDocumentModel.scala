@@ -22,7 +22,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
     }
     
   def perspective = // TODO
-    Text.Perspective(List(Text.Range(0,Integer.MAX_VALUE)))
+    Text.Perspective.full
     
   def initEdits: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
     val name = nodeName
@@ -32,13 +32,16 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
          name -> Document.Node.Perspective(perspective))
   }
     
-  def opToEdits(operation: Operation): List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
+  def opToEdits(operation: Operation): List[Document.Edit_Text] = {
+    val name = nodeName
     val (_,edits) = operation.actions.foldLeft((0,Nil : List[Text.Edit])) { 
       case ((i,edits),Retain(n)) => (i+n,edits)
       case ((i,edits),Delete(n)) => (i+n,Text.Edit.remove(i,Seq.fill(n)('-').mkString) :: edits)
       case ((i,edits),Insert(s)) => (i+s.length,Text.Edit.insert(i,s) :: edits)
     }
-    (nodeName, Document.Node.Edits[Text.Edit,Text.Perspective](edits.reverse)) :: Nil
+    List(session.header_edit(name, nodeHeader),
+      name -> Document.Node.Edits[Text.Edit,Text.Perspective](edits),
+      name -> Document.Node.Perspective(perspective))
   }
   
   def annotate: List[(String,Annotations)] = List(

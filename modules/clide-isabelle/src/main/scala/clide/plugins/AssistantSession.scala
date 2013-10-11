@@ -3,7 +3,7 @@ package clide.plugins
 import akka.actor._
 import clide.models._
 import clide.actors.Events._
-import clide.actors.Messages.{RequestSessionInfo,SwitchFile,IdentifiedFor,WithUser}
+import clide.actors.Messages.{RequestSessionInfo,SwitchFile,IdentifiedFor,WithUser,Talk}
 import clide.collaboration._
 import scala.collection.mutable._
 
@@ -25,6 +25,10 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
   def fileAdded(file: OpenedFile)
   def fileClosed(file: OpenedFile)  
   def shutdown()
+  
+  def chat(msg: String) = {
+    peer ! Talk(None,msg)
+  }
   
   private var state = 0
       

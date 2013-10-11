@@ -10,16 +10,16 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
   var session: Session = null    
   
   def startup() {
-    session = new Session(new isabelle.Thy_Load(Set.empty, isabelle.Outer_Syntax.empty))    
-    session.commands_changed += (context.self ! _)
+    session = new Session(new isabelle.Thy_Load(Set.empty, isabelle.Outer_Syntax.empty))
     session.phase_changed += { p => p match {
-      case Session.Startup  => log.info("starting isabelle session")
-      case Session.Shutdown => log.info("shutting down isabelle session")
-      case Session.Inactive => log.info("isabelle session is inactive")
-      case Session.Failed   => log.info("isabelle session failed")
-      case Session.Ready    => log.info("isabelle session ready")
+      case Session.Startup  => chat("I'm starting up, please wait a second!")
+      case Session.Shutdown => chat("I'm shutting down")
+      case Session.Inactive => // TODO: Set inactive
+      case Session.Failed   => chat("Sorry, something failed")
+      case Session.Ready    => chat("I'm ready to go!")
                                self ! AssistantSession.Activate
     } }
+    session.syslog_messages += { msg => chat(XML.content(msg.body)) }
     session.start(List("HOL"))
   }
   
