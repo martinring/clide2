@@ -12,20 +12,19 @@ import akka.pattern._
 
 object Global extends GlobalSettings {
   implicit val timeout      = Timeout(30 seconds)
-  private val serverMonitor = Promise[ActorRef]()
+  private val serverForwarder = Promise[ActorRef]()
   
   def server: ActorRef = {
     import play.api.Play.current
-    implicit val dispatcher = Akka.system.dispatcher
-    val resolution = serverMonitor.future.flatMap(ref => ask(ref,ServerMonitor.Request))      
-    Await.result(resolution.mapTo[ServerMonitor.Reply].map(_.ref), 30 seconds)
+    implicit val dispatcher = Akka.system.dispatcher             
+    Await.result(serverForwarder.future, 30 seconds)
   }
   
   override def onStart(app: Application) {
     import play.api.Play.current
     val serverPath = app.configuration.getString("server-path").get
-    serverMonitor.success {
-      Akka.system.actorOf(Props(classOf[ServerMonitor], serverPath), "server-monitor")
+    serverForwarder.success {
+      Akka.system.actorOf(Props(classOf[clide.actors.util.ServerForwarder], serverPath), "server-forwarder")
     }
   }
 }
