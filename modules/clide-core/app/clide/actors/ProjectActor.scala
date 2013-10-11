@@ -65,9 +65,14 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
       browser.forward(StartFileBrowser)
     case msg @ WithPath(_,_: FileReadMessage) =>
       root.forward(msg)
+    case Talk(None,what) =>
+      // TODO: Persist
+      sessionActors.values.foreach(_ ! Talked(user.name, what))
+    case Talk(Some(sess),what) =>
+      sessionActors.get(sess).map(_ ! Talked(user.name, what))
   }
   
-  def none: Receive = {
+  def none: Receive = {    
     case _ => sender ! NotAllowed
   }   
   

@@ -108,7 +108,11 @@ class SessionActor(
       peer ! Annotated(f,u,an,n)
     case SetColor(value) =>
       session = session.copy(color = value)
-      context.parent ! SessionChanged(session)      
+      context.parent ! SessionChanged(session)
+    case msg @ Talk(_,_) =>
+      context.parent ! WrappedProjectMessage(user,level,msg)
+    case msg @ Talked(_,_) =>
+      peer ! msg
     case CloseFile(id) =>
       DB.withSession { implicit session: Session =>
         OpenedFiles.delete(this.session.id,id)

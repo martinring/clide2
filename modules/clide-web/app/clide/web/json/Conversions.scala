@@ -112,6 +112,7 @@ object Conversions {
     case AcknowledgeAnnotation => JsString("ack_annotation")
     case NotAllowed => "e" of "internal error: forbidden action"
     case DoesntExist => "e" of "internal error: the referenced resource doesn't exist on the server"
+    case Talked(w,m) => "talk" of Json.obj("s" -> w, "m" -> m)
     case _ => error("couldnt translate")
   }
 }

@@ -56,6 +56,7 @@ object Events {
   case class Annotated(file: Long, user: Long, an: Annotations, name: String) extends SessionEvent
   case object AcknowledgeEdit extends SessionEvent
   case object AcknowledgeAnnotation extends SessionEvent
+  case class Talked(from: String, msg: String) extends SessionEvent
   case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent
   
   case class UserProjectInfos(

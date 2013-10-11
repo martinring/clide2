@@ -95,7 +95,17 @@
                 <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
                   <span class='label bgcolor-{{user.color}}'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
                 </li>
-              </ul>
+              </ul>              
+              <h4>Chat</h4>
+              <div class='form-group'>
+                 <div class='history' style='max-height: 200px; overflow-y: auto'>
+                   <dl ng-repeat='message in session.chat track by $index'>
+                     <dt>{{message.s}}</dt>
+                     <dd>{{message.m}}</dd>
+                   </dl>                
+                 </div>
+                 <input class='form-control'>
+              </div>              
               <p><a ng-click='invite()'>invite a collaborator...</a></p>
             </div>
             <div class='alert alert-info' ng-show='session.state=="connecting"'>
@@ -122,7 +132,7 @@
           <li class="section" id='section-view' ng-class='{active: sidebarSection=="view"}' ng-click='sidebarSection="view"'>
             <h3>View</h3>
             <div class='form-group'>
-              <div class='checkbox'>
+              <div class='checkbox'>                
                 <label>
                   <input type='checkbox' ng-model='showLineNumbers'> Show Line Numbers
                 </label>

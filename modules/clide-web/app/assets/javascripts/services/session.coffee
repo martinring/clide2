@@ -8,7 +8,8 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
   session =
     state: 'closed'
     collaborators: null
-    openFiles: null    
+    openFiles: null
+    chat: []
     me: null
 
   session.activeDoc = ->
@@ -127,6 +128,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
               apply -> initFile(msg.c)
             when 'failed'
               Toasts.push("danger","the initialization of the requested file failed on the server")
+            when 'talk'
+              apply ->
+                session.chat.push(msg.c)
             when 'close'
               apply ->                
                 delete session.openFiles[msg.c]
@@ -153,6 +157,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       session.openFiles = null
       session.me.activeFile = null
       session.me = null
+      session.chat = []
       apply -> session.state = 'disconnected'
       console.log e
 
