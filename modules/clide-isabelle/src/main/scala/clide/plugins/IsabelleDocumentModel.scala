@@ -6,12 +6,18 @@ import clide.collaboration.{Operation,Retain,Delete,Insert}
 import clide.collaboration.Annotations
 import akka.actor.ActorRef
 
-class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Session) extends DocumentModel(server, project) {  
+class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Session) extends DocumentModel(server, project) {
+  def plainName = {    
+    if (file.path.last.endsWith(".thy"))
+      file.path.last.dropRight(4)
+    else
+      file.path.last
+  }
+  
   def path     = file.path.mkString("/")
     
   def nodeName = Document.Node.Name(
-    path, project.root,
-    file.path.lastOption.getOrElse("<unknown>"))
+    file.path.last, file.path.init.mkString("/"), plainName)
       
   def nodeHeader = 
     Exn.capture {
@@ -39,8 +45,9 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
       case ((i,edits),Delete(n)) => (i+n,Text.Edit.remove(i,Seq.fill(n)('-').mkString) :: edits)
       case ((i,edits),Insert(s)) => (i+s.length,Text.Edit.insert(i,s) :: edits)
     }
+    log.info("header: {}", nodeHeader)
     List(session.header_edit(name, nodeHeader),
-      name -> Document.Node.Edits[Text.Edit,Text.Perspective](edits),
+      name -> Document.Node.Edits[Text.Edit,Text.Perspective](edits.reverse), // TODO: reverse needed??
       name -> Document.Node.Perspective(perspective))
   }
   
