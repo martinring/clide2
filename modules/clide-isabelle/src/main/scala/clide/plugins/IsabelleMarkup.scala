@@ -54,4 +54,12 @@ object IsabelleMarkup {
       case (as, Annotate(n,c)) => as.annotate(n, c)
     }
   }
+  
+  def substitutions(state: String): Annotations =
+    Symbol.iterator(state).foldLeft(new Annotations) {
+      case (as, sym) if sym.length == 1 =>        
+        as.plain(1)
+      case (as, sym) =>        
+        as.annotate(sym.length, Map("c"->"symbol","s"->Symbol.decode(sym)))
+    }  
 }

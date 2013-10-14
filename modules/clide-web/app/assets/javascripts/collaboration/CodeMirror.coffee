@@ -81,38 +81,49 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
         CodeMirrorAdapter.applyOperationToCodeMirror operation, @doc  
       @silent = false
 
-    annotate: (c,user,from,to) =>
+    annotate: (c,user,name,from,to) =>
       if c.e?        
         if cm = @doc.getEditor()
           widget = document.createElement("div")
           widget.setAttribute('class','outputWidget error')
           widget.innerText = c.e
           widget = cm.addLineWidget from.line, widget
-          @annotations[user.id].push widget
+          @annotations[user.id][name].push widget
       if c.c?
         if to?
-          marker = @doc.markText from, to,
-            className: c.c
-          @annotations[user.id].push marker
+          if c.s?
+            widget = document.createElement("span")
+            widget.setAttribute('class', c.c)
+            widget.innerText = c.s
+            marker = @doc.markText from, to,
+              replacedWith: widget
+              className: c.c
+          else
+            marker = @doc.markText from, to,
+              className: c.c
+          @annotations[user.id][name].push marker
         else
           widget = document.createElement("span")
           widget.setAttribute('class', c.c)
           bookmark = @doc.setBookmark from,
             widget: widget
             insertLeft: true
-          @annotations[user.id].push bookmark        
+          @annotations[user.id][name].push bookmark
 
-    applyAnnotation: (annotation, user) =>
+    resetAnnotations: (user, name) => 
+      unless @annotations[user.id]?
+        @annotations[user.id] = {}
+      existing = @annotations[user.id][name]
+      if existing?
+        for marker in existing
+          marker.clear()
+      @annotations[user.id][name] = []
+
+    applyAnnotation: (annotation, user, name) =>
       cm       = @doc.getEditor()
 
       work = =>        
-        if @annotations[user.id]?          
-          console.log 'clearing markers'
-          for marker in @annotations[user.id]
-            console.log 'clearing marker'
-            marker.clear()
-
-        @annotations[user.id] = []
+        @resetAnnotations(user, name)
 
         index = 0 # TODO: Iterate Line/Column based with cm.eachLine
         for a in annotation.annotations
@@ -123,9 +134,9 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             if a.l > 0
               index += a.l
               to = @doc.posFromIndex(index)
-              @annotate(a.c,user,from,to)
+              @annotate(a.c,user,name,from,to)
             else
-               @annotate(a.c,user,from)        
+               @annotate(a.c,user,name,from)        
 
       if cm? then cm.operation => work()
       else work()

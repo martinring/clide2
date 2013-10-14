@@ -61,9 +61,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     nfile.$ackAnnotation = () -> client.serverAckAnnotation()
     nfile.$apply = (os) -> client.applyServer(os)
     nfile.$syncState = -> client.syncState()
-    nfile.$annotate = (a,u) -> # TODO: include user
+    nfile.$annotate = (a,u,n) -> # TODO: include user
       a = client.transformAnnotation(a)
-      adapter.applyAnnotation(a,u)
+      adapter.applyAnnotation(a,u,n)
     
     session.openFiles[file.info.id] = (nfile)
 
@@ -114,7 +114,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
             getOpenFile(msg.f).$apply(Operation.fromJSON(msg.o))
           else if msg.f? and msg.a?
             user = null            
-            getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),getUser(msg.u))
+            getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),getUser(msg.u),msg.n)
           switch msg.t
             when 'e'
               Toasts.push 'danger', msg.c

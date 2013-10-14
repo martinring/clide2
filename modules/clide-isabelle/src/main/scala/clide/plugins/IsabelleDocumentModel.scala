@@ -56,7 +56,8 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   }
   
   def annotate: List[(String,Annotations)] = List(
-    "isabelle" -> IsabelleMarkup.annotations(nodeHeader,session.snapshot(nodeName,Nil)))    
+    "highlighting"  -> IsabelleMarkup.annotations(nodeHeader,session.snapshot(nodeName,Nil)),
+    "substitutions" -> IsabelleMarkup.substitutions(state))
   
   def changed(op: Operation) { // TODO
     session.update(opToEdits(op))
