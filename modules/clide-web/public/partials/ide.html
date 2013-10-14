@@ -104,7 +104,14 @@
                      <dd>{{message.m}}</dd>
                    </dl>                
                  </div>
-                 <input class='form-control'>
+                 <form ng-submit='chat(chatMessage)'>
+                   <div class='input-group'>
+                     <input ng-model='chatMessage' class='form-control'>
+                     <span class='input-group-btn'>
+                       <button class='btn btn-default' type='submit'><i class='icon-arrow-right'></i></button>
+                     </span>
+                   </div>
+                 </form>
               </div>              
               <p><a ng-click='invite()'>invite a collaborator...</a></p>
             </div>

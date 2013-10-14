@@ -35,6 +35,8 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $routePara
   $scope.editorFont = fonts.monospace[0]
   $scope.showLineNumbers = true
   $scope.editorFontSize = 12
+
+  $scope.chat = Session.chat
   
   $scope.sidebar = true
   $scope.root = null

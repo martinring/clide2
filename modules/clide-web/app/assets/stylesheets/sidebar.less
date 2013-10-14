@@ -81,9 +81,20 @@
 }
 
 #sidebar {
+  .form-control {
+    color: @input-color;
+    background-color: #fff;
+    border-color: #fff;
+    .form-control-focus();
+    &[disabled],
+    &[readonly],
+    fieldset[disabled] & {
+      background-color: @gray-lighter;
+    }
+  }
   z-index: 2;  
   position: absolute;
-  background-color: @gray-lighter;  
+  background-color: #ececec;
   bottom: 0;
   top: 0;
   width: @sidebar-width + @ribbon-width;
@@ -99,9 +110,6 @@
     }
   }
   .section {
-    input, select {
-      background-color: white;
-    }
     .command {      
       margin-right: 14px;
       float: right;

@@ -184,6 +184,10 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       send
         t: 'close'
         id: id
+    chat: (msg) ->
+      send
+        t:   'chat'
+        msg: msg
     invite: (name) -> 
       send
         t: 'invite'
