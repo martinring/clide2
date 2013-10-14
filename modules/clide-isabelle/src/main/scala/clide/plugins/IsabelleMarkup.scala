@@ -45,7 +45,7 @@ object IsabelleMarkup {
       }      
   }
       
-  def annotations(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {
+  def highlighting(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {
     val xml = snapshot.state.markup_to_XML(snapshot.version, snapshot.node, _ => true)
     val xmlAnnons = xml.flatMap(annotations(_))
     val headerErrors = header.errors.map(msg => Annotate(0,Map("e"->msg)))
@@ -57,9 +57,9 @@ object IsabelleMarkup {
   
   def substitutions(state: String): Annotations =
     Symbol.iterator(state).foldLeft(new Annotations) {
-      case (as, sym) if sym.length == 1 =>        
-        as.plain(1)
-      case (as, sym) =>        
+      case (as, sym) if sym.length == 1 || Symbol.decode(sym) == sym =>        
+        as.plain(sym.length)
+      case (as, sym) =>
         as.annotate(sym.length, Map("c"->"symbol","s"->Symbol.decode(sym)))
     }  
 }

@@ -5,6 +5,46 @@
 @verbatim: gray;
 @comment: rgb(76, 136, 107);
 
+@font-face {
+  font-family: 'AMS';
+  src: url('/client/fonts/MathJax_AMS-Regular.otf');
+}
+
+@font-face {
+  font-family: 'Math';
+  src: url('/assets/fonts/MathJax_Math-Regular.otf');
+}
+
+@font-face {
+  font-family: 'Math';
+  font-style: italic;
+  src: url('/assets/fonts/MathJax_Math-Italic.otf');
+}
+
+@font-face {
+  font-family: 'Math';
+  font-weight: bold;
+  font-style: italic;
+  src: url('/assets/fonts/MathJax_Math-BoldItalic.otf');
+}
+
+@font-face {
+  font-family: 'Main';
+  src: url('/assets/fonts/MathJax_Main-Regular.otf');
+}
+
+@font-face {
+  font-family: 'Main';
+  font-style: italic;
+  src: url('/assets/fonts/MathJax_Main-Italic.otf');
+}
+
+@font-face {
+  font-family: 'Main';
+  font-weight: bold;
+  src: url('/assets/fonts/MathJax_Main-Bold.otf');
+}
+
  /* outer syntax */
 .cm-s-default {   
   span.sup { 
@@ -35,13 +75,9 @@
       border-left-color: @brand-warning;
     }
   }
-  isabelle-symbol {
-    font-family: 'AMS';
+  .symbol {
+    font-family: 'Main';
   }
-  span.indent {
-    font-family: Typewriter;
-    line-height: 0;
-  }  
   span.keyword {
     color: @keyword;
   }
@@ -61,14 +97,10 @@
   }
   span.verbatim {
     /*background: rgba(0,0,0,0.05);*/
-    color: @verbatim;
-    &.cm-ML, &.cm-ML_val {
-      font-family: Typewriter;
-    }    
+    color: @verbatim;      
   }
   span.comment {
-    color: @comment; 
-    font-family: Typewriter; 
+    color: @comment;     
   }
   span.malformed {
     text-decoration: line-through;
@@ -212,10 +244,10 @@
   }
 
   span.substitution {
-    &.cm-caligraphic { font-family: Caligraphic }
-    &.cm-fraktur     { font-family: Fraktur }
-    &.cm-number      { font-family: Caligraphic }
-    &.cm-ams         { font-family: AMS }
+    &.caligraphic { font-family: Caligraphic }
+    &.fraktur     { font-family: Fraktur }
+    &.number      { font-family: Caligraphic }
+    &.ams         { font-family: AMS }
   }
 }
   
