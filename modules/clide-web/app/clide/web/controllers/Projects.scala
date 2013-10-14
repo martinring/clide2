@@ -58,6 +58,8 @@ object Projects extends Controller with UserRequests with DefaultResults {
                 SetColor((json \ "c").as[String])
               case "invite" =>
                 ChangeProjectUserLevel((json \ "u").as[String], ProjectAccessLevel.Write)
+              case "chat" =>
+                Talk((json \ "to").asOpt[Long], (json \ "msg").as[String])
             }
           }
         }        
