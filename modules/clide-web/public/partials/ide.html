@@ -98,11 +98,12 @@
               </ul>              
               <h4>Chat</h4>
               <div class='form-group'>
-                 <div class='history' style='max-height: 200px; overflow-y: auto'>
-                   <dl ng-repeat='message in session.chat track by $index'>
-                     <dt>{{message.s}}</dt>
-                     <dd>{{message.m}}</dd>
-                   </dl>                
+                 <div class='history' style='max-height: 200px; overflow-y: auto; margin-bottom: 8px'>
+                   <ul style='margin: 0; list-style: none; padding: 0'>
+                     <li ng-repeat='message in session.chat track by $index'>
+                       <b>{{message.s}}:</b> {{message.m}}
+                     </li>
+                   </ul>                
                  </div>
                  <form ng-submit='chat()' name='chatForm'>
                    <div class='input-group'>
