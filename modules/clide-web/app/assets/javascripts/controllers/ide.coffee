@@ -8,7 +8,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $routePara
   unless Auth.loggedIn
     $location.path '/login'
     Toasts.push 'warning', 'You need to log in to view the requested resource!'
-    return  
+    return
   
   Files.init($routeParams.user, $routeParams.project)
   Files.explore($scope.path)

@@ -63,7 +63,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
     session.update(opToEdits(op))
   }
   
-  def initialize() {
+  def initialize() {    
     session.update(initEdits)
     session.commands_changed += { change =>
       if (change.nodes.contains(nodeName))

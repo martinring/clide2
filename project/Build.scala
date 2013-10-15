@@ -85,7 +85,7 @@ object ApplicationBuild extends Build {
     akka.remote,
     akka.kernel,
     scala.swing,
-    scala.actors)    
+    scala.actors)
 
   val isabelle = Project(s"${appName}-isabelle", file("modules/clide-isabelle"))
                 .dependsOn(core).settings(
