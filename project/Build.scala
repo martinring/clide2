@@ -49,9 +49,6 @@ object ApplicationBuild extends Build {
   .settings(atmosPlaySettings: _*)
   .settings(
     scalaVersion := scala.version,
-    resolvers += Resolver.url("github repo for play-slick",
-      url("https://raw.github.com/loicdescotte/loicdescotte.github.com/master/releases/"))
-      (Resolver.ivyStylePatterns),
     requireJs += "main.js",
     requireJsShim += "main.js",
     Angular.otherModules ++= Map(

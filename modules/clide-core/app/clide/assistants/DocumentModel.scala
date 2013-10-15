@@ -1,4 +1,4 @@
-package clide.plugins
+package clide.assistants
 
 import clide.models._
 import clide.collaboration._

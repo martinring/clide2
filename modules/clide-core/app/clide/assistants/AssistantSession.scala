@@ -1,4 +1,4 @@
-package clide.plugins
+package clide.assistants
 
 import akka.actor._
 import clide.models._

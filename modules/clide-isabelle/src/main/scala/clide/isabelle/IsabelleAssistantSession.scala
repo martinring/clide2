@@ -1,12 +1,14 @@
-package clide.plugins
+package clide.isabelle
 
-import clide.models._
-import clide.collaboration._
 import akka.actor.Props
 
-class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(project: ProjectInfo) {
-  import isabelle._      
-     
+import clide.assistants._
+import clide.collaboration._
+import clide.models._
+
+import isabelle._
+
+class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(project: ProjectInfo) {       
   var session: Session = null    
   
   def startup() {

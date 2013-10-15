@@ -1,19 +1,9 @@
-package clide.plugins
+package clide.isabelle
 
-import akka.actor._
 import com.typesafe.config.ConfigFactory
-import scala.concurrent.duration._
-import clide.actors.Messages._
-import clide.actors.Events._
-import clide.models._
-import isabelle.Thy_Load
-import clide.collaboration.Document
-import isabelle.Session
-import isabelle.Outer_Syntax
-import clide.collaboration.Annotate
-import clide.collaboration.Plain
-import clide.collaboration.Annotations
-import clide.collaboration.Annotation
+
+import akka.actor.ActorSystem
+import akka.actor.Props
 import akka.kernel.Bootable
 import isabelle.Isabelle_System
 

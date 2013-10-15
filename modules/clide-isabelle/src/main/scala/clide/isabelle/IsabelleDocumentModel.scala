@@ -1,10 +1,19 @@
-package clide.plugins
+package clide.isabelle
 
-import clide.models._
-import isabelle._
-import clide.collaboration.{Operation,Retain,Delete,Insert}
-import clide.collaboration.Annotations
 import akka.actor.ActorRef
+import akka.actor.actorRef2Scala
+import clide.assistants.DocumentModel
+import clide.collaboration.Annotations
+import clide.collaboration.Delete
+import clide.collaboration.Insert
+import clide.collaboration.Operation
+import clide.collaboration.Retain
+import clide.models.ProjectInfo
+import isabelle.Document
+import isabelle.Exn
+import isabelle.Session
+import isabelle.Text
+import isabelle.Thy_Header
 
 class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Session) extends DocumentModel(server, project) {
   def plainName = {    

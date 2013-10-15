@@ -1,7 +1,13 @@
-package clide.plugins
+package clide.isabelle
 
-import isabelle._
-import clide.collaboration.{Annotation,Annotations,Plain,Annotate}
+import clide.collaboration.Annotate
+import clide.collaboration.Annotation
+import clide.collaboration.Annotations
+import clide.collaboration.Plain
+import isabelle.Document
+import isabelle.Markup
+import isabelle.Symbol
+import isabelle.XML
 
 object IsabelleMarkup {
   def annotations(xml: XML.Tree, c: Option[Map[String,String]] = None): List[Annotation] = xml match {
