@@ -59,7 +59,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
         console.log 'sending: ', JSON.stringify(msg)
         ws.send(msg)
       queue = []      
-    ws.onclose = (e) ->
+    ws.onclose = ws.onerror = (e) ->
       listeners = undefined
       socket = undefined
       $timeout((-> files.state= 'disconnected'),0)

@@ -151,7 +151,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         console.log 'sending: ', JSON.stringify(msg)
         ws.send(msg)
       queue = []
-    ws.onclose = (e) ->      
+    ws.onclose = ws.onerror = (e) ->      
       socket = undefined        
       session.collaborators = null
       session.openFiles = null
