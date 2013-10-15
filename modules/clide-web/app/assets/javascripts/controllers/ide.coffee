@@ -1,5 +1,5 @@
 ### @controller controllers:IdeController ###
-define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $routeParams, Dialog, Auth, Toasts, Session, Files) ->    
+define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, $routeParams, Dialog, Auth, Toasts, Session, Files) ->    
   $scope.path = 
     if $routeParams.path? and $routeParams isnt ''
       $routeParams.path.split('/')
@@ -141,15 +141,70 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $routePara
       [ openOrClose,
         icon: 'trash'
         text: 'Delete'
-        action: -> $scope.deleteFile(file)
+        action: -> $scope.deleteFile(file)        
       ]    
 
-  # This is very hacky and should be moved to a sidebar directive
+  slidebarActive = false
+  previous = 0  
+  minheight = 24;  
+  height = minheight
+  extendedHeight = 300
+
+  setOutputResizing = (t) ->
+    bar = document.getElementById('statusbar')
+    ctn = document.getElementById('content')    
+    if t
+      ctn.setAttribute 'class', 'resizing'
+      bar.setAttribute 'class', 'resizing'
+    else
+      bar.removeAttribute 'class'
+      ctn.removeAttribute 'class'
+
+  setOutputHeight = (h) ->
+    height = h
+    bar = document.getElementById('statusbar')
+    ctn = document.getElementById('content')    
+    ctn.style.bottom = height + 'px'
+    bar.style.height = height + 'px'
+
+  $scope.toggleChat = () ->
+    if $scope.showChat      
+      setOutputHeight(minheight)
+      $scope.showChat = false
+    else
+      setOutputHeight(extendedHeight)
+      $scope.showChat = true
+
+  $scope.startSlidebar = ($event) ->
+    slidebarActive = true
+    previous = $event.clientY
+    setOutputResizing(true)
+    document.body.onmousemove = (e) ->
+      height += previous - (previous = e.clientY)
+      if height <= minheight
+        height = minheight
+        if $scope.showChat
+          $timeout -> $scope.showChat = false
+      else unless $scope.showChat      
+        $timeout -> $scope.showChat = true
+      setOutputHeight(height)
+    document.body.onmouseup = document.body.onmouseleave = (e) ->
+      setOutputResizing(false)
+      slidebarActive = false
+      if e.clientY > previous              
+        $timeout -> $scope.showChat = false
+        setOutputHeight(minheight)
+      else
+        extendedHeight = height
+
+      document.body.onmousemove = document.body.onmouseup = document.body.onmouseleave = undefined
+
+  # TODO: This is very hacky and should be moved to a sidebar directive
   # in the future!
   $scope.select = (section) ->    
     $scope.sidebar = true
     $scope.sidebarSection = section
     #top = $("#section-#{section}").position().top - 8
-    #currentST = $('#sidebarContent').scrollTop()    
+    #currentST = $('#sidebarContent').scrollTop()
     #$('#sidebarContent').animate
     #  scrollTop: currentST + top

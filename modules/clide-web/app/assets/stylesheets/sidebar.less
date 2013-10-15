@@ -19,6 +19,10 @@
   right: 0;
   top: 0;
   z-index: 0;
+  .transition(bottom ease @fancy-transition);
+  &.resizing {
+    .transition(none);
+  }
 }
 
 #ribbon {

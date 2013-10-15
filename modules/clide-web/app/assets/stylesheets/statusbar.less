@@ -35,6 +35,7 @@
     padding: 0;
     margin: 0;
     text-align: right;     
+    cursor: s-resize;
     li {
       line-height: @statusbar-height;
       vertical-align: middle;
@@ -52,22 +53,23 @@
     }  
   }  
   #output {
-    padding: 4px 8px;
-    white-space: pre;
-    font-family: Main;
+    padding: 4px 8px;        
     position: absolute;
+    overflow: auto;
     top: 24px;
     bottom: 0;
     left: 0;
-    right: 0;
-    overflow: scroll;
+    right: 0;    
     border-top: 3px solid @accent;
-    background-color: white;    
+    background-color: white;
   }
 }
 
 #statusbar {
-  .transition(height ease 0.5s);
+  &.resizing {
+    .transition(none);
+  }
+  .transition(height ease @fancy-transition);
   height: @statusbar-height; 
 }
 

@@ -130,7 +130,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
               Toasts.push("danger","the initialization of the requested file failed on the server")
             when 'talk'
               apply ->
-                session.chat.push(msg.c)
+                session.chat.unshift(msg.c)
             when 'close'
               apply ->                
                 delete session.openFiles[msg.c]

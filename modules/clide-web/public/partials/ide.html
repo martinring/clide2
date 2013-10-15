@@ -95,25 +95,7 @@
                 <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
                   <span class='label bgcolor-{{user.color}}'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
                 </li>
-              </ul>              
-              <h4>Chat</h4>
-              <div class='form-group'>
-                 <div class='history' style='max-height: 200px; overflow-y: auto; margin-bottom: 8px'>
-                   <ul style='margin: 0; list-style: none; padding: 0'>
-                     <li ng-repeat='message in session.chat track by $index'>
-                       <b>{{message.s}}:</b> {{message.m}}
-                     </li>
-                   </ul>                
-                 </div>
-                 <form ng-submit='chat()' name='chatForm'>
-                   <div class='input-group'>
-                     <input ng-model='chatMessage' class='form-control' required>
-                     <span class='input-group-btn'>
-                       <button class='btn btn-primary' type='submit' ng-disabled='!loginForm.$valid || app.wait'><i class='icon-arrow-right'></i></button>
-                     </span>
-                   </div>
-                 </form>
-              </div>              
+              </ul>                            
               <p><a ng-click='invite()'>invite a collaborator...</a></p>
             </div>
             <div class='alert alert-info' ng-show='session.state=="connecting"'>
@@ -187,23 +169,39 @@
           </div>
         </div>
       </div>
-      <div id="statusbar">
-        <ul class="buttons">
-          <li id="consoleButton" 
-              ng-click="output=!output" 
-              ng-class="{active:output}">
-              Output
-          </li>          
-        </ul>
-        <ul class="statusMessages">
-          <li>Font Size: {{editorFontSize}}</li>
-          <li id="syncState">{{session.syncState()}}</li>
-          <li id="traffic">{{traffic.in}}/{{traffic.out}}</li>
-          <li id="sessionStatus" class="phase">
-            <i class='icon-cloud'></i>
-          </li>
-        </ul>        
-        <div id="output"></div>
+      <div id="statusbar"> 
+        <div>
+          <ul class="buttons">
+            <li id="consoleButton" 
+                ng-click="toggleChat()"
+                ng-class="{active:showChat}">
+                Chat
+            </li>       
+          </ul>
+          <ul class="statusMessages" ng-mousedown='startSlidebar($event)'>
+            <li id="syncState">{{session.syncState()}}</li>
+            <li id="traffic">{{traffic.in}}/{{traffic.out}}</li>
+            <li id="sessionStatus" class="phase">
+              <i class='icon-cloud'></i>
+            </li>
+          </ul>
+        </div>
+        <div id="output">                      
+          <form ng-submit='chat()' name='chatForm'>
+            <div class='input-group'>
+              <input ng-model='chatMessage' class='form-control' required>
+              <span class='input-group-btn'>
+                <button class='btn btn-primary' type='submit' ng-disabled='!loginForm.$valid || app.wait'><i class='icon-arrow-right'></i></button>
+              </span>
+            </div>
+          </form>
+          <div class='history'>
+            <ul style='margin: 0; list-style: none; padding: 0'>
+              <li ng-repeat='message in session.chat track by $index'>
+                <b>{{message.s}}:</b> {{message.m}}
+              </li>
+            </ul>                
+          </div>
       </div>  
     </div>
   </div>
