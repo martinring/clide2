@@ -2,8 +2,8 @@ define ['collaboration/Operation'], (Operation) ->
   isPlain    = (a) -> 'number' is typeof a 
   isAnnotate = (a) -> 'object' is typeof a
 
-  length     = (a)   -> if isPlain(a) then a   else a.l
-  withLength = (a,l) -> if isPlain(a) then l else { l: l, c: a.c }
+  length     = (a)   -> if isPlain(a) then return a else return a.l
+  withLength = (a,l) -> if isPlain(a) then return l else return { l: l, c: a.c }
 
   class Annotations
     constructor: ->
@@ -47,46 +47,53 @@ define ['collaboration/Operation'], (Operation) ->
 
     compose: (other) -> other
 
-    ###
-    # An Annotation-Stream can be transformed against an Operation:
-    # The cursor points to the active Annotations ENDING at the current position
-    # with exception to the very first token, which is pointed to if
-    # the cursor is at its start.
-    ###
-    transform: (op) =>
-      if op.inputLength isnt @length
-        throw new Error("lengths don't match")
+    transform: (op) => Annotations.transform(@,op)
 
-      index     = 0
-      current   = @annotations[index++]      
-      remaining = length(current)
-
-      result    = new Annotations
-
-      for action in op.actions
-        switch Operation.actionType action
-          when 'insert'
-            result.add withLength(current,action.length)
-          when 'retain'                    
-            while remaining < action
-              result.add withLength(current,remaining)
-              action   -= remaining
-              current   = @annotations[index++]              
-              remaining = length(current)
-            result.add withLength(current,action)
-            remaining -= action
-          when 'delete'
-            while remaining < (-action)
-              current   = @annotations[index++]
-              action   += remaining
-              consumed  = 0
-              remaining = length(current)
-            remaining += action
-
-      if result.length isnt op.outputLength
-        throw new Error("output length doesnt match")
-
-      return result
+    @transform: (annotations, operation) ->
+      throw new Error("Both operations have to have the same base length")  if annotations.length isnt operation.inputLength
+      result = new Annotations()      
+      as = annotations.annotations
+      os = operation.actions
+      ai = oi = 0      
+      a = as[ai++]
+      o = os[oi++]
+      loop        
+        break  if typeof a is "undefined" and typeof o is "undefined"        
+        if Operation.isInsert(o)
+          if a?
+            result.add(withLength(a, o.length))
+          else
+            result.plain(o.length)
+          o = os[oi++]
+          continue
+        throw new Error("Cannot compose: annotations are too short.")  if typeof a is "undefined"
+        throw new Error("Cannot compose: annotations are too long.")   if typeof o is "undefined"        
+        if Operation.isRetain(o)
+          if length(a) > o            
+            result.add(withLength(a, o))
+            a = withLength(a, length(a)-o)            
+            o = os[oi++]
+          else if length(a) is o            
+            result.add(withLength(a, o))
+            a = as[ai++]
+            o = os[oi++]
+          else
+            result.add(withLength(a, length(a)))
+            o = o - length(a)
+            a = as[ai++]          
+        else if Operation.isDelete(o)
+          if length(a) > -o
+            a = withLength(a, length(a) + o)
+            o = os[oi++]
+          else if length(a) is -o
+            a = as[ai++]
+            o = os[oi++]
+          else
+            o = o + length(a)
+            a = as[ai++]          
+        else
+          throw new Error("The operation isn't compatible with the annotation")
+      result
 
     @fromJSON: (annotations) ->
       result = new Annotations()
