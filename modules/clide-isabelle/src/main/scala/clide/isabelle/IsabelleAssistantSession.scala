@@ -24,7 +24,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
                                self ! AssistantSession.Activate
     } }
     session.syslog_messages += { msg => chat(XML.content(msg.body)) }
-    session.start(List("HOL"))    
+    session.start(List("HOL"))
   }
   
   def fileAdded(file: OpenedFile) {

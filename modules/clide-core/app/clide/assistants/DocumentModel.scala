@@ -26,6 +26,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   private val annotations = Map[String,Option[Annotations]]()
   
   var flushTimeout: Option[Cancellable] = None
+  var flushMaxTimeout: Option[Cancellable] = None
   
   def revision = rev
   def state    = doc.content
@@ -39,7 +40,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
     pending.foreach { op =>
       changed(op)
       pending = None
-    }
+    }    
   }
       
   def initialized: Receive = {
@@ -48,12 +49,19 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
     {
       case Change(change) =>
 		pending = Some(pending.fold(change)(a => Operation.compose(a, change).get))
-		flushTimeout.foreach(_.cancel)
+		flushTimeout.foreach(_.cancel)		
 		flushTimeout = Some {
-		  context.system.scheduler.scheduleOnce(700 milliseconds, self, Flush)
+		  context.system.scheduler.scheduleOnce(500 milliseconds, self, Flush)
+		}
+		if (!flushMaxTimeout.isDefined) flushMaxTimeout = Some {
+		  context.system.scheduler.scheduleOnce(2 seconds, self, Flush)
 		}
 		  
       case Flush =>
+        flushMaxTimeout.map(_.cancel)
+	    flushTimeout.map(_.cancel)
+	    flushMaxTimeout = None    
+	    flushTimeout = None
         flush()
 		
 	  case Refresh =>

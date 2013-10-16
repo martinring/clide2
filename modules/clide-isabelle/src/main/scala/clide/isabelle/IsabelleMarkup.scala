@@ -51,7 +51,7 @@ object IsabelleMarkup {
       }      
   }
       
-  def highlighting(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {
+  def highlighting(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {    
     val xml = snapshot.state.markup_to_XML(snapshot.version, snapshot.node, _ => true)
     val xmlAnnons = xml.flatMap(annotations(_))
     val headerErrors = header.errors.map(msg => Annotate(0,Map("e"->msg)))

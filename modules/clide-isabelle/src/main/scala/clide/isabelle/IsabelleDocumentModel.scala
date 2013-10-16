@@ -42,7 +42,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   }
        
   def perspective: Document.Node.Perspective_Text = {
-    Document.Node.Perspective(true, Text.Perspective.full, overlays)
+    Document.Node.Perspective(true, Text.Perspective(Seq(Text.Range(0,state.length))), overlays)
   }
     
   def initEdits: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
@@ -59,7 +59,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
       case ((i,edits),Retain(n)) => (i+n,edits)
       case ((i,edits),Delete(n)) => (i+n,Text.Edit.remove(i,Seq.fill(n)('-').mkString) :: edits)
       case ((i,edits),Insert(s)) => (i+s.length,Text.Edit.insert(i,s) :: edits)
-    }    
+    }
     List(session.header_edit(name, nodeHeader),
       name -> Document.Node.Edits[Text.Edit,Text.Perspective](edits.reverse), // TODO: reverse needed??
       name -> perspective)
@@ -71,9 +71,10 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   }
     
   
-  def changed(op: Operation) { // TODO    
+  def changed(op: Operation) { // TODO
+    val edits = opToEdits(op)
+    log.info("edits: {}", edits)
     session.update(opToEdits(op))
-    self ! DocumentModel.Refresh
   }
   
   def initialize() {
