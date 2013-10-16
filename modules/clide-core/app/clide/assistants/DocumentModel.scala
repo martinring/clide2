@@ -22,8 +22,10 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   private var info: FileInfo = null
   private var rev: Long     = 0
   private var doc: Document = Document("")
-  private val pending     = Buffer.empty[Operation]
+  private var pending: Option[Operation] = None
   private val annotations = Map[String,Option[Annotations]]()
+  
+  var flushTimeout: Option[Cancellable] = None
   
   def revision = rev
   def state    = doc.content
@@ -34,29 +36,31 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   def annotate: List[(String,Annotations)]    
      
   private def flush() = {
-    var result: Option[Operation] = None
     pending.foreach { op =>
-      rev   += 1
-      doc    = doc(op).get
-      result = Some{
-        result.fold(op)(a => Operation.compose(a, op).get)
-      }
+      changed(op)
+      pending = None
     }
-    pending.clear()
-    result.map(changed(_))
   }
-  
-  def initialized: Receive = {
-    case Change(change) =>
-      pending += change
       
-    case Flush =>
-      flush()
+  def initialized: Receive = {
+    import context.dispatcher
     
-    case Refresh =>
-      annotate.foreach { case (name, annotations) =>
-        server ! clide.actors.Messages.Annotate(info.id, revision, annotations, name)
-      }
+    {
+      case Change(change) =>
+		pending = Some(pending.fold(change)(a => Operation.compose(a, change).get))
+		flushTimeout.foreach(_.cancel)
+		flushTimeout = Some {
+		  context.system.scheduler.scheduleOnce(700 milliseconds, self, Flush)
+		}
+		  
+      case Flush =>
+        flush()
+		
+	  case Refresh =>
+		annotate.foreach { case (name, annotations) =>
+		  server ! clide.actors.Messages.Annotate(info.id, revision, annotations, name)
+		}
+    }
   }
   
   def receive = {
@@ -64,8 +68,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
       rev  = init.revision
       doc  = Document(init.state)
       info = init.info
-      context.become(initialized)     
-      context.system.scheduler.schedule(1 second, 1 second, self, Flush)(context.dispatcher, self)
       initialize()
+      context.become(initialized)
   }
 }
