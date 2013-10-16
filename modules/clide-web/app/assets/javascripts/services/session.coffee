@@ -34,20 +34,14 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       nfile.doc = CodeMirror.Doc file.state, (file.info.mimeType or 'text/plain')    
 
     client  = new Client(file.revision)
-    adapter = new CMAdapter(nfile.doc)
+    adapter = new CMAdapter(nfile.doc, session.me.color)        
 
     client.applyOperation = adapter.applyOperation
-    client.sendOperation = (rev,op) ->
-      if (nfile.id isnt session.me.activeFile)
-        Toast.push 'danger', 'internal error: edit inactive file (todo)'
-      else send
+    client.sendOperation = (rev,op) -> send
         f: nfile.id # TODO: handle on server!
         r: rev
         o: op.actions
-    client.sendAnnotation = (rev,an,name) ->
-      if (nfile.id isnt session.me.activeFile)
-        Toast.push 'danger', 'internal error: annotate inactive file (todo)'
-      else send
+    client.sendAnnotation = (rev,an,name) -> send
         f: nfile.id
         r: rev
         a: an.annotations
@@ -61,6 +55,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     nfile.$ackAnnotation = () -> client.serverAckAnnotation()
     nfile.$apply = (os) -> client.applyServer(os)
     nfile.$syncState = -> client.syncState()
+    nfile.$setColor = (c) -> adapter.setColor(c)
     nfile.$annotate = (a,u,n) -> # TODO: include user
       a = client.transformAnnotation(a)
       adapter.applyAnnotation(a,u,n)
@@ -194,6 +189,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         u: name
     setColor: (color) -> 
       session.me.color = color
+      for key, file of session.openFiles
+        file.$setColor?(color)
+
       #document.getElementById('theme').href = "/client/stylesheets/colors/#{color}.css"
       send
         t: 'color'

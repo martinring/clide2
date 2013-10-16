@@ -1,9 +1,13 @@
 define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annotations) ->
   class CodeMirrorAdapter
-    constructor: (@doc) ->
+    constructor: (@doc,@color) ->
       @doc.on "beforeChange", @onChange
       @doc.on "beforeSelectionChange", @onSelectionChange
       @annotations = {}
+
+    setColor: (color) =>
+      @color = color
+      @doc.setSelection(@doc.getCursor('anchor'),@doc.getCursor('head'))      
 
     # Removes all event listeners from the CodeMirror instance.
     detach: =>
@@ -22,7 +26,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
     # Apply an operation to a CodeMirror instance.
     @applyOperationToCodeMirror: (operation, doc) ->
       index = 0 # TODO: Iterate Line/Column based
-      for a in operation.actions
+      for a in operation.actions 
         switch Operation.actionType(a)
           when 'retain'        
             index += a
@@ -34,7 +38,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             to = doc.posFromIndex(index - a)
             doc.replaceRange "", from, to
 
-    @annotationFromCodeMirrorSelection: (doc,selection) ->
+    @annotationFromCodeMirrorSelection: (doc,selection,color) ->
       anchor = doc.indexFromPos(selection.anchor)
       head   = doc.indexFromPos(selection.head)
 
@@ -42,17 +46,17 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
                   
       if anchor is head
         return new Annotations().plain(anchor)
-                                .annotate(0,{'c':'cursor'})
+                                .annotate(0,{'c':"cursor #{color}"})
                                 .plain(length - anchor)
       else if anchor < head
         return new Annotations().plain(anchor)                                
-                                .annotate(head - anchor,{'c':'selection'})
-                                .annotate(0,{'c':'cursor'})
+                                .annotate(head - anchor,{'c':"selection #{color}"})
+                                .annotate(0,{'c':"cursor #{color}"})
                                 .plain(length - head)
       else
         return new Annotations().plain(head)
-                                .annotate(0,{'c':'cursor'})
-                                .annotate(anchor - head,{'c':'selection'})                                
+                                .annotate(0,{'c':"cursor #{color}"})
+                                .annotate(anchor - head,{'c':"selection #{color}"})                                
                                 .plain(length - anchor)  
 
     registerCallbacks: (cb) =>
@@ -64,7 +68,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
 
     onSelectionChange: (doc, change) =>
       unless @silent      
-        @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(doc, change)
+        @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(doc, change, @color)
 
     getValue: => @doc.getValue()
 
