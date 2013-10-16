@@ -8,7 +8,7 @@ import clide.models._
 
 import isabelle._
 
-class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(project: ProjectInfo) {       
+class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(project: ProjectInfo) {
   var session: Session = null    
   
   def startup() {
