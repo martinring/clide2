@@ -175,8 +175,8 @@
             <li id="consoleButton" 
                 ng-click="toggleChat()"
                 ng-class="{active:showChat}">
-                Chat
-            </li>       
+                Chat <span class='badge' ng-show='unreadChatMessages > 0'>{{unreadChatMessages}}</span>
+            </li>
           </ul>
           <ul class="statusMessages" ng-mousedown='startSlidebar($event)'>
             <li id="syncState">{{session.syncState()}}</li>
@@ -198,7 +198,7 @@
           <div class='history'>
             <ul style='margin: 0; list-style: none; padding: 0'>
               <li ng-repeat='message in session.chat track by $index'>
-                <b>{{message.s}}:</b> {{message.m}}
+                <span class='text-muted'>{{message.s}} ({{date(message.t) | date:'MM/dd/yyyy HH:mm:ss' }}):</span> {{message.m}}
               </li>
             </ul>                
           </div>

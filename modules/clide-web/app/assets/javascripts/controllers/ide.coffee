@@ -13,7 +13,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   Files.init($routeParams.user, $routeParams.project)
   Files.explore($scope.path)
 
-  Session.init($routeParams.user, $routeParams.project)
+  Session.init($routeParams.user, $routeParams.project)  
 
   $scope.session = Session.info
   $scope.files = Files.info
@@ -104,6 +104,9 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
         else
           result.error = 'Please enter a name'
 
+  # TODO: Move out
+  $scope.date = (millis) -> new Date(millis)
+
   $scope.createFolder = (folder) ->
     Dialog.push
       title: 'new folder'
@@ -150,6 +153,9 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   height = minheight
   extendedHeight = 300
 
+  $scope.showChat = false
+  $scope.unreadChatMessages = 0
+
   setOutputResizing = (t) ->
     bar = document.getElementById('statusbar')
     ctn = document.getElementById('content')    
@@ -172,8 +178,13 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
       setOutputHeight(minheight)
       $scope.showChat = false
     else
+      $scope.unreadChatMessages = 0
       setOutputHeight(extendedHeight)
       $scope.showChat = true
+
+  Session.info.talkback = (msg) ->
+    unless $scope.showChat
+      $scope.unreadChatMessages += 1
 
   $scope.startSlidebar = ($event) ->
     slidebarActive = true
@@ -186,7 +197,9 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
         if $scope.showChat
           $timeout -> $scope.showChat = false
       else unless $scope.showChat      
-        $timeout -> $scope.showChat = true
+        $timeout -> 
+          $scope.unreadChatMessages = 0
+          $scope.showChat = true
       setOutputHeight(height)
     document.body.onmouseup = document.body.onmouseleave = (e) ->
       setOutputResizing(false)

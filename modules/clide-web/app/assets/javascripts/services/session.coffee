@@ -9,6 +9,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     state: 'closed'
     collaborators: null
     openFiles: null
+    talkback: null
     chat: []
     me: null
 
@@ -124,8 +125,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
               apply -> initFile(msg.c)
             when 'failed'
               Toasts.push("danger","the initialization of the requested file failed on the server")
-            when 'talk'
+            when 'talk'              
               apply ->
+                session.talkback?(msg.c)
                 session.chat.unshift(msg.c)
             when 'close'
               apply ->                
