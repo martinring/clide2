@@ -9,14 +9,16 @@ import scala.util.Random
 import scala.collection.JavaConversions._
 import scala.collection.mutable.Map
 import scala.slick.session.Session
+import clide.actors.Messages._
+import clide.actors.Events._
+
 
 class SessionActor(
     var id: Option[Long],
     var collaborators: Set[SessionInfo],
     var user: UserInfo,    
-    var project: ProjectInfo) extends Actor with ActorLogging {
-  import clide.actors.Messages._
-  import clide.actors.Events._
+    var project: ProjectInfo,
+    var conversation: Vector[Talked]) extends Actor with ActorLogging {
   
   val level = ProjectAccessLevel.Admin // TODO
   var session: SessionInfo = null
@@ -75,7 +77,8 @@ class SessionActor(
     case RequestSessionInfo =>
       sender ! SessionInit(
           session,
-          collaborators)
+          collaborators,
+          conversation.toList)
       openFiles.values.foreach { file => // TODO: Move in ResetFile or so
         fileServers.get(file.id).map(_ ! OpenFile(this.session)).getOrElse {
           context.parent ! WrappedProjectMessage(user,level,WithPath(file.path,OpenFile(this.session)))
@@ -111,7 +114,8 @@ class SessionActor(
       context.parent ! SessionChanged(session)
     case msg @ Talk(_,_) =>
       context.parent ! WrappedProjectMessage(user,level,msg)
-    case msg @ Talked(_,_) =>
+    case msg @ Talked(_,_,_) =>
+      conversation :+= msg
       peer ! msg
     case CloseFile(id) =>
       DB.withSession { implicit session: Session =>
@@ -128,16 +132,14 @@ class SessionActor(
       if (session.activeFile == Some(id))
         switchFile(openFiles.keys.headOption)      
     case msg @ Edit(id,_,_) =>      
-      fileServers.get(id).map{ ref =>
-        log.info("forwarding edit to ref")
+      fileServers.get(id).map{ ref =>        
         ref ! msg
       } getOrElse {
         log.info("forwarding edit to path")
         context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
       }
     case msg @ Annotate(id,_,_,_) =>      
-      fileServers.get(id).map{ ref =>
-        log.info("forwarding annotation to ref")
+      fileServers.get(id).map{ ref =>        
         ref ! msg
       } getOrElse {
         log.info("forwarding annotation to path")

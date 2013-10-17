@@ -6,6 +6,7 @@ import clide.Core.DB
 import clide.Core.DAL._
 import clide.Core.DAL.profile.simple._
 import clide.actors.files._
+import scala.collection.mutable.Buffer
 import scala.slick.session.Session
 import org.h2.jdbc.JdbcSQLException
 
@@ -19,6 +20,9 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
     
   var sessions      = Set[SessionInfo]()
   var sessionActors = Map[Long,ActorRef]() 
+  
+  // TODO: Persist  
+  var conversationHistory = Buffer.empty[Talked]
        
   def admin: Receive = {
     case DeleteProject =>
@@ -50,10 +54,10 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
         !session.active        
       }.map { session =>
         sessionActors.get(session.id).getOrElse {
-          context.actorOf(Props(classOf[SessionActor],Some(session.id),sessions,user,this.info))
+          context.actorOf(Props(classOf[SessionActor],Some(session.id),sessions,user,this.info,conversationHistory.toVector))
         }
       }.getOrElse {
-        context.actorOf(Props(classOf[SessionActor],None,sessions,user,this.info))
+        context.actorOf(Props(classOf[SessionActor],None,sessions,user,this.info,conversationHistory.toVector))
       }.forward(EnterSession)
     case msg @ WithPath(_,_: FileWriteMessage) =>
       root.forward(msg)
@@ -66,10 +70,12 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
     case msg @ WithPath(_,_: FileReadMessage) =>
       root.forward(msg)
     case Talk(None,what) =>
-      // TODO: Persist
-      sessionActors.values.foreach(_ ! Talked(user.name, what))
-    case Talk(Some(sess),what) =>
-      sessionActors.get(sess).map(_ ! Talked(user.name, what))
+      val talked = Talked(user.name, what, System.currentTimeMillis)
+      conversationHistory.append(talked)
+      sessionActors.values.foreach(_ ! talked)
+    case Talk(Some(sess),what) =>      
+      log.warning("not supported yet")
+      sessionActors.get(sess).map(_ ! Talked(user.name, what,System.currentTimeMillis))
   }
   
   def none: Receive = {    

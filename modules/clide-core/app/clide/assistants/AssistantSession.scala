@@ -23,7 +23,7 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
   
   def startup()
   def fileAdded(file: OpenedFile)
-  def fileClosed(file: OpenedFile)  
+  def fileClosed(file: OpenedFile)
   def shutdown()
   
   def chat(msg: String) = {
@@ -42,7 +42,7 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
   
   def initialized: Receive = {
     case FileOpened(file@OpenedFile(info,content,revision)) =>
-      if (files.isDefinedAt(info.id)) {        
+      if (files.isDefinedAt(info.id)) {
         files(info.id) = file
         documentModels.get(info.id).foreach(_ ! DocumentModel.Init(file))             
       } else {
@@ -62,12 +62,10 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
       documentModels.get(file).foreach(_ ! DocumentModel.Change(operation))
       
     case SessionChanged(info) =>
-      if (info.active && info.activeFile.isDefined) {
-        log.info(s"${info.user} is looking at ${info.activeFile.get}")
+      if (info.active && info.activeFile.isDefined) {        
         activeFiles(info.id) = info.activeFile.get
         peer ! SwitchFile(info.activeFile.get)
-      } else {
-        log.info(s"${info.user} is inactive")
+      } else {        
         activeFiles.remove(info.id)
       }    
   }
@@ -82,14 +80,13 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
       log.info("requesting session info")
       peer ! RequestSessionInfo
       
-    case SessionInit(info, collaborators) =>
+    case SessionInit(info, collaborators, conversation) =>
       log.info("session info received")
       this.info = info
       this.collaborators ++= collaborators  
       collaborators.foreach { info =>
         if (info.active && info.activeFile.isDefined) {
-          log.info(s"${info.user} is looking at ${info.activeFile.get}")
-          activeFiles += info.id -> info.activeFile.get        
+          activeFiles += info.id -> info.activeFile.get
       } }
       activeFiles.values.toSeq.distinct.foreach { id =>
         peer ! SwitchFile(id)

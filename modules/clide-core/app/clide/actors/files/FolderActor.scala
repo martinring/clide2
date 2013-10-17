@@ -56,11 +56,9 @@ class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String) 
       getFile(name).forward(msg)
     case WithPath(Seq(name), TouchFile) =>
       getFile(name).forward(TouchFile)
-    case WithPath(Seq(name), msg@Edit(_,_,_)) =>
-      log.info("forward {}", msg)
+    case WithPath(Seq(name), msg@Edit(_,_,_)) =>      
       getFile(name).forward(msg)
-    case WithPath(Seq(name), msg@Annotate(_,_,_,_)) =>
-      log.info("forward {}", msg)
+    case WithPath(Seq(name), msg@Annotate(_,_,_,_)) =>      
       getFile(name).forward(msg)
     case WithPath(Seq(name,tail@_*), ExplorePath) =>
       getExisting(name).fold{        

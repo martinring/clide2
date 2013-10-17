@@ -46,7 +46,8 @@ object Events {
   trait SessionEvent extends Event  
   case class SessionInit(
       info: SessionInfo, 
-      collaborators: Set[SessionInfo]) extends SessionEvent
+      collaborators: Set[SessionInfo],
+      conversation: List[Talked]) extends SessionEvent
   case class SessionChanged(info: SessionInfo) extends SessionEvent
   case class SessionStopped(info: SessionInfo) extends SessionEvent  
   case class FileSwitched(id: Option[Long]) extends SessionEvent
@@ -56,7 +57,7 @@ object Events {
   case class Annotated(file: Long, user: Long, an: Annotations, name: String) extends SessionEvent
   case object AcknowledgeEdit extends SessionEvent
   case object AcknowledgeAnnotation extends SessionEvent
-  case class Talked(from: String, msg: String) extends SessionEvent
+  case class Talked(from: String, msg: String, timestamp: Long) extends SessionEvent
   case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent
   
   case class UserProjectInfos(

@@ -96,7 +96,7 @@ object Conversions {
     case FolderContent(folder,files) => Json.obj("t"->"folder","info"->folder,"files"->files)
     case CreatedProject(p) => "createdproject" of p
     case DeletedProject(p) => "deletedproject" of p.id
-    case SessionInit(s,cs) => Json.obj("t"->"welcome","info"->s,"others"->cs)
+    case SessionInit(s,cs,conv) => Json.obj("t"->"welcome","info"->s,"others"->cs,"chat"->conv.map{case Talked(w,m,t) => Json.obj("s"->w,"m"->m,"t"->t)})
     case SessionChanged(s) => "session_changed" of s
     case SessionStopped(s) => "session_stopped" of s    
     case FileInitFailed(f) => "failed" of f
@@ -112,7 +112,7 @@ object Conversions {
     case AcknowledgeAnnotation => JsString("ack_annotation")
     case NotAllowed => "e" of "internal error: forbidden action"
     case DoesntExist => "e" of "internal error: the referenced resource doesn't exist on the server"
-    case Talked(w,m) => "talk" of Json.obj("s" -> w, "m" -> m)
+    case Talked(w,m,t) => "talk" of Json.obj("s" -> w, "m" -> m,"t"->t)
     case _ => error("couldnt translate")
   }
 }

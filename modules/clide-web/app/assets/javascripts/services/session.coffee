@@ -117,8 +117,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
               session.openFiles = { }              
               #document.getElementById('theme').href = "/client/stylesheets/colors/#{msg.info.color}.css"
               apply ->
-                session.me = msg.info                
+                session.me = msg.info
                 session.collaborators = msg.others
+                session.chat = msg.chat
             when 'opened'
               apply -> initFile(msg.c)
             when 'failed'
