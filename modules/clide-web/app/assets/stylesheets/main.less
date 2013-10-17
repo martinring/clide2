@@ -17,8 +17,7 @@
 @import 'isabelle.less';*/
 
 body {
-  .transition(background-color 0.5s ease);
-  background-color: #fff;
+  .transition(background-color 0.5s ease);  
   background-image: url('/client/images/clouds.svg');
   .user-select(none);
   &.ide {
@@ -79,11 +78,9 @@ a {
   top: 0 !important;
   bottom: 0 !important;
   height: auto !important;    
+  padding-left: 8px;
   .CodeMirror-linenumber {
     color: #ccc;
-    padding: 0 4px 0 4px;
-    min-width: 32px;
-    text-align: right;
   }
   .CodeMirror-gutters {
     border-right: none;

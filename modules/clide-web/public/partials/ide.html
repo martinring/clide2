@@ -91,12 +91,16 @@
                   </ng-pluralize>
                 </p>
               </div>
-              <ul class='list-group'>                    
-                <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
-                  <span class='label bgcolor-{{user.color}}'><i class='icon-user'></i></span> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
-                </li>
-              </ul>                            
-              <p><a ng-click='invite()'>invite a collaborator...</a></p>
+              <div class='list-group'>                    
+                <a class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
+                  <i class='icon-fixed-width icon-stop color-{{user.color}}'></i> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
+                </a>
+              </div>                    
+              <div class='list-group'>
+                <a class='list-group-item' ng-click='invite()'>
+                  <i class='icon-fixed-width icon-envelope'></i> invite a collaborator...
+                </a>                
+              </div>                      
             </div>
             <div class='alert alert-info' ng-show='session.state=="connecting"'>
               Connecting to server...
@@ -109,13 +113,13 @@
             <h3>Edit</h3>   
             <div class='list-group'>
               <a class='list-group-item'>
-                <i class='icon-cut'></i> Cut
+                <i class='icon-fixed-width icon-cut'></i> Cut
               </a>
               <a class='list-group-item'>
-                <i class='icon-copy'></i> Copy
+                <i class='icon-fixed-width icon-copy'></i> Copy
               </a>
               <a class='list-group-item'>
-                <i class='icon-paste'></i> Paste
+                <i class='icon-fixed-width icon-paste'></i> Paste
               </a>                              
             </div>
           </li>
@@ -191,7 +195,7 @@
             <div class='input-group'>
               <input ng-model='chatMessage' class='form-control' required>
               <span class='input-group-btn'>
-                <button class='btn btn-primary' type='submit' ng-disabled='!chatForm.$valid || app.wait'><i class='icon-arrow-right'></i></button>
+                <button class='btn btn-primary' type='submit' ng-disabled='!chatForm.$valid || app.wait'><i class='icon-envelope'></i></button>
               </span>
             </div>
           </form>
