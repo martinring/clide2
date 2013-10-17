@@ -120,7 +120,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
               apply ->
                 session.me = msg.info
                 session.collaborators = msg.others
-                session.chat = msg.chat
+                session.chat = msg.chat.reverse()
             when 'opened'
               apply -> initFile(msg.c)
             when 'failed'

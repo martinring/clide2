@@ -198,7 +198,8 @@
           <div class='history'>
             <ul style='margin: 0; list-style: none; padding: 0'>
               <li ng-repeat='message in session.chat track by $index'>
-                <span class='text-muted'>{{message.s}} ({{date(message.t) | date:'MM/dd/yyyy HH:mm:ss' }}):</span> {{message.m}}
+                <small><span class='text-muted'>{{date(message.t) | date:'MM/dd/yyyy HH:mm:ss' }}</span></small><br/>
+                <span ng-class='{"text-muted": message.s == session.me.user}'>{{message.s}}: {{message.m}}</span>
               </li>
             </ul>                
           </div>
