@@ -38,9 +38,10 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
      
   private def flush() = {
     pending.foreach { op =>
+      doc = doc(op).get
       changed(op)
       pending = None
-    }    
+    }
   }
       
   def initialized: Receive = {
