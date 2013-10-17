@@ -3,17 +3,32 @@ package clide.isabelle
 import akka.actor.Props
 
 import clide.assistants._
-import clide.collaboration._
+import clide.collaboration.Operation
 import clide.models._
 
 import isabelle._
 
 class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(project: ProjectInfo) {
-  var session: Session = null    
+  var session: Session = null
+  
+  var thys = Map[Document.Node.Name,OpenedFile]()
   
   def startup() {
     session = new Session(new isabelle.Thy_Load(Set.empty, isabelle.Outer_Syntax.empty) {
-      // TODO
+      override def append(dir: String, source_path: Path): String = {
+        val path = source_path.expand
+        if (path.is_absolute) Isabelle_System.platform_path(path)
+        else {
+          log.info("append({}, {})", dir, source_path)
+          (Path.explode(dir) + source_path).expand.implode
+        }
+      }
+      override def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A = {
+        thys.get(name).map(file => f(file.state)).getOrElse {
+          log.info("with_thy_text({}, {}), name, f")
+          f("")
+        }
+      }    
     })
     session.phase_changed += { p => p match {
       case Session.Startup  => chat("I'm starting up, please wait a second!")

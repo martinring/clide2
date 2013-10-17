@@ -19,7 +19,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   def nodeName = {
     val name = file.path.last
     Thy_Header.thy_name(name).map { theory =>
-      Document.Node.Name(name, file.path.init.mkString("/"), theory)
+      Document.Node.Name(file.path.mkString("/"), project.root, theory)
     }
   }.get
   
@@ -42,7 +42,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   }
        
   def perspective: Document.Node.Perspective_Text = {
-    Document.Node.Perspective(true, Text.Perspective(Seq(Text.Range(0,state.length))), overlays)
+    Document.Node.Perspective(true, Text.Perspective(Seq(Text.Range(0,state.length()))), overlays)
   }
     
   def initEdits: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
@@ -61,7 +61,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
       case ((i,edits),Insert(s)) => (i+s.length,Text.Edit.insert(i,s) :: edits)
     }
     List(session.header_edit(name, nodeHeader),
-      name -> Document.Node.Edits[Text.Edit,Text.Perspective](edits.reverse), // TODO: reverse needed??
+      name -> Document.Node.Edits(edits.reverse), // TODO: reverse needed??
       name -> perspective)
   }
   
@@ -73,6 +73,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   
   def changed(op: Operation) { // TODO
     val edits = opToEdits(op)
+    log.info("state: {}", state)
     log.info("edits: {}", edits)
     session.update(opToEdits(op))
   }
