@@ -17,9 +17,9 @@ import isabelle.Thy_Header
 
 class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Session) extends DocumentModel(server, project) {  
   def nodeName = {
-    val name = file.path.last
+    val name = file.path.mkString("/")
     Thy_Header.thy_name(name).map { theory =>
-      Document.Node.Name(file.path.mkString("/"), project.root, theory)
+      Document.Node.Name(name, project.root, theory)
     }
   }.get
   
@@ -42,7 +42,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   }
        
   def perspective: Document.Node.Perspective_Text = {
-    Document.Node.Perspective(true, Text.Perspective(Seq(Text.Range(0,state.length()))), overlays)
+    Document.Node.Perspective(true, Text.Perspective.full, overlays)
   }
     
   def initEdits: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
@@ -53,7 +53,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
          name -> perspective)
   }
   
-  def opToEdits(operation: Operation): List[Document.Edit_Text] = {
+  def opToEdits(operation: Operation): List[Document.Edit_Text] = {    
     val name = nodeName
     val (_,edits) = operation.actions.foldLeft((0,Nil : List[Text.Edit])) { 
       case ((i,edits),Retain(n)) => (i+n,edits)
@@ -71,18 +71,17 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   }
     
   
-  def changed(op: Operation) { // TODO
+  def changed(op: Operation) {
     val edits = opToEdits(op)
-    log.info("state: {}", state)
-    log.info("edits: {}", edits)
-    session.update(opToEdits(op))
+    log.info("sending edits: {}", edits)
+    session.update(edits)    
   }
   
   def initialize() {
     log.info("name: {}, header: {}", nodeName, nodeHeader)
     session.update(initEdits)
     session.commands_changed += { change =>
-      log.info("commands changed")
+      log.info("commands changed: {}", change)
       self ! DocumentModel.Refresh
     }
   }
