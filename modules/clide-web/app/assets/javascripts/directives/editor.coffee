@@ -1,5 +1,5 @@
 ### @directive directives:editor ###
-define ['routes','codemirror'], (routes,CodeMirror) -> () -> 
+define ['routes','codemirror','codemirror-hs'], (routes,CodeMirror) -> () -> 
   restrict: 'E'
   transclude: true
   template: '<textarea></textarea>'

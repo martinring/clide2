@@ -1,5 +1,5 @@
 ### @service services:Session ###
-define ['routes','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords'], (routes,Operation,CMAdapter,Client,Annotations,idw) -> ($q,$rootScope,$http,Toasts) ->
+define ['routes','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords','codemirror'], (routes,Operation,CMAdapter,Client,Annotations,idw,CodeMirror) -> ($q,$rootScope,$http,Toasts) ->
   pc = routes.clide.web.controllers.Projects
 
   queue = []

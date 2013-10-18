@@ -2,8 +2,12 @@
 require.config
   paths:
     'codemirror': 'vendor/codemirror/codemirror'
+    'codemirror-hs': 'vendor/codemirror/mode/haskell/haskell'
   shim:
     'codemirror':
+      exports: 'CodeMirror'
+    'codemirror-hs':
+      deps: ['codemirror']
       exports: 'CodeMirror'
     'routes':
       exports: 'jsRoutes'
