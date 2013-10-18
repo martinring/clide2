@@ -19,6 +19,8 @@ object IsabelleMarkup {
           body2.flatMap(annotations(_,Some(Map("w"->XML.content(body)))))
         case Markup.WRITELN =>
           body2.flatMap(annotations(_,Some(Map("i"->XML.content(body)))))
+        case Markup.INFORMATION =>
+          body2.flatMap(annotations(_,Some(Map("i"->XML.content(body)))))
         case Markup.TYPING =>
           body2.flatMap(annotations(_,Some(Map("t"->XML.content(body)))))
         case other =>
@@ -33,6 +35,11 @@ object IsabelleMarkup {
              Markup.KEYWORD2 => Some(Map("c" -> "keyword"))        
         case Markup.STRING  => Some(Map("c" -> "string"))
         case Markup.COMMENT => Some(Map("c" -> "comment"))
+        case Markup.TFREE => Some(Map("c" -> "tfree"))
+        case Markup.BOUND => Some(Map("c" -> "bound"))
+        case Markup.FREE => Some(Map("c" -> "free"))
+        case Markup.TVAR => Some(Map("c" -> "tvar"))
+        case Markup.SKOLEM => Some(Map("c" -> "skolem"))        
         case Markup.BAD | Markup.ERROR => Some(Map("c" -> "error"))
         case Markup.WARNING => Some(Map("c" -> "warning"))
         case Markup.ENTITY  => Some(Map("c" -> "entity"))
