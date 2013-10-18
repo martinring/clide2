@@ -86,11 +86,25 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
       @silent = false
 
     annotate: (c,user,name,from,to) =>
-      if c.e?        
+      if c.e?
         if cm = @doc.getEditor()
           widget = document.createElement("div")
           widget.setAttribute('class','outputWidget error')
           widget.innerText = c.e
+          widget = cm.addLineWidget from.line, widget
+          @annotations[user.id][name].push widget
+      if c.w?
+        if cm = @doc.getEditor()
+          widget = document.createElement("div")
+          widget.setAttribute('class','outputWidget warning')
+          widget.innerText = c.w
+          widget = cm.addLineWidget from.line, widget
+          @annotations[user.id][name].push widget
+      if c.i?
+        if cm = @doc.getEditor()
+          widget = document.createElement("div")
+          widget.setAttribute('class','outputWidget info')
+          widget.innerText = c.i
           widget = cm.addLineWidget from.line, widget
           @annotations[user.id][name].push widget
       if c.c?

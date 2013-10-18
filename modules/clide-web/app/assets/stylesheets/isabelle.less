@@ -60,19 +60,20 @@
   span.bold { 
     font-weight: bold;    
   }
-  .outputWidget {
-    height: 0;
-    visibility: hidden;
+  .outputWidget {    
     white-space: pre;
     margin-left: 8px;
     padding-left: 8px;
     background: rgba(0,0,0,0.05);
     border-left: 8px solid @brand-primary;    
-    &.error, &.failed {
+    &.error {
       border-left-color: @brand-danger;      
     }
     &.warning {
       border-left-color: @brand-warning;
+    }
+    &.info {
+      border-left-color: @brand-info;
     }
   }
   .symbol {
