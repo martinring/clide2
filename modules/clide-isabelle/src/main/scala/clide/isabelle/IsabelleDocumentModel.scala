@@ -68,8 +68,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   def annotate: List[(String,Annotations)] = {
     List("highlighting"  -> IsabelleMarkup.highlighting(nodeHeader,session.snapshot(nodeName,Nil)),
          "substitutions" -> IsabelleMarkup.substitutions(state))
-  }
-    
+  }   
   
   def changed(op: Operation) {
     val edits = opToEdits(op)
@@ -82,8 +81,8 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
     log.info("name: {}, header: {}", nodeName, nodeHeader)
     session.update(initEdits)
     session.commands_changed += { change =>
-      log.info("commands changed: {}", change)
-      self ! DocumentModel.Refresh
+      if (change.nodes.contains(nodeName))      
+    	self ! DocumentModel.Refresh
     }
   }
 }
