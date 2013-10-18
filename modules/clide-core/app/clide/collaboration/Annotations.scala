@@ -62,6 +62,8 @@ case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
       case _ => Annotations(annotations :+ a)
     }
   }
+  
+  def length = annotations.map(_.length).reduceOption(_ + _).getOrElse(0)
 }
 
 object Annotations {  
