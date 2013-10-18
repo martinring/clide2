@@ -90,6 +90,17 @@ object ApplicationBuild extends Build {
     libraryDependencies ++= isabelleDependencies
   ).configs(Atmos).settings(atmosSettings: _*)
 
+  val ghcDependencies = Seq(
+    akka.actor,
+    akka.remote,
+    akka.kernel)
+
+  val ghc = Project(s"${appName}-ghc", file("modules/clide-ghc"))
+            .dependsOn(core).settings(
+    scalaVersion := scala.version,
+    libraryDependencies ++= ghcDependencies
+  ).configs(Atmos).settings(atmosSettings: _*)
+
   val bundle = play.Project(
     s"$appName-bundle",
     appVersion,
