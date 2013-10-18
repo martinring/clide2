@@ -13,7 +13,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
   var thys = Map[Document.Node.Name,OpenedFile]()
   
   def startup() {
-    val ops = isabelle.Options.init
+    val ops = isabelle.Options.init    
     log.info("building session content")
     val content = Build.session_content(ops, false, Nil, "HOL")   
     session = new Session(new isabelle.Thy_Load(content.loaded_theories, content.syntax) {
@@ -36,17 +36,22 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
         log.info("text_edits = {}", result)
         result
       }      
-    })
+    })    
     session.phase_changed += { p => p match {
       case Session.Startup  => chat("I'm starting up, please wait a second!")
       case Session.Shutdown => chat("I'm shutting down")
       case Session.Inactive => // TODO: Set inactive
       case Session.Failed   => chat("Sorry, something failed")
-      case Session.Ready    => chat("I'm ready to go!")
-                               self ! AssistantSession.Activate
-    } }
-    session.syslog_messages += { msg => chat(XML.content(msg.body)) }    
-    session.start(List("HOL"))
+      case Session.Ready    => 
+        chat("I'm ready to go!")
+        session.update_options(ops)
+        self ! AssistantSession.Activate
+    } }  
+    session.syslog_messages += { msg => chat(XML.content(msg.body)) } 
+    session.raw_output_messages += { msg =>
+      log.info("OUTPUT: {}", XML.content(msg.body))
+    }
+    session.start(List("HOL"))    
   }
   
   def fileAdded(file: OpenedFile) {

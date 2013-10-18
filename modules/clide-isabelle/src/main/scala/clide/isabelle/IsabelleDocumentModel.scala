@@ -75,6 +75,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
     val edits = opToEdits(op)
     log.info("sending edits: {}", edits)
     session.update(edits)    
+    self ! DocumentModel.Refresh
   }
   
   def initialize() {

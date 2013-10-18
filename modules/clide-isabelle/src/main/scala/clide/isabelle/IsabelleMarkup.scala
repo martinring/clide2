@@ -17,6 +17,10 @@ object IsabelleMarkup {
           Annotate(0,Map("e"->XML.content(body))) :: body2.flatMap(annotations(_))
         case Markup.WARNING =>
           Annotate(0,Map("w"->XML.content(body))) :: body2.flatMap(annotations(_))
+        case Markup.WRITELN =>
+          Annotate(0,Map("i"->XML.content(body))) :: body2.flatMap(annotations(_))
+        case Markup.TYPING =>
+          Annotate(0,Map("t"->XML.content(body))) :: body2.flatMap(annotations(_))
         case other =>
           println("unhandled " + other + ": " + body)
           body2.flatMap(annotations(_))
@@ -27,19 +31,20 @@ object IsabelleMarkup {
         case Markup.KEYWORD  | 
              Markup.KEYWORD1 | 
              Markup.KEYWORD2 => Some(Map("c" -> "keyword"))
+        case Markup.
         case Markup.STRING  => Some(Map("c" -> "string"))
         case Markup.COMMENT => Some(Map("c" -> "comment"))
         case Markup.BAD | Markup.ERROR => Some(Map("c" -> "error"))
         case Markup.WARNING => Some(Map("c" -> "warning"))
         case Markup.ENTITY  => Some(Map("c" -> "entity"))
-        case _              => None
+        case other          => None
       }
       val n = (c,c2) match {
         case (Some(c),Some(c2)) => 
           val cc = (c.get("c"),c2.get("c")) match {
             case (Some(cc),Some(c2c)) => Map("c" -> (cc + " " + c2c))
             case _                    => Map()
-          }
+          }          
           Some(c ++ c2 ++ cc)
         case (None   ,Some(c2)) => Some(c2)
         case (c,      None)     => c
