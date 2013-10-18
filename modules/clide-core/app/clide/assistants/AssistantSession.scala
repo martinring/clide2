@@ -42,12 +42,13 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
   
   def initialized: Receive = {
     case FileOpened(file@OpenedFile(info,content,revision)) =>
+      log.info("file opened: {}", info)
       if (files.isDefinedAt(info.id)) {
         files(info.id) = file
         documentModels.get(info.id).foreach(_ ! DocumentModel.Init(file))             
       } else {
         files(info.id) = file
-        fileAdded(file)
+        fileAdded(file)        
       }
       
     case FileClosed(file) =>
@@ -62,7 +63,8 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
       documentModels.get(file).foreach(_ ! DocumentModel.Change(operation))
       
     case SessionChanged(info) =>
-      if (info.active && info.activeFile.isDefined) {        
+      log.info("session changed: {}", info)
+      if (info.active && info.activeFile.isDefined && !files.contains(info.activeFile.get)) {        
         activeFiles(info.id) = info.activeFile.get
         peer ! SwitchFile(info.activeFile.get)
       } else {        

@@ -38,9 +38,9 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
      
   private def flush() = {
     pending.foreach { op =>
-      doc = doc(op).get
-      changed(op)
+      doc = doc(op).get      
       pending = None
+      changed(op)
     }
   }
       
@@ -49,9 +49,10 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
     
     {
       case Change(change) =>
+        rev += 1
 		pending = Some(pending.fold(change)(a => Operation.compose(a, change).get))
 		flushTimeout.foreach(_.cancel)		
-		flushTimeout = Some {
+		flushTimeout = Some {  // TODO: Move timing to config
 		  context.system.scheduler.scheduleOnce(500 milliseconds, self, Flush)
 		}
 		if (!flushMaxTimeout.isDefined) flushMaxTimeout = Some {
@@ -67,6 +68,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
 		
 	  case Refresh =>
 		annotate.foreach { case (name, annotations) =>
+		  log.info("annotation: {}, state: {}", annotations.length, state.length)
 		  server ! clide.actors.Messages.Annotate(info.id, revision, annotations, name)
 		}
     }
