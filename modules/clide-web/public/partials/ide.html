@@ -77,8 +77,8 @@
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('cyan')"><i class='icon-fixed-width icon-stop color-cyan'></i> Cyan</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('blue')"><i class='icon-fixed-width icon-stop color-blue'></i> Blue</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('violet')"><i class='icon-fixed-width icon-stop color-violet'></i> Violet</a></li>
-              </ul>                
-            </div>  
+              </ul>
+            </div>
             <h3>Collaboration</h3>      
             <div ng-show="session.state=='connected'">
               <div ng-show='session.me'>
@@ -164,7 +164,7 @@
           <ul class="headers">
             <li ng-repeat='file in session.openFiles' ng-class='{active: session.me.activeFile==file.id}' ng-show='session.state=="connected"'>
               <i class='icon-stop icon-fixed-width color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id}' title='{{user.user}}'></i>
-              <span ng-click='openFile(file.id)'>{{file.name}}</span>
+              <a ng-click='openFile(file.id)'>{{file.name}}</a>
               <button type="button" class="close" ng-click='closeFile(file.id)' aria-hidden="true">&times;</button>
             </li>
           </ul>

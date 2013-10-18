@@ -13,20 +13,17 @@
     list-style: none;
     margin: 0;
     padding: 0;
-    li {
+    li {      
       vertical-align: middle;
-      line-height: 26px;
+      line-height: @tabbar-height;
       float: left;
-      height: 27px;
-      margin-top: 5px;
+      height: @tabbar-height;
       width: auto;
       max-width: 200px;
-      margin-left: 8px;
       padding: 0 6px 0 8px;
       background: #ddd;
       color: #777;
-      .transition-transform(@quick-transition ease);
-      .translate(0,2px);
+      .transition(background @quick-transition ease);      
       .close {
         float: none;
         color: inherit;
@@ -44,13 +41,16 @@
         }
       }
       &:hover {
-        background-color: white;
-        .translate(0,0);
+        background-color: white;        
       }
       &.active {
         color: white;
+        a {
+          color: white;
+          text-decoration: none;
+        }
         background: @brand-primary;
-        .translate(0,0);      } 
+      }        
     }
   }
 
