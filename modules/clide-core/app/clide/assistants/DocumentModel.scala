@@ -27,6 +27,8 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   
   var flushTimeout: Option[Cancellable] = None
   var flushMaxTimeout: Option[Cancellable] = None
+  var refreshTimeout: Option[Cancellable] = None
+  var needRefresh = false
   
   def revision = rev
   def state    = doc.content
@@ -43,6 +45,8 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
       changed(op)
     }
   }
+  
+  private object RefreshTimeout
       
   def initialized: Receive = {
     import context.dispatcher
@@ -66,11 +70,25 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
 	    flushTimeout = None
         flush()
 		
+      case RefreshTimeout =>
+        refreshTimeout = None
+        if (needRefresh) {
+          needRefresh = false
+          self ! Refresh
+        }
+        
 	  case Refresh =>
-		annotate.foreach { case (name, annotations) =>
-		  log.info("annotation: {}, state: {}", annotations.length, state.length)
-		  server ! clide.actors.Messages.Annotate(info.id, revision, annotations, name)
-		}
+	    if (refreshTimeout.isEmpty) {
+	      annotate.foreach { case (name, annotations) =>
+			log.info("annotation: {}, state: {}", annotations.length, state.length)
+			server ! clide.actors.Messages.Annotate(info.id, revision, annotations, name)			 
+		  }
+		  refreshTimeout = Some{ // TODO: Move timing to config
+		    context.system.scheduler.scheduleOnce(1 second, self, RefreshTimeout)
+		  }
+	    } else {
+	      needRefresh = true
+	    }	    
     }
   }
   

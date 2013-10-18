@@ -14,13 +14,13 @@ object IsabelleMarkup {
     case XML.Wrapped_Elem(markup, body, body2) =>
       markup.name match {
         case Markup.ERROR | Markup.BAD =>
-          Annotate(0,Map("e"->XML.content(body))) :: body2.flatMap(annotations(_))
+          body2.flatMap(annotations(_,Some(Map("e"->XML.content(body)))))
         case Markup.WARNING =>
-          Annotate(0,Map("w"->XML.content(body))) :: body2.flatMap(annotations(_))
+          body2.flatMap(annotations(_,Some(Map("w"->XML.content(body)))))
         case Markup.WRITELN =>
-          Annotate(0,Map("i"->XML.content(body))) :: body2.flatMap(annotations(_))
+          body2.flatMap(annotations(_,Some(Map("i"->XML.content(body)))))
         case Markup.TYPING =>
-          Annotate(0,Map("t"->XML.content(body))) :: body2.flatMap(annotations(_))
+          body2.flatMap(annotations(_,Some(Map("t"->XML.content(body)))))
         case other =>
           println("unhandled " + other + ": " + body)
           body2.flatMap(annotations(_))
@@ -30,13 +30,13 @@ object IsabelleMarkup {
         case Markup.COMMAND => Some(Map("c"->"command"))
         case Markup.KEYWORD  | 
              Markup.KEYWORD1 | 
-             Markup.KEYWORD2 => Some(Map("c" -> "keyword"))
-        case Markup.
+             Markup.KEYWORD2 => Some(Map("c" -> "keyword"))        
         case Markup.STRING  => Some(Map("c" -> "string"))
         case Markup.COMMENT => Some(Map("c" -> "comment"))
         case Markup.BAD | Markup.ERROR => Some(Map("c" -> "error"))
         case Markup.WARNING => Some(Map("c" -> "warning"))
         case Markup.ENTITY  => Some(Map("c" -> "entity"))
+        case Markup.VERBATIM => Some(Map("c"->"verbatim"))
         case other          => None
       }
       val n = (c,c2) match {
