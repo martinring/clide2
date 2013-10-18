@@ -28,10 +28,11 @@ class HaskellDocumentModel(server: ActorRef, project: ProjectInfo) extends Docum
 	var current = None
 	val lines = Seq("ghc-mod","check",name).lines ++ Seq("ghc-mod", "lint", name)
 	val Error = """.*([0-9]+).*""".r
+	lines.foreach(println)
 	val errs = lines.filter(_.startsWith(name)).map(_.drop(name.length() + 1)).map(HaskellMarkup.parseLine)
     val as = HaskellMarkup.toAnnotations(errs.toList.collect{ case Some(n) => n }, state)
     log.info("annotating: {}", as)
-    List("errors" -> as)
+    List("errors" -> as, "substitutions" -> HaskellMarkup.substitutions(state))
   }    
   
   def changed(op: Operation) {

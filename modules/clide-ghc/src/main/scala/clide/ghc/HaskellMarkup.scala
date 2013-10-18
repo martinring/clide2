@@ -29,6 +29,14 @@ object HaskellMarkup {
   case class Error extends GHCMessage
   case class Lint  extends GHCMessage  
     
+  def substitutions(state: String, as: Annotations = new Annotations): Annotations = state match {
+    case "" => as
+    case _  =>
+      val i = state.indexOf("->")
+      if (i >= 0) substitutions(state.drop(i + 2), as.plain(i).annotate(2, Map("c"->"symbol","s"->"→")))      
+      else as.plain(state.length)        
+  }
+  
   def toAnnotations(errors: List[((Int,Int),String,String)], state: String): Annotations = {
     var result = new Annotations
     val lines = state.split("\n").map(_.length() + 1).toList
