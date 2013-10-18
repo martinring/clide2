@@ -42,7 +42,7 @@ class HaskellDocumentModel(server: ActorRef, project: ProjectInfo) extends Docum
   
   def initialize() {
     if (file.path.length > 1)
-      new java.io.File(project.root + file.path.init.mkString("/")).mkdirs()      
+      new java.io.File(project.root + "/" + file.path.init.mkString("/")).mkdirs()      
     self ! DocumentModel.Refresh
   }
 }
