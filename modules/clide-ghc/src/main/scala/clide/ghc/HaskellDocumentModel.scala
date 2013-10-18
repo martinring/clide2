@@ -41,10 +41,12 @@ class HaskellDocumentModel(server: ActorRef, project: ProjectInfo) extends Docum
 	val Error = """.*([0-9]+).*""".r
 	val errs = stderr.split(name.replace("\\", "\\\\")).filter(_.trim.length > 0).map { e =>	  
       HaskellMarkup.parse(HaskellMarkup.error, e) match {
-        case HaskellMarkup.Success(((l,c),o),_) => ((l,c),o)
+        case HaskellMarkup.Success(((l,c),o),_) => Some(((l,c),o))
+        case HaskellMarkup.Failure(_,_) => None
+        case HaskellMarkup.Error(_,_) => None
       }
     }
-    val as = HaskellMarkup.toAnnotations(errs.toList, state)
+    val as = HaskellMarkup.toAnnotations(errs.toList.collect{ case Some(n) => n }, state)
     log.info("annotating: {}", as)
     List("errors" -> as)
   }    
