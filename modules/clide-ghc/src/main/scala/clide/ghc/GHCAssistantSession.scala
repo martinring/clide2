@@ -6,7 +6,9 @@ import clide.collaboration.Operation
 import clide.models._
 
 class GHCAssistantSession(project: ProjectInfo) extends AssistantSession(project: ProjectInfo) {
-  def startup() {
+  def startup() {    
+    if (new java.io.File(project.root).mkdirs())
+      chat("Created temporary work space")
     chat("I'm ready to go")
     self ! AssistantSession.Activate
   }

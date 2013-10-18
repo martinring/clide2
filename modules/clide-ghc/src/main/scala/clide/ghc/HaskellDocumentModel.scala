@@ -19,33 +19,16 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintWriter
 
 class HaskellDocumentModel(server: ActorRef, project: ProjectInfo) extends DocumentModel(server, project) {
-  def runCommand(cmd: Seq[String]): (Int, String, String) = {
-	val stdout = new ByteArrayOutputStream
-	val stderr = new ByteArrayOutputStream
-	val stdoutWriter = new PrintWriter(stdout)
-	val stderrWriter = new PrintWriter(stderr)
-	val exitValue = cmd.!(ProcessLogger(stdoutWriter.println, stderrWriter.println))
-	stdoutWriter.close()
-	stderrWriter.close()
-	(exitValue, stdout.toString, stderr.toString)
-  }
-      
-  def annotate: List[(String,Annotations)] = {
-    val temp = File.createTempFile("ghc", ".hs")
-	val name = temp.getAbsolutePath()
+  def annotate: List[(String,Annotations)] = {    
+    val temp = new java.io.File(project.root + "/" + file.path.mkString("/"))
+	val name = temp.getPath()
 	val write = new FileWriter(temp)
 	write.write(state)
-	write.close()    
+	write.close()
 	var current = None
-	val (ec,stdout,stderr) = runCommand(Seq("ghc",name))
+	val lines = Seq("ghc-mod","check",name).lines ++ Seq("ghc-mod", "lint", name)
 	val Error = """.*([0-9]+).*""".r
-	val errs = stderr.split(name.replace("\\", "\\\\")).filter(_.trim.length > 0).map { e =>	  
-      HaskellMarkup.parse(HaskellMarkup.error, e) match {
-        case HaskellMarkup.Success(((l,c),o),_) => Some(((l,c),o))
-        case HaskellMarkup.Failure(_,_) => None
-        case HaskellMarkup.Error(_,_) => None
-      }
-    }
+	val errs = lines.filter(_.startsWith(name)).map(_.drop(name.length() + 1)).map(HaskellMarkup.parseLine)
     val as = HaskellMarkup.toAnnotations(errs.toList.collect{ case Some(n) => n }, state)
     log.info("annotating: {}", as)
     List("errors" -> as)
@@ -58,6 +41,8 @@ class HaskellDocumentModel(server: ActorRef, project: ProjectInfo) extends Docum
     
   
   def initialize() {
+    if (file.path.length > 1)
+      new java.io.File(project.root + file.path.init.mkString("/")).mkdirs()      
     self ! DocumentModel.Refresh
   }
 }
