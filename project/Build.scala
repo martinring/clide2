@@ -3,7 +3,6 @@ import Keys._
 import play.Project._
 import Dependencies._
 import com.typesafe.sbt.SbtAtmos.{Atmos,atmosSettings}
-import com.typesafe.sbt.SbtAtmosPlay.atmosPlaySettings
 
 object ApplicationBuild extends Build {
   val appName         = "clide"
@@ -46,7 +45,6 @@ object ApplicationBuild extends Build {
     appDependencies,
     path = file("modules/clide-web")
   ).dependsOn(core).settings(Angular.defaultSettings:_*)  
-  .settings(atmosPlaySettings: _*)
   .settings(
     scalaVersion := scala.version,
     requireJs += "main.js",
@@ -88,7 +86,7 @@ object ApplicationBuild extends Build {
                 .dependsOn(core).settings(
     scalaVersion := scala.version,
     libraryDependencies ++= isabelleDependencies
-  ).configs(Atmos).settings(atmosSettings: _*)
+  )
 
   val ghcDependencies = Seq(
     akka.actor,
@@ -99,7 +97,7 @@ object ApplicationBuild extends Build {
             .dependsOn(core).settings(
     scalaVersion := scala.version,
     libraryDependencies ++= ghcDependencies
-  ).configs(Atmos).settings(atmosSettings: _*)
+  )
 
   val bundle = play.Project(
     s"$appName-bundle",
