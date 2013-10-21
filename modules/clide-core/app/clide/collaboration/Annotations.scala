@@ -27,14 +27,48 @@ case class Annotate(length: Int, content: Map[String,String]) extends Annotation
 }
 
 object AnnotationDiff {
-  trait AnnotationDiff
-  case class ChangeLength(n: Int) extends AnnotationDiff
-  case class ChangeContent(c: Map[String,String]) extends AnnotationDiff
-  case class Delete(n: Int) extends AnnotationDiff
-  case class Insert(a: Annotations) extends AnnotationDiff
-  
-  def diff(a: Annotations, b: Annotations): Map[Int,AnnotationDiff] = {    
-    null
+  trait AnnotationDiffItem
+  case class Leave(n: Int) extends AnnotationDiffItem
+  case class Replace(n: Int, a: Annotations) extends AnnotationDiffItem       
+    
+  case class AnnotationDiff(items: List[AnnotationDiffItem] = Nil) extends AnyVal {
+    def leave(n: Int = 1) = items.lastOption match {
+      case Some(Leave(m)) => AnnotationDiff(items.init :+ Leave(n+m))
+      case _              => AnnotationDiff(items :+ Leave(n))
+    }        
+    
+    def insert(a: Annotation) = items.lastOption match {
+      case Some(Replace(n,b)) => AnnotationDiff(items.init :+ Replace(n,b :+ a))
+      case _                  => AnnotationDiff(items :+ Replace(0,Annotations(List(a))))
+    }
+    
+    def insert(a: Annotations) = items.lastOption match {
+      case Some(Replace(n,b)) => AnnotationDiff(items.init :+ Replace(n,Annotations(a.annotations ++ b.annotations)))
+      case _                  => AnnotationDiff(items :+ Replace(0,a))
+    }
+    
+    def delete(n: Int = 1) = items.lastOption match {
+      case Some(Replace(m,a)) => AnnotationDiff(items.init :+ Replace(n+m,a))
+      case _                  => AnnotationDiff(items :+ Replace(n,new Annotations()))
+    }
+    
+    def length = items.length
+    
+    def isEmpty = items.length == 0 || items.length == 1 && items.head.isInstanceOf[Leave]
+  }
+    
+  def diff(a: List[Annotation], b: List[Annotation], c: AnnotationDiff = new AnnotationDiff()): AnnotationDiff = (a,b) match {
+    case (Nil,Nil)        => c
+    case (aa@(a::as),Nil) => c.delete(aa.length)
+    case (Nil,bb@(b::bs)) => c.insert(Annotations(bb))
+    case (a::as,b::bs) if a == b => diff(as,bs,c.leave(1))
+    case (a::as,b::bs)           => 
+      val insertStrategy = diff(a::as,bs,c.insert(b))
+      val deleteStrategy = diff(as,b::bs,c.delete(1))
+      if (insertStrategy.length <= deleteStrategy.length)
+        insertStrategy
+      else
+        deleteStrategy
   }
 }
 
@@ -60,6 +94,14 @@ case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
       case (Some(Plain(n)),Plain(m)) => Annotations(annotations.init :+ Plain(n+m))
       case (Some(Annotate(n,c)),Annotate(m,d)) if c == d => Annotations(annotations.init :+ Annotate(n+m,c))
       case _ => Annotations(annotations :+ a)
+    }
+  }
+  
+  def ++ (a: Annotations): Annotations = {
+    (annotations.lastOption, a.annotations.headOption) match {
+      case (Some(Plain(n)),Some(Plain(m))) => Annotations(annotations.init ++ (Plain(n+m) +: a.annotations.tail))
+      case (Some(Annotate(n,c)),Some(Annotate(m,d))) if c == d => Annotations(annotations.init ++ (Annotate(n+m,c) +: a.annotations.tail))
+      case _ => Annotations(annotations ++ a.annotations)
     }
   }
   
@@ -106,8 +148,10 @@ object Annotations {
         }         
       }
       case (Nil,Insert(i)::bs,xs) => loop(Nil,bs,addPlain(i.length,xs))
-      case _ => Failure(new Exception("the annotation couldn't be transformed because they haven't been applied to the same document"))
+      case _ => Failure(new Exception("the annotation couldn't be transformed because it hasn't been applied to the same document as the operation"))
     }
     loop(a.annotations,o.actions,Nil).map(as => Annotations(as.reverse))
   }
+  
+  
 }

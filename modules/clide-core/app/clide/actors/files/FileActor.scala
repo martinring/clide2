@@ -5,7 +5,7 @@ import clide.collaboration._
 import clide.models._
 import java.io.File
 import clide.actors._
-import scala.collection.mutable.Buffer
+import scala.collection.mutable.{Buffer,Map}
 import scala.util.{Failure,Success}
 import clide.Core.DB
 import clide.Core.DAL._
@@ -21,8 +21,10 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
   def file = new File(project.root + info.path.mkString(File.pathSeparator)) // TODO    
   
   var otActive = false
-  var clients = Map[ActorRef,SessionInfo]()
+  val clients = Map[ActorRef,SessionInfo]()
   var server: Server = null
+  
+  val annotations = Map[(Long,String),Annotations]()
   
   def initOt() {
     log.info("initializing ot")
@@ -69,15 +71,25 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
       }
       
     case Annotate(_,rev,as,name) =>
-      if (!otActive) initOt()      
+      if (!otActive) initOt()
       server.transformAnnotation(rev.toInt, as) match { // TODO: Ugly: rev.toInt
         case Failure(e) =>
           // TODO
           log.warning("annotation could not be transformed")
         case Success(a) =>
           log.info("annotated")
-          clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a,name))
-          sender ! AcknowledgeAnnotation
+          annotations.get((clients(sender).id,name)) match {
+            case None =>
+              annotations((clients(sender).id,name)) = a
+              clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a,name))
+              sender ! AcknowledgeAnnotation
+            case Some(old) =>
+              annotations((clients(sender).id,name)) = a
+              log.info("diff for ({},{}): {}", clients(sender).id, name, AnnotationDiff.diff(old.annotations, a.annotations))
+              clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a,name))
+              sender ! AcknowledgeAnnotation
+          }
+          
       }
       
     case Edit(_,rev,ops) =>
