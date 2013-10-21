@@ -5,6 +5,7 @@ import clide.models._
 import clide.collaboration._
 import clide.actors.Events._
 import clide.actors.Messages.{CreateProject}
+import clide.collaboration.AnnotationDiff._
 
 object Conversions {
   implicit object FileInfoWrites extends Writes[FileInfo] {
@@ -45,6 +46,18 @@ object Conversions {
       case Plain(n) => JsNumber(n)
       case Annotate(n,c) => Json.obj("l" -> n, "c" -> c)      
     }
+  }
+  
+  implicit object AnnotationDiffItemWrites extends Writes[AnnotationDiffItem] {
+    def writes(a: AnnotationDiffItem): JsValue = a match {
+      case Leave(n) => JsNumber(n)
+      case Replace(n,c) => Json.obj("l"->n,"c"->c)
+    }
+  }
+  
+  implicit object AnnotationDiffWrites extends Writes[AnnotationDiff] {
+    def writes(a: AnnotationDiff): JsValue =
+      Json.toJson(a.items)
   }
   
   implicit object AnnotationsFormat extends Format[Annotations] {
@@ -108,6 +121,7 @@ object Conversions {
     case FileOpened(i) => "opened" of i
     case Edited(file,o) => Json.obj("f"->file,"o"->o)
     case Annotated(file,user,a,name) => Json.obj("f"->file,"a"->a,"u"->user,"n"->name)
+    case AnnotationChanged(file,user,a,name) => Json.obj("f"->file,"ac"->a,"u"->user,"n"->name)
     case AcknowledgeEdit => JsString("ack_edit")
     case AcknowledgeAnnotation => JsString("ack_annotation")
     case NotAllowed => "e" of "internal error: forbidden action"

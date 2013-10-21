@@ -52,7 +52,7 @@ object AnnotationDiff {
       case _                  => AnnotationDiff(items :+ Replace(n,new Annotations()))
     }
     
-    def length = items.length
+    def weight = items.map({case Replace(_,a) => a.length; case _ => 0}).sum
     
     def isEmpty = items.length == 0 || items.length == 1 && items.head.isInstanceOf[Leave]
   }
@@ -65,7 +65,7 @@ object AnnotationDiff {
     case (a::as,b::bs)           => 
       val insertStrategy = diff(a::as,bs,c.insert(b))
       val deleteStrategy = diff(as,b::bs,c.delete(1))
-      if (insertStrategy.length <= deleteStrategy.length)
+      if (insertStrategy.weight <= deleteStrategy.weight)
         insertStrategy
       else
         deleteStrategy

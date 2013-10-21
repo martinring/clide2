@@ -14,4 +14,4 @@ case class FileInfo(
   deleted: Boolean,
   exists: Boolean,
   isDirectory: Boolean,
-  parent: Option[Long])
+  parent: Option[Long]) 

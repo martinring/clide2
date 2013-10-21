@@ -24,7 +24,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
   val clients = Map[ActorRef,SessionInfo]()
   var server: Server = null
   
-  val annotations = Map[(Long,String),Annotations]()
+  val annotations = Map[(Long,String),(Long,Annotations)]()
   
   def initOt() {
     log.info("initializing ot")
@@ -42,7 +42,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
       log.info(server.text)
       otActive = true
     }    
-  }
+  }    
   
   def receiveMessages: Receive = {
     case WithPath(Seq(),any) => receiveMessages(any)
@@ -79,17 +79,21 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
         case Success(a) =>
           log.info("annotated")
           annotations.get((clients(sender).id,name)) match {
-            case None =>
-              annotations((clients(sender).id,name)) = a
+            case None =>              
               clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a,name))
-              sender ! AcknowledgeAnnotation
-            case Some(old) =>
-              annotations((clients(sender).id,name)) = a
-              log.info("diff for ({},{}): {}", clients(sender).id, name, AnnotationDiff.diff(old.annotations, a.annotations))
-              clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a,name))
-              sender ! AcknowledgeAnnotation
-          }
-          
+            case Some((oldRev,oldA)) =>
+              server.transformAnnotation(oldRev.toInt, oldA).toOption match {
+                case None      => 
+                  log.error("couldnt transform old annotations")
+                  // TODO: Handle failure here
+                case Some(old) =>
+                  val diff = AnnotationDiff.diff(old.annotations, a.annotations)
+                  log.info("diff for ({},{}): {}", clients(sender).id, name, diff)
+                  if (!diff.isEmpty)
+                    clients.keys.filter(_ != sender).foreach(_ ! AnnotationChanged(info.id,clients(sender).id,diff,name))                  
+              }                                         
+          }          
+          annotations((clients(sender).id,name)) = (server.revision,a)
       }
       
     case Edit(_,rev,ops) =>
