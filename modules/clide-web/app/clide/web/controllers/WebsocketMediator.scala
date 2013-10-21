@@ -36,7 +36,7 @@ class WebsocketMediator extends Actor with ActorLogging {
       log.info(msg.toString())
       peer ! msg
     case Terminated(ref) =>
-      log.info("terminated")
+      log.info("terminated")      
       channel.eofAndEnd()
       context.stop(self)
   }
