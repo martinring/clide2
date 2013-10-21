@@ -10,6 +10,8 @@ class UserServer extends Actor with ActorLogging {
   import Messages._
   import Events._
   
+  var users: Seq[UserInfo] = Seq.empty
+  
   def receive = {    
     case SignUp(name,email,password) =>
       log.info("attempting to sign up")
@@ -38,10 +40,8 @@ class UserServer extends Actor with ActorLogging {
   
   override def preStart() {
     log.info("creating user actors")    
-    DB.withSession { implicit session: Session => 
-      val users = UserInfos.getAll
-      users.foreach { user => context.actorOf(Props(classOf[UserActor], user), user.name) } 
-    }
+    users = DB.withSession { implicit session: Session => UserInfos.getAll.toSeq }
+    users.foreach { user => context.actorOf(Props(classOf[UserActor], user), user.name) }
     log.info("waiting for requests")
   }
 }

@@ -40,7 +40,7 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
     
     def get(owner: String, name: String)(implicit session: Session) =
       Query(ProjectInfos).filter(_.ownerName === owner)
-                         .filter(_.name === name).elements      
+                         .filter(_.name === name).elements
       
     def get(id: Long)(implicit session: Session) =
       Query(ProjectInfos).filter(_.id === id).firstOption

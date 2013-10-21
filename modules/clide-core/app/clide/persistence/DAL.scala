@@ -19,5 +19,5 @@ class DAL(override val profile: ExtendedDriver) extends
    
   def create(implicit session: Session) {    
     tables.map(_.ddl).reduce(_++_).create
-  }
+  }  
 }

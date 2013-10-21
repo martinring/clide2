@@ -15,13 +15,13 @@ trait UserTables { this: Profile =>
     def password = column[Array[Byte]]("password")
     def *        = name ~ email ~ password <> (UserInfoWithPassword.apply _, UserInfoWithPassword.unapply _)
     
-    def get(name: String)(implicit session: Session) = 
+    def get(name: String)(implicit session: Session) =
       Query(UserInfos).filter(_.name === name).firstOption
     
     def getAll(implicit session: Session) = 
-      Query(UserInfos).elements          
+      Query(UserInfos).elements
     
-    def getByEmail(email: String)(implicit session: Session) = 
+    def getByEmail(email: String)(implicit session: Session) =
       Query(UserInfos).filter(_.email === email).firstOption
       
     def authenticate(user: UserInfo with Password)(implicit session: Session) =
@@ -29,8 +29,8 @@ trait UserTables { this: Profile =>
     
     def insert(user: UserInfo with Password)(implicit session: Session) = {
       name ~ email ~ password insert (user.name, user.email, user.password)
-    }  
-  } 
+    }
+  }
     
   object LoginInfos extends Table[LoginInfo]("logins") {
     def userName = column[String]("user")
