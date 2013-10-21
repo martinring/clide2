@@ -106,5 +106,5 @@ object ApplicationBuild extends Build {
     appVersion,
     Seq(),
     path=file("modules/clide-bundle")
-  ).dependsOn(core,isabelle,web)
+  ).dependsOn(core,isabelle,ghc,web)
 }
