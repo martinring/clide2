@@ -4,6 +4,7 @@ import clide.models._
 import akka.actor.ActorRef
 import clide.collaboration.Operation
 import clide.collaboration.Annotations
+import clide.collaboration.AnnotationDiff.AnnotationDiff
 
 object Events {
   trait Event  
@@ -55,6 +56,7 @@ object Events {
   case class FileOpened(file: OpenedFile) extends SessionEvent
   case class Edited(file: Long, op: Operation) extends SessionEvent
   case class Annotated(file: Long, user: Long, an: Annotations, name: String) extends SessionEvent
+  case class AnnotationChanged(file: Long, user: Long, an: AnnotationDiff, name: String) extends SessionEvent
   case object AcknowledgeEdit extends SessionEvent
   case object AcknowledgeAnnotation extends SessionEvent
   case class Talked(from: String, msg: String, timestamp: Long) extends SessionEvent

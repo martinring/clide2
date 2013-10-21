@@ -40,7 +40,7 @@ class UserServer extends Actor with ActorLogging {
   
   override def preStart() {
     log.info("creating user actors")    
-    users = DB.withSession { implicit session: Session => UserInfos.getAll.toSeq }
+    users = DB.withSession { implicit session: Session => UserInfos.getAll.toList }
     users.foreach { user => context.actorOf(Props(classOf[UserActor], user), user.name) }
     log.info("waiting for requests")
   }
