@@ -18,7 +18,7 @@
 // Brand colors
 // -------------------------
 
-@brand-primary:         #119900;
+@brand-primary:         #60a917;
 @brand-success:         #119900;
 @brand-warning:         #F09609;
 @brand-danger:          #F51400;
@@ -28,7 +28,7 @@
 // Scaffolding
 // -------------------------
 
-@body-bg:               #fff;
+@body-bg:               @brand-primary;
 @text-color:            @gray-dark;
 
 // Links
@@ -479,8 +479,8 @@
 @list-group-border-radius:    @border-radius-base;
 
 @list-group-hover-bg:         rgba(0,0,0,0.1);
-@list-group-active-color:     #fff;
-@list-group-active-bg:        @gray-dark;
+@list-group-active-color:     white;
+@list-group-active-bg:        @brand-primary;
 @list-group-active-border:    @list-group-active-bg;
 
 @list-group-link-color:          #555;
@@ -633,9 +633,9 @@
 @quick-transition: 0.1s;
 @fancy-transition: 0.2s;
 
-@sidebar-background: #3d3d3d;
-@sidebar-background-hover: #666;
-@sidebar-background-text: #ddd;
+@sidebar-background: #eee; // #232323;
+@sidebar-background-hover: #ddd;
+@sidebar-background-text: @text-color;
 @sidebar-foreground: white;
 @sidebar-foreground-text: @text-color;
 

@@ -27,13 +27,13 @@
 }
 
 #ribbon {
-  background-color: @sidebar-background;  
+  background-color: @gray;  
   color: @sidebar-foreground;
   bottom: 0;
   left: 0;
   padding: 6px 0 0 0;
   position: fixed;
-  top: @tabbar-height;
+  top: 0;
   width: @ribbon-width;
   z-index: 3;
 }
@@ -94,7 +94,7 @@
   .breadcrumb {
     background-color: transparent;
     padding: 0 0 2px 0;
-    margin-bottom: 4px;    
+    margin-bottom: 8px;    
     & > li + li:before {
       content: "/";
       padding: 0 0 0 3px;
@@ -108,7 +108,7 @@
     color: @sidebar-background-text;
 
     .list-group-item {      
-      padding: 2px 16px;
+      padding: 5px 16px;
       margin: 0 -16px;
 
       background-color: @sidebar-background;      
@@ -127,9 +127,9 @@
       &.active,
       &.active:hover,
       &.active:focus {        
-        color: @sidebar-foreground-text;
-        background-color: @sidebar-foreground;
-        border-color: @sidebar-foreground;
+        color: @sidebar-background-text;
+        background-color: @sidebar-background;
+        border-color: @sidebar-background;
 
         // Force color to inherit for custom content
         .list-group-item-heading {
@@ -144,7 +144,7 @@
       }
     }
     margin: 0;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
     padding: 0;
     list-style: none;
     position: relative;    
@@ -170,7 +170,7 @@
   bottom: 0;
   left: @ribbon-width;
   right: 0;
-  top: 32px;
+  top: 0;
 }
 
 
@@ -188,7 +188,8 @@
   background-color: @sidebar-background;
   color: @sidebar-foreground;
   overflow: hidden;  
-  #searchBox {    
+  //border-bottom: 1px solid @brand-primary;
+  #searchBox {
     .transition(background-color @quick-transition ease);
     position: absolute;
     top: 0;
@@ -201,7 +202,8 @@
     border: none;
     padding: 16px 16px 16px @ribbon-width + 16px;
     &:focus, &:hover {
-      background-color: @sidebar-background-hover;
+      background-color: @sidebar-foreground;
+      color: @sidebar-foreground-text;
       border: none;
       outline: none;
       .searchButton {
@@ -217,11 +219,12 @@
 }
 
 .searchButton {
+  background-color: @brand-primary;
   height: @tabbar-height;
   pointer-events: none;
   left: 0;
   line-height: @tabbar-height;
-  opacity: @ide-mute-opacity;  
+  //opacity: @ide-mute-opacity;  
   position: fixed;
   text-align: center;
   top: 0;  
