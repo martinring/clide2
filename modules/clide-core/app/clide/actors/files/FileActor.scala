@@ -44,6 +44,13 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
     }    
   }    
   
+  def resendAnnotations(receiver: ActorRef) = {
+    annotations.foreach {
+      case ((u,n),(r,a)) =>
+        receiver ! Annotated(info.id, u, server.transformAnnotation(r.toInt, a).get, n)
+    }
+  }
+  
   def receiveMessages: Receive = {
     case WithPath(Seq(),any) => receiveMessages(any)
     
@@ -58,6 +65,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
           clients += sender -> user
           context.watch(sender)
           sender ! OTState(this.info, server.text, server.revision)
+          resendAnnotations(sender)
         }
         catch {
           case e: Throwable =>
@@ -68,6 +76,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
         clients += sender -> user
         context.watch(sender)
         sender ! OTState(this.info, server.text, server.revision)
+        resendAnnotations(sender)
       }
       
     case Annotate(_,rev,as,name) =>
@@ -89,7 +98,7 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
                 case Some(old) =>
                   //val diff = AnnotationDiff.diff(old.annotations, a.annotations)
                   //log.info("diff for ({},{}): {}", clients(sender).id, name, diff)
-                  if (old.annotations != a.annotations)
+                  //if (old.annotations != a.annotations)
                     clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a,name))
                     //clients.keys.filter(_ != sender).foreach(_ ! AnnotationChanged(info.id,clients(sender).id,diff,name))                  
               }                                         

@@ -1,6 +1,6 @@
 <div id='ide' ng-class='{sidebar:sidebar||searchActive,extendedStatusbar:output}'>
   <div ng-class='{extendedStatusbar:output}'>    
-    <nav id="ribbon">
+    <nav id="ribbon" class='bgcolor-{{session.me.color}}'>
       <ul class="nav menu" ng-init='sidebarSection="files"'>
         <li title='Files' ng-click='select("files")' ng-class='{active: sidebarSection=="files"}'><i class='icon-list-ul'></i></li>
         <li title='Collaboration' ng-click='select("collab")' ng-class='{active: sidebarSection=="collab"}'><i class='icon-group'></i></li>        
@@ -12,11 +12,11 @@
       <div id="sidebarButton" ng-click='sidebar=!sidebar'><i class='icon-circle-arrow-right'></i></div>
     </nav>
     <div id="sidebarContainer">
-      <div id="search">        
+      <!--<div id="search" class='bordercolor-{{session.me.color}}'>        
         <input id="searchBox" ng-model='search.name' ng-focus='searchActive=true' ng-blur='searchActive=false'>
-          <div class="searchButton" ng-click='sidebar=true'><i class='icon-search'></i></div>
+          <div class="searchButton bgcolor-{{session.me.color}}" ng-click='sidebar=true'><i class='icon-search'></i></div>
         </input>
-      </div>
+      </div>-->
       <a id='backstageButton' title='Backstage' href='/{{session.me.user}}/backstage'><i class='icon-arrow-right'></i></a>
       <nav id="sidebar">
         <ul id="sidebarContent" class='touchScroll'>
