@@ -7,15 +7,13 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
 
   session =
     state: 'closed'
-    collaborators: null
-    openFiles: null
-    activeFileId: null
-    me: null
+    projects: null
+    otherProjects: null
 
   apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f)
 
-  get = (username, project, init) ->
-    ws = new WebSocket(pc.session(username,project).webSocketURL())
+  get = (username, init) ->
+    ws = new WebSocket(pc.backstageSession(username).webSocketURL())
     queue.push(JSON.stringify(init)) if init?
     socket = ws
     apply -> 
@@ -23,39 +21,25 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
     ws.onmessage = (e) ->
       msg = JSON.parse(e.data)
       console.log "received: ", e.data
-      switch typeof msg
-        when 'string'
-          switch msg
-            when 'ack'
-              getOpenFile(session.activeFileId).$ack()
-            else
-              Toasts.push 'danger', "internal error: unknown message: #{msg}"        
+      switch typeof msg        
         when 'object'        
           if msg.f? and msg.o?
             getOpenFile(msg.f).$apply(Operation.fromJSON(msg.o))
           switch msg.t
-            when 'e'
-              Toasts.push 'danger', msg.c
-            when 'welcome'
-              session.openFiles = { }
+            when 'projects'
               apply ->
-                session.me = msg.info
-                session.collaborators = msg.others
-            when 'opened'
-              apply -> initFile(msg.c)
-            when 'close'
+                session.projects = msg.c.own
+                session.otherProjects = msg.c.other            
+            when 'createdproject'
+              apply ->
+                if msg.c.owner is username
+                  session.projects.push(msg.c)
+                else
+                  session.otherProjects.push(msg.c)
+            when 'deletedproject'
               apply ->                
-                delete session.openFiles[msg.c]
-                session.activeFileId = null
-            when 'switch'
-              apply ->
-                session.activeFileId = msg.c
-            when 'session_changed'
-              apply ->
-                update(msg.c)
-            when 'session_stopped'
-              apply ->
-                remove(msg.c.id)
+                session.projects = session.projects.filter((p) -> p.id isnt msg.c)                
+                session.otherProjects = session.otherProjects.filter((p) -> p.id isnt msg.c)
     ws.onopen = (e) ->
       apply -> session.state = 'connected'
       console.log 'opened'
@@ -63,12 +47,10 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
         console.log 'sending: ', JSON.stringify(msg)
         ws.send(msg)
       queue = []
-    ws.onclose = (e) ->      
-      socket = undefined        
-      session.collaborators = null
-      session.openFiles = null
-      session.activeFileId = null
-      session.me = null
+    ws.onclose = (e) ->
+      socket = undefined
+      session.projects = null
+      session.otherProjects = null
       apply -> session.state = 'disconnected'
       console.log e
 
@@ -80,11 +62,10 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
       data = JSON.stringify(message)
       socket.send(data)      
 
-  return (
-    getOpenFile: getOpenFile    
+  return (    
     info: session      
-    init: (username, project, init) ->
-      socket or get(username, project, init)
+    init: (username, init) ->
+      socket or get(username, init)
       send 
         t: 'init'
     openFile: (id) -> send

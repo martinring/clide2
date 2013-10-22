@@ -9,18 +9,21 @@
             <a class='btn btn-default' ng-click='createProject()'><i class="icon-plus"></i></a>
           </div>
           </h2>
-          <p ng-show='projects.length==0' class='alert alert-info'>
+          <p ng-show='Projects.projects.length==0' class='alert alert-info'>
             You don't have any projects associated with your account yet. Get started by <a ng-click='createProject()'>creating a new project</a>.
           </p>
-          <div class='list-group' ng-show='projects.length > 0'>
-            <a ng-repeat='project in projects' context-menu="projectContextMenu(project)" class='list-group-item' ng-class='{ active: project==selectedProject }' ng-click='selectProject(project)' ng-dblclick='start()'>
+          <div class='list-group' ng-show='Projects.projects.length > 0'>
+            <a ng-repeat='project in Projects.projects' context-menu="projectContextMenu(project)" class='list-group-item' ng-class='{ active: project==selectedProject }' ng-click='selectProject(project)' ng-dblclick='start()'>
               <h4 class='list-group-item-heading'>{{project.owner}}/{{project.name}}</h4>
               <p class='list-group-item-text' ng-bind='project.description'></p>
             </a>
           </div>          
-          <h4>Collaboration</h4>
-          <div class='list-group' ng-show='otherProjects.length > 0'>
-            <a ng-repeat='project in otherProjects' context-menu="projectContextMenu(project)" class='list-group-item' ng-class='{ active: project==selectedProject }' ng-click='selectProject(project)' ng-dblclick='start()'>
+          <h4>Collaborating</h4>
+          <p ng-show='Projects.otherProjects.length==0' class='alert alert-info'>
+            You have not yet been invited to collaborate in any project.
+          </p>
+          <div class='list-group' ng-show='Projects.otherProjects.length > 0'>
+            <a ng-repeat='project in Projects.otherProjects' context-menu="projectContextMenu(project)" class='list-group-item' ng-class='{ active: project==selectedProject }' ng-click='selectProject(project)' ng-dblclick='start()'>
               <h4 class='list-group-item-heading'>{{project.owner}}/{{project.name}}</h4>
               <p class='list-group-item-text' ng-bind='project.description'></p>
             </a>

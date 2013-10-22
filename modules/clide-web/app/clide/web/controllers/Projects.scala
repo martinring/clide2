@@ -32,6 +32,20 @@ object Projects extends Controller with UserRequests with DefaultResults {
     request.askFor(username)(WithUser((request.body \ "user").as[String],Invite(name))).map(defaultResult)
   }
   
+  def backstageSession(username: String) = ActorSocket(
+      user = username,
+      message = WithUser(username,StartBackstageSession),
+      serialize = { msg => Logger.info(msg.toString); serializeEvent(msg) },
+      deserialize = { json =>        
+        (json \ "t").asOpt[String] match {
+          case Some("init") =>
+            BrowseProjects
+          case _ =>
+            Logger.warn("didn't understand: " + json.toString)
+            ForgetIt
+        }
+      })
+  
   def session(username: String, name: String) = ActorSocket(
       user = username,
       message = WithUser(username,WithProject(name,StartSession)),

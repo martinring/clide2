@@ -1,5 +1,5 @@
 ### @controller clide.controllers:BackstageController ###
-define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, Toasts, Dialog) ->  
+define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projects, Console, Auth, Toasts, Dialog, BackstageSession) ->  
   $scope.user = $routeParams.user
 
   unless Auth.loggedIn
@@ -19,15 +19,14 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
       $location.path '/login'
       Toasts.push 'warning', 'Sorry, your login session has expired! Please enter your credentials once again.'
   
+  BackstageSession.init($scope.user)
+
   $scope.selectedProject = null
 
-  $scope.selectProject = (project) ->     
-    $scope.selectedProject = project
+  $scope.Projects = BackstageSession.info
 
-  Projects.get($scope.user).then (projects) ->
-    console.log projects
-    $scope.projects = projects.userProjects
-    $scope.otherProjects = projects.collaborating
+  $scope.selectProject = (project) ->
+    $scope.selectedProject = project
 
   $scope.projectContextMenu = (project) ->
     [
@@ -45,8 +44,7 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
     ]
     buttons: ['Ok','Cancel']
     done: (answer,result) -> if answer is 'Ok'
-      Projects.put($scope.user,result).then (project) -> 
-        $scope.projects.push(project) 
+      Projects.put($scope.user,result)
 
   $scope.deleteProject = (project) -> Dialog.push
     title: "Delete project"    
@@ -54,12 +52,7 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
            "This can not be undone!"
     buttons: ['Yes','No']
     done: (answer) -> if answer is 'Yes'
-      Projects.delete($scope.user,project).then () ->
-        i = $scope.projects.indexOf(project)
-        if i >= 0
-          $scope.projects.splice(i,1)
-          if $scope.selectedProject is project
-            $scope.selectedProject = null
+      Projects.delete($scope.user,project)
 
   $scope.start = () ->
     $location.path "/#{$scope.selectedProject.owner}/#{$scope.selectedProject.name}/"
