@@ -10,6 +10,8 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
     Toasts.push 'warning', 'You need to log in to view the requested resource!'
     return
   
+  $scope.user = Auth.user
+
   Files.init($routeParams.user, $routeParams.project)
   Files.explore($scope.path)
 

@@ -46,7 +46,7 @@
     .transition(opacity @quick-transition ease);
     cursor: pointer;    
     line-height: @ribbon-width;
-    opacity: 0.4;
+    opacity: @ide-mute-opacity;
     text-align: center;
     vertical-align: middle;
     width: @ribbon-width;
@@ -62,20 +62,15 @@
 }
 
 #sidebarButton {
-  opacity: 0.6;
-  display: inline-block;
-  font-family: icon;
-  font-size: 16px;
-  width: 32px;
-  padding-bottom: 2px;
-  height: 32px;
-  text-align: center;
-  line-height: 32px;
+  opacity: @ide-mute-opacity;
+  width: @ribbon-width;
+  height: @ribbon-width;
+  line-height: @ribbon-width;    
+  text-align: center;  
   vertical-align: middle;
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
-  right: 0;
   .transition-transform(@fancy-transition ease);
   &:hover {
     opacity: 1;
@@ -110,30 +105,23 @@
     }
   }
   .section {
+    color: @sidebar-background-text;
+
     .list-group-item {      
       padding: 2px 16px;
       margin: 0 -16px;
 
       background-color: @sidebar-background;      
-      color: @sidebar-background-text;
       border: none;
+      
+      color: @sidebar-background-text;
 
-
-      // Linked list items
-      a& {
-        color: @sidebar-background-text;
-
-        .list-group-item-heading {
-          color: @list-group-link-heading-color;
-        }
-
-        // Hover state
-        &:hover,
-        &:focus {
-          text-decoration: none;
-          background-color: @sidebar-background-hover;
-        }
-      }
+      // Hover state
+      &:hover,
+      &:focus {
+        text-decoration: none;
+        background-color: @sidebar-background-hover;
+      }      
 
       // Active class on item itself, not parent
       &.active,
@@ -159,29 +147,7 @@
     margin-bottom: 8px;
     padding: 0;
     list-style: none;
-    /*opacity: 0.6;
-    -webkit-transition: opacity @quick-transition ease;*/
-    
-    position: relative;
-
-    .buttons {
-      position: absolute;
-      right: 16px;
-      top: 8px;      
-      .button {
-        font-family: icon;
-        opacity: 0.2;
-        display: inline;
-        margin-left: 4px;
-        &:hover {
-          opacity: 1;
-        }
-      }
-    }
-
-    &:hover, &.active {
-      opacity: 1;
-    }
+    position: relative;    
   }
 
   hr {
@@ -213,8 +179,7 @@
 }
 
 #search {
-  z-index: 7;
-  .transition(background-color @quick-transition ease);
+  z-index: 7;  
   position: absolute;
   left: 0;
   top: 0;
@@ -222,40 +187,41 @@
   height: @tabbar-height;  
   background-color: @sidebar-background;
   color: @sidebar-foreground;
-  border-bottom: 3px solid @sidebar-foreground;    
-  overflow: hidden;
-  #searchBox {
-    background: none;
+  overflow: hidden;  
+  #searchBox {    
+    .transition(background-color @quick-transition ease);
     position: absolute;
     top: 0;
-    left: @ribbon-width;
+    background-color: transparent;
+    left: 0;
     color: @sidebar-foreground;
     right: 0;
     bottom: 0;
     margin: 0;
     border: none;
-    padding: 16px 16px;
-    &:focus {
+    padding: 16px 16px 16px @ribbon-width + 16px;
+    &:focus, &:hover {
+      background-color: @sidebar-background-hover;
       border: none;
       outline: none;
+      .searchButton {
+        opacity: 1;
+      }
     }
   }
   &.active {
-    #searchButton {      
+    #searchButton {
       opacity: 1;
     }
   }
 }
 
-.sidebar #search, .search #search {
-  background: @sidebar-background;
-}
-
-#searchButton {
+.searchButton {
   height: @tabbar-height;
+  pointer-events: none;
   left: 0;
-  line-height: @tabbar-height - 3px;
-  opacity: 0.4;  
+  line-height: @tabbar-height;
+  opacity: @ide-mute-opacity;  
   position: fixed;
   text-align: center;
   top: 0;  

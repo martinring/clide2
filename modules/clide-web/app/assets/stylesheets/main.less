@@ -57,8 +57,20 @@ a {
 #backstageButton {
   z-index: 10000;
   position: fixed;
-  top: 3px;
-  right: 8px;
+  line-height: @tabbar-height;
+  height: @tabbar-height;
+  width: @tabbar-height;
+  vertical-align: middle;
+  text-align: center;
+  top: 0;
+  right: 0;
+  text-decoration: none;
+  color: @sidebar-background-text;
+  opacity: @ide-mute-opacity;
+  .transition(opacity @quick-transition ease);
+  &:hover {
+    opacity: 1
+  }
 }
 
 @-webkit-keyframes blink {  

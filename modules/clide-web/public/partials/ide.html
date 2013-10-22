@@ -1,4 +1,4 @@
-<div id='ide' ng-class='{sidebar:sidebar,extendedStatusbar:output}'>
+<div id='ide' ng-class='{sidebar:sidebar||searchActive,extendedStatusbar:output}'>
   <div ng-class='{extendedStatusbar:output}'>    
     <nav id="ribbon">
       <ul class="nav menu" ng-init='sidebarSection="files"'>
@@ -9,14 +9,15 @@
         <li title='Settings' ng-click='select("settings")' ng-class='{active: sidebarSection=="settings"}'><i class='icon-gear'></i></li>
         <li title='Help' ng-click='select("help")' ng-class='{active: sidebarSection=="help"}'><i class='icon-question-sign'></i></li        
       </ul>
-      <div id="sidebarButton" ng-click='sidebar=!sidebar'><i class='icon-expand'></i></div>
+      <div id="sidebarButton" ng-click='sidebar=!sidebar'><i class='icon-circle-arrow-right'></i></div>
     </nav>
     <div id="sidebarContainer">
-      <div id="search">
-        <div id="searchButton" ng-click='sidebar=true'><i class='icon-search'></i></div>
-        <input id="searchBox" ng-model='search.name'></input>
+      <div id="search">        
+        <input id="searchBox" ng-model='search.name' ng-focus='searchActive=true' ng-blur='searchActive=false'>
+          <div class="searchButton" ng-click='sidebar=true'><i class='icon-search'></i></div>
+        </input>
       </div>
-      <a id='backstageButton' title='Backstage' href='/{{user.username}}/backstage'><i class='icon-arrow-right'></i></a>
+      <a id='backstageButton' title='Backstage' href='/{{session.me.user}}/backstage'><i class='icon-arrow-right'></i></a>
       <nav id="sidebar">
         <ul id="sidebarContent" class='touchScroll'>
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>            
