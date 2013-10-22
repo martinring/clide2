@@ -6,12 +6,12 @@
     right: 0;
     height: @tabbar-height;
 
-    background-color: #ddd;
+    background-color: @sidebar-background;
 
     .user-select(none);
     
     overflow: hidden;
-    border-bottom:3px solid @gray-dark;
+    border-bottom:3px solid @sidebar-foreground;
     
     list-style: none;
     margin: 0;
@@ -30,7 +30,7 @@
       padding: 0 8px;      
 
       a{
-        color: @text-color;
+        color: @sidebar-background-text;
         text-decoration: none;
       }
 
@@ -39,14 +39,14 @@
         font-size: 14px;
       }
 
-      .transition(background @quick-transition ease);
-      &:hover { background-color: @nav-link-hover-bg; }
+      .transition(background @fancy-transition ease);
+      &:hover { background-color: @sidebar-background-hover; }
 
       &.active {
-        background: @gray-dark;
-        color: white;
+        background: @sidebar-foreground;
+        color: @sidebar-foreground-text;
         a {
-          color: white;          
+          color: @sidebar-foreground-text;          
           cursor: default;
         }
       }        

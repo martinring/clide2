@@ -27,8 +27,8 @@
 }
 
 #ribbon {
-  background-color: #ddd;  
-  color: @text-color;
+  background-color: @sidebar-background;  
+  color: @sidebar-foreground;
   bottom: 0;
   left: 0;
   padding: 6px 0 0 0;
@@ -89,13 +89,15 @@
 #sidebar {
   z-index: 2;  
   position: absolute;
-  background-color: #eee;
+  background-color: @sidebar-background;
+  color: @sidebar-background-text;
   bottom: 0;
   top: 0;
   width: @sidebar-width + @ribbon-width;
   padding: 32px 0 0 @ribbon-width;
   //.box-shadow(0 0 4px #000);
   .breadcrumb {
+    background-color: transparent;
     padding: 0 0 2px 0;
     margin-bottom: 4px;    
     & > li + li:before {
@@ -103,12 +105,52 @@
       padding: 0 0 0 3px;
       color: #cccccc;
     }
+    a {
+      color: @sidebar-background-text;
+    }
   }
   .section {
-    .list-group-item {
+    .list-group-item {      
       padding: 2px 16px;
-      margin: 0 -16px;    
+      margin: 0 -16px;
+
+      background-color: @sidebar-background;      
+      color: @sidebar-background-text;
       border: none;
+
+
+      // Linked list items
+      a& {
+        color: @sidebar-background-text;
+
+        .list-group-item-heading {
+          color: @list-group-link-heading-color;
+        }
+
+        // Hover state
+        &:hover,
+        &:focus {
+          text-decoration: none;
+          background-color: @sidebar-background-hover;
+        }
+      }
+
+      // Active class on item itself, not parent
+      &.active,
+      &.active:hover,
+      &.active:focus {        
+        color: @sidebar-foreground-text;
+        background-color: @sidebar-foreground;
+        border-color: @sidebar-foreground;
+
+        // Force color to inherit for custom content
+        .list-group-item-heading {
+          color: inherit;
+        }
+        .list-group-item-text {
+          color: lighten(@list-group-active-bg, 40%);
+        }
+      }      
       .icon-stop {
         margin-left: 3px;
       }
@@ -178,14 +220,16 @@
   top: 0;
   width: @ribbon-width + @sidebar-width;
   height: @tabbar-height;  
-  background-color: #ddd;
-  border-bottom: 3px solid @gray-dark;    
+  background-color: @sidebar-background;
+  color: @sidebar-foreground;
+  border-bottom: 3px solid @sidebar-foreground;    
   overflow: hidden;
   #searchBox {
     background: none;
     position: absolute;
     top: 0;
     left: @ribbon-width;
+    color: @sidebar-foreground;
     right: 0;
     bottom: 0;
     margin: 0;
@@ -204,7 +248,7 @@
 }
 
 .sidebar #search, .search #search {
-  background: #fff;
+  background: @sidebar-background;
 }
 
 #searchButton {

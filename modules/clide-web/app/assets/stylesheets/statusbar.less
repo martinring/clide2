@@ -3,7 +3,8 @@
   bottom: 0;
   left: @ribbon-width + @sidebar-width;
   right: 0;
-  background: @gray-lighter;
+  background: @sidebar-background;
+  color: @sidebar-background-text;
   height: @statusbar-height;  
   .buttons {
     position: absolute;
@@ -18,11 +19,11 @@
       display: inline-block;
       padding: 0 4px;
       &:hover {
-        background-color: white;
+        background-color: @sidebar-background-hover;
       }
       &.active {
-        color: white;
-        background-color: @accent;
+        color: @sidebar-foreground-text;
+        background-color: @sidebar-foreground;
       }
     }
     li.separator {
@@ -61,8 +62,8 @@
     bottom: 0;
     left: 0;
     right: 0;    
-    border-top: 3px solid @accent;
-    background-color: white;
+    border-top: 3px solid @sidebar-foreground;
+    background-color: @sidebar-foreground;
   }
 }
 
