@@ -6,10 +6,12 @@
     right: 0;
     height: @tabbar-height;
 
+    background-color: #ddd;
+
     .user-select(none);
     
     overflow: hidden;
-    border-bottom:3px solid @brand-primary;
+    border-bottom:3px solid @gray-dark;
     
     list-style: none;
     margin: 0;
@@ -41,7 +43,7 @@
       &:hover { background-color: @nav-link-hover-bg; }
 
       &.active {
-        background: @brand-primary;
+        background: @gray-dark;
         color: white;
         a {
           color: white;          

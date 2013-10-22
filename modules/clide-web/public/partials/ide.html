@@ -133,20 +133,21 @@
               </div>
             </div>
             <div class='form-group'>
-              Base Font Family
-              <select ng-model='editorFont' class='form-control'>
-                <option value='Inconsolata'>Inconsolata (default)</option>
-                <optgroup label='Monospaced Fonts'>                
-                  <option ng-repeat='font in fonts.monospace' value='{{font}}'>{{font}}</option>
-                </optgroup>
-                <optgroup label='Mathematical Fonts'>
-                  <option ng-repeat='font in fonts.math' value='{{font}}'>{{font}}</option>
-                </optgroup>
-              </select>
+              Base Font Family:
+              <div style='position:relative'>
+                <button class='btn btn-default btn-block dropdown-toggle' data-toggle='dropdown' style='font-family:{{editorFont}}'>{{editorFont}}</button>
+                <ul class="dropdown-menu" role='menu'>
+                  <li role='presentation' class='dropdown-header'>Monospaced Fonts</li>
+                  <li ng-repeat='font in fonts.monospace' class='menu-item' role='presentation'><a role='menuitem' ng-click="setFont(font)" style='font-family:{{font}};font-weight:normal'>{{font}}</a></li>
+                  <li role="presentation" class="divider"></li>
+                  <li role='presentation' class='dropdown-header'>Mathematical Fonts</li>
+                  <li ng-repeat='font in fonts.math' class='menu-item' role='presentation'><a role='menuitem' ng-click="setFont(font)" style='font-family:{{font}}; font-weight:normal'>{{font}}</a></li>
+                </ul>
+              </div>
             </div>
             <div class='form-group'>
-              Font Size
-              <input type='number' ng-model='editorFontSize' class='form-control'/>
+              Font Size: <span class='text-muted pull-right'>{{editorFontSize}}px</span>
+              <input type='range' min='6' max='32' ng-model='editorFontSize' class='form-control'/>
             </div>
           </li>
           <li class="section" id='section-settings' ng-class='{active: sidebarSection=="settings"}' ng-click='sidebarSection="settings"'>

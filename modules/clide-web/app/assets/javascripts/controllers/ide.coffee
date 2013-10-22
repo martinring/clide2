@@ -67,6 +67,9 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   $scope.setColor = (color) ->
     Session.setColor(color)
 
+  $scope.setFont = (font, where) ->
+    $scope.editorFont = font
+
   $scope.closeFile = (id) ->
     Session.closeFile(id)
     

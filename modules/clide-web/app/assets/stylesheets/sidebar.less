@@ -14,6 +14,7 @@
 #content {  
   bottom: @statusbar-height;
   left: @sidebar-width + @ribbon-width;
+  background-color: #ccc;
   overflow: hidden;
   position: absolute;
   right: 0;
@@ -86,17 +87,6 @@
 }
 
 #sidebar {
-  .form-control {
-    color: @input-color;
-    background-color: #fff;
-    border-color: #fff;
-    .form-control-focus();
-    &[disabled],
-    &[readonly],
-    fieldset[disabled] & {
-      background-color: @gray-lighter;
-    }
-  }
   z-index: 2;  
   position: absolute;
   background-color: #eee;
@@ -115,31 +105,12 @@
     }
   }
   .section {
-    .command {      
-      margin-right: 14px;
-      float: right;
-      color: black;
-      opacity: 0.9;
-      &:hover {
-        opacity: 1;
-      }
-    }
     .list-group-item {
       padding: 2px 16px;
       margin: 0 -16px;    
       border: none;
       .icon-stop {
         margin-left: 3px;
-      }
-      &.active {        
-        padding-left: 8px;
-        color: @text-color;
-        border-left: 8px solid @brand-primary;
-        background-color: transparent;
-        &:hover,
-        &:focus {          
-          background-color: @list-group-hover-bg;
-        }
       }
     }
     margin: 0;
@@ -180,61 +151,6 @@
     color: @text-color;
     display: block;
   }  
-
-  .commandGroup {
-    list-style: none;
-    width: 100%;
-    padding: 0;
-    margin: 16px 0 0 0;
-
-    &:first-child {
-      margin: 0;
-    }
-
-    li.command {
-      color: @text-color;
-      display: block;
-      height: 28px;
-      padding: 0px 16px;            
-      position: relative;
-      .transition(background-color @quick-transition ease);
-
-      .icon {        
-        float: left;
-        font-family: icon;        
-        width: 20px;
-        vertical-align: middle;
-        text-align: center;
-        height: 28px;    
-      }
-      
-      .title {        
-        margin-left: 28px;        
-        margin-top: 4px;
-        vertical-align: middle;
-        .name {       
-          line-height: 28px;   
-        }
-      }
-
-      &:hover {
-        text-decoration: none;
-        background-color: @gray-light;
-      } 
-
-      &.selected {        
-        border-left: 8px solid @accent;        
-        padding-left: 8px;
-      }
-
-      li::before, li::after {
-        display: table;
-        content: "";
-      }
-    }
-
-  }
-
 }
 
 #sidebarContent {
@@ -263,7 +179,7 @@
   width: @ribbon-width + @sidebar-width;
   height: @tabbar-height;  
   background-color: #ddd;
-  border-bottom: 3px solid @accent;    
+  border-bottom: 3px solid @gray-dark;    
   overflow: hidden;
   #searchBox {
     background: none;

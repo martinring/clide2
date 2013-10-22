@@ -15,8 +15,7 @@ require.config
 
 require ['app','util/fonts'], (app) ->
   app.run ($rootScope, Session, Files) ->
-    $rootScope.$on '$routeChangeSuccess', (e,n,o) ->
-      $rootScope.ide   = n.$$route.ide
+    $rootScope.$on '$routeChangeSuccess', (e,n,o) ->      
       $rootScope.title = n.$$route.title
       unless n.$$route.ide
         Files.close()
