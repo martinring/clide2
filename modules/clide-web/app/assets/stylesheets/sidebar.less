@@ -27,6 +27,7 @@
 
 #ribbon {
   background-color: #ddd;  
+  color: @text-color;
   bottom: 0;
   left: 0;
   padding: 6px 0 0 0;
@@ -98,7 +99,7 @@
   }
   z-index: 2;  
   position: absolute;
-  background-color: #ececec;
+  background-color: #eee;
   bottom: 0;
   top: 0;
   width: @sidebar-width + @ribbon-width;
@@ -260,9 +261,9 @@
   left: 0;
   top: 0;
   width: @ribbon-width + @sidebar-width;
-  height: @tabbar-height;
-  border-bottom: 3px solid @accent;
-  background: #ccc;
+  height: @tabbar-height;  
+  background-color: #ddd;
+  border-bottom: 3px solid @accent;    
   overflow: hidden;
   #searchBox {
     background: none;
@@ -280,14 +281,14 @@
     }
   }
   &.active {
-    #searchButton {
+    #searchButton {      
       opacity: 1;
     }
   }
 }
 
 .sidebar #search, .search #search {
-  background: white;
+  background: #fff;
 }
 
 #searchButton {
@@ -297,22 +298,11 @@
   opacity: 0.4;  
   position: fixed;
   text-align: center;
-  top: 0;
+  top: 0;  
   vertical-align: middle;
   width: @ribbon-width;
   z-index: 8;
   &:hover {
     opacity: 1;
   }
-}
-  
-.tab-content {
-  position: fixed;
-  z-index: 1;
-  background-color: #fff;
-  padding: 0;
-  left: @ribbon-width;
-  right: 0;
-  top: 32px;
-  bottom: 0px;  
 }

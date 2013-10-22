@@ -1,75 +1,61 @@
 .tabs {  
   ul.headers {  
-    cursor: default;
-    .user-select(none);
-    position: absolute;    
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: @tabbar-height;
+
+    .user-select(none);
+    
     overflow: hidden;
-    border-bottom:3px solid @accent;
-    padding-left: 4px;
+    border-bottom:3px solid @brand-primary;
+    
     list-style: none;
     margin: 0;
     padding: 0;
+
     li {      
-      vertical-align: middle;
-      line-height: @tabbar-height;
       float: left;
+
+      vertical-align: middle;
+      line-height: @tabbar-height;      
       height: @tabbar-height;
+
       width: auto;
       max-width: 200px;
-      padding: 0 6px 0 8px;
-      background: #ddd;
-      color: #777;
-      .transition(background @quick-transition ease);      
+
+      padding: 0 8px;      
+
+      a{
+        color: @text-color;
+        text-decoration: none;
+      }
+
       .close {
         float: none;
-        color: inherit;
-        line-height: 26px;
-        vertical-align: middle;
-        cursor: pointer;
-        padding-left: 4px;
-        display: inline-block;        
-        font-family: icon;
-        font-size: 16px;
-        opacity: 0.5;
-        .transition(opacity @quick-transition ease);
-        &:hover {
-          opacity: 1;
-        }
+        font-size: 14px;
       }
-      &:hover {
-        background-color: white;        
-      }
+
+      .transition(background @quick-transition ease);
+      &:hover { background-color: @nav-link-hover-bg; }
+
       &.active {
+        background: @brand-primary;
         color: white;
         a {
-          color: white;
-          text-decoration: none;
+          color: white;          
+          cursor: default;
         }
-        background: @brand-primary;
       }        
     }
   }
 
   .content {
     position: absolute;
-    top: 32px;
+    top: @tabbar-height;
     bottom: 0;
     left: 0;
-    right: 0;
-    .tab {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      visibility: hidden;
-      &.active {
-        visibility: visible;
-      }
-    }
+    right: 0;    
   }
 }

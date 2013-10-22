@@ -165,7 +165,7 @@
             <li ng-repeat='file in session.openFiles' ng-class='{active: session.me.activeFile==file.id}' ng-show='session.state=="connected"'>
               <i class='icon-stop icon-fixed-width color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id}' title='{{user.user}}'></i>
               <a ng-click='openFile(file.id)'>{{file.name}}</a>
-              <button type="button" class="close" ng-click='closeFile(file.id)' aria-hidden="true">&times;</button>
+              <button type="button" class="close" aria-hidden="true" ng-click='closeFile(file.id)'>&times;</button>
             </li>
           </ul>
           <div ng-show='session.state=="connected" && session.activeDoc()' class="content {{session.me.color}}">
