@@ -85,25 +85,24 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
         case Failure(e) =>
           // TODO
           log.warning("annotation could not be transformed")
-        case Success(a) =>
+        case Success(as) =>
           log.info("annotated")
           annotations.get((clients(sender).id,name)) match {
             case None =>              
-              clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a,name))
             case Some((oldRev,oldA)) =>
               server.transformAnnotation(oldRev.toInt, oldA).toOption match {
                 case None      => 
-                  log.error("couldnt transform old annotations")
+                  log.error("couldnt transform old annotations")                  
                   // TODO: Handle failure here
                 case Some(old) =>
                   //val diff = AnnotationDiff.diff(old.annotations, a.annotations)
                   //log.info("diff for ({},{}): {}", clients(sender).id, name, diff)
-                  //if (old.annotations != a.annotations)
-                    clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,a,name))
+                  //if (old.annotations != a.annotations)                    
                     //clients.keys.filter(_ != sender).foreach(_ ! AnnotationChanged(info.id,clients(sender).id,diff,name))                  
               }                                         
           }          
-          annotations((clients(sender).id,name)) = (server.revision,a)
+          clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,as,name))
+          annotations((clients(sender).id,name)) = (server.revision,as)
       }
       
     case Edit(_,rev,ops) =>

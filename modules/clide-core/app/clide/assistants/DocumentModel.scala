@@ -20,7 +20,8 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   import DocumentModel._ 
   
   private var info: FileInfo = null
-  private var rev: Long     = 0
+  private var headRev: Long = 0
+  private var rev: Long     = 0  
   private var doc: Document = Document("")
   private var pending: Option[Operation] = None
   private val annotations = Map[String,Option[Annotations]]()
@@ -40,6 +41,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
      
   private def flush() = {
     pending.foreach { op =>
+      rev = headRev
       doc = doc(op).get      
       pending = None
       changed(op)
@@ -53,7 +55,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
     
     {
       case Change(change) =>
-        rev += 1
+        headRev += 1
 		pending = Some(pending.fold(change)(a => Operation.compose(a, change).get))
 		flushTimeout.foreach(_.cancel)		
 		flushTimeout = Some {  // TODO: Move timing to config
@@ -95,6 +97,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   def receive = {
     case Init(init) =>
       rev  = init.revision
+      headRev = rev
       doc  = Document(init.state)
       info = init.info
       initialize()

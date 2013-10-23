@@ -53,36 +53,41 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
          name -> perspective)
   }
   
-  def opToEdits(operation: Operation): List[Document.Edit_Text] = {    
+  def opToEdits(operation: Operation): List[Text.Edit] = operation.actions.foldLeft((0,Nil: List[Text.Edit])) {
+    case ((i,edits),Retain(n)) => (i+n,edits)
+    case ((i,edits),Delete(n)) => (i+n,Text.Edit.remove(i,Seq.fill(n)('-').mkString) :: edits)
+    case ((i,edits),Insert(s)) => (i+s.length,Text.Edit.insert(i,s) :: edits)
+  }._2.reverse // TODO: Do we need to reverse???
+  
+  def opToDocumentEdits(operation: Operation): List[Document.Edit_Text] = {    
     val name = nodeName
-    val (_,edits) = operation.actions.foldLeft((0,Nil : List[Text.Edit])) { 
-      case ((i,edits),Retain(n)) => (i+n,edits)
-      case ((i,edits),Delete(n)) => (i+n,Text.Edit.remove(i,Seq.fill(n)('-').mkString) :: edits)
-      case ((i,edits),Insert(s)) => (i+s.length,Text.Edit.insert(i,s) :: edits)
-    }
+    val edits = opToEdits(operation)
     List(session.header_edit(name, nodeHeader),
-      name -> Document.Node.Edits(edits.reverse), // TODO: reverse needed??
+      name -> Document.Node.Edits(edits),
       name -> perspective)
   }
   
   def annotate: List[(String,Annotations)] = {
-    List("highlighting"  -> IsabelleMarkup.highlighting(nodeHeader,session.snapshot(nodeName,Nil)),
+    List("highlighting"  -> IsabelleMarkup.highlighting(nodeHeader,snapshot),
          "substitutions" -> IsabelleMarkup.substitutions(state))
-  }   
-  
-  def changed(op: Operation) {
-    val edits = opToEdits(op)
-    log.info("sending edits: {}", edits)
-    session.update(edits)    
-    self ! DocumentModel.Refresh
   }
+  
+  def changed(op: Operation) {     
+    val edits = opToDocumentEdits(op)    
+    log.info("sending edits: {}", edits)
+    session.update(edits)
+  }
+      
+  var snapshot: Document.Snapshot = null  
   
   def initialize() {
     log.info("name: {}, header: {}", nodeName, nodeHeader)
     session.update(initEdits)
     session.commands_changed += { change =>
-      if (change.nodes.contains(nodeName))      
-    	self ! DocumentModel.Refresh
-    }
+      snapshot = session.snapshot(nodeName, Nil)      
+      if ((change.nodes.contains(nodeName) &&
+          change.commands.exists(snapshot.node.commands.contains)))
+        self ! DocumentModel.Refresh
+    }    
   }
 }
