@@ -11,18 +11,18 @@ import isabelle.XML
 
 object IsabelleMarkup {
   def annotations(xml: XML.Tree, c: Option[Map[String,String]] = None): List[Annotation] = xml match {
-    case XML.Wrapped_Elem(markup, body, body2) =>
-      markup.name match {
+    case XML.Wrapped_Elem(markup, body, body2) =>      
+      markup.name match {        
         case Markup.ERROR | Markup.BAD =>
-          body2.flatMap(annotations(_,Some(Map("e"->XML.content(body)))))
+          body2.flatMap(annotations(_,Some(Map("c"->"error","e"->XML.content(body)))))
         case Markup.WARNING =>
-          body2.flatMap(annotations(_,Some(Map("w"->XML.content(body)))))
+          body2.flatMap(annotations(_,Some(Map("c"->"warning","w"->XML.content(body)))))
         case Markup.WRITELN =>
-          body2.flatMap(annotations(_,Some(Map("i"->XML.content(body)))))
+          body2.flatMap(annotations(_,Some(Map("c"->"writeln","i"->XML.content(body)))))
         case Markup.INFORMATION =>
-          body2.flatMap(annotations(_,Some(Map("i"->XML.content(body)))))
+          body2.flatMap(annotations(_,Some(Map("c"->"info","i"->XML.content(body)))))
         case Markup.TYPING =>
-          body2.flatMap(annotations(_,Some(Map("t"->XML.content(body)))))
+          body2.flatMap(annotations(_,Some(Map("c"->"typing","t"->XML.content(body)))))
         case other =>
           println("unhandled " + other + ": " + body)
           body2.flatMap(annotations(_))
@@ -32,14 +32,14 @@ object IsabelleMarkup {
         case Markup.COMMAND => Some(Map("c"->"command"))
         case Markup.KEYWORD  | 
              Markup.KEYWORD1 | 
-             Markup.KEYWORD2 => Some(Map("c" -> "keyword"))        
+             Markup.KEYWORD2 => Some(Map("c" -> "keyword"))
         case Markup.STRING  => Some(Map("c" -> "string"))
         case Markup.COMMENT => Some(Map("c" -> "comment"))
         case Markup.TFREE => Some(Map("c" -> "tfree"))
         case Markup.BOUND => Some(Map("c" -> "bound"))
         case Markup.FREE => Some(Map("c" -> "free"))
         case Markup.TVAR => Some(Map("c" -> "tvar"))
-        case Markup.SKOLEM => Some(Map("c" -> "skolem"))        
+        case Markup.SKOLEM => Some(Map("c" -> "skolem"))
         case Markup.BAD | Markup.ERROR => Some(Map("c" -> "error"))
         case Markup.WARNING => Some(Map("c" -> "warning"))
         case Markup.ENTITY  => Some(Map("c" -> "entity"))
