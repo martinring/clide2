@@ -71,7 +71,7 @@
     &.warning {
       border-left-color: @brand-warning;
     }
-    &.info {
+    &.info, &.writeln {
       border-left-color: @brand-info;
     }
   }
@@ -236,18 +236,15 @@
   }
 
   span.error, span.bad {
-    background-color: fade(@brand-danger,50%)
+    border-bottom: 1px dotted @brand-danger;    
   }
 
-  span.warning{  
-    background-color:  @brand-warning;    
+  span.warning {  
+    border-bottom: 1px dotted @brand-warning;    
   }
 
-  span.substitution {
-    &.caligraphic { font-family: Caligraphic }
-    &.fraktur     { font-family: Fraktur }
-    &.number      { font-family: Caligraphic }
-    &.ams         { font-family: AMS }
+  span.info, span.writeln {  
+    border-bottom: 1px dotted @brand-info;    
   }
 }
   

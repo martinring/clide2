@@ -91,6 +91,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
           widget = document.createElement("div")
           widget.setAttribute('class','outputWidget error')
           widget.innerText = c.e
+          widget.title = c.t if c.t?
           widget = cm.addLineWidget from.line, widget
           @annotations[user.id][name].push widget
       if c.w?
@@ -98,6 +99,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
           widget = document.createElement("div")
           widget.setAttribute('class','outputWidget warning')
           widget.innerText = c.w
+          widget.title = c.t if c.t?
           widget = cm.addLineWidget from.line, widget
           @annotations[user.id][name].push widget
       if c.i?
@@ -105,6 +107,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
           widget = document.createElement("div")
           widget.setAttribute('class','outputWidget info')
           widget.innerText = c.i
+          widget.title = c.t if c.t?
           widget = cm.addLineWidget from.line, widget
           @annotations[user.id][name].push widget
       if c.c?
@@ -113,12 +116,17 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             widget = document.createElement("span")
             widget.setAttribute('class', c.c)
             widget.innerText = c.s
+            widget.title = c.t if c.t?
             marker = @doc.markText from, to,
               replacedWith: widget
-              className: c.c
+              handleMouseEvents: true
+              className:    c.c
+              title:        c.t
           else
             marker = @doc.markText from, to,
               className: c.c
+              title:     c.t
+          console.log marker
           @annotations[user.id][name].push marker
         else
           widget = document.createElement("span")
@@ -128,7 +136,10 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             insertLeft: true
           @annotations[user.id][name].push bookmark
 
-    resetAnnotations: (user, name) => 
+    @registerMouseEvents: (doc) =>
+      
+
+    resetAnnotations: (user, name) => if user?
       unless @annotations[user.id]?
         @annotations[user.id] = {}
       existing = @annotations[user.id][name]
