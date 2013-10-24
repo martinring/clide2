@@ -16,7 +16,7 @@
     <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-animate.js'></script>
     <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-resource.js'></script>
     <script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.6.0/ui-bootstrap.min.js'></script>
-    @helper.requireJs(core=routes.Assets.at("javascripts/require.js").url, module=routes.Assets.at("javascripts/main").url)
+    <script type="text/javascript" src='@routes.Assets.at("javascripts/require.js")' data-main='@routes.Assets.at("javascripts/main")'></script>    
   </head>
   <body ng-controller='AppController'>
     <div id='loading' class='dialogOuterContainer'>
