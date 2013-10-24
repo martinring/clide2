@@ -20,14 +20,15 @@
   right: 0;
   top: 0;
   z-index: 0;
-  .transition(bottom ease @fancy-transition);
+  .transition(bottom @fancy-transition ease );
   &.resizing {
     .transition(none);
   }
 }
 
 #ribbon {
-  background-color: @gray;  
+  .transition(background-color @fancy-transition ease )
+  background-color: @gray;
   color: @sidebar-foreground;
   bottom: 0;
   left: 0;
@@ -43,7 +44,7 @@
   margin: 0;
   padding: 0;
   li {    
-    .transition(opacity @quick-transition ease);
+    .transition(opacity @quick-transition ease );
     cursor: pointer;    
     line-height: @ribbon-width;
     opacity: @ide-mute-opacity;
