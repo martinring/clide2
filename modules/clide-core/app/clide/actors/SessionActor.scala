@@ -40,7 +40,7 @@ class SessionActor(
   def setActive(value: Boolean) = DB.withSession { implicit session: Session =>
     this.session = this.session.copy(active = value)            
     SessionInfos.update(this.session)
-    context.parent ! SessionChanged(this.session)    
+    context.parent ! SessionChanged(this.session)
     this.session
   }
   
@@ -90,9 +90,9 @@ class SessionActor(
       context.watch(peer)
       peer ! EventSocket(self,"session")
     case LeaveSession | EOF =>
-      setActive(false)
+      setActive(false)      
       peer = context.system.deadLetters
-      context.unwatch(sender) 
+      context.unwatch(sender)      
     case CloseSession =>
       context.unwatch(peer)
       peer = context.system.deadLetters 

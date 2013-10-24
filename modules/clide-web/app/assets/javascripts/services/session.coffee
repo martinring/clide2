@@ -108,9 +108,8 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         when 'object'        
           if msg.f? and msg.o?
             getOpenFile(msg.f).$apply(Operation.fromJSON(msg.o))
-          else if msg.f? and msg.a?
-            user = null            
-            getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),getUser(msg.u),msg.n)
+          else if msg.f? and msg.a? and (user = getUser(msg.u))?
+            getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),user,msg.n)
           switch msg.t
             when 'e'
               Toasts.push 'danger', msg.c

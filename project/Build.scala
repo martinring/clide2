@@ -14,6 +14,7 @@ object ApplicationBuild extends Build {
     akka.actor,
     akka.remote,
     akka.kernel,
+    akka.testkit,
     spray.json,
     scala.reflect,
     slick,h2,slf4j)
@@ -47,8 +48,8 @@ object ApplicationBuild extends Build {
   ).dependsOn(core).settings(Angular.defaultSettings:_*)  
   .settings(
     scalaVersion := scala.version,
-    requireJs += "main.js",
-    requireJsShim += "main.js",
+    //requireJs += "main.js",
+    //requireJsShim += "main.js",
     Angular.otherModules ++= Map(
         "angular-animate"  -> "ngAnimate",
         "angular-cookies"  -> "ngCookies",
