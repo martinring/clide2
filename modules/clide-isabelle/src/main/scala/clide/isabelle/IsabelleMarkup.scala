@@ -8,12 +8,13 @@ import isabelle.Document
 import isabelle.Markup
 import isabelle.Symbol
 import isabelle.XML
+import isabelle.HTML
 
 object IsabelleMarkup {
   def annotations(xml: XML.Tree, c: Option[Map[String,String]] = None): List[Annotation] = xml match {
     case XML.Wrapped_Elem(markup, body, body2) =>      
       markup.name match {        
-        case Markup.ERROR | Markup.BAD =>
+        case Markup.ERROR | Markup.BAD => 
           body2.flatMap(annotations(_,Some(Map("c"->"error","e"->XML.content(body)))))
         case Markup.WARNING =>
           body2.flatMap(annotations(_,Some(Map("c"->"warning","w"->XML.content(body)))))

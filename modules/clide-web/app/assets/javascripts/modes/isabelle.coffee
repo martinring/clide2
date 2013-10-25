@@ -1,4 +1,4 @@
-define ['modes/isabelle/defaultWords'], (defaultWords) ->
+define ['modes/isabelle/defaultWords','codemirror'], (defaultWords) ->
   CodeMirror.defineMode "isabelle", (config,parserConfig) ->
     parserConfig = parserConfig or { }
     parserConfig.words = parserConfig.words or defaultWords
@@ -166,6 +166,9 @@ define ['modes/isabelle/defaultWords'], (defaultWords) ->
         tokenize:      tokenBase
         command:       null
         commentLevel:  0
+
+      blockCommentStart: '(*'
+      blockCommentEnd:   '*)'      
 
       token: (stream,state) ->      
         if stream.eatSpace()

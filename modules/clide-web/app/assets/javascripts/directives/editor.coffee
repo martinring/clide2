@@ -1,8 +1,9 @@
 ### @directive directives:editor ###
-define ['routes','codemirror','codemirror-hs','codemirror-hint','modes/isabelle'], (routes) ->   
+define ['routes','codemirror','modes/isabelle'], (routes) ->   
   # TODO: Move somewhere else...    
   CodeMirror.commands.autocomplete = (cm) ->
     CodeMirror.showHint(cm)
+
   () ->      
     restrict: 'E'
     transclude: true
@@ -11,6 +12,7 @@ define ['routes','codemirror','codemirror-hs','codemirror-hint','modes/isabelle'
 
     scope: 
       document:    '&'
+      tabSize:     '&'      
       lineNumbers: '&'
       readOnly:    '&'
       fontSize:    '&'
@@ -21,7 +23,11 @@ define ['routes','codemirror','codemirror-hs','codemirror-hint','modes/isabelle'
 
       cm = CodeMirror.fromTextArea iElem[0],
         undoDepth:   0 # disable
-        extraKeys: 'Ctrl-Space': 'autocomplete'
+        indentWithTabs: false
+        tabSize: 2
+        extraKeys: 
+          'Ctrl-Space':   'autocomplete'
+          'Shift-Ctrl-C': 'toggleComment'          
 
       scope.$watch 'lineNumbers()', (n,o) ->      
         cm.setOption('lineNumbers', n)
@@ -34,10 +40,12 @@ define ['routes','codemirror','codemirror-hs','codemirror-hint','modes/isabelle'
         cm.getWrapperElement().style.fontFamily = n
         cm.refresh()
 
-      scope.$watch 'fontSize()', (n,o) ->
-        console.log n
+      scope.$watch 'fontSize()', (n,o) ->        
         cm.getWrapperElement().style.fontSize = n + 'pt'
         cm.refresh()
+
+      scope.$watch 'tabSize()', (n,o) ->
+        cm.setOption('tabSize',n or 2)
             
       scope.$watch 'document()', (n,o) ->       
         if n? then cm.swapDoc(n) else cm.swapDoc(CodeMirror.Doc(""))    

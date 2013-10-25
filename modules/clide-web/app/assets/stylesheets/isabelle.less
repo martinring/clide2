@@ -288,14 +288,7 @@ div.gutter-state-warning {
 
 */
 
-.outputWidget {  
-  height: auto;
-  visibility: visible;  
-}
-
 .outputWidget {
-  &.error, &.failed, &.warning {
-    height: auto;
-    visibility: visible;
-  }
+  .user-select(auto);
+  margin-top: 2px;
 }
