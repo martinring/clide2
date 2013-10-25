@@ -29,11 +29,6 @@ object IsabelleMarkup {
       }                      
     case XML.Elem(markup, body) =>      
       val c2 = markup.name match {
-        case Markup.COMMAND => Some(Map("c"->"command"))
-        case Markup.KEYWORD  | 
-             Markup.KEYWORD1 | 
-             Markup.KEYWORD2 => Some(Map("c" -> "keyword"))
-        case Markup.STRING  => Some(Map("c" -> "string"))
         case Markup.COMMENT => Some(Map("c" -> "comment"))
         case Markup.TFREE => Some(Map("c" -> "tfree"))
         case Markup.BOUND => Some(Map("c" -> "bound"))
@@ -43,7 +38,6 @@ object IsabelleMarkup {
         case Markup.BAD | Markup.ERROR => Some(Map("c" -> "error"))
         case Markup.WARNING => Some(Map("c" -> "warning"))
         case Markup.ENTITY  => Some(Map("c" -> "entity"))
-        case Markup.VERBATIM => Some(Map("c"->"verbatim"))
         case other          => None
       }
       val n = (c,c2) match {
