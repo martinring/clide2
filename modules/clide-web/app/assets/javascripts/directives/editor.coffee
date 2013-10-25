@@ -1,5 +1,5 @@
 ### @directive directives:editor ###
-define ['routes','codemirror','codemirror-hs','codemirror-hint'], (routes) ->   
+define ['routes','codemirror','codemirror-hs','codemirror-hint','modes/isabelle'], (routes) ->   
   # TODO: Move somewhere else...    
   CodeMirror.commands.autocomplete = (cm) ->
     CodeMirror.showHint(cm)

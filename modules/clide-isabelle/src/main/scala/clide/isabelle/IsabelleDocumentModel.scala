@@ -73,7 +73,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   }
   
   def changed(op: Operation) {     
-    val edits = opToDocumentEdits(op)    
+    val edits = opToDocumentEdits(op)
     log.info("sending edits: {}", edits)
     session.update(edits)
   }
