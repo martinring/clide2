@@ -51,7 +51,7 @@ class IsabelleAssistantSession(project: ProjectInfo) extends AssistantSession(pr
     session.raw_output_messages += { msg =>
       log.info("OUTPUT: {}", XML.content(msg.body))
     }
-    session.start(List("HOL"))    
+    session.start(List("-S","HOL"))    
   }
   
   def fileAdded(file: OpenedFile) {
