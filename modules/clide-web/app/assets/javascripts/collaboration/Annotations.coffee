@@ -30,7 +30,7 @@ define ['collaboration/Operation'], (Operation) ->
       unless n < 0
         @length += n        
         if isAnnotate(@annotations[@annotations.length - 1]) and @annotations[@annotations.length - 1].c == o
-          @annotations[@annotations.length - 1].l += str
+          @annotations[@annotations.length - 1].l += n
         else
           @annotations.push
             l: n
