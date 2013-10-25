@@ -28,7 +28,7 @@
 // Scaffolding
 // -------------------------
 
-@body-bg:               #335566;
+@body-bg:               #fff;
 @text-color:            @gray-dark;
 
 // Links
@@ -633,10 +633,10 @@
 @quick-transition: 0.1s;
 @fancy-transition: 0.2s;
 
-@sidebar-background: #eee; // #232323;
-@sidebar-background-hover: #ddd;
-@sidebar-background-text: @text-color;
-@sidebar-foreground: white;
+@sidebar-background: #383c40; // #232323;
+@sidebar-background-text: spin(#fff - @text-color, 180);
+@sidebar-background-hover: mix(@sidebar-background-text,@sidebar-background,25%);
+@sidebar-foreground: @body-bg;
 @sidebar-foreground-text: @text-color;
 
 @ide-mute-opacity: 0.5;

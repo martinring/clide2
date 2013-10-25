@@ -89,13 +89,15 @@ a {
   top: 0 !important;
   bottom: 0 !important;
   height: auto !important;    
-  padding-left: 8px;
+  padding-left: 8px;  
+  background-color: @body-bg;
+  color: @text-color;
   .CodeMirror-linenumber {
     color: #ccc;
   }
   .CodeMirror-gutters {
     border-right: none;
-    background-color: white;
+    background-color: @body-bg;
   }
   .cm-keyword {
     color: blue !important;  
@@ -225,7 +227,7 @@ a {
 }
 
 .bordercolor-red {
-  
+
   border-color: #e51400 !important;
 }
 
