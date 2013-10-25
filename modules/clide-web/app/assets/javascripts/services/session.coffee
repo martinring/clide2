@@ -148,6 +148,11 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         console.log 'sending: ', JSON.stringify(msg)
         ws.send(msg)
       queue = []
+      CodeMirror.registerHelper "hint", (e...) -> 
+        console.log e...
+        return (
+          showHint: () -> console.log 'hn'
+        )
     ws.onclose = ws.onerror = (e) ->      
       socket = undefined        
       session.collaborators = null
@@ -198,6 +203,8 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       send
         t: 'color'
         c: color
+    hints: (cm, options) ->
+
     close: ->
       queue = []
       socket?.close()

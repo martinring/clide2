@@ -3,10 +3,14 @@ require.config
   paths:
     'codemirror': 'vendor/codemirror/codemirror'
     'codemirror-hs': 'vendor/codemirror/mode/haskell/haskell'
+    'codemirror-hint': 'vendor/codemirror/addon/hint/show-hint'
   shim:
     'codemirror':
       exports: 'CodeMirror'
     'codemirror-hs':
+      deps: ['codemirror']
+      exports: 'CodeMirror'
+    'codemirror-hind':
       deps: ['codemirror']
       exports: 'CodeMirror'
     'routes':
