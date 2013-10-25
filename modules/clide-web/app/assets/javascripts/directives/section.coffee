@@ -6,7 +6,6 @@ define () -> () ->
   scope: { title: '@' },
   link: (scope, element, attrs, sidebar) ->
     sidebar.addSection(scope)
-    console.log(attrs)    
   template: """
 <div class="tab" ng-class="{active: selected}" ng-transclude>
 </div>"""

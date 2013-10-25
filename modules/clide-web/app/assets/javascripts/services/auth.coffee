@@ -19,10 +19,7 @@ define ['routes'], (routes) -> ($http, $cookies, $location) ->
     service.user.username = user?.username or null
     service.user.email = user?.email or null
 
-  console.log $cookies
   service.loggedIn = $cookies['PLAY_SESSION']?.indexOf("user") >= 0
-
-  console.log $cookies.PLAY_SESSION
 
   service.signup = (credentials,callbacks) ->
     $http.post(authentication.signup().url, credentials)

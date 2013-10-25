@@ -2,7 +2,7 @@
 define ['routes','codemirror','modes/isabelle'], (routes) ->   
   # TODO: Move somewhere else...    
   CodeMirror.commands.autocomplete = (cm) ->
-    CodeMirror.showHint(cm)
+    CodeMirror.showHint(cm,'anyword')
 
   () ->      
     restrict: 'E'
@@ -25,6 +25,8 @@ define ['routes','codemirror','modes/isabelle'], (routes) ->
         undoDepth:   0 # disable
         indentWithTabs: false
         tabSize: 2
+        gutters: ['CodeMirror-foldgutter','CodeMirror-linenumbers']
+        foldGutter: true
         extraKeys: 
           'Ctrl-Space':   'autocomplete'
           'Shift-Ctrl-C': 'toggleComment'          

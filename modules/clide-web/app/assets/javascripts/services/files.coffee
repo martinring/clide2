@@ -18,8 +18,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
     socket= ws
     $timeout((-> files.state = 'connecting'),0)
     ws.onmessage = (e) ->
-      msg = JSON.parse(e.data)
-      console.log "received: ", e.data
+      msg = JSON.parse(e.data)      
       switch msg.t
         when 'e'
           Toasts.push 'danger', msg.c
@@ -55,8 +54,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
             files.currentDir = dirs[currentDirId]),0)
     ws.onopen = (e) ->      
       $timeout((-> files.state = 'connected'),0)
-      for msg in queue
-        console.log 'sending: ', JSON.stringify(msg)
+      for msg in queue        
         ws.send(msg)
       queue = []      
     ws.onclose = ws.onerror = (e) ->
@@ -67,8 +65,7 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
   send = (message) -> switch socket?.readyState
     when WebSocket.CONNECTING
       queue.push(JSON.stringify(message))        
-    when WebSocket.OPEN      
-      console.log message
+    when WebSocket.OPEN            
       data = JSON.stringify(message)
       socket.send(data)      
 

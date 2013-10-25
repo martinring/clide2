@@ -20,7 +20,6 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
       session.state = 'connecting'
     ws.onmessage = (e) ->
       msg = JSON.parse(e.data)
-      console.log "received: ", e.data
       switch typeof msg        
         when 'object'        
           if msg.f? and msg.o?
@@ -41,10 +40,8 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
                 session.projects = session.projects.filter((p) -> p.id isnt msg.c)                
                 session.otherProjects = session.otherProjects.filter((p) -> p.id isnt msg.c)
     ws.onopen = (e) ->
-      apply -> session.state = 'connected'
-      console.log 'opened'
-      for msg in queue
-        console.log 'sending: ', JSON.stringify(msg)
+      apply -> session.state = 'connected'      
+      for msg in queue        
         ws.send(msg)
       queue = []
     ws.onclose = (e) ->
@@ -52,13 +49,11 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
       session.projects = null
       session.otherProjects = null
       apply -> session.state = 'disconnected'
-      console.log e
 
   send = (message) -> switch socket?.readyState
     when WebSocket.CONNECTING
       queue.push(JSON.stringify(message))        
     when WebSocket.OPEN      
-      console.log message
       data = JSON.stringify(message)
       socket.send(data)      
 

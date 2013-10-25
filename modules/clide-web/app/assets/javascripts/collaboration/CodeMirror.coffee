@@ -125,8 +125,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
           else
             marker = @doc.markText from, to,
               className: c.c
-              title:     c.t
-          console.log marker
+              title:     c.t          
           @annotations[user.id][name].push marker
         else
           widget = document.createElement("span")
@@ -137,7 +136,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
           @annotations[user.id][name].push bookmark
 
     @registerMouseEvents: (doc) =>
-      
+
 
     resetAnnotations: (user, name) => if user?
       unless @annotations[user.id]?

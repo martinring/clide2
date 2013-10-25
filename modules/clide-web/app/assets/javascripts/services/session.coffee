@@ -27,7 +27,6 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     nfile.id   = file.info.id
     nfile.name = file.info.name        
     if file.info.mimeType is 'text/isabelle'  
-      console.log 'true'
       nfile.doc  = CodeMirror.Doc file.state,
         name: 'isabelle'
         words: idw
@@ -63,8 +62,6 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     
     session.openFiles[file.info.id] = (nfile)
 
-    console.log session.openFiles
-
   getOpenFile = (id) -> session.openFiles[id] or false    
 
   remove = (id) ->
@@ -94,8 +91,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     apply -> 
       session.state = 'connecting'
     ws.onmessage = (e) ->
-      msg = JSON.parse(e.data)
-      console.log "received: ", e.data
+      msg = JSON.parse(e.data)      
       switch typeof msg
         when 'string'
           switch msg
@@ -142,14 +138,11 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
               apply ->
                 remove(msg.c.id)
     ws.onopen = (e) ->
-      apply -> session.state = 'connected'
-      console.log 'opened'
-      for msg in queue
-        console.log 'sending: ', JSON.stringify(msg)
+      apply -> session.state = 'connected'      
+      for msg in queue        
         ws.send(msg)
       queue = []
-      CodeMirror.registerHelper "hint", (e...) -> 
-        console.log e...
+      CodeMirror.registerHelper "hint", (e...) ->         
         return (
           showHint: () -> console.log 'hn'
         )
@@ -160,14 +153,12 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       session.me.activeFile = null
       session.me = null
       session.chat = []
-      apply -> session.state = 'disconnected'
-      console.log e
+      apply -> session.state = 'disconnected'      
 
   send = (message) -> switch socket?.readyState
     when WebSocket.CONNECTING
       queue.push(JSON.stringify(message))        
-    when WebSocket.OPEN      
-      console.log message
+    when WebSocket.OPEN            
       data = JSON.stringify(message)
       socket.send(data)      
 

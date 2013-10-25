@@ -15,7 +15,6 @@ define ['routes','util/md5'], (routes,md5) -> ($scope, $location, Console, Toast
         $location.path "/login"
         Toasts.push('success',"Welcome, your account has been created! :)")
       error: (data,status) ->
-        console.log data
         switch status          
           when 400
             $scope.error = data
