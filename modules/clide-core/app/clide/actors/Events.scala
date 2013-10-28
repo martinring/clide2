@@ -11,6 +11,8 @@ object Events {
   case object TimeOut extends Event
   case object UnexpectedTermination extends Event
   
+  case class ActionFailed(e: Map[String,String]) extends Event
+  
   case class FileInitFailed(file: Long) extends Event
     
   case class EventSocket(in: ActorRef, id: String) extends Event
@@ -25,7 +27,7 @@ object Events {
   case class FolderContent(folder: FileInfo, files: Seq[FileInfo]) extends FileBrowserEvent
   case class FileId(id: FileInfo) extends FileBrowserEvent
   
-  trait UserEvent extends Event
+  trait UserEvent extends Event  
   case class SignedUp(user: UserInfo) extends UserEvent
   case class LoggedIn(user: UserInfo, login: LoginInfo) extends UserEvent
   case class LoggedOut(user: UserInfo) extends UserEvent
@@ -60,8 +62,8 @@ object Events {
   case object AcknowledgeEdit extends SessionEvent
   case object AcknowledgeAnnotation extends SessionEvent
   case class Talked(from: String, msg: String, timestamp: Long) extends SessionEvent
-  case class MetaInfo(file: Long, info: Map[String,String])
-  case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent
+  case class MetaInfo(file: Long, info: Map[String,String]) 
+  case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent // internal
   
   case class UserProjectInfos(
       userProjects: Set[ProjectInfo],

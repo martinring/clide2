@@ -15,11 +15,20 @@ class UserServer extends Actor with ActorLogging {
   def receive = {    
     case SignUp(name,email,password) =>
       log.info("attempting to sign up")
-      val user = UserInfo(name,email).withPassword(password)
-      UserInfos.insert(user)(DB.createSession)
-      context.actorOf(Props(classOf[UserActor],user), user.name)
-      sender ! SignedUp(user)
-      context.system.eventStream.publish(SignedUp(user))
+      val user = UserInfo(name,email).withPassword(password)      
+      DB.withSession { implicit s: Session =>
+        if (UserInfos.get(user.name).isDefined) {
+          sender ! ActionFailed(Map("name" -> "this name is already registered"))
+        } else if (UserInfos.getByEmail(user.email).isDefined) {
+          sender ! ActionFailed(Map("email" -> "this email is already registered"))
+        }
+        else {
+          UserInfos.insert(user) 
+          context.actorOf(Props(classOf[UserActor],user), user.name)
+	      sender ! SignedUp(user)
+	      context.system.eventStream.publish(SignedUp(user))
+        }        
+      }
       
     case IdentifiedFor(name,key,message) =>
       context.child(name) match {
