@@ -174,7 +174,6 @@ class SessionActor(
         }
       }
     case msg@ChangeProjectUserLevel(_,_) => // HACK: replace with invitation      
-      log.info("invite hack")
       context.parent.forward(WrappedProjectMessage(user,level,msg))
   }
   

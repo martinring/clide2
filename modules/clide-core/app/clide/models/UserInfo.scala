@@ -1,6 +1,7 @@
 package clide.models
 
 import java.security.MessageDigest 
+import java.util.Arrays
 
 case class UserInfo(
     name: String, 
@@ -14,7 +15,7 @@ case class UserInfo(
 
 object UserInfo {
   def passwordHash(name: String, password: String) = 
-    MessageDigest.getInstance("MD5").digest((name + password).getBytes("UTF-8"))   
+    MessageDigest.getInstance("MD5").digest((name + password).getBytes("UTF-8"))
 }
 
 object UserInfoWithPassword {
@@ -26,5 +27,5 @@ object UserInfoWithPassword {
 
 trait Password { self: UserInfo =>
   val password: Array[Byte]
-  def authenticate(password: String) = UserInfo.passwordHash(name, password).equals(this.password)
+  def authenticate(password: String) = Arrays.equals(UserInfo.passwordHash(name, password),this.password)
 }
