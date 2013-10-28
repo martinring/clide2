@@ -60,6 +60,7 @@ object Events {
   case object AcknowledgeEdit extends SessionEvent
   case object AcknowledgeAnnotation extends SessionEvent
   case class Talked(from: String, msg: String, timestamp: Long) extends SessionEvent
+  case class MetaInfo(file: Long, info: Map[String,String])
   case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent
   
   case class UserProjectInfos(

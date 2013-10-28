@@ -4,7 +4,7 @@ require.config
     'codemirror':         'vendor/codemirror/codemirror-compressed'
   shim:
     'codemirror':
-      exports: 'CodeMirror'    
+      exports: 'CodeMirror'  
     'routes':
       exports: 'jsRoutes'
 
