@@ -153,13 +153,17 @@ class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Ac
             project = project.id,
             path    = parent.path :+ name,
             mimeType = name.split('.').toList.last match { // TODO: Move to config
-              case "thy"   => Some("text/x-isabelle")
-              case "scala" => Some("text/x-scala")
-              case "hs"    => Some("text/x-haskell")
-              case "java"  => Some("text/x-java")
-              case "js"    => Some("text/x-javascript")
-              case "coffee"=> Some("text/x-coffeescript")
-              case _       => None
+              case "thy"    => Some("text/x-isabelle")
+              case "scala"  => Some("text/x-scala")
+              case "hs"     => Some("text/x-haskell")
+              case "java"   => Some("text/x-java")
+              case "js"     => Some("text/javascript")
+              case "coffee" => Some("text/x-coffeescript")
+              case "css"    => Some("text/css")
+              case "less"   => Some("text/x-less")
+              case "md"     => Some("text/x-markdown")
+              case "sql"    => Some("text/x-sql")
+              case _        => None
             }, 
             deleted = false,
             exists  = false,
