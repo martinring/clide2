@@ -74,7 +74,7 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
     
     def getUserProjects(user: String)(implicit session: Session) =
       Query(ProjectAccessLevels).filter(_.userName === user)
-                                .join(Query(ProjectInfos)).on(_.userName === _.name)
+                                .join(Query(ProjectInfos)).on(_.projectId === _.id)
                                 .map{ case (a,p) => p -> a.level }.elements
     
     def getProjectUsers(project: Long)(implicit session: Session) = 
