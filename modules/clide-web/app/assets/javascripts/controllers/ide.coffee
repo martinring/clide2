@@ -190,6 +190,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   Session.info.talkback = (msg) ->
     unless $scope.showChat
       $scope.unreadChatMessages += 1
+      Toasts.push 'info', "#{msg.s}: #{msg.m}"
 
   $scope.startSlidebar = ($event) ->
     slidebarActive = true
