@@ -55,7 +55,7 @@ class UserActor(var user: UserInfo with Password) extends Actor with ActorLoggin
         println("who is it?")
         context.actorSelection(s"../$user").tell(msg,sender)
       }
-    case msg if backstagePeers.contains(sender) => // TODO: Move to backstage actor
+    case msg if backstagePeers.contains(sender) && identified(backstagePeers(sender)).isDefinedAt(msg) => // TODO: Move to dedicated backstage actor
       log.info("direct message via backstage: {}",msg)
       identified(backstagePeers(sender))(msg)
   }
