@@ -19,7 +19,12 @@ define ['routes'], (routes) -> ($routeProvider, $locationProvider) ->
   $routeProvider.when '/:user/backstage'
     title:       'backstage'
     templateUrl: '/client/partials/backstage.html'
-    controller:  'BackstageController'
+    controller:  'BackstageController'  
+  $routeProvider.when '/:user/:project',
+    title:       'coding'
+    ide:         true
+    templateUrl: '/client/partials/ide.html'
+    controller:  'IdeController'
   $routeProvider.when '/:user/:project/:path*',
     title:       'coding'
     ide:         true
