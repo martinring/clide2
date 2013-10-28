@@ -74,7 +74,7 @@ abstract class Assistant extends Actor with ActorLogging {
   }
   
   def backstage(loginInfo: LoginInfo, peer: ActorRef): Receive = {
-    val sessions = Map.empty[Long,ActorRef]
+    val sessions = scala.collection.mutable.Map.empty[Long,ActorRef]
     
     {
       case UserProjectInfos(own,other) =>
@@ -82,12 +82,15 @@ abstract class Assistant extends Actor with ActorLogging {
         (own ++ other).foreach(onInvitation(_,loginInfo))
       case ChangedProjectUserLevel(project, user, level) if (user == loginInfo.user) =>      
         if (level >= ProjectAccessLevel.Read)
-          onInvitation(project,loginInfo)
+          sessions += project.id -> createSession(project)
+        else
+          sessions.get(project.id).map(_ ! AssistantSession.Close)
       case CreatedProject(project) =>
         onInvitation(project,loginInfo)
-      case DeletedProject(project) =>
-        // TODO!
-        log.info("TODO: project deleted")      
+      case DeletedProject(project) =>        
+        sessions.get(project.id).map(_ ! AssistantSession.Close)
+      case Terminated(sess) =>        
+        sessions.find(_._2 == sess).foreach(i => sessions.remove(i._1))
     }
   }
 }

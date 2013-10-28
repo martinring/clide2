@@ -9,6 +9,7 @@ import scala.collection.mutable._
 
 object AssistantSession {
   case object Activate
+  case object Close
 }
 
 abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLogging {
