@@ -82,10 +82,10 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   
   def initialize() {
     log.info("name: {}, header: {}", nodeName, nodeHeader)
-    session.update(initEdits)
+    session.update(initEdits)    
     session.commands_changed += { change =>
-      snapshot = session.snapshot(nodeName, Nil)      
-      if ((change.nodes.contains(nodeName) &&
+      snapshot = session.snapshot(nodeName, Nil)
+      if (snapshot.state.tip_stable && (change.nodes.contains(nodeName) &&
           change.commands.exists(snapshot.node.commands.contains)))
         self ! DocumentModel.Refresh
     }    
