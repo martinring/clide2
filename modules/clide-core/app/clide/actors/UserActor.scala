@@ -47,12 +47,10 @@ class UserActor(var user: UserInfo with Password) extends Actor with ActorLoggin
     case Terminated(peer) =>
       backstagePeers -= peer
     case msg@ChangedProjectUserLevel(project, user, level) =>
-      if (user == this.user.name) {
-        println("thats me!")
+      if (user == this.user.name) {        
         otherProjects += project -> level
         backstagePeers.keys.foreach(_ ! msg)        
       } else {
-        println("who is it?")
         context.actorSelection(s"../$user").tell(msg,sender)
       }
     case msg if backstagePeers.contains(sender) && identified(backstagePeers(sender)).isDefinedAt(msg) => // TODO: Move to dedicated backstage actor
@@ -62,7 +60,7 @@ class UserActor(var user: UserInfo with Password) extends Actor with ActorLoggin
   
   def anonymous: Receive = {
     case Login(password) =>
-      if (user.authenticate(password)) {
+      if (!user.authenticate(password)) {
         log.info("login attempt failed")
         sender ! WrongPassword
       } else {
@@ -93,7 +91,7 @@ class UserActor(var user: UserInfo with Password) extends Actor with ActorLoggin
           
   def identified(login: LoginInfo): Receive = {        
     case Login(password) =>      
-      if (UserInfo.passwordHash(user.name, password) != user.password) {
+      if (!user.authenticate(password)) {
         log.info("login attempt failed")
         sender ! WrongPassword
       } else
