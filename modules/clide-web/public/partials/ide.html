@@ -63,7 +63,7 @@
               Connecting to server...
             </div>            
             <div class='alert alert-warning' ng-show='files.state=="disconnected"'>
-              The connection to the server file system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a ng-click='reconnect()'>reconnect</a>.
+              The connection to the server file system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a class='alert-link' ng-click='reconnect()'>reconnect</a>.
             </div>
           </li>
           <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
@@ -107,7 +107,7 @@
               Connecting to server...
             </div>            
             <div class='alert alert-warning' ng-show='session.state=="disconnected"'>
-              The connection to the collaboration system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a ng-click='reconnectSession()'>reconnect</a>.
+              The connection to the collaboration system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a class='alert-link' ng-click='reconnectSession()'>reconnect</a>.
             </div>
           </li>
           <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>

@@ -10,7 +10,7 @@
           </div>
           </h2>
           <p ng-show='Projects.projects.length==0' class='alert alert-info'>
-            You don't have any projects associated with your account yet. Get started by <a ng-click='createProject()'>creating a new project</a>.
+            You don't have any projects associated with your account yet. Get started by <a class='alert-link' ng-click='createProject()'>creating a new project</a>.
           </p>
           <div class='list-group' ng-show='Projects.projects.length > 0'>
             <a ng-repeat='project in Projects.projects' context-menu="projectContextMenu(project)" class='list-group-item' ng-class='{ active: project==selectedProject }' ng-click='selectProject(project)' ng-dblclick='start()'>
