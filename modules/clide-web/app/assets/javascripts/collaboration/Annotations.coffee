@@ -47,7 +47,13 @@ define ['collaboration/Operation'], (Operation) ->
 
     compose: (other) -> other
 
-    transform: (op) => Annotations.transform(@,op)
+    transform: (op) => 
+      try
+        Annotations.transform(@,op)
+      catch error
+        console.error "annotation could not be transformed: #{error}"
+        console.warn  "falling back to plain annotation"        
+        new Annotations().plain(op.outputLength)
 
     @transform: (annotations, operation) ->
       throw new Error("Both operations have to have the same base length")  if annotations.length isnt operation.inputLength

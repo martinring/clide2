@@ -32,9 +32,6 @@ define ->
       @revision++
       @setState @state.serverAck(this)
 
-    serverAckAnnotation: ->
-      console.log 'annotation acknowledged'
-
     serverReconnect: ->
       @state.resend? this
 
@@ -102,7 +99,7 @@ define ->
       annotate: (client, annotation) ->
         client.annotation = annotation
 
-      transformAnnotation: (annotation) ->
+      transformAnnotation: (annotation) ->        
         annotation.transform @outstanding
 
       resend: (client) ->
