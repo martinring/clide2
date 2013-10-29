@@ -69,19 +69,18 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   
   def annotate: List[(String,Annotations)] = {
     List("highlighting"  -> IsabelleMarkup.highlighting(nodeHeader,snapshot),
-         "substitutions" -> IsabelleMarkup.substitutions(state))
+         "substitutions" -> IsabelleMarkup.substitutions(state),
+         "output"        -> IsabelleMarkup.output(snapshot))
   }
   
   def changed(op: Operation) {     
-    val edits = opToDocumentEdits(op)
-    log.info("sending edits: {}", edits)
+    val edits = opToDocumentEdits(op)    
     session.update(edits)
   }
       
   var snapshot: Document.Snapshot = null  
   
-  def initialize() {
-    log.info("name: {}, header: {}", nodeName, nodeHeader)
+  def initialize() {    
     session.update(initEdits)    
     session.commands_changed += { change =>
       snapshot = session.snapshot(nodeName, Nil)

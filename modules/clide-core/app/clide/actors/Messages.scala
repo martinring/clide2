@@ -85,7 +85,7 @@ object Messages {
   case class Talk(to: Option[Long], msg: String) extends SessionMessage with ProjectMessage
   case class SetColor(value: String) extends SessionMessage
   case class SwitchFile(id: Long) extends SessionMessage
-  case class CloseFile(id: Long) extends SessionMessage  
+  case class CloseFile(id: Long) extends SessionMessage
   case class Edit(id: Long, revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
   case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage
   

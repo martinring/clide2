@@ -27,7 +27,8 @@ object IsabelleMarkup {
         case other =>
           println("unhandled " + other + ": " + body)
           body2.flatMap(annotations(_))
-      }                      
+      }
+      
     case XML.Elem(markup, body) =>      
       val c2 = markup.name match {
         case Markup.COMMENT => Some(Map("c" -> "comment"))
@@ -52,13 +53,14 @@ object IsabelleMarkup {
         case (c,      None)     => c
       }           
       body.flatMap(annotations(_,n))
+      
     case XML.Text(content)      => c match {
         case None    => List(Plain(content.length))
         case Some(c) => List(Annotate(content.length,c))
       }      
   }
       
-  def highlighting(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {    
+  def highlighting(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {       
     val xml = snapshot.state.markup_to_XML(snapshot.version, snapshot.node, _ => true)
     val xmlAnnons = xml.flatMap(annotations(_))
     val headerErrors = header.errors.map(msg => Annotate(0,Map("e"->msg)))
@@ -66,6 +68,16 @@ object IsabelleMarkup {
       case (as, Plain(n))      => as.plain(n)
       case (as, Annotate(n,c)) => as.annotate(n, c)
     }
+  }
+  
+  def output(snapshot: Document.Snapshot): Annotations = {
+    snapshot.state.commands.map { case (id, cmd) =>
+      println("from: " + cmd.command.range.start)
+      println("to: " + cmd.command.range.stop)
+      cmd.results.entries.foreach { println }
+    }
+    
+    new Annotations
   }
   
   def substitutions(state: String): Annotations =
