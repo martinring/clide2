@@ -23,7 +23,7 @@ import org.h2.jdbc.JdbcSQLException
  */
 private object ProjectActor {
   def apply(info: ProjectInfo) = 
-    Props(classOf[ProjectInfo], info)
+    Props(classOf[ProjectActor], info)
 }
 
 /**
