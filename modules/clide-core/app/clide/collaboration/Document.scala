@@ -6,7 +6,7 @@ import akka.actor.{Actor,Props}
 import scala.annotation.tailrec
 
 /**
- * @Author Martin Ring
+ * @author Martin Ring <martin.ring@dfki.de>
  */
 case class Document(content: String) extends AnyVal {  
   def apply(op: Operation): Try[Document] = {

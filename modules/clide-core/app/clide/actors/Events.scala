@@ -6,6 +6,8 @@ import clide.collaboration.Operation
 import clide.collaboration.Annotations
 import clide.collaboration.AnnotationDiff.AnnotationDiff
 
+/**
+ */
 object Events {
   trait Event  
   case object TimeOut extends Event

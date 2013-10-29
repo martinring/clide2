@@ -10,12 +10,11 @@ import scala.reflect.ClassTag
  * An update will always be performed instantly except for updates, that come 
  * within a configured time span after another update. These updates get combined
  * until the time span elapsed. The cumulated update will then be sent to the
- * recipient
+ * recipient. The default for the combine function is to take the newer update.
  */
 class Reductor(
     recipient: ActorRef,
-    combine: Option[Any] => Any => Option[Any],
-    transform: Any => Any = identity) extends Actor {
+    combine: Option[Any] => Any => Option[Any] = (_ => Some.apply)) extends Actor {
   
   var combineDeadline = 0 seconds fromNow  
   var messageDeadline = 0 seconds fromNow
@@ -28,13 +27,12 @@ class Reductor(
   
   def receive = {
     case t if messageDeadline.isOverdue || combineDeadline.isOverdue =>
-      combine(message)(t).map(transform).foreach(recipient.forward)      
+      combine(message)(t).foreach(recipient.forward)
       combineDeadline = 500 milliseconds fromNow
       messageDeadline = 5   seconds      fromNow
       message         = None
     case t =>
       message = combine(message)(t)
       combineDeadline = 500 milliseconds fromNow
-      
   }    
 }
