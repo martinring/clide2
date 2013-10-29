@@ -5,6 +5,7 @@ import akka.actor._
 import clide.actors.Messages._
 import clide.actors.Events._
 import clide.models._
+import clide.actors.util.ServerForwarder
 
 abstract class Assistant extends Actor with ActorLogging {  
   def createSession(project: ProjectInfo): ActorRef
@@ -24,7 +25,7 @@ abstract class Assistant extends Actor with ActorLogging {
   lazy val email      = config.getString("assistant.email")
   
   lazy val serverPath = config.getString("assistant.server-path")
-  lazy val server     = context.actorOf(Props(classOf[clide.actors.util.ServerForwarder], serverPath), "server-forwarder")
+  lazy val server     = context.actorOf(ServerForwarder(serverPath), "server-forwarder")
   
   def login() = {
     log.info("attempting login")

@@ -16,15 +16,15 @@ import clide.models.ProjectAccessLevel
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-object FileBrowser {
-  def props(write: Boolean, target: ActorRef) = 
+private[actors] object FileBrowser {
+  def apply(write: Boolean, target: ActorRef) = 
     Props(classOf[FileBrowser], write, target)
 }
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private class FileBrowser(write: Boolean, var target: ActorRef) extends Actor with ActorLogging {
+private[actors] class FileBrowser(write: Boolean, var target: ActorRef) extends Actor with ActorLogging {
   var peer: ActorRef = context.system.deadLetters
   
   def receive = {

@@ -23,6 +23,19 @@ import clide.actors.Events._
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
+private object SessionActor {
+  def apply(
+    id: Option[Long],
+    collaborators: Set[SessionInfo],
+    user: UserInfo,    
+    project: ProjectInfo,
+    conversation: Vector[Talked]) =
+      Props(classOf[SessionActor], id, collaborators, user, project, conversation)
+}
+
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
 private class SessionActor(
     var id: Option[Long],
     var collaborators: Set[SessionInfo],

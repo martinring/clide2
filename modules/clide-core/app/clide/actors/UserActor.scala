@@ -18,6 +18,14 @@ import java.util.UUID
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
+private object UserActor {
+  def apply(user: UserInfo with Password) =
+    Props(classOf[UserActor], user)
+}
+
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
 private class UserActor(var user: UserInfo with Password) extends Actor with ActorLogging {
   import Messages._
   import Events._
@@ -38,7 +46,7 @@ private class UserActor(var user: UserInfo with Password) extends Actor with Act
       log.info(s"${user.name} collaborates in ${project.name} of ${project.owner}")
     log.info("creating project actors")
     projects.foreach { case (name,project) =>
-      context.actorOf(Props(classOf[ProjectActor],project),name)
+      context.actorOf(ProjectActor(project),name)
     }
   }
   
@@ -122,7 +130,7 @@ private class UserActor(var user: UserInfo with Password) extends Actor with Act
       } else {        
         val project = DB.withSession { implicit session: Session => ProjectInfos.create(name,user.name,description) }
         projects += name -> project
-        context.actorOf(Props(classOf[ProjectActor], project), project.name)
+        context.actorOf(ProjectActor(project), project.name)
         sender ! CreatedProject(project)
         backstagePeers.keys.foreach(_ ! CreatedProject(project))
       }

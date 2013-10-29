@@ -21,6 +21,14 @@ import org.h2.jdbc.JdbcSQLException
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
+private object ProjectActor {
+  def apply(info: ProjectInfo) = 
+    Props(classOf[ProjectInfo], info)
+}
+
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
 private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   import clide.actors.Messages._
   import clide.actors.Events._
@@ -57,7 +65,7 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
   
   def write: Receive = {
     case StartFileBrowser =>
-      val browser = context.actorOf(FileBrowser.props(true,root))
+      val browser = context.actorOf(FileBrowser(true,root))
       browser.forward(StartFileBrowser)
     case StartSession =>
       sessions.find { session =>
@@ -65,10 +73,10 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
         !session.active        
       }.map { session =>
         sessionActors.get(session.id).getOrElse {
-          context.actorOf(Props(classOf[SessionActor],Some(session.id),sessions,user,this.info,conversationHistory.toVector))
+          context.actorOf(SessionActor(Some(session.id),sessions,user,this.info,conversationHistory.toVector))
         }
       }.getOrElse {
-        context.actorOf(Props(classOf[SessionActor],None,sessions,user,this.info,conversationHistory.toVector))
+        context.actorOf(SessionActor(None,sessions,user,this.info,conversationHistory.toVector))
       }.forward(EnterSession)
     case msg @ WithPath(_,_: FileWriteMessage) =>
       root.forward(msg)
@@ -76,7 +84,7 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
   
   def read: Receive = {
     case StartFileBrowser =>
-      val browser = context.actorOf(FileBrowser.props(false,root))
+      val browser = context.actorOf(FileBrowser(false,root))
       browser.forward(StartFileBrowser)
     case msg @ WithPath(_,_: FileReadMessage) =>
       root.forward(msg)
@@ -126,7 +134,7 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
   }  
   
   override def preStart() {
-    root = context.actorOf(FolderActor.props(info, None, "files"),"files")    
+    root = context.actorOf(FolderActor(info, None, "files"),"files")    
     sessions = DB.withSession { implicit session => // TODO: Move to Schema
       val u = for (session <- SessionInfos if session.projectId === info.id) yield session.active
       u.update(false)

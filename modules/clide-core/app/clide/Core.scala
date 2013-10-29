@@ -56,7 +56,7 @@ object Core extends Bootable {
    * [[clide.actors.UserServer `UserServer`]]
    */
   def startup() {        
-    val server = Some(system.actorOf(UserServer.props, "users"))
+    val server = Some(system.actorOf(UserServer(), "users"))
   }
   
   /**

@@ -8,8 +8,7 @@
 
 package clide.actors.files
 
-import akka.actor.Actor
-import akka.actor.Props
+import akka.actor._
 import clide.models.ProjectInfo
 import java.io.File
 import akka.actor.ActorLogging
@@ -22,8 +21,8 @@ import clide.actors._
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-object FolderActor {
-  def props(project: ProjectInfo, parent: Option[FileInfo], name: String) =
+private[actors] object FolderActor {
+  def apply(project: ProjectInfo, parent: Option[FileInfo], name: String) =
     Props(classOf[FolderActor], project, parent, name)
 }
 
@@ -32,7 +31,7 @@ object FolderActor {
  * 
  * @author Martin Ring <martin.ring@dfki.de> 
  **/
-private class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String) extends Actor 
+private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String) extends Actor 
                                                                            with ActorLogging 
                                                                            with FileEventSource {
   import Messages._
@@ -45,10 +44,10 @@ private class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: 
   def file:     File          = new File(project.root + info.path.mkString(File.pathSeparator)) // TODO     
   
   def getFolder(name: String) = context.child(name).getOrElse{
-    context.actorOf(Props(classOf[FolderActor], project, Some(info), name),name) }
+    context.actorOf(FolderActor(project, Some(info), name),name) }
   
   def getFile(name: String) = context.child(name).getOrElse{
-    context.actorOf(Props(classOf[FileActor], project, info, name),name) }
+    context.actorOf(FileActor(project, info, name),name) }
   
   def getExisting(name: String) = context.child(name).orElse {
     children.values.find(_.path.last == name).map { i =>

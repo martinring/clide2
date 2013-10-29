@@ -16,7 +16,7 @@ import clide.actors.Messages
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private trait FileEventSource { this: Actor with ActorLogging =>
+private[actors] trait FileEventSource { this: Actor with ActorLogging =>
   import Events._
   import Messages._
   

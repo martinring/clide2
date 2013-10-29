@@ -19,7 +19,7 @@ import slick.session.Session
  * @author Martin Ring <martin.ring@dfki.de>
  */
 object UserServer {
-  def props = Props[UserServer]
+  private[clide] def apply() = Props[UserServer]
 }
 
 /**
@@ -29,7 +29,7 @@ private class UserServer extends Actor with ActorLogging {
   import Messages._
   import Events._
   
-  var users: Seq[UserInfo] = Seq.empty
+  var users: Seq[UserInfo with Password] = Seq.empty
   
   def receive = {    
     case SignUp(name,email,password) =>
@@ -43,7 +43,7 @@ private class UserServer extends Actor with ActorLogging {
         }
         else {
           UserInfos.insert(user) 
-          context.actorOf(Props(classOf[UserActor],user), user.name)
+          context.actorOf(UserActor(user), user.name)
 	      sender ! SignedUp(user)
 	      context.system.eventStream.publish(SignedUp(user))
         }        
@@ -67,9 +67,11 @@ private class UserServer extends Actor with ActorLogging {
   }
   
   override def preStart() {
-    log.info("creating user actors")    
-    users = DB.withSession { implicit session: Session => UserInfos.getAll.toList }
-    users.foreach { user => context.actorOf(Props(classOf[UserActor], user), user.name) }
+    log.info("creating user actors")
+    DB.withSession { implicit session: Session => 
+      users = UserInfos.getAll.toList      
+    }
+    users.foreach { user => context.actorOf(UserActor(user), user.name) }
     log.info("waiting for requests")
   }
 }

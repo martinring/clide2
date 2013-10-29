@@ -19,10 +19,15 @@ import clide.Core.DB
 import clide.Core.DAL._
 import clide.Core.DAL.profile.simple._ // TODO: MOVE ALL TO SCHEMA
 
+private[actors] object FileActor {
+  def apply(project: ProjectInfo, parent: FileInfo, name: String) = 
+    Props(classOf[FileActor], project, parent, name)
+}
+
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Actor 
+private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Actor 
                                                                          with ActorLogging
                                                                          with FileEventSource {
   import Messages._
