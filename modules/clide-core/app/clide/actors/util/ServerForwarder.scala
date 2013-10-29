@@ -1,8 +1,19 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.actors.util
 
 import akka.actor._
 import scala.concurrent.duration._
 
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
 class ServerForwarder(path: String) extends Actor with Stash with ActorLogging {
   def receive = connecting
   

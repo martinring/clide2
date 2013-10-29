@@ -1,10 +1,21 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.actors
 
 import clide.models._
 import clide.collaboration.Operation
 import clide.collaboration.Annotations
 
-object Messages {
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
+object Messages {  
   trait Message	
 
   case object Register extends Message
@@ -23,7 +34,7 @@ object Messages {
   case class Anonymous(message: UserMessage) extends UserMessageWrapper
   // TODO: Should be private
   case class External(sender: UserInfo, message: UserMessage) extends UserMessageWrapper
-  case class Internal(message: UserMessage) extends UserMessageWrapper
+  //case class Internal(message: UserMessage) extends UserMessageWrapper
   
   trait UserMessage extends Message
   case object Validate extends UserMessage
@@ -77,4 +88,8 @@ object Messages {
   case class CloseFile(id: Long) extends SessionMessage  
   case class Edit(id: Long, revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
   case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage
+  
+  private[actors] object internal {
+    
+  }
 }

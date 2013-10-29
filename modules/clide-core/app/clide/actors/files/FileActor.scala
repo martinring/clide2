@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.actors.files
 
 import akka.actor._
@@ -11,7 +19,10 @@ import clide.Core.DB
 import clide.Core.DAL._
 import clide.Core.DAL.profile.simple._ // TODO: MOVE ALL TO SCHEMA
 
-class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Actor 
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
+private class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Actor 
                                                                          with ActorLogging
                                                                          with FileEventSource {
   import Messages._

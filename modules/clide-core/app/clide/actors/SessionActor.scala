@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.actors
 
 import akka.actor._
@@ -12,8 +20,10 @@ import scala.slick.session.Session
 import clide.actors.Messages._
 import clide.actors.Events._
 
-
-class SessionActor(
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
+private class SessionActor(
     var id: Option[Long],
     var collaborators: Set[SessionInfo],
     var user: UserInfo,    

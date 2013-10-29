@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.actors
 
 import clide.models._
@@ -7,8 +15,9 @@ import clide.collaboration.Annotations
 import clide.collaboration.AnnotationDiff.AnnotationDiff
 
 /**
+ * @author Martin Ring <martin.ring@dfki.de>
  */
-object Events {
+object Events {  
   trait Event  
   case object TimeOut extends Event
   case object UnexpectedTermination extends Event
@@ -69,5 +78,9 @@ object Events {
   
   case class UserProjectInfos(
       userProjects: Set[ProjectInfo],
-      collaborating: Set[ProjectInfo]) extends Event        
+      collaborating: Set[ProjectInfo]) extends Event
+      
+  private[actors] object internal {
+    
+  }      
 }

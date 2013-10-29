@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.actors.files
 
 import akka.actor.Actor
@@ -11,8 +19,20 @@ import clide.Core.DAL._
 import clide.Core.DAL.profile.simple._ // TODO: MOVE ALL TO SCHEMA
 import clide.actors._
 
-/** Watches and manages a Folder **/
-class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String) extends Actor 
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
+object FolderActor {
+  def props(project: ProjectInfo, parent: Option[FileInfo], name: String) =
+    Props(classOf[FolderActor], project, parent, name)
+}
+
+/** 
+ * Watches and manages a Folder
+ * 
+ * @author Martin Ring <martin.ring@dfki.de> 
+ **/
+private class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String) extends Actor 
                                                                            with ActorLogging 
                                                                            with FileEventSource {
   import Messages._

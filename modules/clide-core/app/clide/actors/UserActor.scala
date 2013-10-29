@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.actors
 
 import akka.actor._
@@ -7,7 +15,10 @@ import clide.Core.DAL._
 import scala.slick.session.Session
 import java.util.UUID
 
-class UserActor(var user: UserInfo with Password) extends Actor with ActorLogging {
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
+private class UserActor(var user: UserInfo with Password) extends Actor with ActorLogging {
   import Messages._
   import Events._
   

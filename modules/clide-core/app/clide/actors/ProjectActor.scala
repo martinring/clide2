@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.actors
 
 import akka.actor._
@@ -10,7 +18,10 @@ import scala.collection.mutable.Buffer
 import scala.slick.session.Session
 import org.h2.jdbc.JdbcSQLException
 
-class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
+private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   import clide.actors.Messages._
   import clide.actors.Events._
     
@@ -46,7 +57,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   
   def write: Receive = {
     case StartFileBrowser =>
-      val browser = context.actorOf(Props(classOf[FileBrowser],true,root))
+      val browser = context.actorOf(FileBrowser.props(true,root))
       browser.forward(StartFileBrowser)
     case StartSession =>
       sessions.find { session =>
@@ -65,7 +76,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   
   def read: Receive = {
     case StartFileBrowser =>
-      val browser = context.actorOf(Props(classOf[FileBrowser],false,root))
+      val browser = context.actorOf(FileBrowser.props(false,root))
       browser.forward(StartFileBrowser)
     case msg @ WithPath(_,_: FileReadMessage) =>
       root.forward(msg)
@@ -115,7 +126,7 @@ class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   }  
   
   override def preStart() {
-    root = context.actorOf(Props(classOf[FolderActor], info, None, "files"),"files")    
+    root = context.actorOf(FolderActor.props(info, None, "files"),"files")    
     sessions = DB.withSession { implicit session => // TODO: Move to Schema
       val u = for (session <- SessionInfos if session.projectId === info.id) yield session.active
       u.update(false)

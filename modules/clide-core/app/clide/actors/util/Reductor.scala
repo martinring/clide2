@@ -1,8 +1,15 @@
-package clide.util.akka
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
+package clide.actors.util
 
 import akka.actor._
 import scala.concurrent.duration._
-import scala.reflect.ClassTag
 
 /**
  * This actor can be used to reduce the number of updates sent to another actor
@@ -11,6 +18,8 @@ import scala.reflect.ClassTag
  * within a configured time span after another update. These updates get combined
  * until the time span elapsed. The cumulated update will then be sent to the
  * recipient. The default for the combine function is to take the newer update.
+ * 
+ * @author Martin Ring <martin.ring@dfki.de>
  */
 class Reductor(
     recipient: ActorRef,
