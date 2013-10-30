@@ -29,6 +29,11 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
               apply ->
                 session.projects = msg.c.own
                 session.otherProjects = msg.c.other            
+            when 'access'
+              apply ->
+                session.otherProjects = session.otherProjects.filter((p) -> p.id isnt msg.c.p.id)
+                if msg.c.l > 0
+                  session.otherProjects.push(msg.c.p)
             when 'createdproject'
               apply ->
                 if msg.c.owner is username
