@@ -26,10 +26,10 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   private var pending: Option[Operation] = None
   private val annotations = Map[String,Option[Annotations]]()
   
-  var flushTimeout: Option[Cancellable] = None
-  var flushMaxTimeout: Option[Cancellable] = None
-  var refreshTimeout: Option[Cancellable] = None
-  var needRefresh = false
+  private var flushTimeout: Option[Cancellable] = None
+  private var flushMaxTimeout: Option[Cancellable] = None
+  private var refreshTimeout: Option[Cancellable] = None
+  private var needRefresh = false
   
   def revision = rev
   def state    = doc.content
@@ -38,6 +38,9 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   def initialize()  
   def changed(op: Operation)
   def annotate: List[(String,Annotations)]    
+
+  def triggerRefresh() = context.self ! Refresh
+  def triggerClose()   = context.self ! Close  
      
   private def flush() = {
     pending.foreach { op =>
@@ -52,6 +55,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
       
   def initialized: Receive = {
     import context.dispatcher
+    initialize()
     
     {
       case Change(change) =>
@@ -90,7 +94,10 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
 		  }
 	    } else {
 	      needRefresh = true
-	    }	    
+	    }
+	  
+	  case Close =>
+	    context.stop(self)
     }
   }
   
@@ -99,8 +106,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
       rev  = init.revision
       headRev = rev
       doc  = Document(init.state)
-      info = init.info
-      initialize()
+      info = init.info      
       context.become(initialized)
   }
 }
