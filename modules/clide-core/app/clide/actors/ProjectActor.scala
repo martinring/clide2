@@ -50,6 +50,8 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
       }
       sender         ! DeletedProject(info)
       context.parent ! DeletedProject(info)
+      // TODO: Very important: The Event has to be forwarded to the collaborators 
+      // somehow! This is currently a bug!
       context.stop(self)
       
     case ChangeProjectUserLevel(user,level) =>

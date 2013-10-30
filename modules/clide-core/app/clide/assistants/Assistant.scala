@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.assistants
 
 import com.typesafe.config.Config
@@ -7,7 +15,22 @@ import clide.actors.Events._
 import clide.models._
 import clide.actors.util.ServerForwarder
 
-abstract class Assistant extends Actor with ActorLogging {  
+/**
+ * This is a convenience class to implement connected tools. (Assistants)
+ * The only method to be implemented is the `createSession` message, which should
+ * create an instance of an Actor which may inherit from 
+ * [[clide.assistants.AssistantSession `AssistantSession`]]
+ * 
+ * @author Martin Ring
+ */
+abstract class Assistant extends Actor with ActorLogging {
+  /**
+   * Must be implemented by subclasses to create instances of session actors for
+   * a specific project.
+   * 
+   * @param   project the project to create a session for
+   * @returns the reference to the created session actor.
+   */
   def createSession(project: ProjectInfo): ActorRef
   
   /** May be overridden to modify invitation behaviour **/
