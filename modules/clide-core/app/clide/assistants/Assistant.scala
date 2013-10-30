@@ -83,7 +83,7 @@ abstract class Assistant extends Actor with ActorLogging {
         (own ++ other).foreach(onInvitation(_,loginInfo))
       case ChangedProjectUserLevel(project, user, level) if (user == loginInfo.user) =>      
         if (level >= ProjectAccessLevel.Read)
-          sessions += project.id -> createSession(project)
+          onInvitation(project, loginInfo)          
         else
           sessions.get(project.id).map(_ ! AssistantSession.Close)
       case CreatedProject(project) =>
