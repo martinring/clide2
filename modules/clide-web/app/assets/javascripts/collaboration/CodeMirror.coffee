@@ -87,35 +87,27 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
 
     annotate: (c,user,name,from,to) =>
       if c.e?
-        if cm = @doc.getEditor()
-          widget = document.createElement("div")
-          widget.setAttribute('class','outputWidget error')
-          widget.innerText = c.e
+        if cm = @doc.getEditor()          
+          widget = angular.element("<div class='outputWidget error'>#{c.e}</div>")[0]
           widget.title = c.t if c.t?
           widget = cm.addLineWidget from.line, widget
           @annotations[user.id][name].push widget
       if c.w?
         if cm = @doc.getEditor()
-          widget = document.createElement("div")
-          widget.setAttribute('class','outputWidget warning')
-          widget.innerText = c.w
+          widget = angular.element("<div class='outputWidget warning'>#{c.w}</div>")[0]
           widget.title = c.t if c.t?
           widget = cm.addLineWidget from.line, widget
           @annotations[user.id][name].push widget
       if c.i?
         if cm = @doc.getEditor()
-          widget = document.createElement("div")
-          widget.setAttribute('class','outputWidget info')
-          widget.innerText = c.i
+          widget = angular.element("<div class='outputWidget info'>#{c.i}</div>")[0]
           widget.title = c.t if c.t?
           widget = cm.addLineWidget from.line, widget
           @annotations[user.id][name].push widget
       if c.c?
         if to?
           if c.s?
-            widget = document.createElement("span")
-            widget.setAttribute('class', c.c)
-            widget.innerText = c.s
+            widget = angular.element("<span class='#{c.c}'>#{c.s}</span>")[0]
             widget.title = c.t if c.t?
             marker = @doc.markText from, to,
               replacedWith: widget
@@ -128,8 +120,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
               title:     c.t          
           @annotations[user.id][name].push marker
         else
-          widget = document.createElement("span")
-          widget.setAttribute('class', c.c)
+          widget = angular.element("<span class='#{c.c}'></span>")[0]
           bookmark = @doc.setBookmark from,
             widget: widget
             insertLeft: true
