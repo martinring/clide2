@@ -86,7 +86,7 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
       snapshot = session.snapshot(nodeName, Nil)
       if (snapshot.state.tip_stable && (change.nodes.contains(nodeName) &&
           change.commands.exists(snapshot.node.commands.contains)))
-        self ! DocumentModel.Refresh
+        triggerRefresh
     }    
   }
 }

@@ -1,22 +1,15 @@
 package clide.ghc
 
+import java.io.FileWriter
+
+import scala.sys.process.stringSeqToProcess
+
 import akka.actor.ActorRef
 import akka.actor.actorRef2Scala
 import clide.assistants.DocumentModel
 import clide.collaboration.Annotations
-import clide.collaboration.Delete
-import clide.collaboration.Insert
 import clide.collaboration.Operation
-import clide.collaboration.Retain
 import clide.models.ProjectInfo
-import scala.sys.process._
-import java.io.InputStream
-import java.io.ByteArrayInputStream
-import java.io.File
-import java.io.FileWriter
-import java.io.InputStreamReader
-import java.io.ByteArrayOutputStream
-import java.io.PrintWriter
 
 class HaskellDocumentModel(server: ActorRef, project: ProjectInfo) extends DocumentModel(server, project) {
   def annotate: List[(String,Annotations)] = {    
@@ -37,13 +30,13 @@ class HaskellDocumentModel(server: ActorRef, project: ProjectInfo) extends Docum
   
   def changed(op: Operation) {
     log.info("change")
-    self ! DocumentModel.Refresh
+    triggerRefresh
   }
     
   
   def initialize() {
     if (file.path.length > 1)
-      new java.io.File(project.root + "/" + file.path.init.mkString("/")).mkdirs()      
-    self ! DocumentModel.Refresh
+      new java.io.File(project.root + "/" + file.path.init.mkString("/")).mkdirs()
+    triggerRefresh
   }
 }
