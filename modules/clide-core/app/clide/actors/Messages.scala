@@ -28,14 +28,7 @@ object Messages {
   case class IdentifiedFor(user: String, key: String, message: UserMessage) extends UserServerMessage
   case class AnonymousFor(user: String, message: UserMessage) extends UserServerMessage
   // TODO: Support anonymous requests
-  
-  trait UserMessageWrapper
-  case class Identified(key: String, message: UserMessage) extends UserMessageWrapper
-  case class Anonymous(message: UserMessage) extends UserMessageWrapper
-  // TODO: Should be private
-  case class External(sender: UserInfo, message: UserMessage) extends UserMessageWrapper
-  //case class Internal(message: UserMessage) extends UserMessageWrapper
-  
+   
   trait UserMessage extends Message
   case object Validate extends UserMessage
   case class Login(password: String) extends UserMessage
@@ -47,12 +40,7 @@ object Messages {
   case class Invite(project: String) extends UserMessage 
   case class StartSession(project: String) extends UserMessage
   case object StartBackstageSession extends UserMessage
-  case object RequestBackstageInfo extends UserMessage with SessionMessage  
-    
-  case class WrappedProjectMessage(
-      user: UserInfo,
-      level: ProjectAccessLevel.Value, 
-      message: ProjectMessage)
+  case object RequestBackstageInfo extends UserMessage with SessionMessage     
   
   trait ProjectMessage extends Message
   case object DeleteProject extends ProjectMessage 
@@ -90,6 +78,14 @@ object Messages {
   case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage
   
   private[actors] object internal {
+    trait UserMessageWrapper
+	case class Identified(key: String, message: UserMessage) extends UserMessageWrapper
+	case class Anonymous(message: UserMessage) extends UserMessageWrapper
+	case class External(sender: UserInfo, message: UserMessage) extends UserMessageWrapper
     
+    case class WrappedProjectMessage(
+      user: UserInfo,
+      level: ProjectAccessLevel.Value, 
+      message: ProjectMessage)
   }
 }

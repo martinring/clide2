@@ -26,6 +26,7 @@ object UserServer {
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private class UserServer extends Actor with ActorLogging {
+  import Messages.internal._
   import Messages._
   import Events._
   

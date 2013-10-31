@@ -17,6 +17,7 @@ import scala.util.Random
 import scala.collection.JavaConversions._
 import scala.collection.mutable.Map
 import scala.slick.session.Session
+import clide.actors.Messages.internal._
 import clide.actors.Messages._
 import clide.actors.Events._
 

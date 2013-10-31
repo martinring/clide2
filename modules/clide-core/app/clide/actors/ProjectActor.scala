@@ -30,6 +30,7 @@ private object ProjectActor {
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
+  import clide.actors.Messages.internal._
   import clide.actors.Messages._
   import clide.actors.Events._
     

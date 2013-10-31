@@ -27,6 +27,7 @@ private object UserActor {
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private class UserActor(var user: UserInfo with Password) extends Actor with ActorLogging {
+  import Messages.internal._
   import Messages._
   import Events._
   

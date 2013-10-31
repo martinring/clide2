@@ -38,11 +38,12 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
   import AssistantSession._ 
   
   private var documentModels    = Map[Long,ActorRef]()
-  private var peer              = context.system.deadLetters
+  private var peer_              = context.system.deadLetters
   private val activeFiles       = Map[Long,Long]()
   private var info: SessionInfo = null
   private val collaborators     = Set[SessionInfo]()
   private val files             = Map[Long,OpenedFile]()
+  def peer = peer_
   
   /**
    * this method must be implemented by subclasses. You should initialize everything
@@ -105,7 +106,7 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
   def receive = {
     case EventSocket(ref,"session") =>
       log.info("session started")
-      peer = ref
+      peer_ = ref
       startup()
     
     case Activate =>
