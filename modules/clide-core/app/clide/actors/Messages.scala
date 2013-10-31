@@ -27,7 +27,6 @@ object Messages {
   case class SignUp(name: String, email: String, password: String) extends UserServerMessage
   case class IdentifiedFor(user: String, key: String, message: UserMessage) extends UserServerMessage
   case class AnonymousFor(user: String, message: UserMessage) extends UserServerMessage
-  // TODO: Support anonymous requests
    
   trait UserMessage extends Message
   case object Validate extends UserMessage

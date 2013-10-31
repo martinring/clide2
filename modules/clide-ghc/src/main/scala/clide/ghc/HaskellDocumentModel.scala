@@ -20,8 +20,7 @@ class HaskellDocumentModel(server: ActorRef, project: ProjectInfo) extends Docum
 	write.close()
 	var current = None
 	val lines = Seq("ghc-mod","check",name).lines ++ Seq("ghc-mod", "lint", name)
-	val Error = """.*([0-9]+).*""".r
-	lines.foreach(println)
+	val Error = """.*([0-9]+).*""".r	
 	val errs = lines.filter(_.startsWith(name)).map(_.drop(name.length() + 1)).map(HaskellMarkup.parseLine)
     val as = HaskellMarkup.toAnnotations(errs.toList.collect{ case Some(n) => n }, state)
     log.info("annotating: {}", as)
@@ -31,8 +30,7 @@ class HaskellDocumentModel(server: ActorRef, project: ProjectInfo) extends Docum
   def changed(op: Operation) {
     log.info("change")
     triggerRefresh
-  }
-    
+  }    
   
   def initialize() {
     if (file.path.length > 1)

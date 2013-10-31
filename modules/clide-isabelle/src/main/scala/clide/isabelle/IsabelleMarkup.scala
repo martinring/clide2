@@ -24,8 +24,7 @@ object IsabelleMarkup {
           body2.flatMap(annotations(_,Some(Map("c"->"info","i"->XML.content(body)))))
         case Markup.TYPING =>
           body2.flatMap(annotations(_,Some(Map("c"->"typing","t"->XML.content(body)))))
-        case other =>
-          println("unhandled " + other + ": " + body)
+        case other =>          
           body2.flatMap(annotations(_))
       }
       
@@ -71,12 +70,9 @@ object IsabelleMarkup {
   }
   
   def output(snapshot: Document.Snapshot): Annotations = {
-    snapshot.state.commands.map { case (id, cmd) =>
-      println("from: " + cmd.command.range.start)
-      println("to: " + cmd.command.range.stop)
+    snapshot.state.commands.map { case (id, cmd) =>      
       cmd.results.entries.foreach { println }
-    }
-    
+    }    
     new Annotations
   }
   

@@ -21,7 +21,6 @@ object HaskellMarkup {
   }
   
   def parseLine(s: String) = {
-    println("parsing: " + s)
     LineParser.parse(LineParser.error,s).map(Some(_)).getOrElse(None)
   }
   

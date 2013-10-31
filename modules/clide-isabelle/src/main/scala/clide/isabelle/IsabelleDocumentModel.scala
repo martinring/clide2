@@ -69,8 +69,8 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   
   def annotate: List[(String,Annotations)] = {
     List("highlighting"  -> IsabelleMarkup.highlighting(nodeHeader,snapshot),
-         "substitutions" -> IsabelleMarkup.substitutions(state),
-         "output"        -> IsabelleMarkup.output(snapshot))
+         "substitutions" -> IsabelleMarkup.substitutions(state))//,
+         //"output"        -> IsabelleMarkup.output(snapshot))
   }
   
   def changed(op: Operation) {     
