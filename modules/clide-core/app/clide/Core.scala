@@ -61,6 +61,7 @@ object Core extends Bootable {
   
   /**
    * Stops the actor system (and all actors).
+   * 
    * @todo this should be more gentle in shutting down all actors.
    */
   def shutdown() {

@@ -31,7 +31,7 @@ abstract class Assistant extends Actor with ActorLogging {
    * @param   project the project to create a session for
    * @returns the reference to the created session actor.
    */
-  def createSession(project: ProjectInfo): ActorRef
+  def createSession(project: ProjectInfo): ActorRef   
   
   /** May be overridden to modify invitation behaviour **/
   def onInvitation(project: ProjectInfo, me: LoginInfo) = {
@@ -50,19 +50,19 @@ abstract class Assistant extends Actor with ActorLogging {
   lazy val serverPath = config.getString("assistant.server-path")
   lazy val server     = context.actorOf(ServerForwarder(serverPath), "server-forwarder")
   
-  def login() = {
+  private def login() = {
     log.info("attempting login")
     server ! AnonymousFor(username,Login(password))
   }
   
-  def signup() = {
+  private def signup() = {
     log.info(s"signing up $username")
     server ! SignUp(username,email,password)
   }
   
   def receive = loggedOut
   
-  def loggedOut: Receive = {
+  private def loggedOut: Receive = {
     login()
     
     {
@@ -80,7 +80,7 @@ abstract class Assistant extends Actor with ActorLogging {
     }
   }  
   
-  def loggedIn(loginInfo: LoginInfo): Receive = {
+  private def loggedIn(loginInfo: LoginInfo): Receive = {
     log.info(s"logged in")
     server ! IdentifiedFor(username,loginInfo.key,StartBackstageSession)
     
@@ -97,7 +97,7 @@ abstract class Assistant extends Actor with ActorLogging {
     }
   }
   
-  def backstage(loginInfo: LoginInfo, peer: ActorRef): Receive = {
+  private def backstage(loginInfo: LoginInfo, peer: ActorRef): Receive = {
     val sessions = scala.collection.mutable.Map.empty[Long,ActorRef]
     
     {

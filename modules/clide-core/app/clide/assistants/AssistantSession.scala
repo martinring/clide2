@@ -15,21 +15,42 @@ import clide.actors.Messages.{RequestSessionInfo,SwitchFile,IdentifiedFor,WithUs
 import clide.collaboration._
 import scala.collection.mutable._
 
+/**
+ * The companion to the abstract `AssistantSession` convenience class contains
+ * the messages, that are specific to this actor.
+ */
 object AssistantSession {
+  /**
+   * Must be sent to `self` in the startup method, to indicate, that the session
+   * can begin gathering information about the active files, collaborators and 
+   * so on
+   */
   case object Activate
+  
+  /**
+   * Can be sent to an instance of AssistantSession from anywhere to trigger it
+   * to shut down. 
+   */
   case object Close
 }
 
 abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLogging {
   import AssistantSession._ 
   
-  var documentModels    = Map[Long,ActorRef]()
-  var peer              = context.system.deadLetters
-  val activeFiles       = Map[Long,Long]()
-  var info: SessionInfo = null
-  val collaborators     = Set[SessionInfo]()
-  val files             = Map[Long,OpenedFile]()
+  private var documentModels    = Map[Long,ActorRef]()
+  private var peer              = context.system.deadLetters
+  private val activeFiles       = Map[Long,Long]()
+  private var info: SessionInfo = null
+  private val collaborators     = Set[SessionInfo]()
+  private val files             = Map[Long,OpenedFile]()
   
+  /**
+   * this method must be implemented by subclasses. You should initialize everything
+   * you need here. It will be executed before everything else which means, that you
+   * can.
+   * 
+   * `startup` shall never be called directly!
+   */
   def startup()
   def fileAdded(file: OpenedFile)
   def fileClosed(file: OpenedFile)
@@ -80,7 +101,7 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
         activeFiles.remove(info.id)
       }    
   }
-    
+      
   def receive = {
     case EventSocket(ref,"session") =>
       log.info("session started")
