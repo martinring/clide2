@@ -51,7 +51,7 @@ object IsabelleMarkup {
           Markup.ENTITY  -> "entity")
       
       val c2 = markup.name match {
-        case m if classes.isDefinedAt(m) => Set(AnnotationType.Class -> classes(m), AnnotationType.Class -> "blub")
+        case m if classes.isDefinedAt(m) => Set(AnnotationType.Class -> classes(m))
         case other          => Set.empty
       }                 
       

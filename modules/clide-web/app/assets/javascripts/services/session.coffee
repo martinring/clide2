@@ -91,7 +91,6 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     apply -> 
       session.state = 'connecting'
     ws.onmessage = (e) ->
-      console.log e.data
       msg = JSON.parse(e.data)      
       switch typeof msg
         when 'string'
