@@ -32,7 +32,7 @@ object AnnotationType extends Enumeration {
   val Substitution   = Value("s")
 }
 
-case class Annotate(length: Int, content: Map[AnnotationType.Value,String]) extends Annotation {
+case class Annotate(length: Int, content: Set[(AnnotationType.Value,String)]) extends Annotation {
   override def toString = length.toString + ":{" + content.map{case(k,v)=>k+": " +v}.mkString(",") + "}"
 }
 
@@ -85,7 +85,7 @@ object AnnotationDiff {
 case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
   override def toString = annotations.mkString(";")
   
-  def annotate(n: Int, c: Map[AnnotationType.Value,String]): Annotations = {
+  def annotate(n: Int, c: Set[(AnnotationType.Value,String)]): Annotations = {
     annotations.lastOption match {
       case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c))
       case _ => Annotations(annotations :+ Annotate(n,c))
@@ -125,7 +125,7 @@ object Annotations {
     case _ => as
   }
   
-  private def addAnnotate(n: Int, c: Map[AnnotationType.Value,String], as: List[Annotation]): List[Annotation] = as match {
+  private def addAnnotate(n: Int, c: Set[(AnnotationType.Value,String)], as: List[Annotation]): List[Annotation] = as match {
     case Annotate(m,c2)::xs if c2 == c => Annotate(n+m,c)::xs
     case xs => Annotate(n,c)::xs
   }

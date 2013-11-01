@@ -33,7 +33,7 @@ object HaskellMarkup {
     case "" => as
     case _  =>
       val i = state.indexOf("->")
-      if (i >= 0) substitutions(state.drop(i + 2), as.plain(i).annotate(2, Map(AnnotationType.Class -> "symbol", AnnotationType.Substitution ->"→")))      
+      if (i >= 0) substitutions(state.drop(i + 2), as.plain(i).annotate(2, Set(AnnotationType.Class -> "symbol", AnnotationType.Substitution ->"→")))      
       else as.plain(state.length)        
   }
   
@@ -55,8 +55,8 @@ object HaskellMarkup {
           position = o
         }
         t match {
-          case "Error" => result = result.annotate(0, Map(AnnotationType.ErrorMessage -> e))
-          case "Warning" => result = result.annotate(0, Map(AnnotationType.WarningMessage -> e))
+          case "Error" => result = result.annotate(0, Set(AnnotationType.ErrorMessage -> e))
+          case "Warning" => result = result.annotate(0, Set(AnnotationType.WarningMessage -> e))
         }
         
     }                  

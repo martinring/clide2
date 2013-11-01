@@ -34,18 +34,38 @@ object Conversions {
         "email" -> u.email)
   }
   
+  def packAnnotations(as: Set[(AnnotationType.Value,String)]): Map[String,Seq[String]] = {
+    val packed = for {
+      key <- as.map(_._1)      
+    } yield key -> as.filter(_._1 == key).map(_._2)
+    
+    packed.toMap.map {
+      case (k,v) => k.toString -> v.toSeq
+    }
+  }
+  
+  def unpackAnnotations(as: Map[String,Seq[String]]): Set[(AnnotationType.Value,String)] = {
+    val unpacked = as.flatMap {
+      case (k,v) =>
+        val a = AnnotationType.withName(k)
+        v.map(a -> _)
+    }
+    
+    unpacked.toSet
+  }
+  
   implicit object AnnotationFormat extends Format[Annotation] {
     def reads(json: JsValue): JsResult[Annotation] = json match {
       case JsNumber(n) if n > 0      => JsSuccess(Plain(n.toInt))
       case obj: JsObject             => for {
         length  <- (obj \ "l").validate[Int]
-        content <- (obj \ "c").validate[Map[String,String]]
-      } yield Annotate(length,content.map{ case (a,b) => (AnnotationType.withName(a),b) })
+        content <- (obj \ "c").validate[Map[String,List[String]]]
+      } yield Annotate(length,unpackAnnotations(content))
       case _ => JsError("cant parse action: expected number or object")
     }
     def writes(a: Annotation): JsValue = a match {
       case Plain(n) => JsNumber(n)
-      case Annotate(n,c) => Json.obj("l" -> n, "c" -> c.map{ case (a,b) => (a.toString(), b)})      
+      case Annotate(n,c) => Json.obj("l" -> n, "c" -> packAnnotations(c))      
     }
   }
   
@@ -101,34 +121,34 @@ object Conversions {
   private implicit def plain(name: String) = Json.obj("t"->name)
   
   def serializeEvent(event: Event): JsValue = event match {
-    case TimeOut => error("the request timed out")
-    case Welcome => "welcome"
-    case UnexpectedTermination => error("internal server error (unexpected termination)")
-    case SignedUp(user) => "signedup" of user
-    case LoggedIn(user,login) => "loggedin" of user
-    case LoggedOut(user) => "loggedout"
+    case TimeOut                => error("the request timed out")
+    case Welcome                => "welcome"
+    case UnexpectedTermination  => error("internal server error (unexpected termination)")
+    case SignedUp(user)         => "signedup" of user
+    case LoggedIn(user,login)   => "loggedin" of user
+    case LoggedOut(user)        => "loggedout"
     case FolderContent(folder,files) => Json.obj("t"->"folder","info"->folder,"files"->files)
-    case CreatedProject(p) => "createdproject" of p
-    case DeletedProject(p) => "deletedproject" of p.id
+    case CreatedProject(p)      => "createdproject" of p
+    case DeletedProject(p)      => "deletedproject" of p.id
     case SessionInit(s,cs,conv) => Json.obj("t"->"welcome","info"->s,"others"->cs,"chat"->conv.map{case Talked(w,m,t) => Json.obj("s"->w,"m"->m,"t"->t)})
     case SessionChanged(s) => "session_changed" of s
-    case SessionStopped(s) => "session_stopped" of s    
+    case SessionStopped(s) => "session_stopped" of s
     case FileInitFailed(f) => "failed" of f
-    case FileCreated(f) => "newfile" of f
-    case FileDeleted(f) => "rmfile" of f
-    case FileId(i) => "file" of i
-    case FileSwitched(i) => "switch" of i
-    case FileClosed(i) => "close" of i
-    case FileOpened(i) => "opened" of i
-    case Edited(file,o) => Json.obj("f"->file,"o"->o)
-    case Annotated(file,user,a,name) => Json.obj("f"->file,"a"->a,"u"->user,"n"->name)
+    case FileCreated(f)    => "newfile" of f
+    case FileDeleted(f)    => "rmfile" of f
+    case FileId(i)         => "file" of i
+    case FileSwitched(i)   => "switch" of i
+    case FileClosed(i)     => "close" of i
+    case FileOpened(i)     => "opened" of i
+    case Edited(file,o)    => Json.obj("f"->file,"o"->o)
+    case Annotated(file,user,a,name)         => Json.obj("f"->file,"a"->a,"u"->user,"n"->name)
     case AnnotationChanged(file,user,a,name) => Json.obj("f"->file,"ac"->a,"u"->user,"n"->name)
-    case AcknowledgeEdit => JsString("ack_edit")
+    case AcknowledgeEdit       => JsString("ack_edit")
     case AcknowledgeAnnotation => JsString("ack_annotation")
-    case NotAllowed => "e" of "internal error: forbidden action"
-    case DoesntExist => "e" of "internal error: the referenced resource doesn't exist on the server"
+    case NotAllowed    => "e" of "internal error: forbidden action"
+    case DoesntExist   => "e" of "internal error: the referenced resource doesn't exist on the server"
     case Talked(w,m,t) => "talk" of Json.obj("s" -> w, "m" -> m,"t"->t)
-    case UserProjectInfos(own, other) => "projects" of Json.obj("own"->own, "other"->other)
+    case UserProjectInfos(own, other)                  => "projects" of Json.obj("own"->own, "other"->other)
     case ChangedProjectUserLevel(project, user, level) => "access" of Json.obj("p"->project,"u"->user,"l"->level.id)
     case _ => error("couldnt translate")
   }
