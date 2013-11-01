@@ -11,7 +11,7 @@
     display: table-cell;
     vertical-align: middle;     
     .dialog {      
-      background-color: white;      
+      background-color: @body-bg;      
       position: relative;
       padding-bottom: 16px;
       .box-shadow(0 0 64px);
@@ -20,7 +20,7 @@
         position: absolute;
         width: 100%;
         height: 100%;
-        background-color: rgba(255,255,255,0.5);                      
+        background-color: fade(@body-bg,50%); 
       }  
       button {
         margin-left: 3px;
