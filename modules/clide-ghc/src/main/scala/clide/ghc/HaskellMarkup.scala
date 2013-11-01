@@ -5,6 +5,7 @@ import clide.collaboration.Annotation
 import clide.collaboration.Annotations
 import clide.collaboration.Plain
 import scala.util.parsing.combinator.RegexParsers
+import clide.collaboration.AnnotationType
 
 object HaskellMarkup {
   object LineParser extends RegexParsers {
@@ -32,7 +33,7 @@ object HaskellMarkup {
     case "" => as
     case _  =>
       val i = state.indexOf("->")
-      if (i >= 0) substitutions(state.drop(i + 2), as.plain(i).annotate(2, Map("c"->"symbol","s"->"→")))      
+      if (i >= 0) substitutions(state.drop(i + 2), as.plain(i).annotate(2, Map(AnnotationType.Class -> "symbol", AnnotationType.Substitution ->"→")))      
       else as.plain(state.length)        
   }
   
@@ -54,8 +55,8 @@ object HaskellMarkup {
           position = o
         }
         t match {
-          case "Error" => result = result.annotate(0, Map("e" -> e))
-          case "Warning" => result = result.annotate(0, Map("w" -> e))
+          case "Error" => result = result.annotate(0, Map(AnnotationType.ErrorMessage -> e))
+          case "Warning" => result = result.annotate(0, Map(AnnotationType.WarningMessage -> e))
         }
         
     }                  
