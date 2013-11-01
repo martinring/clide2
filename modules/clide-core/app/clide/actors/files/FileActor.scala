@@ -179,6 +179,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
               case "less"   => Some("text/x-less")
               case "md"     => Some("text/x-markdown")
               case "sql"    => Some("text/x-sql")
+              case "txt"    => Some("text/plain")
               case _        => None
             }, 
             deleted = false,
