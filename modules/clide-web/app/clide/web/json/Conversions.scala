@@ -6,6 +6,7 @@ import clide.collaboration._
 import clide.actors.Events._
 import clide.actors.Messages.{CreateProject}
 import clide.collaboration.AnnotationDiff._
+import play.api.data.validation.ValidationError
 
 object Conversions {
   implicit object FileInfoWrites extends Writes[FileInfo] {
@@ -37,14 +38,14 @@ object Conversions {
     def reads(json: JsValue): JsResult[Annotation] = json match {
       case JsNumber(n) if n > 0      => JsSuccess(Plain(n.toInt))
       case obj: JsObject             => for {
-        length <- (obj \ "l").validate[Int]
+        length  <- (obj \ "l").validate[Int]
         content <- (obj \ "c").validate[Map[String,String]]
-      } yield Annotate(length,content)
+      } yield Annotate(length,content.map{ case (a,b) => (AnnotationType.withName(a),b) })
       case _ => JsError("cant parse action: expected number or object")
     }
     def writes(a: Annotation): JsValue = a match {
       case Plain(n) => JsNumber(n)
-      case Annotate(n,c) => Json.obj("l" -> n, "c" -> c)      
+      case Annotate(n,c) => Json.obj("l" -> n, "c" -> c.map{ case (a,b) => (a.toString(), b)})      
     }
   }
   
