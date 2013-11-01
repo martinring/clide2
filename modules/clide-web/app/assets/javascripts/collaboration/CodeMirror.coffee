@@ -86,43 +86,34 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
       @silent = false
 
     annotate: (c,user,name,from,to) =>
-      if c.e?
-        if cm = @doc.getEditor()          
-          widget = angular.element("<div class='outputWidget error'>#{c.e}</div>")[0]
-          widget.title = c.t if c.t?
-          widget = cm.addLineWidget from.line, widget
-          @annotations[user.id][name].push widget
-      if c.w?
-        if cm = @doc.getEditor()
-          widget = angular.element("<div class='outputWidget warning'>#{c.w}</div>")[0]
-          widget.title = c.t if c.t?
-          widget = cm.addLineWidget from.line, widget
-          @annotations[user.id][name].push widget
-      if c.i?
-        if cm = @doc.getEditor()
-          widget = angular.element("<div class='outputWidget info'>#{c.i}</div>")[0]
-          widget.title = c.t if c.t?
-          widget = cm.addLineWidget from.line, widget
-          @annotations[user.id][name].push widget
-      if c.c?
-        if to?
-          if c.s?
-            widget = angular.element("<span class='#{c.c}'>#{c.s}</span>")[0]
-            widget.title = c.t if c.t?
-            marker = @doc.markText from, to,
-              replacedWith: widget
-              handleMouseEvents: true
-              className:    c.c
-              title:        c.t
-          else
-            marker = @doc.markText from, to,
-              className: c.c
-              title:     c.t          
+      classes = c.c?.join(' ')
+      widget = (type,cs,content) ->
+        w = angular.element("<#{type} class='#{classes} #{cs}'>#{content}</#{type}>")[0]
+        w.title = c.t if c.t
+        return w
+      if c.e? and cm = @doc.getEditor()
+        for e in c.e
+          @annotations[user.id][name].push cm.addLineWidget from.line, widget('div','outputWidget error',e)
+      if c.w? and cm = @doc.getEditor()
+        for w in c.w
+          @annotations[user.id][name].push cm.addLineWidget from.line, widget('div','outputWidget warning',w)
+      if c.i? and cm = @doc.getEditor()
+        for i in c.i
+          @annotations[user.id][name].push cm.addLineWidget from.line, widget('div','outputWidget info',i)
+      if classes?
+        if to? and c.s?          
+          marker = @doc.markText from, to,
+            replacedWith:      widget('span','',c.s)
+            handleMouseEvents: true
           @annotations[user.id][name].push marker
-        else
-          widget = angular.element("<span class='#{c.c}'></span>")[0]
+        else if to?
+          marker = @doc.markText from, to,
+            className: classes
+            title:     c.t
+          @annotations[user.id][name].push marker
+        else          
           bookmark = @doc.setBookmark from,
-            widget: widget
+            widget:     widget('span','','')
             insertLeft: true
           @annotations[user.id][name].push bookmark
 
