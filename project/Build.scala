@@ -27,8 +27,8 @@ object ApplicationBuild extends Build {
     scala.reflect,
     slick,h2,slf4j)
 
-  val commonSettings = Seq(
-    scalaVersion      := scala.version,
+  val commonSettings = Seq(    
+    scalaVersion := scala.version,
     resourceDirectory in Compile <<= baseDirectory / "conf",
     resourceDirectory in Test <<= baseDirectory / "conf",
     sourceDirectory in Compile <<= baseDirectory / "app",
@@ -46,7 +46,7 @@ object ApplicationBuild extends Build {
 
   val appDependencies = Seq(
     akka.remote,    
-    scala.pickling,
+    //scala.pickling, TODO
     playplugins.mailer)
   
   val web = play.Project(
@@ -56,6 +56,8 @@ object ApplicationBuild extends Build {
     path = file("modules/clide-web")
   ).dependsOn(core).settings(Angular.defaultSettings:_*)  
   .settings(
+    // this is needed for scala pickling TODO: Fix
+    // resolvers += Resolver.sonatypeRepo("snapshots"),
     scalaVersion := scala.version,
     //requireJs += "main.js",  TODO: This needs to be fixed to work again!
     //requireJsShim += "main.js",
@@ -93,8 +95,7 @@ object ApplicationBuild extends Build {
     scala.actors)
 
   val isabelle = Project(s"${appName}-isabelle", file("modules/clide-isabelle"))
-                .dependsOn(core).settings(
-    scalaVersion := scala.version,
+                .dependsOn(core).settings(commonSettings:_*).settings(    
     libraryDependencies ++= isabelleDependencies
   )
 
@@ -104,8 +105,7 @@ object ApplicationBuild extends Build {
     akka.kernel)
 
   val ghc = Project(s"${appName}-ghc", file("modules/clide-ghc"))
-            .dependsOn(core).settings(
-    scalaVersion := scala.version,
+            .dependsOn(core).settings(commonSettings:_*).settings(    
     libraryDependencies ++= ghcDependencies
   )
 

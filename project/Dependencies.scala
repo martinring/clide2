@@ -23,10 +23,10 @@ object Dependencies {
 
   object spray {
     val resolver = "spray" at "http://repo.spray.io/"
-    val json = "io.spray" %% "spray-json" % "1.2.5"
+    val json     = "io.spray" %% "spray-json" % "1.2.5"
   }
   
-  object scala {
+  object scala {    
     val version  = "2.10.3"
     val swing    = "org.scala-lang" % "scala-swing"   % version
     val actors   = "org.scala-lang" % "scala-actors"  % version
