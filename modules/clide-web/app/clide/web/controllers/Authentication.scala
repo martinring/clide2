@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.web.controllers
 
 import play.api.mvc.{Controller,Action}
@@ -15,6 +23,9 @@ import play.api.mvc.Results
 import play.Logger
 import views.html.defaultpages.badRequest
 
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
 object Authentication extends Controller with UserRequests {
   // -- Authentication
   val loginForm = Form(

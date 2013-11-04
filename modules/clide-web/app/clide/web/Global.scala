@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.web
 
 import play.api._
@@ -11,6 +19,9 @@ import scala.concurrent.Promise
 import akka.pattern._
 import clide.actors.util.ServerForwarder
 
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
 object Global extends GlobalSettings {
   implicit val timeout      = Timeout(30 seconds)
   private val serverForwarder = Promise[ActorRef]()

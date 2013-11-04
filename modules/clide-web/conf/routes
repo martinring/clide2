@@ -4,8 +4,6 @@ GET     /api/auth/validateSession           clide.web.controllers.Authentication
 POST    /api/auth/signup                    clide.web.controllers.Authentication.signup
 GET     /api/auth/logout                    clide.web.controllers.Authentication.logout
 
-GET     /api/users/:user/backstage          clide.web.controllers.Backstage.session(user)
-
 # Projects
 GET     /api/projects/:user                 clide.web.controllers.Projects.index(user)
 GET     /api/projects/:user/backstage       clide.web.controllers.Projects.backstageSession(user)

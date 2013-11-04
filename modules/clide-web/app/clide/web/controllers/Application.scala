@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.web.controllers
 
 import java.util.UUID
@@ -18,6 +26,9 @@ import clide.actors.Events._
 import clide.actors.Messages._
 import scala.concurrent.Future
 
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
 object Application extends Controller with UserRequests { 
   def index(path: String) = UserRequest.async { implicit request =>
     def notLoggedIn: SimpleResult = path match {

@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 package clide.web.controllers
 
 import clide.actors.Events._
@@ -6,6 +14,9 @@ import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.libs.json.Json
 
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
 trait DefaultResults {
   implicit def defaultResult(event: Event): SimpleResult = event match {
     case CreatedProject(info) => Ok(Json.toJson(info))
