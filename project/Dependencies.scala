@@ -14,7 +14,7 @@ object Dependencies {
   val slf4j = "org.slf4j" % "slf4j-nop" % "1.6.4"
 
   object akka {
-    val version = "2.2.1"
+    val version = "2.2.3"
     val actor   = "com.typesafe.akka" %% "akka-actor"   % version
     val remote  = "com.typesafe.akka" %% "akka-remote"  % version
     val kernel  = "com.typesafe.akka" %% "akka-kernel"  % version
