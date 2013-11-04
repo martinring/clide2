@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 import sbt._
 import Keys._
 import play.Project._
@@ -38,6 +46,7 @@ object ApplicationBuild extends Build {
 
   val appDependencies = Seq(
     akka.remote,    
+    scala.pickling,
     playplugins.mailer)
   
   val web = play.Project(
@@ -48,7 +57,7 @@ object ApplicationBuild extends Build {
   ).dependsOn(core).settings(Angular.defaultSettings:_*)  
   .settings(
     scalaVersion := scala.version,
-    //requireJs += "main.js",
+    //requireJs += "main.js",  TODO: This needs to be fixed to work again!
     //requireJsShim += "main.js",
     Angular.otherModules ++= Map(
         "angular-animate"  -> "ngAnimate",

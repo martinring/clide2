@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 import sbt._
 
 object Dependencies {
@@ -19,10 +27,11 @@ object Dependencies {
   }
   
   object scala {
-    val version = "2.10.2"
-    val swing   = "org.scala-lang" % "scala-swing"   % version
-    val actors  = "org.scala-lang" % "scala-actors"  % version
-    val reflect = "org.scala-lang" % "scala-reflect" % version
+    val version  = "2.10.3"
+    val swing    = "org.scala-lang" % "scala-swing"   % version
+    val actors   = "org.scala-lang" % "scala-actors"  % version
+    val reflect  = "org.scala-lang" % "scala-reflect" % version
+    val pickling = "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT"
   }
 
   object playplugins {

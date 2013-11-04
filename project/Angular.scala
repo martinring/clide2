@@ -1,3 +1,11 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ \*                                                                           */
+
 import sbt._
 import sbt.Keys._
 import play.Project
@@ -7,6 +15,12 @@ import java.io.File
 import java.io.FileReader
 import scala.collection.SortedSet
 
+/** 
+ * Provides some very pragmatic integration of angular.js into the play 
+ * framework
+ *
+ * @author Martin Ring
+ */
 object Angular {   
   val moduleOptions = SettingKey[Seq[String]]("angular-module-options")
   val moduleDirs = SettingKey[Map[String,(String,String,Boolean)]]("angular-module-directories")
