@@ -50,17 +50,21 @@ object Projects extends Controller with UserRequests with DefaultResults {
       user = username,
       message = WithUser(username,WithProject(name,StartSession)),
       serialize = { msg => Logger.info(msg.toString); serializeEvent(msg) },
-      deserialize = { json =>
+      deserialize = { json =>        
         ((json \ "f").asOpt[Long],(json \ "r").asOpt[Long]) match {          
           case (Some(file),Some(rev)) => (json\"o").asOpt[Operation] match {
             case Some(operation) => Edit(file,rev,operation)
             case None => (json\"a").asOpt[Annotations] match {
               case Some(annotation) => Annotate(file,rev,annotation,(json\"n").as[String])
-              case None => ForgetIt
-            }
+              case None =>
+                println("didn't understand: " + json.toString)
+                ForgetIt
+            }            
           }
           case _ => (json \ "t").asOpt[String] match {
-            case None => ForgetIt
+            case None =>
+              Logger.warn("didn't understand: " + json.toString)
+              ForgetIt
             case Some(t) => t match {
               case "init" => 
                 RequestSessionInfo
@@ -74,6 +78,9 @@ object Projects extends Controller with UserRequests with DefaultResults {
                 ChangeProjectUserLevel((json \ "u").as[String], ProjectAccessLevel.Write)
               case "chat" =>
                 Talk((json \ "to").asOpt[Long], (json \ "msg").as[String])
+              case _ =>
+                Logger.warn("didn't understand: " + json.toString)
+                ForgetIt
             }
           }
         }        
@@ -85,7 +92,9 @@ object Projects extends Controller with UserRequests with DefaultResults {
       serialize = { serializeEvent },
       deserialize = { json =>
         (json \ "t").asOpt[String] match {
-          case None => ForgetIt
+          case None =>
+            Logger.warn("didn't understand: " + json.toString)
+            ForgetIt
           case Some(t) => t match {
             case "browse" => // TODO: Make this pretty!
               WithPath((json \ "path").as[Seq[String]], BrowseFolder)
