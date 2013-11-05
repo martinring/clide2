@@ -9,8 +9,11 @@
 import sbt._
 import Keys._
 import play.Project._
-import Dependencies._
 import com.typesafe.sbt.SbtAtmos.{Atmos,atmosSettings}
+import akka.sbt.AkkaKernelPlugin
+import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions}
+import Dependencies._
+
 
 object ApplicationBuild extends Build {
   val appName         = "clide"
@@ -27,8 +30,10 @@ object ApplicationBuild extends Build {
     scala.reflect,
     slick,h2,slf4j)
 
-  val commonSettings = Seq(    
+  val commonSettings = Seq(
     scalaVersion := scala.version,
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked"),
+    javacOptions  ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
     resourceDirectory in Compile <<= baseDirectory / "conf",
     resourceDirectory in Test <<= baseDirectory / "conf",
     sourceDirectory in Compile <<= baseDirectory / "app",
@@ -39,7 +44,7 @@ object ApplicationBuild extends Build {
     javaSource in Test <<= baseDirectory / "test")
 
   val core = Project(s"${appName}-core", file("modules/clide-core"))
-             .settings(commonSettings:_*).settings(
+             .settings(commonSettings:_*).settings(AkkaKernelPlugin.distSettings:_*).settings(
     resolvers += spray.resolver,
     libraryDependencies ++= coreDependencies
   ).configs(Atmos).settings(atmosSettings:_*)
@@ -52,7 +57,7 @@ object ApplicationBuild extends Build {
   val web = play.Project(
     s"${appName}-web", 
     appVersion, 
-    appDependencies,
+    appDependencies,    
     path = file("modules/clide-web")
   ).dependsOn(core).settings(Angular.defaultSettings:_*)  
   .settings(
