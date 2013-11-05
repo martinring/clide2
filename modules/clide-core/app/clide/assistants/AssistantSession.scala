@@ -93,6 +93,16 @@ abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLo
       files(file) = next
       documentModels.get(file).foreach(_ ! DocumentModel.Change(operation))
       
+    case Annotated(file, user, annotations, name) =>
+      val ps = annotations.positions(AnnotationType.Class,"cursor")
+      if (ps.nonEmpty) for {
+        model <- documentModels.get(file)
+        user  <- collaborators.find(_.id == user)
+        pos   <- ps
+      } {
+        model ! DocumentModel.RequestInfo(pos, user)
+      }
+      
     case SessionChanged(info) =>
       log.info("session changed: {}", info)
       if (info.active && info.activeFile.isDefined && !files.contains(info.activeFile.get)) {        

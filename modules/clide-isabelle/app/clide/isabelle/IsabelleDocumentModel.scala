@@ -73,6 +73,11 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
          //"output"        -> IsabelleMarkup.output(snapshot))
   }
   
+  def getInfo(pos: Int): Option[String] = for {
+    cmd <- snapshot.node.commands.find(_.range.contains(pos))
+    val state = snapshot.state.command_state(snapshot.version, cmd)    
+  } yield state.results.entries.mkString("\n")
+  
   def changed(op: Operation) {     
     val edits = opToDocumentEdits(op)    
     session.update(edits)

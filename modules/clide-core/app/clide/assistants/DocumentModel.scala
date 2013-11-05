@@ -14,12 +14,14 @@ import akka.actor._
 import scala.collection.mutable.{Buffer,Map}
 import scala.concurrent.Promise
 import scala.concurrent.duration._
-import clide.actors.Messages
+import clide.actors.Messages._
+import scala.xml.XML
 
 object DocumentModel {
   case object Close
   case class  Change(op: Operation)
   case class  Init(f: OpenedFile)
+  case class  RequestInfo(offset: Int, user: SessionInfo)
   case object Refresh
   case object Flush
 }
@@ -29,7 +31,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   
   private var info: FileInfo = null
   private var headRev: Long = 0
-  private var rev: Long     = 0  
+  private var rev: Long     = 0
   private var doc: Document = Document("")
   private var pending: Option[Operation] = None
   private val annotations = Map[String,Option[Annotations]]()
@@ -43,12 +45,16 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   def state    = doc.content
   def file     = info
   
-  def initialize()  
+  def chat(msg: String) = server ! Talk(None,msg)
+  
+  def initialize()
   def changed(op: Operation)
-  def annotate: List[(String,Annotations)]    
+  def annotate: List[(String,Annotations)]
+  
+  def getInfo(pos: Int): Option[String]
 
   def triggerRefresh() = context.self ! Refresh
-  def triggerClose()   = context.self ! Close  
+  def triggerClose()   = context.self ! Close
      
   private def flush() = {
     pending.foreach { op =>
@@ -76,6 +82,11 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
 		if (!flushMaxTimeout.isDefined) flushMaxTimeout = Some {
 		  context.system.scheduler.scheduleOnce(2 seconds, self, Flush)
 		}
+		
+      case RequestInfo(pos, user) =>        
+        getInfo(pos).foreach{ m =>
+          chat("@" + user.user + ": " + m)
+        }
 		  
       case Flush =>
         flushMaxTimeout.map(_.cancel)
