@@ -63,10 +63,10 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       adapter.applyAnnotation(a,u,n)
       a                          = client.transformAnnotation(a)
       nfile.annotations          = nfile.annotations or { }
-      nfile.annotations[u.id]    = nfile.annotations[u.id] or [ ]      
+      nfile.annotations[u.id]    = nfile.annotations[u.id] or [ ]
       for stream in nfile.annotations[u.id]
         if stream.name is n
-          return      
+          return
       nfile.annotations[u.id].push
         show: true
         name: n
@@ -102,6 +102,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     apply -> 
       session.state = 'connecting'
     ws.onmessage = (e) ->
+      console.log "received: #{e.data}"
       msg = JSON.parse(e.data)      
       switch typeof msg
         when 'string'

@@ -34,6 +34,10 @@ object AssistantSession {
   case object Close
 }
 
+/**
+ * TODO: The entire Assistant / AssistantSession / DocumentModel architecture is
+ * very ugly an not extensible. This needs to be redone quick!
+ */
 abstract class AssistantSession(project: ProjectInfo) extends Actor with ActorLogging {
   import AssistantSession._ 
   

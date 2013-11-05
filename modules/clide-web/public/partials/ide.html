@@ -184,39 +184,46 @@
       <div id="statusbar"> 
         <div>
           <ul class="buttons">
-            <li id="consoleButton" 
+            <li id='chatButton'
                 ng-click="toggleChat()"
                 ng-class="{active:showChat}">
                 Chat <span class='badge' ng-show='unreadChatMessages > 0'>{{unreadChatMessages}}</span>
+            </li>
+            <li id='outputButton'
+                ng-clikc='toggleChat()'
+                ng-class='{active:showOutput}'>
+                Output
             </li>
           </ul>
           <ul class="statusMessages" ng-mousedown='startSlidebar($event)'>
             <!--<li id="syncState">{{session.syncState()}}</li>
             <li id="traffic">{{session.activeAnnotations()}}</li>
-            <li id="sessionStatus" class="phase">
+            --><li id="sessionStatus" class="phase">
               <i class='icon-cloud'></i>
-            </li>-->
+            </li>
           </ul>
         </div>
-        <div id="output">                      
-          <form ng-submit='chat()' name='chatForm'>
-            <div class='input-group'>
-              <input ng-model='chatMessage' class='form-control' required>
-              <span class='input-group-btn'>
-                <button class='btn btn-primary' type='submit' ng-disabled='!chatForm.$valid || app.wait'><i class='icon-envelope'></i></button>
-              </span>
+        <div id="output">
+          <div ng-if='showChat'>
+            <form ng-submit='chat()' name='chatForm'>
+              <div class='input-group'>
+                <input ng-model='chatMessage' class='form-control' required>
+                <span class='input-group-btn'>
+                  <button class='btn btn-primary' type='submit' ng-disabled='!chatForm.$valid || app.wait'><i class='icon-envelope'></i></button>
+                </span>
+              </div>
+            </form>
+            <div class='history'>
+              <ul style='margin: 0; list-style: none; padding: 0'>
+                <li ng-repeat='message in session.chat track by $index'>
+                  <small><span class='text-muted'>{{date(message.t) | date:'MM/dd/yyyy HH:mm:ss' }}</span></small><br/>
+                  <span class='message' ng-class='{"text-muted": message.s == session.me.user}'>{{message.s}}: <span class='message' style='font-family: {{editorFont}}'>{{message.m}}</span></span>
+                </li>
+              </ul>                
             </div>
-          </form>
-          <div class='history'>
-            <ul style='margin: 0; list-style: none; padding: 0'>
-              <li ng-repeat='message in session.chat track by $index'>
-                <small><span class='text-muted'>{{date(message.t) | date:'MM/dd/yyyy HH:mm:ss' }}</span></small><br/>
-                <span ng-class='{"text-muted": message.s == session.me.user}'>{{message.s}}: {{message.m}}</span>
-              </li>
-            </ul>                
           </div>
+        </div>
       </div>  
     </div>
   </div>
 </div>
-              </div>

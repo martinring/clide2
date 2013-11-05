@@ -30,6 +30,7 @@ object AnnotationType extends Enumeration {
   val WarningMessage = Value("w")
   val InfoMessage    = Value("i")
   val Substitution   = Value("s")
+  val Output         = Value("o")
 }
 
 case class Annotate(length: Int, content: Set[(AnnotationType.Value,String)]) extends Annotation {

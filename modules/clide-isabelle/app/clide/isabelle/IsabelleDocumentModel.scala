@@ -72,8 +72,8 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
   
   def annotate: List[(String,Annotations)] = {
     List("highlighting"  -> IsabelleMarkup.highlighting(nodeHeader,snapshot),
-         "substitutions" -> IsabelleMarkup.substitutions(state))//,
-         //"output"        -> IsabelleMarkup.output(snapshot))
+         "substitutions" -> IsabelleMarkup.substitutions(state),
+         "output"        -> IsabelleMarkup.output(snapshot))
   }
   
   def commandAt(pos: Int): Option[Command] = {
@@ -93,8 +93,8 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
          .mkString("\n")
   }
     
-  def changed(op: Operation) {     
-    val edits = opToDocumentEdits(op)    
+  def changed(op: Operation) {
+    val edits = opToDocumentEdits(op)
     session.update(edits)
   }
       

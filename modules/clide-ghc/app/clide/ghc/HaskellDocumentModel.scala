@@ -25,7 +25,12 @@ class HaskellDocumentModel(server: ActorRef, project: ProjectInfo) extends Docum
     val as = HaskellMarkup.toAnnotations(errs.toList.collect{ case Some(n) => n }, state)
     log.info("annotating: {}", as)
     List("errors" -> as, "substitutions" -> HaskellMarkup.substitutions(state))
-  }    
+  }
+  
+  override def getInfo(pos: Int): Option[String] = {
+    val start = state.take(pos).reverse.indexWhere(_.isWhitespace)
+    None
+  }
   
   def changed(op: Operation) {
     log.info("change")

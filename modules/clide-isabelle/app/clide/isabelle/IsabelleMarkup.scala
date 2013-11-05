@@ -10,6 +10,7 @@ import isabelle.Symbol
 import isabelle.XML
 import isabelle.HTML
 import clide.collaboration.AnnotationType
+import isabelle.Protocol
 
 object IsabelleMarkup {
   def annotations(xml: XML.Tree, c: Set[(AnnotationType.Value,String)] = Set.empty): List[Annotation] = xml match {
@@ -21,24 +22,19 @@ object IsabelleMarkup {
       markup.name match {        
         case Markup.ERROR | Markup.BAD =>           
           body2.flatMap(annotations(_,Set(
-              AnnotationType.Class        -> "error",
-              AnnotationType.ErrorMessage -> XML.content(body))))
+              AnnotationType.Class -> "error")))
         case Markup.WARNING =>
           body2.flatMap(annotations(_,Set(
-              AnnotationType.Class          -> "warning",
-              AnnotationType.WarningMessage -> XML.content(body))))
+              AnnotationType.Class -> "warning")))
         case Markup.WRITELN =>
           body2.flatMap(annotations(_,Set(
-              AnnotationType.Class       -> "writeln",
-              AnnotationType.InfoMessage -> XML.content(body))))
+              AnnotationType.Class -> "info")))
         case Markup.INFORMATION =>
           body2.flatMap(annotations(_,Set(
-              AnnotationType.Class       -> "info",
-              AnnotationType.InfoMessage -> XML.content(body))))
+              AnnotationType.Class -> "info")))
         case Markup.TYPING =>
           body2.flatMap(annotations(_,Set(
-              AnnotationType.Class   -> "typing",
-              AnnotationType.Tooltip -> XML.content(body))))
+              AnnotationType.Class   -> "typing")))
         case other =>          
           body2.flatMap(annotations(_))
       }
@@ -66,24 +62,35 @@ object IsabelleMarkup {
         case _ => List(Annotate(content.length,c))
       }      
   }
+  
+  /**
+   *  TODO 
+  def tooltips(snapshot: Document.Snapshot): Annotations = {
+    
+  }*/
       
-  def highlighting(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {
-    val anns = snapshot.node.commands.iterator.toList.flatMap { cmd =>           
-      val xml = snapshot.state.commands(cmd.id).markup_to_XML(_ => true)
-      xml.flatMap(annotations(_))
-    }
-    println(anns)
-    anns.foldLeft(new Annotations) {
+  def highlighting(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {              
+    val xml = snapshot.state.markup_to_XML(snapshot.version, snapshot.node, _ => true)
+    xml.flatMap(annotations(_)).foldLeft(new Annotations) {
       case (as, Plain(n))      => as.plain(n)
       case (as, Annotate(n,c)) => as.annotate(n, c)
     }
   }
   
   def output(snapshot: Document.Snapshot): Annotations = {
-    snapshot.state.commands.map { case (id, cmd) =>      
-      cmd.results.entries.foreach { println }
-    }    
-    new Annotations
+    val node = snapshot.version.nodes(snapshot.node_name)
+    node.commands.foldLeft (new Annotations) { 
+      case (as,cmd) => if (!cmd.is_ignored) { 
+        val state = snapshot.state.command_state(snapshot.version, cmd)
+        val output = state.results.entries.map(_._2)
+          .filterNot(Protocol.is_result(_))
+          .map(XML.content(_))
+          .mkString("\n")
+        as.annotate(cmd.length, Set(AnnotationType.Output -> output))
+      } else {
+        as.plain(cmd.length)
+      }
+    }
   }
   
   def substitutions(state: String): Annotations =

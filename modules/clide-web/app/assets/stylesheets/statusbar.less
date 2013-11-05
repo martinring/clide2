@@ -8,11 +8,13 @@
   color: @sidebar-background-text;
   height: @statusbar-height;  
   .buttons {
+    cursor: default;
     position: absolute;
     list-style: none;
     padding: 0;
     margin: 0;
     li {
+      cursor: pointer;
       line-height: @statusbar-height;
       vertical-align: middle;
       margin: 0;      
@@ -56,6 +58,10 @@
     }  
   }  
   #output {
+    .message {      
+      white-space: pre;
+      word-wrap: auto;          
+    }    
     padding: 4px 8px;        
     position: absolute;
     overflow: auto;

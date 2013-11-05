@@ -55,6 +55,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   def changed(op: Operation)
   def annotate: List[(String,Annotations)]
     
+  private val lastInfos: Map[Long,String] = Map()
   def getInfo(pos: Int): Option[String] = None
 
   def triggerRefresh() = context.self ! Refresh
@@ -88,9 +89,12 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
 		}
 		
       case RequestInfo(pos, user) =>        
-        getInfo(pos).foreach{ m =>
-          chat("@" + user.user + ": " + m)
-        }
+        getInfo(pos).foreach{ m => lastInfos.get(user.id) match {
+          case Some(m_) if m == m_ => // Nothing
+          case _ =>
+            lastInfos(user.id) = m
+            chat("@" + user.user + ": " + m)
+        } }
 		  
       case Flush =>
         flushMaxTimeout.map(_.cancel)
