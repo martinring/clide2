@@ -85,6 +85,16 @@ object AnnotationDiff {
 case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
   override def toString = annotations.mkString(";")
   
+  def positions(tpe: (AnnotationType.Value,String)): List[Int] = {
+    val (_,result) = ((0,List.empty[Int]) /: annotations) {
+      case ((offset,ps),Plain(n)) => (offset+n,ps)
+      case ((offset,ps),Annotate(n,c)) =>
+        if (c.contains(tpe)) (offset+n,offset::ps)
+        else (offset+n,ps)
+    }
+    result
+  }
+  
   def annotate(n: Int, c: Set[(AnnotationType.Value,String)]): Annotations = {
     annotations.lastOption match {
       case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c))
