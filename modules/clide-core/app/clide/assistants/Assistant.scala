@@ -16,6 +16,11 @@ import clide.models._
 import clide.actors.util.ServerForwarder
 
 /**
+ * TODO: The entire Assistant / AssistantSession / DocumentModel architecture is
+ * very ugly an not extensible. This needs to be redone quick!
+ */
+
+/**
  * This is a convenience class to implement connected tools. (Assistants)
  * The only method to be implemented is the `createSession` message, which should
  * create an instance of an Actor which may inherit from 
@@ -85,12 +90,12 @@ abstract class Assistant extends Actor with ActorLogging {
     server ! IdentifiedFor(username,loginInfo.key,StartBackstageSession)
     
     {
-      case LoggedOut(user) =>        
+      case LoggedOut(user) =>
         context.become(loggedOut)
         log.info("logged out")
         self ! PoisonPill
       case EventSocket(peer,"backstage") =>
-        log.info("connected to backstage session")        
+        log.info("connected to backstage session")
         log.info("requesting project infos")
         context.become(backstage(loginInfo,peer))
         peer ! BrowseProjects
@@ -104,16 +109,16 @@ abstract class Assistant extends Actor with ActorLogging {
       case UserProjectInfos(own,other) =>
         log.info("received project infos")
         (own ++ other).foreach(onInvitation(_,loginInfo))
-      case ChangedProjectUserLevel(project, user, level) if (user == loginInfo.user) =>      
+      case ChangedProjectUserLevel(project, user, level) if (user == loginInfo.user) =>
         if (level >= ProjectAccessLevel.Read)
-          onInvitation(project, loginInfo)          
+          onInvitation(project, loginInfo)
         else
           sessions.get(project.id).map(_ ! AssistantSession.Close)
       case CreatedProject(project) =>
         onInvitation(project,loginInfo)
-      case DeletedProject(project) =>        
+      case DeletedProject(project) =>
         sessions.get(project.id).map(_ ! AssistantSession.Close)
-      case Terminated(sess) =>        
+      case Terminated(sess) =>
         sessions.find(_._2 == sess).foreach(i => sessions.remove(i._1))
     }
   }

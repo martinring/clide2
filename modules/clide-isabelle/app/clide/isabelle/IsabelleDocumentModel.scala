@@ -14,6 +14,9 @@ import isabelle.Exn
 import isabelle.Session
 import isabelle.Text
 import isabelle.Thy_Header
+import isabelle.Command
+import isabelle.Protocol
+import isabelle.XML
 
 class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Session) extends DocumentModel(server, project) {  
   def nodeName = {
@@ -73,11 +76,23 @@ class IsabelleDocumentModel(server: ActorRef, project: ProjectInfo, session: Ses
          //"output"        -> IsabelleMarkup.output(snapshot))
   }
   
-  def getInfo(pos: Int): Option[String] = for {
-    cmd <- snapshot.node.commands.find(_.range.contains(pos))
-    val state = snapshot.state.command_state(snapshot.version, cmd)    
-  } yield state.results.entries.mkString("\n")
+  def commandAt(pos: Int): Option[Command] = {
+    val node = snapshot.version.nodes(nodeName)
+    val commands = snapshot.node.command_range(pos)
+    if (commands.hasNext) {
+      val (cmd0,_) = commands.next
+      node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)        
+    } else None
+  }    
   
+  override def getInfo(pos: Int): Option[String] = commandAt(pos).map { cmd =>
+    val state = snapshot.state.command_state(snapshot.version, cmd)
+    state.results.entries.map(_._2)
+         .filterNot(Protocol.is_result(_))
+         .map(XML.content(_))
+         .mkString("\n")
+  }
+    
   def changed(op: Operation) {     
     val edits = opToDocumentEdits(op)    
     session.update(edits)

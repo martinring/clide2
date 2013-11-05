@@ -26,6 +26,10 @@ object DocumentModel {
   case object Flush
 }
 
+/**
+ * TODO: The entire Assistant / AssistantSession / DocumentModel architecture is
+ * very ugly an not extensible. This needs to be redone quick!
+ */
 abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends Actor with ActorLogging {
   import DocumentModel._ 
   
@@ -50,10 +54,11 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   def initialize()
   def changed(op: Operation)
   def annotate: List[(String,Annotations)]
-  
-  def getInfo(pos: Int): Option[String]
+    
+  def getInfo(pos: Int): Option[String] = None
 
   def triggerRefresh() = context.self ! Refresh
+  
   def triggerClose()   = context.self ! Close
      
   private def flush() = {
@@ -68,8 +73,7 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
   private object RefreshTimeout
       
   def initialized: Receive = {
-    import context.dispatcher
-    initialize()
+    import context.dispatcher    
     
     {
       case Change(change) =>
@@ -125,7 +129,10 @@ abstract class DocumentModel(server: ActorRef, val project: ProjectInfo) extends
       rev  = init.revision
       headRev = rev
       doc  = Document(init.state)
-      info = init.info      
+      info = init.info            
+      initialize()
+    case Refresh => 
       context.become(initialized)
+      initialized(Refresh)
   }
 }
