@@ -45,12 +45,14 @@ object Conversions {
   }
   
   def unpackAnnotations(as: Map[String,Seq[String]]): Set[(AnnotationType.Value,String)] = {
-    val unpacked = as.flatMap {
+    val unpacked = as.toSeq.flatMap {
       case (k,v) =>
-        val a = AnnotationType.withName(k)
-        v.map(a -> _)
+        val a = AnnotationType.withName(k)        
+        v.map { v =>
+          println(a -> v)
+          a -> v
+        }
     }
-    
     unpacked.toSet
   }
   
