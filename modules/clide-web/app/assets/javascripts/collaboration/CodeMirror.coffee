@@ -46,17 +46,17 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
                   
       if anchor is head
         return new Annotations().plain(anchor)
-                                .annotate(0,{'c':"cursor #{color}"})
+                                .annotate(0,{'c':['cursor',color]})
                                 .plain(length - anchor)
       else if anchor < head
         return new Annotations().plain(anchor)                                
-                                .annotate(head - anchor,{'c':"selection #{color}"})
-                                .annotate(0,{'c':"cursor #{color}"})
+                                .annotate(head - anchor,{'c':['selection',color]})
+                                .annotate(0,{'c':['cursor',color]})
                                 .plain(length - head)
       else
         return new Annotations().plain(head)
-                                .annotate(0,{'c':"cursor #{color}"})
-                                .annotate(anchor - head,{'c':"selection #{color}"})                                
+                                .annotate(0,{'c':['cursor',color]})
+                                .annotate(anchor - head,{'c':['selection', color]})                                
                                 .plain(length - anchor)  
 
     registerCallbacks: (cb) =>

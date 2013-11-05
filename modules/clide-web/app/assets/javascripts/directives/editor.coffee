@@ -17,6 +17,7 @@ define ['routes','codemirror','modes/isabelle'], (routes) ->
       readOnly:    '&'
       fontSize:    '&'
       font:        '&'
+      annotations: '&'
 
     link: (scope, iElem, iAttrs, controller) ->
       window.countMe = (window.countMe or 0) + 1
@@ -48,6 +49,9 @@ define ['routes','codemirror','modes/isabelle'], (routes) ->
 
       scope.$watch 'tabSize()', (n,o) ->
         cm.setOption('tabSize',n or 2)
+
+      scope.$watch 'annotations()', (n,o) ->
+        # TODO: Switch annotations on and off
             
       scope.$watch 'document()', (n,o) ->       
         if n? then cm.swapDoc(n) else cm.swapDoc(CodeMirror.Doc(""))    

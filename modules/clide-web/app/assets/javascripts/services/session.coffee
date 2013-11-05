@@ -16,6 +16,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
   session.activeDoc = ->
     session.openFiles?[session.me.activeFile]?.doc
 
+  session.activeAnnotations = ->
+    session.openFiles?[session.me.activeFile]?.annotations
+
   session.syncState = ->
     session.openFiles?[session.me.activeFile]?.$syncState()
 
@@ -57,8 +60,16 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     nfile.$syncState = -> client.syncState()
     nfile.$setColor = (c) -> adapter.setColor(c)
     nfile.$annotate = (a,u,n) -> # TODO: include user
-      a = client.transformAnnotation(a)
       adapter.applyAnnotation(a,u,n)
+      a                          = client.transformAnnotation(a)
+      nfile.annotations          = nfile.annotations or { }
+      nfile.annotations[u.id]    = nfile.annotations[u.id] or [ ]      
+      for stream in nfile.annotations[u.id]
+        if stream.name is n
+          return      
+      nfile.annotations[u.id].push
+        show: true
+        name: n
     
     session.openFiles[file.info.id] = (nfile)
 
@@ -96,16 +107,15 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         when 'string'
           switch msg
             when 'ack_edit'
-              getOpenFile(session.me.activeFile).$ackEdit()
-            when 'ack_annotate'
-              getOpenFile(session.me.activeFile).$ackAnnotation()
+              getOpenFile(session.me.activeFile).$ackEdit()            
             else
               Toasts.push 'danger', "internal error: unknown message: #{msg}"        
         when 'object'        
           if msg.f? and msg.o?
             getOpenFile(msg.f).$apply(Operation.fromJSON(msg.o))
           else if msg.f? and msg.a? and (user = getUser(msg.u))?
-            getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),user,msg.n)
+            apply ->
+              getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),user,msg.n)
           switch msg.t
             when 'e'
               Toasts.push 'danger', msg.c
