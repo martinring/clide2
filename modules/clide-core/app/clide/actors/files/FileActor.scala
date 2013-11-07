@@ -33,7 +33,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
   import Messages._
   import Events._  
     
-  var info: FileInfo = null  
+  var info: FileInfo = null
   def file = new File(project.root + info.path.mkString(File.pathSeparator)) // TODO    
   
   var otActive = false
@@ -102,13 +102,12 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
           // TODO
           log.warning("annotation could not be transformed")
         case Success(as) =>
-          log.info("annotated")
           annotations.get((clients(sender).id,name)) match {
             case None =>              
             case Some((oldRev,oldA)) =>
               server.transformAnnotation(oldRev.toInt, oldA).toOption match {
                 case None      => 
-                  log.error("couldnt transform old annotations")                  
+                  log.warning("couldnt transform old annotations")                  
                   // TODO: Handle failure here
                 case Some(old) =>
                   //val diff = AnnotationDiff.diff(old.annotations, a.annotations)
@@ -127,15 +126,14 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
         case Failure(e) =>
           // TODO
           log.warning("edit couldnt be applied")
-        case Success(o) =>
-          log.info("edited")
+        case Success(o) =>          
           DB.withSession { implicit session: Session => Revisions.insert(Revision(info.id,server.revision,o)) }
           clients.keys.filter(_ != sender).foreach(_ ! Edited(info.id, o))
           sender ! AcknowledgeEdit
       }      
       
     case TouchFile =>
-      log.info("touched")
+      //
       
     case Delete => // TODO !!      
       info = info.copy(deleted = true)

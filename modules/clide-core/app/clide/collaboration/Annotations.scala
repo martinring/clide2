@@ -13,11 +13,6 @@ sealed trait Annotation {
     case Plain(_) => Plain(n)
     case Annotate(_,c) => Annotate(n,c)
   }
-  
-  override def toString = this match {
-    case Plain(n)    => n.toString
-    case Annotate(n,c) => "" // TODO
-  }
 }
 case class Plain(length: Int) extends Annotation {
   override def toString = length.toString
