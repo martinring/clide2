@@ -8,118 +8,118 @@
 
 package clide.assistants
 
-import com.typesafe.config.Config
 import akka.actor._
-import clide.actors.Messages._
-import clide.actors.Events._
 import clide.models._
-import clide.actors.util.ServerForwarder
+import clide.actors.Events._
+import clide.actors.Messages.{RequestSessionInfo,SwitchFile,IdentifiedFor,WithUser,Talk}
+import clide.collaboration._
+import scala.collection.mutable._
+
+/**
+ * The companion to the abstract `AssistantSession` convenience class contains
+ * the messages, that are specific to this actor.
+ */
+object AssistantSession {
+  /**
+   * Must be sent to `self` in the startup method, to indicate, that the session
+   * can begin gathering information about the active files, collaborators and 
+   * so on
+   */
+  case object Activate
+  
+  /**
+   * Can be sent to an instance of AssistantSession from anywhere to trigger it
+   * to shut down. 
+   */
+  case object Close
+}
 
 /**
  * TODO: The entire Assistant / AssistantSession / DocumentModel architecture is
  * very ugly an not extensible. This needs to be redone quick!
  */
-
-/**
- * This is a convenience class to implement connected tools. (Assistants)
- * The only method to be implemented is the `createSession` message, which should
- * create an instance of an Actor which may inherit from 
- * [[clide.assistants.AssistantSession `AssistantSession`]]
- * 
- * @author Martin Ring
- */
-abstract class Assistant extends Actor with ActorLogging {
-  /**
-   * Must be implemented by subclasses to create instances of session actors for
-   * a specific project.
-   * 
-   * @param   project the project to create a session for
-   * @returns the reference to the created session actor.
-   */
-  def createSession(project: ProjectInfo): ActorRef   
+abstract class Assistant(project: ProjectInfo) extends Actor with ActorLogging with AssistantControl with AssistantBehavior {
+  import AssistantSession._ 
   
-  /** May be overridden to modify invitation behaviour **/
-  def onInvitation(project: ProjectInfo, me: LoginInfo) = {
-    log.info(s"starting session for ${project.owner}/${project.name}")
-    val act = createSession(project)
-    server.tell(IdentifiedFor(me.user,me.key,WithUser(project.owner,WithProject(project.name,StartSession))),act)    
-    context.watch(act)
+  private var documentModels    = Map[Long,ActorRef]()
+  private var peer_              = context.system.deadLetters
+  private val activeFiles       = Map[Long,Long]()
+  private var info: SessionInfo = null
+  private val collaborators     = Set[SessionInfo]()
+  private val files             = Map[Long,OpenedFile]()
+  def peer = peer_
+     
+  def chat(msg: String) = {
+    peer ! Talk(None,msg)
   }
   
-  lazy val config     = context.system.settings.config
-  
-  lazy val username   = config.getString("assistant.username")
-  lazy val password   = config.getString("assistant.password")
-  lazy val email      = config.getString("assistant.email")
-  
-  lazy val serverPath = config.getString("assistant.server-path")
-  lazy val server     = context.actorOf(ServerForwarder(serverPath), "server-forwarder")
-  
-  private def login() = {
-    log.info("attempting login")
-    server ! AnonymousFor(username,Login(password))
+  private var state = 0
+      
+  def initialized: Receive = {
+    case FileOpened(file@OpenedFile(info,content,revision)) =>
+      log.info("file opened: {}", info)
+      if (files.isDefinedAt(info.id)) {
+        files(info.id) = file
+        documentModels.get(info.id).foreach(_ ! DocumentModel.Init(file))             
+      } else {
+        files(info.id) = file
+        fileAdded(file)        
+      }
+      
+    case FileClosed(file) =>
+      fileClosed(files(file))
+      files.remove(file)
+      documentModels.get(file).foreach(_ ! DocumentModel.Close)
+      
+    case Edited(file,operation) =>      
+      val prev = files(file)
+      val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
+      files(file) = next
+      documentModels.get(file).foreach(_ ! DocumentModel.Change(operation))
+      
+    case Annotated(file, user, annotations, name) =>      
+      val ps = annotations.positions(AnnotationType.Class,"cursor")      
+      if (ps.nonEmpty) for {
+        model <- documentModels.get(file)
+        user  <- collaborators.find(_.id == user)
+        pos   <- ps
+      } {        
+        model ! DocumentModel.RequestInfo(pos, user)
+      }
+      
+    case SessionChanged(info) =>
+      log.info("session changed: {}", info)
+      if (info.active && info.activeFile.isDefined && !files.contains(info.activeFile.get)) {        
+        activeFiles(info.id) = info.activeFile.get
+        peer ! SwitchFile(info.activeFile.get)
+      } else {        
+        activeFiles.remove(info.id)
+      }    
+  }
+      
+  def receive = {
+    case EventSocket(ref,"session") =>
+      log.info("session started")
+      peer_ = ref
+      initialize(project)
+      log.info("requesting session info")
+      peer ! RequestSessionInfo
+          
+    case SessionInit(info, collaborators, conversation) =>
+      log.info("session info received")
+      this.info = info
+      this.collaborators ++= collaborators  
+      collaborators.foreach { info =>
+        if (info.active && info.activeFile.isDefined) {
+          activeFiles += info.id -> info.activeFile.get
+      } }
+      activeFiles.values.toSeq.distinct.foreach { id =>
+        peer ! SwitchFile(id)
+      }
+      context.become(initialized)
   }
   
-  private def signup() = {
-    log.info(s"signing up $username")
-    server ! SignUp(username,email,password)
-  }
-  
-  def receive = loggedOut
-  
-  private def loggedOut: Receive = {
-    login()
-    
-    {
-      case DoesntExist =>
-        log.info(s"user $username hasnt been signed up yet")
-        signup()
-      case WrongPassword =>
-        log.error(s"user $username is already signed up with different password")
-        self ! PoisonPill
-      case SignedUp(info) =>
-        log.info(s"signed up")
-        login()
-      case LoggedIn(info, login) => // TODO: UserInfo contains password hash!!!        
-        context.become(loggedIn(login))
-    }
-  }  
-  
-  private def loggedIn(loginInfo: LoginInfo): Receive = {
-    log.info(s"logged in")
-    server ! IdentifiedFor(username,loginInfo.key,StartBackstageSession)
-    
-    {
-      case LoggedOut(user) =>
-        context.become(loggedOut)
-        log.info("logged out")
-        self ! PoisonPill
-      case EventSocket(peer,"backstage") =>
-        log.info("connected to backstage session")
-        log.info("requesting project infos")
-        context.become(backstage(loginInfo,peer))
-        peer ! BrowseProjects
-    }
-  }
-  
-  private def backstage(loginInfo: LoginInfo, peer: ActorRef): Receive = {
-    val sessions = scala.collection.mutable.Map.empty[Long,ActorRef]
-    
-    {
-      case UserProjectInfos(own,other) =>
-        log.info("received project infos")
-        (own ++ other).foreach(onInvitation(_,loginInfo))
-      case ChangedProjectUserLevel(project, user, level) if (user == loginInfo.user) =>
-        if (level >= ProjectAccessLevel.Read)
-          onInvitation(project, loginInfo)
-        else
-          sessions.get(project.id).map(_ ! AssistantSession.Close)
-      case CreatedProject(project) =>
-        onInvitation(project,loginInfo)
-      case DeletedProject(project) =>
-        sessions.get(project.id).map(_ ! AssistantSession.Close)
-      case Terminated(sess) =>
-        sessions.find(_._2 == sess).foreach(i => sessions.remove(i._1))
-    }
+  override def postStop() {
+    finalize()
   }
 }
