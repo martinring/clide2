@@ -21,21 +21,21 @@ import scala.concurrent.Future
  * 
  * @author Martin Ring <martin.ring@dfki.de>
  */
-trait AssistantBehavior { self: AssistantControl =>
+trait AssistantBehavior {
   /**
    * Everything that needs to be set up can be set up here. It is guaranteed, that
-   * this method will be called first and no other method will be called until this
-   * method has been completely executed.
+   * this method will be called first and no other method will be called until the
+   * returned future has been completed.
    * 
    * @param project the project, the assistant is watching
    */
-  def initialize(project: ProjectInfo): Unit
+  def start(project: ProjectInfo): Future[Unit]
   
   /**
    * This method will be called, before the assistant will be disposed. Any resources
    * that need to be released can be released here.
    */
-  def finalize: Unit
+  def stop: Unit
   
   /**
    * Should return a set of mime types that the assistant will automatically

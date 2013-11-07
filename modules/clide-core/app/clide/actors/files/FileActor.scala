@@ -73,7 +73,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
     case ExplorePath =>
       context.parent.forward(BrowseFolder)
       
-    case OpenFile(user) =>
+    case Messages.internal.OpenFile(user) =>
       log.info(s"opening for ${user.user}")
       if (!otActive) {
         try {

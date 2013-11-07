@@ -49,7 +49,6 @@ object Conversions {
       case (k,v) =>
         val a = AnnotationType.withName(k)        
         v.map { v =>
-          println(a -> v)
           a -> v
         }
     }

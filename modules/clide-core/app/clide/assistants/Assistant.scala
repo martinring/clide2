@@ -12,114 +12,114 @@ import akka.actor._
 import clide.models._
 import clide.actors.Events._
 import clide.actors.Messages.{RequestSessionInfo,SwitchFile,IdentifiedFor,WithUser,Talk}
-import clide.collaboration._
-import scala.collection.mutable._
-
-/**
- * The companion to the abstract `AssistantSession` convenience class contains
- * the messages, that are specific to this actor.
- */
-object AssistantSession {
-  /**
-   * Must be sent to `self` in the startup method, to indicate, that the session
-   * can begin gathering information about the active files, collaborators and 
-   * so on
-   */
-  case object Activate
-  
-  /**
-   * Can be sent to an instance of AssistantSession from anywhere to trigger it
-   * to shut down. 
-   */
-  case object Close
-}
+import clide.collaboration.{Annotations,Operation,Document,AnnotationType}
+import scala.collection.mutable.Map
+import scala.collection.mutable.Set
+import scala.concurrent.Future
+import clide.actors.Messages._
+import scala.util.Success
+import scala.util.Failure
 
 /**
  * TODO: The entire Assistant / AssistantSession / DocumentModel architecture is
  * very ugly an not extensible. This needs to be redone quick!
  */
-abstract class Assistant(project: ProjectInfo) extends Actor with ActorLogging with AssistantControl with AssistantBehavior {
-  import AssistantSession._ 
-  
-  private var documentModels    = Map[Long,ActorRef]()
-  private var peer_              = context.system.deadLetters
-  private val activeFiles       = Map[Long,Long]()
-  private var info: SessionInfo = null
-  private val collaborators     = Set[SessionInfo]()
-  private val files             = Map[Long,OpenedFile]()
-  def peer = peer_
+private class Assistant(project: ProjectInfo, createBehavior: AssistantControl => AssistantBehavior) extends Actor with ActorLogging with AssistantControl {     
+  var peer              = context.system.deadLetters  
+  var info: SessionInfo = null
+  val collaborators     = Set[SessionInfo]()
+  val files             = Map[Long,OpenedFile]()
+  val behavior = createBehavior(this)
      
   def chat(msg: String) = {
     peer ! Talk(None,msg)
-  }
+  }    
+   
+  private case class Forward(msg: Message)
+  
+  def openFile(path: Seq[String]): Future[OpenedFile] = ???
+  
+  def annotate(file: OpenedFile, name: String, annotations: Annotations): Unit = 
+    peer ! Annotate(file.info.id, file.revision, annotations, name)
+
+  def edit(file: OpenedFile, edit: Operation): Future[Unit] = ???
   
   private var state = 0
       
   def initialized: Receive = {
+    case Forward(msg) =>
+      peer ! msg
+    
     case FileOpened(file@OpenedFile(info,content,revision)) =>
-      log.info("file opened: {}", info)
+      log.debug("file opened: {}", info)
       if (files.isDefinedAt(info.id)) {
+        log.warning("file info has been renewed from server: {} (at revision {})", info, revision)
         files(info.id) = file
-        documentModels.get(info.id).foreach(_ ! DocumentModel.Init(file))             
       } else {
         files(info.id) = file
-        fileAdded(file)        
-      }
+        behavior.fileOpened(file)
+        behavior.fileActivated(file)
+      }         
       
-    case FileClosed(file) =>
-      fileClosed(files(file))
+    case FileClosed(file) if files.isDefinedAt(file) =>
+      behavior.fileInactivated(files(file))
+      behavior.fileClosed(files(file))
       files.remove(file)
-      documentModels.get(file).foreach(_ ! DocumentModel.Close)
       
     case Edited(file,operation) =>      
       val prev = files(file)
       val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
       files(file) = next
-      documentModels.get(file).foreach(_ ! DocumentModel.Change(operation))
+      behavior.fileChanged(next, operation)
       
-    case Annotated(file, user, annotations, name) =>      
-      val ps = annotations.positions(AnnotationType.Class,"cursor")      
+    case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
+      val ps = annotations.positions(AnnotationType.Class,"cursor")
       if (ps.nonEmpty) for {
-        model <- documentModels.get(file)
         user  <- collaborators.find(_.id == user)
         pos   <- ps
-      } {        
-        model ! DocumentModel.RequestInfo(pos, user)
+      } {
+        behavior.cursorMoved(files(file), user, pos)
       }
       
     case SessionChanged(info) =>
-      log.info("session changed: {}", info)
-      if (info.active && info.activeFile.isDefined && !files.contains(info.activeFile.get)) {        
-        activeFiles(info.id) = info.activeFile.get
-        peer ! SwitchFile(info.activeFile.get)
-      } else {        
-        activeFiles.remove(info.id)
-      }    
+      log.debug("session changed: {}", info)
+      if (info.active && info.activeFile.isDefined && !files.contains(info.activeFile.get)) {
+        peer ! OpenFile(info.activeFile.get)
+      }
   }
       
+  private case object Initialized
+  private case class  InitializationFailed(cause: Throwable)  
+  
   def receive = {
     case EventSocket(ref,"session") =>
-      log.info("session started")
-      peer_ = ref
-      initialize(project)
-      log.info("requesting session info")
+      log.debug("session started")
+      peer = ref
+      implicit val ec = context.dispatcher
+      behavior.start(project).onComplete {
+        case Success(()) => self ! Initialized
+        case Failure(e)  => self ! InitializationFailed(e)
+      }
+         
+    case Initialized =>
+      log.debug("requesting session info")
       peer ! RequestSessionInfo
-          
+      
+    case InitializationFailed(e) =>
+      context.stop(self)
+      
     case SessionInit(info, collaborators, conversation) =>
-      log.info("session info received")
+      log.debug("session info received")
       this.info = info
       this.collaborators ++= collaborators  
       collaborators.foreach { info =>
         if (info.active && info.activeFile.isDefined) {
-          activeFiles += info.id -> info.activeFile.get
+          peer ! OpenFile(info.activeFile.get)
       } }
-      activeFiles.values.toSeq.distinct.foreach { id =>
-        peer ! SwitchFile(id)
-      }
       context.become(initialized)
   }
   
   override def postStop() {
-    finalize()
+    behavior.stop
   }
 }

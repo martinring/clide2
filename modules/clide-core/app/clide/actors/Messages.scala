@@ -53,7 +53,7 @@ object Messages {
   trait FileMessage        extends Message
   trait FileReadMessage    extends FileMessage
   trait FileWriteMessage   extends FileReadMessage
-  case class OpenFile(user: SessionInfo) extends FileReadMessage
+
   case object BrowseFolder extends FileReadMessage
   case object ExplorePath  extends FileReadMessage
   case object TouchFile    extends FileWriteMessage
@@ -72,6 +72,7 @@ object Messages {
   case class Talk(to: Option[Long], msg: String) extends SessionMessage with ProjectMessage
   case class SetColor(value: String) extends SessionMessage
   case class SwitchFile(id: Long) extends SessionMessage
+  case class OpenFile(id: Long) extends SessionMessage
   case class CloseFile(id: Long) extends SessionMessage
   case class Edit(id: Long, revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
   case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage
@@ -81,10 +82,12 @@ object Messages {
 	case class Identified(key: String, message: UserMessage) extends UserMessageWrapper
 	case class Anonymous(message: UserMessage) extends UserMessageWrapper
 	case class External(sender: UserInfo, message: UserMessage) extends UserMessageWrapper
-    
+	
     case class WrappedProjectMessage(
       user: UserInfo,
       level: ProjectAccessLevel.Value, 
       message: ProjectMessage)
+      
+    case class OpenFile(user: SessionInfo) extends FileReadMessage      
   }
 }

@@ -14,8 +14,23 @@ import clide.actors.Messages._
 import clide.actors.Events._
 import clide.models._
 import clide.actors.util.ServerForwarder
+import com.typesafe.config.ConfigFactory
+import akka.kernel.Bootable
+import scala.reflect.ClassTag
 
-
+class AssistantServer(behavior: AssistantControl => AssistantBehavior) extends Bootable {
+  val system = ActorSystem("assistant",ConfigFactory.load)
+  
+  val config = system.settings.config
+  
+  def startup() {
+    system.actorOf(Props(classOf[AssistantServerActor], (p: ProjectInfo) => Props(classOf[Assistant], p, behavior)), config.getString("assistant.username"))
+  }
+  
+  def shutdown() {
+    system.shutdown()
+  }
+}
 
 /**
  * This is a convenience class to implement connected tools. (Assistants)
@@ -25,20 +40,11 @@ import clide.actors.util.ServerForwarder
  * 
  * @author Martin Ring
  */
-private class AssistantServer extends Actor with ActorLogging {
-  /**
-   * Must be implemented by subclasses to create instances of session actors for
-   * a specific project.
-   * 
-   * @param   project the project to create a session for
-   * @returns the reference to the created session actor.
-   */
-  def createSession(project: ProjectInfo): ActorRef   
-  
+private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends Actor with ActorLogging {
   /** May be overridden to modify invitation behaviour **/
   def onInvitation(project: ProjectInfo, me: LoginInfo) = {
     log.info(s"starting session for ${project.owner}/${project.name}")
-    val act = createSession(project)
+    val act = context.actorOf(sessionProps(project))
     server.tell(IdentifiedFor(me.user,me.key,WithUser(project.owner,WithProject(project.name,StartSession))),act)    
     context.watch(act)
   }
@@ -110,11 +116,11 @@ private class AssistantServer extends Actor with ActorLogging {
         if (level >= ProjectAccessLevel.Read)
           onInvitation(project, loginInfo)
         else
-          sessions.get(project.id).map(_ ! AssistantSession.Close)
+          sessions.get(project.id).map(_ ! PoisonPill)
       case CreatedProject(project) =>
         onInvitation(project,loginInfo)
       case DeletedProject(project) =>
-        sessions.get(project.id).map(_ ! AssistantSession.Close)
+        sessions.get(project.id).map(_ ! PoisonPill)
       case Terminated(sess) =>
         sessions.find(_._2 == sess).foreach(i => sessions.remove(i._1))
     }

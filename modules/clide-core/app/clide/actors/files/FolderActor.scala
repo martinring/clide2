@@ -71,7 +71,7 @@ private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo]
     case WithPath(Seq(), msg) => receiveMessages(msg)            
     case WithPath(Seq(name), Delete) => 
       getExisting(name).map(_.forward(Delete))      
-    case WithPath(Seq(name), msg@OpenFile(_)) =>
+    case WithPath(Seq(name), msg@Messages.internal.OpenFile(_)) =>
       getFile(name).forward(msg)
     case WithPath(Seq(name), TouchFile) =>
       getFile(name).forward(TouchFile)

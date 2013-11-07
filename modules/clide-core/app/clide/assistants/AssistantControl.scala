@@ -12,6 +12,8 @@ import scala.concurrent.Future
 import clide.models.OpenedFile
 import clide.collaboration.Annotations
 import clide.collaboration.Operation
+import akka.event.LoggingAdapter
+import akka.actor.Actor
 
 /**
  * Defines the controls, which an AssistantBehavior is capable of. Every method is non-blocking
@@ -19,7 +21,11 @@ import clide.collaboration.Operation
  * 
  * @author Martin Ring <martin.ring@dfki.de>
  */
-trait AssistantControl {
+trait AssistantControl { 
+  val log: LoggingAdapter
+  
+  def chat(message: String): Unit    
+  
   /**
    * Requests to open a file at the specified path. Will fulfill the future once the
    * file is available. Creates the file if it doesn't exist already.

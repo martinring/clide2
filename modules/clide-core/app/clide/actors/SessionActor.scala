@@ -17,7 +17,6 @@ import scala.util.Random
 import scala.collection.JavaConversions._
 import scala.collection.mutable.Map
 import scala.slick.session.Session
-import clide.actors.Messages.internal._
 import clide.actors.Messages._
 import clide.actors.Events._
 
@@ -82,7 +81,7 @@ private class SessionActor(
     DB.withSession { implicit session: Session => // TODO: Move to File Actors
       FileInfos.get(id).firstOption.fold(peer ! DoesntExist){ info => // TODO: Move to Schema
         log.info("forwarding openfile to path")
-        context.parent ! WrappedProjectMessage(user,level,WithPath(info.path,OpenFile(this.session)))
+        context.parent ! Messages.internal.WrappedProjectMessage(user,level,WithPath(info.path,Messages.internal.OpenFile(this.session)))
       }
     }
   }
@@ -104,8 +103,8 @@ private class SessionActor(
           collaborators,
           conversation.toList)
       openFiles.values.foreach { file => // TODO: Move in ResetFile or so
-        fileServers.get(file.id).map(_ ! OpenFile(this.session)).getOrElse {
-          context.parent ! WrappedProjectMessage(user,level,WithPath(file.path,OpenFile(this.session)))
+        fileServers.get(file.id).map(_ ! Messages.internal.OpenFile(this.session)).getOrElse {
+          context.parent ! Messages.internal.WrappedProjectMessage(user,level,WithPath(file.path,Messages.internal.OpenFile(this.session)))
         }
       }
     case EnterSession =>
@@ -126,7 +125,9 @@ private class SessionActor(
       context.parent ! SessionStopped(session)
       context.stop(self)
     case SwitchFile(id) =>
-      if (!switchFile(Some(id))) initializeFile(id)      
+      if (!switchFile(Some(id))) initializeFile(id)
+    case OpenFile(id) =>
+      if (!openFiles.contains(id)) initializeFile(id)
     case AcknowledgeEdit => // TODO: CONCURRENCY STUFF!!!      
       peer ! AcknowledgeEdit
     case Edited(f,op) =>
@@ -137,7 +138,7 @@ private class SessionActor(
       session = session.copy(color = value)
       context.parent ! SessionChanged(session)
     case msg @ Talk(_,_) =>
-      context.parent ! WrappedProjectMessage(user,level,msg)
+      context.parent ! Messages.internal.WrappedProjectMessage(user,level,msg)
     case msg @ Talked(_,_,_) =>
       conversation :+= msg
       peer ! msg
@@ -160,14 +161,14 @@ private class SessionActor(
         ref ! msg
       } getOrElse {
         log.info("forwarding edit to path")
-        context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
+        context.parent ! Messages.internal.WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
       }
     case msg @ Annotate(id,_,_,_) =>      
       fileServers.get(id).map{ ref =>        
         ref ! msg
       } getOrElse {
         log.info("forwarding annotation to path")
-        context.parent ! WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
+        context.parent ! Messages.internal.WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
       }
     case msg @ FileInitFailed(f) =>
       if (session.activeFile == Some(f))
@@ -198,7 +199,7 @@ private class SessionActor(
         }
       }
     case msg@ChangeProjectUserLevel(_,_) => // HACK: replace with invitation      
-      context.parent.forward(WrappedProjectMessage(user,level,msg))
+      context.parent.forward(Messages.internal.WrappedProjectMessage(user,level,msg))
   }
   
   override def postStop() = DB.withSession { implicit session: Session =>
