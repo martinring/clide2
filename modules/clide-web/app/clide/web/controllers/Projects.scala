@@ -77,7 +77,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
               case "invite" =>
                 ChangeProjectUserLevel((json \ "u").as[String], ProjectAccessLevel.Write)
               case "chat" =>
-                Talk((json \ "to").asOpt[Long], (json \ "msg").as[String])
+                Talk((json \ "to").asOpt[Long], (json \ "msg").as[String], (json \ "tp").asOpt[String])
               case _ =>
                 Logger.warn("didn't understand: " + json.toString)
                 ForgetIt

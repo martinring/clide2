@@ -24,7 +24,7 @@ import akka.actor.Actor
 trait AssistantControl { 
   val log: LoggingAdapter
   
-  def chat(message: String, tpe: Option[String]): Unit    
+  def chat(message: String, tpe: Option[String] = None): Unit    
   
   /**
    * Requests to open a file at the specified path. Will fulfill the future once the
