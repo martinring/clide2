@@ -21,7 +21,7 @@ import scala.concurrent.Future
  * 
  * @author Martin Ring <martin.ring@dfki.de>
  */
-trait AssistantBehavior {
+trait AssistantBehavior {    
   /**
    * Everything that needs to be set up can be set up here. It is guaranteed, that
    * this method will be called first and no other method will be called until the
@@ -70,7 +70,7 @@ trait AssistantBehavior {
    * @param file the state of the file **after** the edit occured.
    * @param delta the operation that has been performed
    */
-  def fileChanged(file: OpenedFile, delta: Operation): Unit
+  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]): Unit
   
   /**
    * called when a collaborator joined the session.
@@ -89,5 +89,5 @@ trait AssistantBehavior {
    * @owner the collaborator that is the owner of the cursor
    * @offset the new position of the cursor (as an absolute offset)
    */
-  def cursorMoved(file: OpenedFile, owner: SessionInfo, offset: Int): Unit
+  def cursorMoved(cursor: Cursor): Unit
 }

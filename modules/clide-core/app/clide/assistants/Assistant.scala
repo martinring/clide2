@@ -20,13 +20,21 @@ import clide.actors.Messages._
 import scala.util.Success
 import scala.util.Failure
 
+case class Cursor(owner: SessionInfo, file: OpenedFile, position: Int) {
+  override def equals(other: Any) = other match {
+    case c: Cursor if c.owner == this.owner && c.file == this.file => true
+    case _ => false
+  }
+}
+
 private class Assistant(project: ProjectInfo, createBehavior: AssistantControl => AssistantBehavior) extends Actor with ActorLogging with AssistantControl {     
   var peer              = context.system.deadLetters  
   var info: SessionInfo = null
-  val collaborators     = Set[SessionInfo]()
-  val files             = Map[Long,OpenedFile]()
-  val behavior = createBehavior(this)    
-     
+  val collaborators     = Set.empty[SessionInfo]
+  val files             = Map.empty[Long,OpenedFile]
+  val behavior = createBehavior(this)
+  val cursors  = Set.empty[Cursor]
+  
   def chat(msg: String, tpe: Option[String] = None) = {
     peer ! Talk(None,msg,tpe)
   }
@@ -68,15 +76,17 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       val prev = files(file)
       val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
       files(file) = next
-      behavior.fileChanged(next, operation)
+      behavior.fileChanged(next, operation, cursors.toSeq)
       
     case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
       val ps = annotations.positions(AnnotationType.Class,"cursor")
       if (ps.nonEmpty) for {
         user  <- collaborators.find(_.id == user)
+        file  <- files.get(file)
         pos   <- ps
       } {
-        behavior.cursorMoved(files(file), user, pos)
+        cursors += Cursor(user,file,pos)
+        behavior.cursorMoved(Cursor(user,file,pos))
       }
       
     case SessionChanged(info) =>

@@ -14,4 +14,9 @@ case class FileInfo(
   deleted: Boolean,
   exists: Boolean,
   isDirectory: Boolean,
-  parent: Option[Long]) 
+  parent: Option[Long]) {
+  override def equals(other: Any) = other match {
+    case f: FileInfo if f.id == this.id => true
+    case _ => false
+  }
+}
