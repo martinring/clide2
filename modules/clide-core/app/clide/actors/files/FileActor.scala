@@ -129,7 +129,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
         case Success(o) =>          
           DB.withSession { implicit session: Session => Revisions.insert(Revision(info.id,server.revision,o)) }
           clients.keys.filter(_ != sender).foreach(_ ! Edited(info.id, o))
-          sender ! AcknowledgeEdit
+          sender ! AcknowledgeEdit(info.id)
       }      
       
     case TouchFile =>

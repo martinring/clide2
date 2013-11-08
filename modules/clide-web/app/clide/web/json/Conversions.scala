@@ -131,7 +131,7 @@ object Conversions {
     case FolderContent(folder,files) => Json.obj("t"->"folder","info"->folder,"files"->files)
     case CreatedProject(p)      => "createdproject" of p
     case DeletedProject(p)      => "deletedproject" of p.id
-    case SessionInit(s,cs,conv) => Json.obj("t"->"welcome","info"->s,"others"->cs,"chat"->conv.map{case Talked(w,m,t) => Json.obj("s"->w,"m"->m,"t"->t)})
+    case SessionInit(s,cs,conv) => Json.obj("t"->"welcome","info"->s,"others"->cs,"chat"->conv.map{case Talked(w,m,t,tp) => Json.obj("s"->w,"m"->m,"t"->t,"tp"->tp)})
     case SessionChanged(s) => "session_changed" of s
     case SessionStopped(s) => "session_stopped" of s
     case FileInitFailed(f) => "failed" of f
@@ -143,12 +143,11 @@ object Conversions {
     case FileOpened(i)     => "opened" of i
     case Edited(file,o)    => Json.obj("f"->file,"o"->o)
     case Annotated(file,user,a,name)         => Json.obj("f"->file,"a"->a,"u"->user,"n"->name)
-    case AnnotationChanged(file,user,a,name) => Json.obj("f"->file,"ac"->a,"u"->user,"n"->name)
-    case AcknowledgeEdit       => JsString("ack_edit")
-    case AcknowledgeAnnotation => JsString("ack_annotation")
+    // TODO: case AnnotationChanged(file,user,a,name) => Json.obj("f"->file,"ac"->a,"u"->user,"n"->name)
+    case AcknowledgeEdit(f) => JsNumber(f)    
     case NotAllowed    => "e" of "internal error: forbidden action"
     case DoesntExist   => "e" of "internal error: the referenced resource doesn't exist on the server"
-    case Talked(w,m,t) => "talk" of Json.obj("s" -> w, "m" -> m,"t"->t)
+    case Talked(w,m,t,tp) => "talk" of Json.obj("s" -> w, "m" -> m,"t"->t,"tp"->tp)
     case UserProjectInfos(own, other)                  => "projects" of Json.obj("own"->own, "other"->other)
     case ChangedProjectUserLevel(project, user, level) => "access" of Json.obj("p"->project,"u"->user,"l"->level.id)
     case _ => error("couldnt translate")

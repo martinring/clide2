@@ -105,12 +105,12 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       console.log "received: #{e.data}"
       msg = JSON.parse(e.data)      
       switch typeof msg
-        when 'string'
-          switch msg
-            when 'ack_edit'
-              getOpenFile(session.me.activeFile).$ackEdit()            
-            else
-              Toasts.push 'danger', "internal error: unknown message: #{msg}"        
+        when 'number'
+          f = getOpenFile(msg)
+          if f
+            f.$ackEdit()
+          else
+            log.warning("acknowledge for unknown file " + msg)
         when 'object'        
           if msg.f? and msg.o?
             getOpenFile(msg.f).$apply(Operation.fromJSON(msg.o))

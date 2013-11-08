@@ -128,8 +128,8 @@ private class SessionActor(
       if (!switchFile(Some(id))) initializeFile(id)
     case OpenFile(id) =>
       if (!openFiles.contains(id)) initializeFile(id)
-    case AcknowledgeEdit => // TODO: CONCURRENCY STUFF!!!      
-      peer ! AcknowledgeEdit
+    case AcknowledgeEdit(f) =>      
+      peer ! AcknowledgeEdit(f)
     case Edited(f,op) =>
       peer ! Edited(f,op)
     case Annotated(f,u,an,n) =>
