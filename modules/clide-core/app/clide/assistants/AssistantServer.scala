@@ -18,6 +18,15 @@ import com.typesafe.config.ConfigFactory
 import akka.kernel.Bootable
 import scala.reflect.ClassTag
 
+/**
+ * An assistant server is the entry point for the implementation of an assistant.
+ * It requires a constructor for an AssistantBehavior which takes an AssistantControl
+ * as an Argument. The constructor will be called, when a new Assistant Session for a 
+ * project is created. The name, server and credentials for the assistant must be configured
+ * in an application.conf file. (see reference.conf for example values)
+ * 
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
 class AssistantServer(behavior: AssistantControl => AssistantBehavior) extends Bootable {
   val system = ActorSystem("assistant",ConfigFactory.load)
   
@@ -33,12 +42,7 @@ class AssistantServer(behavior: AssistantControl => AssistantBehavior) extends B
 }
 
 /**
- * This is a convenience class to implement connected tools. (Assistants)
- * The only method to be implemented is the `createSession` message, which should
- * create an instance of an Actor which may inherit from 
- * [[clide.assistants.AssistantSession `AssistantSession`]]
- * 
- * @author Martin Ring
+ * @author Martin Ring <martin.ring@dfki.de>
  */
 private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends Actor with ActorLogging {
   /** May be overridden to modify invitation behaviour **/

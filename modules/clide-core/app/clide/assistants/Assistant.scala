@@ -20,16 +20,12 @@ import clide.actors.Messages._
 import scala.util.Success
 import scala.util.Failure
 
-/**
- * TODO: The entire Assistant / AssistantSession / DocumentModel architecture is
- * very ugly an not extensible. This needs to be redone quick!
- */
 private class Assistant(project: ProjectInfo, createBehavior: AssistantControl => AssistantBehavior) extends Actor with ActorLogging with AssistantControl {     
   var peer              = context.system.deadLetters  
   var info: SessionInfo = null
   val collaborators     = Set[SessionInfo]()
   val files             = Map[Long,OpenedFile]()
-  val behavior = createBehavior(this)
+  val behavior = createBehavior(this)    
      
   def chat(msg: String) = {
     peer ! Talk(None,msg)
@@ -44,6 +40,8 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
 
   def edit(file: OpenedFile, edit: Operation): Future[Unit] = ???
   
+  def stop() = self ! PoisonPill
+  
   private var state = 0
       
   def initialized: Receive = {
@@ -55,7 +53,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       if (files.isDefinedAt(info.id)) {
         log.warning("file info has been renewed from server: {} (at revision {})", info, revision)
         files(info.id) = file
-      } else {
+      } else if (behavior.mimeTypes.intersect(file.info.mimeType.toSet).nonEmpty) {
         files(info.id) = file
         behavior.fileOpened(file)
         behavior.fileActivated(file)
@@ -66,7 +64,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       behavior.fileClosed(files(file))
       files.remove(file)
       
-    case Edited(file,operation) =>      
+    case Edited(file,operation) if files.isDefinedAt(file) =>      
       val prev = files(file)
       val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
       files(file) = next

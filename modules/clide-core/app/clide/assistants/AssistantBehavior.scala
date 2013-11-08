@@ -42,7 +42,7 @@ trait AssistantBehavior {
    * react on. If the set is empty, the assistant will only be activated if a user
    * actively requests it's help in a specific file.  
    */
-  def mimeTypes: Seq[String]
+  def mimeTypes: Set[String]
   
   /**
    * called when a previously unknown file is added to the assistants scope.

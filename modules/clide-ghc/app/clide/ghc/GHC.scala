@@ -51,7 +51,7 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
     control.chat("ghc is leaving")
   }
   
-  def mimeTypes = Seq("text/x-haskell")
+  val mimeTypes = Set("text/x-haskell")
   
   def fileOpened(file: OpenedFile) {
     workers(file.info.id) = annotateFile(file)

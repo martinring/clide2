@@ -26,7 +26,12 @@ import isabelle.Document
 object Isabelle extends AssistantServer(IsabelleAssistantBehavior) {
   override def startup() {
     Isabelle_System.init()
-    super.startup
+    super.startup()
+  }
+  
+  override def shutdown() {
+    scala.actors.Scheduler.shutdown()
+    super.shutdown()       
   }
 }
 
@@ -75,7 +80,8 @@ case class IsabelleAssistantBehavior(control: AssistantControl) extends Assistan
         control.chat("I'm starting up, please wait a second!")
       case Session.Shutdown => 
         control.chat("I'm shutting down")
-      case Session.Inactive => // TODO: Set inactive
+      case Session.Inactive => 
+        control.stop()
       case Session.Failed   =>
         control.chat("I couldn't start")
         initialized.failure(sys.error("isabelle session failed to initialize"))        
@@ -100,7 +106,7 @@ case class IsabelleAssistantBehavior(control: AssistantControl) extends Assistan
     session.stop()
   }
   
-  def mimeTypes = Seq("text/x-haskell")
+  def mimeTypes = Set("text/x-isabelle")
   
   def fileOpened(file: OpenedFile) {
     workers(file.info.id) = annotateFile(file)
