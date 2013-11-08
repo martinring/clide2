@@ -69,18 +69,16 @@ object Events {
   case class FileOpened(file: OpenedFile) extends SessionEvent
   case class Edited(file: Long, op: Operation) extends SessionEvent
   case class Annotated(file: Long, user: Long, an: Annotations, name: String) extends SessionEvent
-  case class AnnotationChanged(file: Long, user: Long, an: AnnotationDiff, name: String) extends SessionEvent
-  case object AcknowledgeEdit extends SessionEvent
-  case object AcknowledgeAnnotation extends SessionEvent
-  case class Talked(from: String, msg: String, timestamp: Long) extends SessionEvent
-  case class MetaInfo(file: Long, info: Map[String,String]) 
-  case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent // internal
+  // TODO case class AnnotationChanged(file: Long, user: Long, an: AnnotationDiff, name: String) extends SessionEvent
+  case class AcknowledgeEdit(file: Long) extends SessionEvent  
+  case class Talked(from: String, msg: String, tpe: Option[String], timestamp: Long) extends SessionEvent
+  case class MetaInfo(file: Long, info: Map[String,String])   
   
   case class UserProjectInfos(
       userProjects: Set[ProjectInfo],
       collaborating: Set[ProjectInfo]) extends Event
       
   private[actors] object internal {
-    
+    case class OTState(info: FileInfo, content: String, revision: Long) extends SessionEvent
   }      
 }

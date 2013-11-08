@@ -137,9 +137,9 @@ private class SessionActor(
     case SetColor(value) =>
       session = session.copy(color = value)
       context.parent ! SessionChanged(session)
-    case msg @ Talk(_,_) =>
+    case msg @ Talk(_,_,_) =>
       context.parent ! Messages.internal.WrappedProjectMessage(user,level,msg)
-    case msg @ Talked(_,_,_) =>
+    case msg @ Talked(_,_,_,_) =>
       conversation :+= msg
       peer ! msg
     case CloseFile(id) =>
@@ -174,7 +174,7 @@ private class SessionActor(
       if (session.activeFile == Some(f))
         switchFile(None)
       peer ! msg
-    case msg @ OTState(f,s,r) =>
+    case msg @ Events.internal.OTState(f,s,r) =>
       val of = OpenedFile(f,s,r)
       if (!openFiles.contains(f.id)) {
         DB.withSession { implicit session: Session =>

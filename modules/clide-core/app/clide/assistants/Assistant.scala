@@ -27,9 +27,9 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   val files             = Map[Long,OpenedFile]()
   val behavior = createBehavior(this)    
      
-  def chat(msg: String) = {
-    peer ! Talk(None,msg)
-  }    
+  def chat(msg: String, tpe: Option[String] = None) = {
+    peer ! Talk(None,msg,tpe)
+  }
    
   private case class Forward(msg: Message)
   

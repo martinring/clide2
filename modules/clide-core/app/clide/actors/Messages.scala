@@ -69,7 +69,7 @@ object Messages {
   case object LeaveSession extends SessionMessage
   case object CloseSession extends SessionMessage
   case object RequestSessionInfo extends SessionMessage
-  case class Talk(to: Option[Long], msg: String) extends SessionMessage with ProjectMessage
+  case class Talk(to: Option[Long], msg: String, tpe: Option[String]) extends SessionMessage with ProjectMessage
   case class SetColor(value: String) extends SessionMessage
   case class SwitchFile(id: Long) extends SessionMessage
   case class OpenFile(id: Long) extends SessionMessage

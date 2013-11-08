@@ -91,13 +91,13 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
       browser.forward(StartFileBrowser)
     case msg @ WithPath(_,_: FileReadMessage) =>
       root.forward(msg)
-    case Talk(None,what) =>
-      val talked = Talked(user.name, what, System.currentTimeMillis)
+    case Talk(None,what,t) =>
+      val talked = Talked(user.name, what, t, System.currentTimeMillis)
       conversationHistory.append(talked)
       sessionActors.values.foreach(_ ! talked)
-    case Talk(Some(sess),what) =>      
+    case Talk(Some(sess),what,t) =>      
       log.warning("not supported yet")
-      sessionActors.get(sess).map(_ ! Talked(user.name, what,System.currentTimeMillis))
+      sessionActors.get(sess).map(_ ! Talked(user.name, what, t, System.currentTimeMillis))
   }
   
   def none: Receive = {    

@@ -80,7 +80,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
           initOt()
           clients += sender -> user
           context.watch(sender)
-          sender ! OTState(this.info, server.text, server.revision)
+          sender ! Events.internal.OTState(this.info, server.text, server.revision)
           resendAnnotations(sender)
         }
         catch {
@@ -91,7 +91,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
       } else {
         clients += sender -> user
         context.watch(sender)
-        sender ! OTState(this.info, server.text, server.revision)
+        sender ! Events.internal.OTState(this.info, server.text, server.revision)
         resendAnnotations(sender)
       }
       
