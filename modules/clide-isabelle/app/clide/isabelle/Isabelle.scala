@@ -22,6 +22,8 @@ import scala.concurrent.Await
 import isabelle.XML
 import isabelle.Path
 import isabelle.Document
+import clide.assistants.Cursor
+import akka.actor.Cancellable
 
 object Isabelle extends AssistantServer(IsabelleAssistantBehavior) {
   override def startup() {
@@ -40,18 +42,24 @@ trait Control {
 }
 
 case class IsabelleAssistantBehavior(control: AssistantControl) extends AssistantBehavior with Control 
-  with IsabelleSession {  
+  with IsabelleSession {     
   
-  var project: ProjectInfo = null
-  val workers: Map[Long,Future[Unit]] = Map.empty
-  var session: Session = null
+  trait Worker {
+    def isDone:   Boolean
+    def cancel(): Unit
+  }
+  
+  val workers: Map[Long,Worker] = Map.empty
   var thys: Map[Document.Node.Name,OpenedFile] = Map.empty
   
   implicit val executionContext = Isabelle.system.dispatcher
   
-  def annotateFile(file: OpenedFile): Future[Unit] = Future {
-
-  }    
+  def annotateFile(file: OpenedFile): Worker = new Worker {
+    var isDone = false       
+    
+    def cancel() = {      
+    }
+  }
   
   def mimeTypes = Set("text/x-isabelle")
   
@@ -72,13 +80,9 @@ case class IsabelleAssistantBehavior(control: AssistantControl) extends Assistan
     control.chat("closed " + file.toString)
   }
   
-  def fileChanged(file: OpenedFile, cursors: List[(SessionInfo,Int)], delta: Operation) {
-    control.annotate(file, "substitutions", IsabelleMarkup.substitutions(file.state))
-    if (workers.get(file.info.id).map(!_.isCompleted).getOrElse(false)) {
-      
-    } else {
+  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) {    
+    if (workers.get(file.info.id).map(_.isDone).getOrElse(true))
       workers(file.info.id) = annotateFile(file)
-    }
   }
   
   def collaboratorJoined(who: SessionInfo){
@@ -89,7 +93,7 @@ case class IsabelleAssistantBehavior(control: AssistantControl) extends Assistan
     control.chat("left " + who)
   }
   
-  def cursorMoved(file: OpenedFile, owner: SessionInfo, offset: Int){
+  def cursorMoved(cursor: Cursor){
     control.chat("cursor moved")
   }
 }

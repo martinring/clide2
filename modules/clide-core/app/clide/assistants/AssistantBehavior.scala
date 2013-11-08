@@ -17,8 +17,6 @@ import akka.actor.IO.Iteratee
 import scala.concurrent.Future
 
 /**
- * @typeParam State
- * 
  * @author Martin Ring <martin.ring@dfki.de>
  */
 trait AssistantBehavior {    

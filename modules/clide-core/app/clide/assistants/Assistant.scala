@@ -62,7 +62,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         log.warning("file info has been renewed from server: {} (at revision {})", info, revision)
         files(info.id) = file
       } else if (behavior.mimeTypes.intersect(file.info.mimeType.toSet).nonEmpty) {
-        files(info.id) = file
+        files(info.id) = file        
         behavior.fileOpened(file)
         behavior.fileActivated(file)
       }         

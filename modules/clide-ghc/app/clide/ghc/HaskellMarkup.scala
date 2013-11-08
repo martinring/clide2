@@ -35,7 +35,7 @@ object HaskellMarkup {
       val i = state.indexOf("->")
       if (i >= 0) substitutions(state.drop(i + 2), as.plain(i).annotate(2, Set(AnnotationType.Class -> "symbol", AnnotationType.Substitution ->"→")))      
       else as.plain(state.length)        
-  }
+  }   
   
   def toAnnotations(errors: List[((Int,Int),String,String)], state: String): Annotations = {
     var result = new Annotations
