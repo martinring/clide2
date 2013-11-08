@@ -91,7 +91,10 @@ case class IsabelleAssistantBehavior(control: AssistantControl) extends Assistan
         control.chat("I'm ready to go!")
         
     } }  
-    session.syslog_messages += { msg => control.chat(XML.content(msg.body)) } 
+    session.syslog_messages += { msg => 
+      log.info("SYSLOG: {}", XML.content(msg.body))
+      control.chat(XML.content(msg.body)) 
+    } 
     session.raw_output_messages += { msg =>
       log.info("OUTPUT: {}", XML.content(msg.body))
     }
@@ -151,5 +154,8 @@ case class IsabelleAssistantBehavior(control: AssistantControl) extends Assistan
 object IsabelleApp extends App {
   Isabelle.startup()
   readLine()
+  scala.actors.Scheduler.shutdown()
   Isabelle.shutdown()  
+  Isabelle.system.awaitTermination()
+  sys.exit()
 }
