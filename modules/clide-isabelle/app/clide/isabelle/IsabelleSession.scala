@@ -9,12 +9,14 @@ import isabelle.Path
 import isabelle.Document
 import isabelle.XML
 import isabelle.Isabelle_System
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 trait IsabelleSession { self: AssistantBehavior with Control =>
   var session: Session = null
   var project: ProjectInfo = null
   
-  def start(project: ProjectInfo) = {
+  def start(project: ProjectInfo) {
     this.project = project
     val ops = isabelle.Options.init
     val initialized = Promise[Unit]()
@@ -67,7 +69,7 @@ trait IsabelleSession { self: AssistantBehavior with Control =>
     session.start(List("-S","HOL"))            
     control.chat("ghc is here")
     // TODO: There should be a better solution than blocking
-    initialized.future
+    Await.ready(initialized.future, 5 minutes)
   }
   
   def stop {

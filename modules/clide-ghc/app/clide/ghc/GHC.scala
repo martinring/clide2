@@ -15,31 +15,44 @@ import scala.concurrent.Future
 import scala.sys.process._
 import java.io.FileWriter
 import clide.assistants.Cursor
+import clide.collaboration.Annotations
+import akka.actor.Actor
+import clide.collaboration.AnnotationType
 
 object GHC extends AssistantServer(GHCBehavior)
 
 case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
+  val mimeTypes = Set("text/x-haskell")  
+  
   val log = control.log
   
-  var project: ProjectInfo = null
-  val workers: Map[Long,Future[Unit]] = Map.empty
+  var project: ProjectInfo = null  
+  val workers: Map[Long,Future[Unit]] = Map.empty  
   
   implicit val executionContext = GHC.system.dispatcher
   
-  def supplyCursorInfo(cursor: Cursor): Future[Unit] = Future {
-    try {
+  def supplyCursorInfo(cursor: Cursor): Future[Unit] = Future {    
     val temp = new java.io.File(project.root + "/" + cursor.file.info.path.mkString("/"))
 	val name = temp.getPath()
 	
 	val before = cursor.file.state.take(cursor.position)
 	val line = before.count(_ == '\n') + 1
-	val col  = before.length - before.lastIndexOf('\n') - 1	
+	val col  = before.length - before.lastIndexOf('\n')	
 	
-    val lines = Seq("ghc-mod","type", name, cursor.file.info.path.last.dropRight(3).capitalize, line.toString, col.toString).lines
-    control.chat(lines.mkString("\n"))
-    }
-    catch {
-      case e: Throwable => log.info("e: {}", e)
+    val proc: Seq[String] = Seq("ghc-mod", "type", name, cursor.file.info.path.last.dropRight(3).capitalize, line.toString, col.toString)
+    val lines = proc.lines
+        
+    val Line = "([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) \"(.*)\"".r
+    
+    lines.headOption.getOrElse("") match { 
+      case Line(fl,fc,tl,tc,msg) =>      
+	    val lengths = cursor.file.state.split("\n").map(_.length + 1)
+	    val from = lengths.take(fl.toInt - 1).sum + fc.toInt - 1
+	    val to   = lengths.take(tl.toInt - 1).sum + tc.toInt - 1  
+	    control.annotate(cursor.file, "cursor-info", new Annotations().plain(from).annotate(to-from, 
+	        Set(AnnotationType.InfoMessage -> msg,AnnotationType.Class -> "info")).plain(cursor.file.state.length - to))
+      case _ =>
+        control.annotate(cursor.file, "cursor-info", new Annotations().plain(cursor.file.state.length))
     }
   }
   
@@ -53,14 +66,14 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
 	write.write(file.state)
 	write.close()
 		
-	val lines = Seq("ghc-mod","check",name).lines ++ Seq("ghc-mod", "lint", name)
+	val lines = Seq("ghc-mod","check",name).lines ++ Seq("ghc-mod", "lint", name).lines
 	val errs = lines.filter(_.startsWith(name)).map(_.drop(name.length() + 1)).map(HaskellMarkup.parseLine)
     val as = HaskellMarkup.toAnnotations(errs.toList.collect{ case Some(n) => n }, file.state)        
     
-    control.annotate(file, name, as)    
+    control.annotate(file, "linting", as)    
   }
   
-  def start(project: ProjectInfo) = Future {
+  def start(project: ProjectInfo) {
     new java.io.File(project.root).mkdirs()
     this.project = project
     control.chat("ghc is here")
@@ -69,9 +82,7 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
   def stop {
     log.info("ghc stopped")
     control.chat("ghc is leaving")
-  }
-  
-  val mimeTypes = Set("text/x-haskell")
+  }    
   
   def fileOpened(file: OpenedFile) {
     workers(file.info.id) = annotateFile(file)
@@ -94,7 +105,7 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
     if (workers.get(file.info.id).map(_.isCompleted) getOrElse true) {
       workers(file.info.id) = annotateFile(file)
     } else {
-      log.info("waiting for worker to complete")      
+      log.info("waiting for worker to complete")
     }
   }
   

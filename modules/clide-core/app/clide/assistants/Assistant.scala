@@ -19,6 +19,7 @@ import scala.concurrent.Future
 import clide.actors.Messages._
 import scala.util.Success
 import scala.util.Failure
+import scala.collection.mutable.Buffer
 
 case class Cursor(owner: SessionInfo, file: OpenedFile, position: Int) {
   override def equals(other: Any) = other match {
@@ -50,8 +51,8 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   
   def stop() = self ! PoisonPill
   
-  private var state = 0
-      
+  private var state = 0    
+  
   def initialized: Receive = {
     case Forward(msg) =>
       peer ! msg
@@ -97,14 +98,14 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   }
       
   private case object Initialized
-  private case class  InitializationFailed(cause: Throwable)  
+  private case class  InitializationFailed(cause: Throwable)
   
   def receive = {
     case EventSocket(ref,"session") =>
       log.debug("session started")
       peer = ref
       implicit val ec = context.dispatcher
-      behavior.start(project).onComplete {
+      Future(behavior.start(project)).onComplete {
         case Success(()) => self ! Initialized
         case Failure(e)  => self ! InitializationFailed(e)
       }
