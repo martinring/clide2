@@ -1,7 +1,7 @@
 Clide2 (beta)
 =====================================
 
-*Clide2* is a cloud-based, language agnostic, collaborative development environment. *Clide* started as a web interface for the [Isabelle http://isabelle.in.tum.de/] theorem prover but has now been extended to a general collaborative environment for the creation of arbitrary content.
+*Clide2* is a cloud-based, language agnostic, collaborative development environment. *Clide* started as a web interface for the [Isabelle](http://isabelle.in.tum.de/) theorem prover but has now been extended to a general collaborative environment for the creation of arbitrary content.
 
 Features
 --------
