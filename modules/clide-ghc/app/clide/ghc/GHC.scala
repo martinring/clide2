@@ -117,7 +117,8 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
   
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) {    
     if (workers.get(file.info.id).map(_.isCompleted) getOrElse true) {
-      workers(file.info.id) = annotateFile(file)
+      // TODO: sequence is not optimal
+      workers(file.info.id) = Future.sequence(annotateFile(file) +: cursors.map(supplyCursorInfo)).map(_ => Unit)
     } else {
       // TODO: Defer work
       log.info("waiting for worker to complete")
