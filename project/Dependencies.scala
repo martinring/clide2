@@ -12,6 +12,9 @@ object Dependencies {
   val slick = "com.typesafe.slick" %% "slick" % "1.0.1"
   val h2    = "com.h2database" % "h2" % "1.3.166"
   val slf4j = "org.slf4j" % "slf4j-nop" % "1.6.4"
+  
+  val scalatest  = "org.scalatest" % "scalatest_2.10" % "2.0" % "test"
+  val scalacheck = "org.scalacheck" %% "scalacheck" % "1.10.1" % "test"
 
   object akka {
     val version = "2.2.3"

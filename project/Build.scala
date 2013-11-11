@@ -28,7 +28,7 @@ object ApplicationBuild extends Build {
     akka.testkit,
     spray.json,
     scala.reflect,
-    slick,h2,slf4j)
+    slick,h2,slf4j,scalatest,scalacheck)
 
   val commonSettings = Seq(
     scalaVersion := scala.version,
