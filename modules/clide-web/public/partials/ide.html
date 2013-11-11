@@ -2,35 +2,35 @@
   <div ng-class='{extendedStatusbar:output}'>    
     <nav id="ribbon" class='bgcolor-{{session.me.color}}'>
       <ul class="nav menu" ng-init='sidebarSection="files"'>
-        <li title='Files' ng-click='select("files")' ng-class='{active: sidebarSection=="files"}'><i class='icon-list-ul'></i></li>
-        <li title='Collaboration' ng-click='select("collab")' ng-class='{active: sidebarSection=="collab"}'><i class='icon-group'></i></li>        
-        <li title='Edit' ng-click='select("edit")' ng-class='{active: sidebarSection=="edit"}'><i class='icon-pencil'></i></li>
-        <li title='View' ng-click='select("view")' ng-class='{active: sidebarSection=="view"}'><i class='icon-eye-open'></i></li>
-        <li title='Settings' ng-click='select("settings")' ng-class='{active: sidebarSection=="settings"}'><i class='icon-gear'></i></li>
-        <li title='Help' ng-click='select("help")' ng-class='{active: sidebarSection=="help"}'><i class='icon-question-sign'></i></li        
+        <li title='Files' ng-click='select("files")' ng-class='{active: sidebarSection=="files"}'><i class='fa fa-list-ul'></i></li>
+        <li title='Collaboration' ng-click='select("collab")' ng-class='{active: sidebarSection=="collab"}'><i class='fa fa-group'></i></li>        
+        <li title='Edit' ng-click='select("edit")' ng-class='{active: sidebarSection=="edit"}'><i class='fa fa-pencil'></i></li>
+        <li title='View' ng-click='select("view")' ng-class='{active: sidebarSection=="view"}'><i class='fa fa-eye'></i></li>
+        <li title='Settings' ng-click='select("settings")' ng-class='{active: sidebarSection=="settings"}'><i class='fa fa-gear'></i></li>
+        <li title='Help' ng-click='select("help")' ng-class='{active: sidebarSection=="help"}'><i class='fa fa-question-circle'></i></li        
       </ul>
-      <div id="sidebarButton" ng-click='sidebar=!sidebar'><i class='icon-circle-arrow-right'></i></div>
+      <div id="sidebarButton" ng-click='sidebar=!sidebar'><i class='fa fa-arrow-circle-right'></i></div>
     </nav>
     <div id="sidebarContainer">
       <!--<div id="search" class='bordercolor-{{session.me.color}}'>        
         <input id="searchBox" ng-model='search.name' ng-focus='searchActive=true' ng-blur='searchActive=false'>
-          <div class="searchButton bgcolor-{{session.me.color}}" ng-click='sidebar=true'><i class='icon-search'></i></div>
+          <div class="searchButton bgcolor-{{session.me.color}}" ng-click='sidebar=true'><i class='fa fa-search'></i></div>
         </input>
       </div>-->
-      <a id='backstageButton' title='Backstage' href='/{{session.me.user}}/backstage'><i class='icon-arrow-right'></i></a>
+      <a id='backstageButton' title='Backstage' href='/{{session.me.user}}/backstage'><i class='fa fa-arrow-right'></i></a>
       <nav id="sidebar">
         <ul id="sidebarContent" class='touchScroll'>
           <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>            
             <h3>Files
             <div class='pull-right btn-group' ng-show='files.state=="connected"'>
               <a class='btn btn-default' ng-click='browseTo(files.currentDir.info.path.slice(0,-1))' ng-disabled='files.currentDir.info.parent==null'>
-                <i class='icon-level-up'></i>
+                <i class='fa fa-level-up'></i>
               </a>
               <a class='btn btn-default' ng-click='createFolder(files.currentDir.info)'>
-                <i class="icon-folder-close-alt"></i>
+                <i class="fa fa-folder-o"></i>
               </a>
               <a class='btn btn-default' ng-click='createFile(files.currentDir.info)'>
-                <i class="icon-file-alt"></i>
+                <i class="fa fa-file-o"></i>
               </a>
             </div>
             </h3>
@@ -40,7 +40,7 @@
                   {{segment.name}}
                 </a>
                 <a ng-click='browseTo(segment.path)' ng-show='segment.name == "$home"'>
-                  <i class='icon-home'></i>
+                  <i class='fa fa-home'></i>
                 </a>
               </li>
             </ul>            
@@ -50,9 +50,9 @@
                  class='list-group-item bordercolor-{{session.me.color}}'
                  context-menu='fileContextMenu(file)'
                  ng-class='{ active: file.id==session.me.activeFile, open: file.doc!=null, "text-muted": file.deleted }'>
-                 <i class="icon-folder-open icon-fixed-width" ng-show='file.loading'></i><i ng-show='!file.loading' class='icon-fixed-width' ng-class='{ "icon-folder-close": file.isDirectory, "icon-file": !file.isDirectory }'></i> {{file.name}}
+                 <i class="fa fa-folder-open fa fa-fixed-width" ng-show='file.loading'></i><i ng-show='!file.loading' class='fa fa-fixed-width' ng-class='{ "fa fa-folder-close": file.isDirectory, "fa fa-file": !file.isDirectory }'></i> {{file.name}}
                  <span class='pull-right'>
-                   <i class='icon-stop color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id} ' title='{{user.user}}'></i>
+                   <i class='fa fa-stop color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id} ' title='{{user.user}}'></i>
                  </span>
               </a>              
               <div class='placeholder' ng-if='files.currentDir.files.length == 0'>
@@ -68,16 +68,16 @@
           </li>
           <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
             <div ng-show='session.state=="connected"' class='pull-right' style='position:relative'>              
-              <span class='btn dropdown-toggle bgcolor-{{session.me.color}}' style='color:white' title='click to choose color'><i class='icon-user'></i></span>
+              <span class='btn dropdown-toggle bgcolor-{{session.me.color}}' style='color:white' title='click to choose color'><i class='fa fa-user'></i></span>
               <ul class="dropdown-menu" role='menu'>
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('crimson')"><i class='icon-fixed-width icon-stop color-crimson'></i> Crimson</a></li>
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('red')"><i class='icon-fixed-width icon-stop color-red'></i> Red</a></li>
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('orange')"><i class='icon-fixed-width icon-stop color-orange'></i> Orange</a></li>
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('yellow')"><i class='icon-fixed-width icon-stop color-yellow'></i> Yellow</a></li>
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('lime')"><i class='icon-fixed-width icon-stop color-lime'></i> Lime</a></li>              
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('cyan')"><i class='icon-fixed-width icon-stop color-cyan'></i> Cyan</a></li>
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('blue')"><i class='icon-fixed-width icon-stop color-blue'></i> Blue</a></li>
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('violet')"><i class='icon-fixed-width icon-stop color-violet'></i> Violet</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('crimson')"><i class='fa fa-fw fa-stop color-crimson'></i> Crimson</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('red')"><i class='fa fa-fw fa-stop color-red'></i> Red</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('orange')"><i class='fa fa-fw fa-stop color-orange'></i> Orange</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('yellow')"><i class='fa fa-fw fa-stop color-yellow'></i> Yellow</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('lime')"><i class='fa fa-fw fa-stop color-lime'></i> Lime</a></li>              
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('cyan')"><i class='fa fa-fw fa-stop color-cyan'></i> Cyan</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('blue')"><i class='fa fa-fw fa-stop color-blue'></i> Blue</a></li>
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('violet')"><i class='fa fa-fw fa-stop color-violet'></i> Violet</a></li>
               </ul>
             </div>
             <h3>Collaboration</h3>      
@@ -93,7 +93,7 @@
                 </p>
               <ul class='list-group'>
                 <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
-                  <i class='icon-fixed-width icon-stop color-{{user.color}}'></i> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
+                  <i class='fa fa-fw fa-stop color-{{user.color}}'></i> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
                   <div class='form-group' ng-show='user.active && session.activeAnnotations()[user.id].length > 0'>
                     <div class='checkbox' ng-repeat='stream in session.activeAnnotations()[user.id]'>
                       <label>
@@ -105,7 +105,7 @@
               </ul>
               <div class='list-group'>
                 <a class='list-group-item' ng-click='invite()'>
-                  <i class='icon-fixed-width icon-envelope'></i> invite a collaborator...
+                  <i class='fa fa-fw fa-envelope'></i> invite a collaborator...
                 </a>                
               </div>                      
             </div>
@@ -120,13 +120,13 @@
             <h3>Edit</h3>   
             <div class='list-group'>
               <a class='list-group-item'>
-                <i class='icon-fixed-width icon-cut'></i> Cut
+                <i class='fa fa-fw fa-cut'></i> Cut
               </a>
               <a class='list-group-item'>
-                <i class='icon-fixed-width icon-copy'></i> Copy
+                <i class='fa fa-fw fa-copy'></i> Copy
               </a>
               <a class='list-group-item'>
-                <i class='icon-fixed-width icon-paste'></i> Paste
+                <i class='fa fa-fw fa-paste'></i> Paste
               </a>                              
             </div>
           </li>
@@ -171,7 +171,7 @@
         <div class="tabs">
           <ul class="headers">
             <li ng-repeat='file in session.openFiles' ng-class='{active: session.me.activeFile==file.id}' ng-show='session.state=="connected"'>
-              <i class='icon-stop icon-fixed-width color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id}' title='{{user.user}}'></i>
+              <i class='fa fa-stop fa-fw color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id}' title='{{user.user}}'></i>
               <a ng-click='openFile(file.id)'>{{file.name}}</a>
               <button type="button" class="close" aria-hidden="true" ng-click='closeFile(file.id)'>&times;</button>
             </li>
@@ -199,7 +199,7 @@
             <!--<li id="syncState">{{session.syncState()}}</li>
             <li id="traffic">{{session.activeAnnotations()}}</li>
             --><li id="sessionStatus" class="phase">
-              <i class='icon-cloud'></i>
+              <i class='fa fa-cloud'></i>
             </li>
           </ul>
         </div>
@@ -209,7 +209,7 @@
               <div class='input-group'>
                 <input ng-model='chatMessage' class='form-control' required>
                 <span class='input-group-btn'>
-                  <button class='btn btn-primary' type='submit' ng-disabled='!chatForm.$valid || app.wait'><i class='icon-envelope'></i></button>
+                  <button class='btn btn-primary' type='submit' ng-disabled='!chatForm.$valid || app.wait'><i class='fa fa-envelope'></i></button>
                 </span>
               </div>
             </form>
