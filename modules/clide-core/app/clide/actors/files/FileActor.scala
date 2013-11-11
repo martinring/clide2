@@ -95,12 +95,12 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
         resendAnnotations(sender)
       }
       
-    case Annotate(_,rev,as,name) =>
+    case Annotate(_,rev,as,name) =>      
       if (!otActive) initOt()
       server.transformAnnotation(rev.toInt, as) match { // TODO: Ugly: rev.toInt
         case Failure(e) =>
           // TODO
-          log.warning("annotation could not be transformed")
+          log.warning("{}'s annotation could not be transformed", clients(sender).user)
         case Success(as) =>
           annotations.get((clients(sender).id,name)) match {
             case None =>              

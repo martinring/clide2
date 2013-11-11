@@ -20,6 +20,7 @@ import clide.actors.Messages._
 import scala.util.Success
 import scala.util.Failure
 import scala.collection.mutable.Buffer
+import scala.concurrent.Future
 
 case class Cursor(owner: SessionInfo, file: OpenedFile, position: Int) {
   override def equals(other: Any) = other match {
@@ -28,19 +29,20 @@ case class Cursor(owner: SessionInfo, file: OpenedFile, position: Int) {
   }
 }
 
-private class Assistant(project: ProjectInfo, createBehavior: AssistantControl => AssistantBehavior) extends Actor with ActorLogging with AssistantControl {     
+private class Assistant(project: ProjectInfo, createBehavior: AssistantControl => AssistantBehavior) extends Actor with ActorLogging with AssistantControl with Stash {     
   var peer              = context.system.deadLetters  
   var info: SessionInfo = null
   val collaborators     = Set.empty[SessionInfo]
   val files             = Map.empty[Long,OpenedFile]
   val behavior = createBehavior(this)
-  val cursors  = Set.empty[Cursor]
-  
+  val cursors  = Map.empty[Long,Map[Long,Cursor]]
+    
   def chat(msg: String, tpe: Option[String] = None) = {
     peer ! Talk(None,msg,tpe)
   }
    
-  private case class Forward(msg: Message)
+  
+  case object Continue
   
   def openFile(path: Seq[String]): Future[OpenedFile] = ???
   
@@ -51,12 +53,56 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   
   def stop() = self ! PoisonPill
   
-  private var state = 0    
+  implicit val ec = context.dispatcher
+   
+  case class Processed(e: Event)
   
-  def initialized: Receive = {
-    case Forward(msg) =>
-      peer ! msg
+  def working: Receive = {
+    val edits:       Map[Long,Operation] = Map.empty
+    val annotations: Map[Long,scala.collection.Map[(Long,String),Annotations]] = Map.empty       
     
+    {
+      case Processed(Edited(file,operation)) =>
+        edits(file) = if (edits.isDefinedAt(file))
+          Operation.compose(edits(file), operation).get         
+        else operation
+        
+        if (edits.isDefinedAt(file))
+          annotations(file) = annotations(file).mapValues(a => Annotations.transform(a, operation).get)          
+        
+      case Edited(file,operation) =>
+        val prev = files(file)
+        val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
+        files(file) = next
+        
+        edits(file) = if (edits.isDefinedAt(file))
+          Operation.compose(edits(file), operation).get         
+        else operation
+        
+        if (annotations.isDefinedAt(file))
+          annotations(file) = annotations(file).mapValues(a => Annotations.transform(a, operation).get)
+          
+      case Annotated(file,user,as,name) =>
+        if (edits.isDefinedAt(file))          
+          annotations(file) += (user,name) -> as
+      
+      case Continue =>        
+        unstashAll()
+        
+        context.become(initialized)
+        for {
+          (file, op) <- edits           
+        } self ! Processed(Edited(file,op))
+        for {
+          (file,as) <- annotations
+          ((user,name),as) <- as
+        } self ! Annotated(file,user,as,name)
+        
+      case _ => this.stash()
+    }
+  }    
+  
+  def initialized: Receive = {            
     case FileOpened(file@OpenedFile(info,content,revision)) =>
       log.debug("file opened: {}", info)
       if (files.isDefinedAt(info.id)) {
@@ -73,11 +119,31 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       behavior.fileClosed(files(file))
       files.remove(file)
       
+    case Processed(Edited(file,operation)) if files.isDefinedAt(file) =>      
+      val f = Future(behavior.fileChanged(files(file), operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))
+      f.onComplete {
+        case Success(_) => 
+          self ! Continue
+        case Failure(e) =>
+          log.error("there is a problem with the behavior: {}", e)
+          self ! Continue
+      }
+      context.become(working)           
+      
     case Edited(file,operation) if files.isDefinedAt(file) =>      
       val prev = files(file)
       val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
       files(file) = next
-      behavior.fileChanged(next, operation, cursors.toSeq)
+      val f = Future(behavior.fileChanged(next, operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))
+      f.onComplete {
+        case Success(_) => 
+          self ! Continue
+        case Failure(e) =>
+          log.error(e, "there is a problem with the behavior: {}", e.getMessage())
+          e.printStackTrace()
+          self ! Continue
+      }
+      context.become(working)
       
     case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
       val ps = annotations.positions(AnnotationType.Class,"cursor")
@@ -86,15 +152,26 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         file  <- files.get(file)
         pos   <- ps
       } {
-        cursors += Cursor(user,file,pos)
-        behavior.cursorMoved(Cursor(user,file,pos))
+        if (!cursors.isDefinedAt(file.info.id))
+          cursors(file.info.id) = Map.empty
+        
+        cursors(file.info.id) += user.id -> Cursor(user,file,pos)
+        val f = Future(behavior.cursorMoved(Cursor(user,file,pos)))
+        f.onComplete {
+          case Success(_) => 
+            self ! Continue
+          case Failure(e) =>
+            log.error("there is a problem with the behavior: {}", e)
+            self ! Continue
+        }
+        context.become(working)
       }
       
     case SessionChanged(info) =>
       log.debug("session changed: {}", info)
       if (info.active && info.activeFile.isDefined && !files.contains(info.activeFile.get)) {
         peer ! OpenFile(info.activeFile.get)
-      }
+      }    
   }
       
   private case object Initialized

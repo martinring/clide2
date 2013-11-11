@@ -18,6 +18,8 @@ import clide.assistants.Cursor
 import clide.collaboration.Annotations
 import akka.actor.Actor
 import clide.collaboration.AnnotationType
+import clide.collaboration.Insert
+import clide.collaboration.Delete
 
 object GHC extends AssistantServer(GHCBehavior)
 
@@ -25,35 +27,85 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
   val mimeTypes = Set("text/x-haskell")  
   
   val log = control.log
-  
-  var project: ProjectInfo = null  
-  val workers: Map[Long,Future[Unit]] = Map.empty
+  var project: ProjectInfo = null
   val cursorInfos: Map[Long,Map[Long,Annotations]] = Map.empty
-
-  implicit val executionContext = GHC.system.dispatcher 
   
-  def supplyCursorInfo(cursor: Cursor): Future[Unit] = Future {    
-    val temp = new java.io.File(project.root + "/" + cursor.file.info.path.mkString("/"))
+  def start(project: ProjectInfo) {
+    new java.io.File(project.root).mkdirs()
+    this.project = project
+    control.chat("i'm ready to go!")    
+  }
+  
+  def stop {
+    log.info("ghc stopped")    
+  }    
+  
+  def fileOpened(file: OpenedFile) {
+    
+  }
+  
+  def fileActivated(file: OpenedFile) {   
+    fileChanged(file,new Operation(List(Insert(file.state))),Seq.empty)
+  }
+  
+  def fileInactivated(file: OpenedFile) {
+    
+  }
+  
+  def fileClosed(file: OpenedFile) {
+    control.chat("closed " + file.toString)
+    fileChanged(file,new Operation(List(Delete(file.state.length))),Seq.empty)
+  }
+  
+  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) {    
+    control.annotate(file, "substitutions", HaskellMarkup.substitutions(file.state))
+	    
+    val temp = new java.io.File(project.root + "/" + file.info.path.mkString("/"))
 	val name = temp.getPath()
 	
-	val before = cursor.file.state.take(cursor.position)
-	val line = before.count(_ == '\n') + 1
-	val col  = before.length - before.lastIndexOf('\n')	
+	val write = new FileWriter(temp)
+	write.write(file.state)
+	write.close()
+		
+	val lines = Seq("ghc-mod","check",name).lines ++ Seq("ghc-mod", "lint", name).lines
+	val errs = lines.filter(_.startsWith(name)).map(_.drop(name.length() + 1)).map(HaskellMarkup.parseLine)
+    val as = HaskellMarkup.toAnnotations(errs.toList.collect{ case Some(n) => n }, file.state)        
+    
+    control.annotate(file, "linting", as)
+    
+    cursors.foreach(cursorMoved)
+  }
+  
+  def collaboratorJoined(who: SessionInfo){
+    
+  }
+  
+  def collaboratorLeft(who: SessionInfo){    
+    cursorInfos.values.foreach(_.remove(who.id))
+  }
+  
+  def cursorMoved(cursor: Cursor){
+    val temp = new java.io.File(project.root + "/" + cursor.file.info.path.mkString("/"))
+    val name = temp.getPath()
+	
+    val before = cursor.file.state.take(cursor.position)
+    val line = before.count(_ == '\n') + 1
+    val col  = before.length - before.lastIndexOf('\n')	
 	
     val proc: Seq[String] = Seq("ghc-mod", "type", name, cursor.file.info.path.last.dropRight(3).capitalize, line.toString, col.toString)
     val lines = proc.lines
         
     val Line = "([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) \"(.*)\"".r
-    
+  
     val as = lines.headOption.getOrElse("") match { 
       case Line(fl,fc,tl,tc,msg) =>      
-	    val lengths = cursor.file.state.split("\n").map(_.length + 1)
+        val lengths = cursor.file.state.split("\n").map(_.length + 1)
 	    val from = lengths.take(fl.toInt - 1).sum + fc.toInt - 1
 	    val to   = lengths.take(tl.toInt - 1).sum + tc.toInt - 1  
 	    new Annotations().plain(from).annotate(to-from, 
-	        Set(AnnotationType.InfoMessage -> msg,AnnotationType.Class -> "info")).plain(cursor.file.state.length - to)
+	      Set(AnnotationType.InfoMessage -> HaskellMarkup.prettify(msg),AnnotationType.Class -> "info")).plain(cursor.file.state.length - to)
       case _ =>
-        new Annotations().plain(cursor.file.state.length)
+ 	    new Annotations().plain(cursor.file.state.length)
     }
     
     val cursors = cursorInfos.get(cursor.file.info.id).getOrElse {
@@ -67,79 +119,7 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
       control.annotate(cursor.file, "cursor-info", cursors.values.reduce[Annotations]{
         case (a,b) => a.compose(b).get
       })
-    }
-  }
-  
-  def annotateFile(file: OpenedFile, cursors: Seq[Int] = Seq.empty): Future[Unit] = Future {
-    control.annotate(file, "substitutions", HaskellMarkup.substitutions(file.state))
-    
-    val temp = new java.io.File(project.root + "/" + file.info.path.mkString("/"))
-	val name = temp.getPath()
-	
-	val write = new FileWriter(temp)
-	write.write(file.state)
-	write.close()
-		
-	val lines = Seq("ghc-mod","check",name).lines ++ Seq("ghc-mod", "lint", name).lines
-	val errs = lines.filter(_.startsWith(name)).map(_.drop(name.length() + 1)).map(HaskellMarkup.parseLine)
-    val as = HaskellMarkup.toAnnotations(errs.toList.collect{ case Some(n) => n }, file.state)        
-    
-    control.annotate(file, "linting", as)    
-  }
-  
-  def start(project: ProjectInfo) {
-    new java.io.File(project.root).mkdirs()
-    this.project = project
-    control.chat("ghc is here")
-  }
-  
-  def stop {
-    log.info("ghc stopped")
-    control.chat("ghc is leaving")
-  }    
-  
-  def fileOpened(file: OpenedFile) {
-    workers(file.info.id) = annotateFile(file)
-    control.chat("opened " + file.toString)
-  }
-  
-  def fileActivated(file: OpenedFile) {
-    control.chat("activated " + file.toString)
-  }
-  
-  def fileInactivated(file: OpenedFile) {
-    control.chat("inactivated " + file.toString)
-  }
-  
-  def fileClosed(file: OpenedFile) {
-    control.chat("closed " + file.toString)
-  }
-  
-  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) {    
-    if (workers.get(file.info.id).map(_.isCompleted) getOrElse true) {
-      // TODO: sequence is not optimal
-      workers(file.info.id) = Future.sequence(annotateFile(file) +: cursors.map(supplyCursorInfo)).map(_ => Unit)
-    } else {
-      // TODO: Defer work
-      log.info("waiting for worker to complete")
-    }
-  }
-  
-  def collaboratorJoined(who: SessionInfo){
-    control.chat("joined " + who)
-  }
-  
-  def collaboratorLeft(who: SessionInfo){
-    control.chat("left " + who)
-  }
-  
-  def cursorMoved(cursor: Cursor){
-    if (workers.get(cursor.file.info.id).map(_.isCompleted) getOrElse true) {
-      workers(cursor.file.info.id) = supplyCursorInfo(cursor)
-    } else {
-      // TODO: Defer work
-      log.info("waiting for worker to complete")
-    }
+    }    
   }
 }
 
