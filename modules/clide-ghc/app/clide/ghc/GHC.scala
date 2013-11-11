@@ -27,9 +27,10 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
   val log = control.log
   
   var project: ProjectInfo = null  
-  val workers: Map[Long,Future[Unit]] = Map.empty  
-  
-  implicit val executionContext = GHC.system.dispatcher
+  val workers: Map[Long,Future[Unit]] = Map.empty
+  val cursorInfos: Map[Long,Map[Long,Annotations]] = Map.empty
+
+  implicit val executionContext = GHC.system.dispatcher 
   
   def supplyCursorInfo(cursor: Cursor): Future[Unit] = Future {    
     val temp = new java.io.File(project.root + "/" + cursor.file.info.path.mkString("/"))
@@ -44,15 +45,28 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
         
     val Line = "([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) \"(.*)\"".r
     
-    lines.headOption.getOrElse("") match { 
+    val as = lines.headOption.getOrElse("") match { 
       case Line(fl,fc,tl,tc,msg) =>      
 	    val lengths = cursor.file.state.split("\n").map(_.length + 1)
 	    val from = lengths.take(fl.toInt - 1).sum + fc.toInt - 1
 	    val to   = lengths.take(tl.toInt - 1).sum + tc.toInt - 1  
-	    control.annotate(cursor.file, "cursor-info", new Annotations().plain(from).annotate(to-from, 
-	        Set(AnnotationType.InfoMessage -> msg,AnnotationType.Class -> "info")).plain(cursor.file.state.length - to))
+	    new Annotations().plain(from).annotate(to-from, 
+	        Set(AnnotationType.InfoMessage -> msg,AnnotationType.Class -> "info")).plain(cursor.file.state.length - to)
       case _ =>
-        control.annotate(cursor.file, "cursor-info", new Annotations().plain(cursor.file.state.length))
+        new Annotations().plain(cursor.file.state.length)
+    }
+    
+    val cursors = cursorInfos.get(cursor.file.info.id).getOrElse {
+      cursorInfos(cursor.file.info.id) = Map.empty
+      cursorInfos(cursor.file.info.id)
+    }
+            
+    if (!cursors.isDefinedAt(cursor.owner.id) || cursors(cursor.owner.id) != as) {
+      cursors(cursor.owner.id) = as            
+      
+      control.annotate(cursor.file, "cursor-info", cursors.values.reduce[Annotations]{
+        case (a,b) => a.compose(b).get
+      })
     }
   }
   
@@ -118,6 +132,7 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
   }
   
   def cursorMoved(cursor: Cursor){
+    log.info("cursor moved")
     if (workers.get(cursor.file.info.id).map(_.isCompleted) getOrElse true) {
       workers(cursor.file.info.id) = supplyCursorInfo(cursor)
     } else {

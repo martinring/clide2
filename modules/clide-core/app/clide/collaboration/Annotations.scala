@@ -12,7 +12,7 @@ sealed trait Annotation {
   def withLength(n: Int): Annotation = this match {
     case Plain(_) => Plain(n)
     case Annotate(_,c) => Annotate(n,c)
-  }
+  }  
 }
 case class Plain(length: Int) extends Annotation {
   override def toString = length.toString
@@ -122,6 +122,9 @@ case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
   }
   
   def length = annotations.map(_.length).reduceOption(_ + _).getOrElse(0)
+  
+  def compose(other: Annotations): Try[Annotations] = Annotations.compose(this,other)
+  def transform(op: Operation): Try[Annotations] = Annotations.transform(this, op)
 }
 
 object Annotations {  
@@ -169,5 +172,34 @@ object Annotations {
     loop(a.annotations,o.actions,Nil).map(as => Annotations(as.reverse))
   }
   
-  
+  def compose(a: Annotations, b: Annotations): Try[Annotations] = {
+    @tailrec
+    def loop(as: List[Annotation], bs: List[Annotation], xs: List[Annotation]): Try[List[Annotation]] = (as,bs,xs) match {
+      case (Nil,Nil,xs) => Success(xs)
+      case (aa@(a::as),bb@(b::bs),xs) => (a,b) match {
+        case (Plain(n),Plain(m)) => (n <=> m) match {
+          case LT => loop(as,addPlain(m-n,bs),addPlain(n,xs))
+          case EQ => loop(as,bs,addPlain(n,xs))
+          case GT => loop(addPlain(n-m,as),bs,addPlain(m,xs))
+        }
+        case (Plain(n),Annotate(m,c)) => (n <=> m) match {
+          case LT => loop(as,addAnnotate(m-n,c,bs),addAnnotate(n,c,xs))
+          case EQ => loop(as,bs,addAnnotate(n,c,xs))
+          case GT => loop(addPlain(n-m,as),bs,addAnnotate(m,c,xs))
+        }
+        case (Annotate(n,c),Plain(m)) => (n <=> m) match {
+          case LT => loop(as,addPlain(m-n,bs),addAnnotate(n,c,xs))
+          case EQ => loop(as,bs,addAnnotate(n,c,xs))
+          case GT => loop(addAnnotate(n-m,c,as),bs,addAnnotate(m,c,xs))
+        }
+        case (Annotate(n,c),Annotate(m,c2)) => (n <=> m) match {
+          case LT => loop(as,addAnnotate(m-n,c2,bs),addAnnotate(n,c ++ c2,xs))
+          case EQ => loop(as,bs,addAnnotate(n,c ++ c2,xs))
+          case GT => loop(addAnnotate(n-m,c,as),bs,addAnnotate(m,c ++ c2,xs))
+        }
+      }
+      case _ => Failure(sys.error("the annotation lengths don't match!"))
+    }
+    loop(a.annotations, b.annotations, Nil).map(as => Annotations.apply(as.reverse))
+  }
 }
