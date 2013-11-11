@@ -119,6 +119,7 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
     if (workers.get(file.info.id).map(_.isCompleted) getOrElse true) {
       workers(file.info.id) = annotateFile(file)
     } else {
+      // TODO: Defer work
       log.info("waiting for worker to complete")
     }
   }
@@ -132,10 +133,10 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
   }
   
   def cursorMoved(cursor: Cursor){
-    log.info("cursor moved")
     if (workers.get(cursor.file.info.id).map(_.isCompleted) getOrElse true) {
       workers(cursor.file.info.id) = supplyCursorInfo(cursor)
     } else {
+      // TODO: Defer work
       log.info("waiting for worker to complete")
     }
   }
