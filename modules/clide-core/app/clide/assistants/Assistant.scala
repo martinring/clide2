@@ -67,7 +67,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           Operation.compose(edits(file), operation).get         
         else operation
         
-        if (edits.isDefinedAt(file))
+        if (annotations.isDefinedAt(file))
           annotations(file) = annotations(file).mapValues(a => Annotations.transform(a, operation).get)          
         
       case Edited(file,operation) =>
@@ -83,7 +83,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           annotations(file) = annotations(file).mapValues(a => Annotations.transform(a, operation).get)
           
       case Annotated(file,user,as,name) =>
-        if (edits.isDefinedAt(file))          
+        if (annotations.isDefinedAt(file))          
           annotations(file) += (user,name) -> as
       
       case Continue =>        

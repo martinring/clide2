@@ -111,15 +111,15 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
     val cursors = cursorInfos.get(cursor.file.info.id).getOrElse {
       cursorInfos(cursor.file.info.id) = Map.empty
       cursorInfos(cursor.file.info.id)
-    }
-            
+    }        
+    
     if (!cursors.isDefinedAt(cursor.owner.id) || cursors(cursor.owner.id) != as) {
-      cursors(cursor.owner.id) = as            
+      cursors(cursor.owner.id) = as
       
       control.annotate(cursor.file, "cursor-info", cursors.values.reduce[Annotations]{
         case (a,b) => a.compose(b).get
       })
-    }    
+    }
   }
 }
 
