@@ -91,19 +91,19 @@ case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
     result
   }
   
-  def annotate(n: Int, c: Set[(AnnotationType.Value,String)]): Annotations = {
+  def annotate(n: Int, c: Set[(AnnotationType.Value,String)]): Annotations = if (n > 0) {
     annotations.lastOption match {
       case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c))
       case _ => Annotations(annotations :+ Annotate(n,c))
     }
-  }
+  } else this
   
-  def plain(n: Int): Annotations = {
+  def plain(n: Int): Annotations = if (n > 0) {
     annotations.lastOption match {
       case Some(Plain(m)) => Annotations(annotations.init :+ Plain(n+m))
       case _ => Annotations(annotations :+ Plain(n))
     }
-  }
+  } else this
   
   def :+ (a: Annotation): Annotations = {
     (annotations.lastOption,a) match {
@@ -198,6 +198,8 @@ object Annotations {
           case GT => loop(addAnnotate(n-m,c,as),bs,addAnnotate(m,c ++ c2,xs))
         }
       }
+      case (a::as,Nil,xs) if a.length == 0 => loop(as,Nil,add(a,xs))
+      case (Nil,b::bs,xs) if b.length == 0 => loop(Nil,bs,add(b,xs))
       case _ => Failure(sys.error("the annotation lengths don't match!"))
     }
     loop(a.annotations, b.annotations, Nil).map(as => Annotations.apply(as.reverse))
