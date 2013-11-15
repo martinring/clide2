@@ -22,13 +22,24 @@ import scala.util.Failure
 import scala.collection.mutable.Buffer
 import scala.concurrent.Future
 
-case class Cursor(owner: SessionInfo, file: OpenedFile, position: Int) {
+/**
+ * @param owner The Session, this cursor belongs to
+ * @param file  The referenced file state
+ * @param anchor The position of the cursor
+ * @param head Optional value indicating the end of the selected range if something is seleced. This might lie before or after the anchor position.
+ * @todo head is not implemented right now
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
+case class Cursor(owner: SessionInfo, file: OpenedFile, anchor: Int, head: Option[Int] = None) {
   override def equals(other: Any) = other match {
     case c: Cursor if c.owner == this.owner && c.file == this.file => true
     case _ => false
   }
 }
 
+/**
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
 private class Assistant(project: ProjectInfo, createBehavior: AssistantControl => AssistantBehavior) extends Actor with ActorLogging with AssistantControl with Stash {     
   var peer              = context.system.deadLetters  
   var info: SessionInfo = null
@@ -146,7 +157,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       context.become(working)
       
     case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
-      val ps = annotations.positions(AnnotationType.Class,"cursor")
+      val ps = annotations.positions(AnnotationType.Class,"cursor")      
       if (ps.nonEmpty) for {
         user  <- collaborators.find(_.id == user)
         file  <- files.get(file)

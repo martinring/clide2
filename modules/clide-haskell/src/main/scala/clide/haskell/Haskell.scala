@@ -96,7 +96,7 @@ case class HaskellBehavior(control: AssistantControl) extends AssistantBehavior 
     val temp = new java.io.File(project.root + "/" + cursor.file.info.path.mkString("/"))
     val name = temp.getPath()
 	
-    val before = cursor.file.state.take(cursor.position)
+    val before = cursor.file.state.take(cursor.anchor)
     val line = before.count(_ == '\n') + 1
     val col  = before.length - before.lastIndexOf('\n')	
 	
