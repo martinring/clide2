@@ -32,6 +32,28 @@ If you consider contributing to the project, you should first set up a local ins
 > TODO
 ```
 
+Building Assistants
+-------------------
+
+The clide-core dependency can be obtained from sonatype central maven repo.
+
+Sbt: 
+
+```
+"net.flatmap" %% "clide-core" % "2.0-SNAPSHOT"
+```
+
+
+Maven: 
+
+```
+<dependency>
+  <groupId>net.flatmap</groupId>
+  <artifactId>clide-core_2.10</artifactId>
+  <version>2.0-SNAPSHOT</version>
+</dependency>
+```
+
 License
 -------
 
