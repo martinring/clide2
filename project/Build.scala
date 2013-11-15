@@ -50,16 +50,16 @@ object ApplicationBuild extends Build {
   ).configs(Atmos).settings(atmosSettings:_*)
 
   val appDependencies = Seq(
-    akka.remote,    
+    akka.remote,
     //scala.pickling, TODO
     playplugins.mailer)
-  
+
   val web = play.Project(
-    s"${appName}-web", 
-    appVersion, 
-    appDependencies,    
+    s"${appName}-web",
+    appVersion,
+    appDependencies,
     path = file("modules/clide-web")
-  ).dependsOn(core).settings(Angular.defaultSettings:_*)  
+  ).dependsOn(core).settings(Angular.defaultSettings:_*)
   .settings(
     // this is needed for scala pickling TODO: Fix
     // resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -81,14 +81,14 @@ object ApplicationBuild extends Build {
     resourceGenerators in Compile <+= JavascriptCompiler(fullCompilerOptions = None),
     resourceGenerators in Compile <+= Angular.ModuleCompiler,
     resourceGenerators in Compile <+= Angular.BoilerplateGenerator,
-    lessEntryPoints         <<= (sourceDirectory in Compile){ base => 
+    lessEntryPoints         <<= (sourceDirectory in Compile){ base =>
       base / "assets" / "stylesheets" * "main.less" },
-    coffeescriptEntryPoints <<= (sourceDirectory in Compile){ base => 
+    coffeescriptEntryPoints <<= (sourceDirectory in Compile){ base =>
       base / "assets" ** "*.coffee" },
-    javascriptEntryPoints <<= (sourceDirectory in Compile){ base => 
-      (base / "assets" ** "*.js") --- 
-      (base / "assets" / "libs" / "bootstrap" / "assets" ** "*") --- 
-      (base / "assets" / "libs" / "bootstrap" / "js" / "tests" ** "*") --- 
+    javascriptEntryPoints <<= (sourceDirectory in Compile){ base =>
+      (base / "assets" ** "*.js") ---
+      (base / "assets" / "libs" / "bootstrap" / "assets" ** "*") ---
+      (base / "assets" / "libs" / "bootstrap" / "js" / "tests" ** "*") ---
       (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
   )
 
@@ -100,7 +100,7 @@ object ApplicationBuild extends Build {
     scala.actors)
 
   val isabelle = Project(s"${appName}-isabelle", file("modules/clide-isabelle"))
-                .dependsOn(core).settings(commonSettings:_*).settings(    
+                .dependsOn(core).settings(commonSettings:_*).settings(
     libraryDependencies ++= isabelleDependencies
   )
 
@@ -110,14 +110,7 @@ object ApplicationBuild extends Build {
     akka.kernel)
 
   val ghc = Project(s"${appName}-ghc", file("modules/clide-ghc"))
-            .dependsOn(core).settings(commonSettings:_*).settings(    
+            .dependsOn(core).settings(commonSettings:_*).settings(
     libraryDependencies ++= ghcDependencies
   )
-
-  val bundle = play.Project(
-    s"$appName-bundle",
-    appVersion,
-    Seq(),
-    path=file("modules/clide-bundle")
-  ).dependsOn(core,isabelle,ghc,web)
 }
