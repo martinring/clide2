@@ -1,4 +1,4 @@
-package clide.ghc
+package clide.haskell
 
 import com.typesafe.config.ConfigFactory
 import akka.actor.ActorSystem
@@ -21,9 +21,9 @@ import clide.collaboration.AnnotationType
 import clide.collaboration.Insert
 import clide.collaboration.Delete
 
-object GHC extends AssistantServer(GHCBehavior)
+object Haskell extends AssistantServer(HaskellBehavior)
 
-case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
+case class HaskellBehavior(control: AssistantControl) extends AssistantBehavior {
   val mimeTypes = Set("text/x-haskell")  
   
   val log = control.log
@@ -57,6 +57,8 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
     fileChanged(file,new Operation(List(Delete(file.state.length))),Seq.empty)
   }
   
+  val Output = """^.*:([0-9]+):([0-9]+):(Warning|Error): ?(.*)$""".r
+  
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) {    
     control.annotate(file, "substitutions", HaskellMarkup.substitutions(file.state))
 	    
@@ -68,8 +70,14 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
 	write.close()
 		
 	val lines = Seq("ghc-mod","check",name).lines ++ Seq("ghc-mod", "lint", name).lines
-	val errs = lines.filter(_.startsWith(name)).map(_.drop(name.length() + 1)).map(HaskellMarkup.parseLine)
-    val as = HaskellMarkup.toAnnotations(errs.toList.collect{ case Some(n) => n }, file.state)        
+		
+	val errs = lines.collect {
+      case Output(line,ch,t,msg)   => ((line.toInt,ch.toInt),t,msg)          
+    }
+    
+    log.info("lines: {}", errs)
+    
+    val as = HaskellMarkup.toAnnotations(errs.toList, file.state)        
     
     control.annotate(file, "linting", as)
     
@@ -123,8 +131,8 @@ case class GHCBehavior(control: AssistantControl) extends AssistantBehavior {
   }
 }
 
-object GHCApp extends App {
-  GHC.startup()
+object HaskellApp extends App {
+  Haskell.startup()
   readLine()
-  GHC.shutdown()
+  Haskell.shutdown()
 }

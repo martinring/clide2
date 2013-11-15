@@ -91,7 +91,7 @@ case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
     result
   }
   
-  def annotate(n: Int, c: Set[(AnnotationType.Value,String)]): Annotations = if (n > 0) {
+  def annotate(n: Int, c: Set[(AnnotationType.Value,String)]): Annotations = if (n >= 0) {
     annotations.lastOption match {
       case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c))
       case _ => Annotations(annotations :+ Annotate(n,c))
