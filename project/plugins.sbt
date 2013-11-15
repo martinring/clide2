@@ -9,3 +9,5 @@ addSbtPlugin("com.typesafe.akka" % "akka-sbt-plugin" % "2.2.3")
 addSbtPlugin("com.typesafe.sbt"  % "sbt-atmos"       % "0.3.1")
 
 addSbtPlugin("com.typesafe.sbt"  % "sbt-atmos-play"  % "0.3.1")
+
+addSbtPlugin("com.typesafe.sbt"  % "sbt-pgp"         % "0.8.1")
