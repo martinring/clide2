@@ -16,10 +16,16 @@ import Dependencies._
 
 
 object ApplicationBuild extends Build {
-  val appName         = "clide"
-  val appVersion      = "2.0-SNAPSHOT"
+  val version = "2.0-SNAPSHOT"
 
-  override def rootProject = Some(bundle)
+  override def rootProject = Some(core)
+
+  val commonSettings = Seq(
+    scalaVersion := scala.version,
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"))
+
+  // Core
+  // ===========================================================================
 
   val coreDependencies = Seq(
     akka.actor,
@@ -30,39 +36,28 @@ object ApplicationBuild extends Build {
     scala.reflect,
     slick,h2,slf4j,scalatest,scalacheck)
 
-  val commonSettings = Seq(
-    scalaVersion := scala.version,
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked"),
-    javacOptions  ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
-    resourceDirectory in Compile <<= baseDirectory / "conf",
-    resourceDirectory in Test <<= baseDirectory / "conf",
-    sourceDirectory in Compile <<= baseDirectory / "app",
-    scalaSource in Compile <<= baseDirectory / "app",
-    javaSource in Compile <<= baseDirectory / "app",
-    sourceDirectory in Test <<= baseDirectory / "test",
-    scalaSource in Test <<= baseDirectory / "test",
-    javaSource in Test <<= baseDirectory / "test")
+  val coreSettings =
+    commonSettings ++
+    AkkaKernelPlugin.distSettings ++
+    atmosSettings ++ Seq(
+      resolvers += spray.resolver,
+      libraryDependencies ++= coreDependencies
+    )
 
-  val core = Project(s"${appName}-core", file("modules/clide-core"))
-             .settings(commonSettings:_*).settings(AkkaKernelPlugin.distSettings:_*).settings(
-    resolvers += spray.resolver,
-    libraryDependencies ++= coreDependencies
-  ).configs(Atmos).settings(atmosSettings:_*)
 
-  val appDependencies = Seq(
-    akka.remote,
-    //scala.pickling, TODO
-    playplugins.mailer)
+  val core = Project(
+    id   = "clide-core",
+    base = file("modules/clide-core"))
+    .settings(coreSettings:_*)
+    .configs(Atmos)
 
-  val web = play.Project(
-    s"${appName}-web",
-    appVersion,
-    appDependencies,
-    path = file("modules/clide-web")
-  ).dependsOn(core).settings(Angular.defaultSettings:_*)
-  .settings(
-    // this is needed for scala pickling TODO: Fix
-    // resolvers += Resolver.sonatypeRepo("snapshots"),
+  // Web
+  // ===========================================================================
+
+  val webDependencies = Seq(
+    akka.remote, playplugins.mailer)
+
+  val webSettings = Angular.defaultSettings ++ Seq(
     scalaVersion := scala.version,
     //requireJs += "main.js",  TODO: This needs to be fixed to work again!
     //requireJsShim += "main.js",
@@ -92,25 +87,47 @@ object ApplicationBuild extends Build {
       (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
   )
 
-  val isabelleDependencies = Seq(
-    akka.actor,
-    akka.remote,
-    akka.kernel,
+  val web = play.Project(
+    name = "clide-web",
+    applicationVersion = version,
+    dependencies = webDependencies,
+    path = file("modules/clide-web"))
+  .settings(webSettings:_*)
+  .dependsOn(core)
+
+  // ASSISTANTS
+  // ===========================================================================
+
+  val assistantDependencies = Seq(
+    akka.actor, akka.remote, akka.kernel)
+
+  // Isabelle Assistant
+  // ---------------------------------------------------------------------------
+
+  val isabelleDependencies = assistantDependencies ++ Seq(
     scala.swing,
     scala.actors)
 
-  val isabelle = Project(s"${appName}-isabelle", file("modules/clide-isabelle"))
-                .dependsOn(core).settings(commonSettings:_*).settings(
-    libraryDependencies ++= isabelleDependencies
-  )
+  val isabelleSettings = commonSettings ++ Seq(
+    libraryDependencies ++= isabelleDependencies)
 
-  val ghcDependencies = Seq(
-    akka.actor,
-    akka.remote,
-    akka.kernel)
+  val isabelle = Project(
+    id           = "clide-isabelle",
+    base         = file("modules/clide-isabelle"),
+    dependencies = Seq(core))
+  .settings(isabelleSettings:_*)
 
-  val ghc = Project(s"${appName}-ghc", file("modules/clide-ghc"))
-            .dependsOn(core).settings(commonSettings:_*).settings(
-    libraryDependencies ++= ghcDependencies
-  )
+  // Haskell Assistant
+  // ---------------------------------------------------------------------------
+
+  val haskellDependencies = assistantDependencies
+
+  val haskellSettings = commonSettings ++ Seq(
+    libraryDependencies ++= haskellDependencies)
+
+  val haskell = Project(
+    id           = "clide-haskell",
+    base         = file("modules/clide-haskell"),
+    dependencies = Seq(core))
+  .settings(haskellSettings:_*)
 }
