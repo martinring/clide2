@@ -4,6 +4,21 @@
  **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
  **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
  **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
  \*                                                                           */
 
 import sbt._
@@ -16,22 +31,49 @@ import Dependencies._
 
 
 object ApplicationBuild extends Build {
-  val version = "2.0-SNAPSHOT"
+  val v = "2.0-SNAPSHOT"
 
   override def rootProject = Some(core)
 
+  val sonatypeSettings = Seq(
+    organization := "net.flatmap",
+    publishMavenStyle := true,
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (v.trim.endsWith("SNAPSHOT"))
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    },
+    // To publish on maven-central, all required artifacts must also be hosted on maven central.
+    // So we remove special repos from the pom
+    //pomIncludeRepository := { _ => false },
+    licenses := Seq("GNU General Public License" -> url("http://www.gnu.org/licenses/lgpl.html")),
+    homepage := Some(url("http://clide.flatmap.net")),
+    pomExtra := (
+      <scm>
+        <url>git@github.com:martinring/clide2.git</url>
+        <connection>scm:git:git@github.com:martinring/clide2.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>martinring</id>
+          <name>Martin Ring</name>
+          <url>http://gihub.com/martinring</url>
+        </developer>
+      </developers>),
+    publishArtifact in Test := false)
+
   val commonSettings = Seq(
+    version := v,
     scalaVersion := scala.version,
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"))
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature")) ++ sonatypeSettings
 
   // Core
   // ===========================================================================
 
   val coreDependencies = Seq(
-    akka.actor,
-    akka.remote,
-    akka.kernel,
-    akka.testkit,
+    akka.actor, akka.remote, akka.kernel, akka.testkit,
     spray.json,
     scala.reflect,
     slick,h2,slf4j,scalatest,scalacheck)
@@ -54,11 +96,11 @@ object ApplicationBuild extends Build {
   // Web
   // ===========================================================================
 
-  val webDependencies = Seq(
+  val webDependencies = Seq(jscala,
     akka.remote, playplugins.mailer)
 
-  val webSettings = Angular.defaultSettings ++ Seq(
-    scalaVersion := scala.version,
+  val webSettings = Angular.defaultSettings ++ commonSettings ++ Seq(
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     //requireJs += "main.js",  TODO: This needs to be fixed to work again!
     //requireJsShim += "main.js",
     Angular.otherModules ++= Map(
@@ -89,7 +131,7 @@ object ApplicationBuild extends Build {
 
   val web = play.Project(
     name = "clide-web",
-    applicationVersion = version,
+    applicationVersion = v,
     dependencies = webDependencies,
     path = file("modules/clide-web"))
   .settings(webSettings:_*)
