@@ -1,4 +1,27 @@
-define ->  
+##             _ _     _                                                      ##
+##            | (_)   | |                                                     ##
+##         ___| |_  __| | ___      clide 2                                    ##
+##        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  ##
+##       | (__| | | (_| |  __/     http://clide.flatmap.net                   ##
+##        \___|_|_|\__,_|\___|                                                ##
+##                                                                            ##
+##   This file is part of Clide.                                              ##
+##                                                                            ##
+##   Clide is free software: you can redistribute it and/or modify            ##
+##   it under the terms of the GNU General Public License as published by     ##
+##   the Free Software Foundation, either version 3 of the License, or        ##
+##   (at your option) any later version.                                      ##
+##                                                                            ##
+##   Clide is distributed in the hope that it will be useful,                 ##
+##   but WITHOUT ANY WARRANTY; without even the implied warranty of           ##
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            ##
+##   GNU General Public License for more details.                             ##
+##                                                                            ##
+##   You should have received a copy of the GNU General Public License        ##
+##   along with Clide.  If not, see <http://www.gnu.org/licenses/>.           ##
+##                                                                            ##
+
+define ->
   actionType = (action) ->
     switch typeof action
       when 'number'
@@ -17,17 +40,17 @@ define ->
     typeof action is "string"
 
   isDelete = (action) ->
-    typeof action is "number" and action < 0  
+    typeof action is "number" and action < 0
 
   getSimpleOp = (operation) ->
-    actions = operation.actions    
+    actions = operation.actions
     switch actions.length
       when 1
         return actions[0]
       when 2
-        if isRetain(actions[0]) 
-          return actions[1] 
-        if isRetain(actions[1]) 
+        if isRetain(actions[0])
+          return actions[1]
+        if isRetain(actions[1])
           return actions[0]
       when 3
         if isRetain(actions[0]) and isRetain(actions[2])
@@ -35,20 +58,20 @@ define ->
     null
 
   getStartIndex = (operation) ->
-    if isRetain(operation.actions[0]) then operation.actions[0] else 0    
+    if isRetain(operation.actions[0]) then operation.actions[0] else 0
 
   class Operation
     constructor: ->
       @actions = []
       @inputLength = 0
       @outputLength = 0
-  
+
     equals = (other) ->
       return false if @inputLength isnt other.inputLength
       return false if @outputLength isnt other.outputLength
       return false if @actions.length isnt other.actions.length
       for a, i in @actions
-        return false if a isnt other.actions[i]      
+        return false if a isnt other.actions[i]
       return true
 
     @isRetain: isRetain
@@ -56,7 +79,7 @@ define ->
     @isDelete: isDelete
     @actionType: actionType
 
-    retain: (n) ->      
+    retain: (n) ->
       unless n is 0
         @inputLength += n
         @outputLength += n
@@ -66,7 +89,7 @@ define ->
           @actions.push n
       return this
 
-    insert: (str) ->      
+    insert: (str) ->
       unless str is ""
         @outputLength += str.length
         actions = @actions
@@ -83,7 +106,7 @@ define ->
       return this
 
     delete: (n) ->
-      n = n.length if typeof n is "string"      
+      n = n.length if typeof n is "string"
       unless n is 0
         n = -n if n > 0
         @inputLength -= n
@@ -184,7 +207,7 @@ define ->
         else
           throw new Error("This shouldn't happen: a1: " + JSON.stringify(a1) + ", a2: " + JSON.stringify(a2))
       operation
-       
+
     # Transform takes two operations A and B that happened concurrently and
     # produces two operations A' and B' (in an array) such that
     # `apply(apply(S, A), B') = apply(apply(S, B), A')`. This function is the
@@ -199,14 +222,14 @@ define ->
       i2 = 0
       a1 = as1[i1++]
       a2 = as2[i2++]
-      loop        
+      loop
         # At every iteration of the loop, the imaginary cursor that both
         # operation1 and operation2 have that operates on the input string must
         # have the same position in the input string.
-        
+
         # end condition: both as1 and as2 have been processed
         break  if typeof a1 is "undefined" and typeof a2 is "undefined"
-        
+
         # next two cases: one or both actions are insert actions
         # => insert the string in the corresponding prime operation, skip it in
         # the other one. If both a1 and a2 are insert actions, prefer a1.
@@ -224,7 +247,7 @@ define ->
         throw new Error("Cannot compose operations: first operation is too long.")  if typeof a2 is "undefined"
         minl = undefined
         if isRetain(a1) and isRetain(a2)
-          
+
           # Simple case: retain/retain
           if a1 > a2
             minl = a2
@@ -241,7 +264,7 @@ define ->
           operation1prime.retain minl
           operation2prime.retain minl
         else if isDelete(a1) and isDelete(a2)
-          
+
           # Both operations delete the same string at the same position. We don't
           # need to produce any operations, we just skip over the delete actions and
           # handle the case that one operation deletes more than the other.
@@ -254,7 +277,7 @@ define ->
           else
             a2 = a2 - a1
             a1 = as1[i1++]
-        
+
         # next two cases: delete/retain and retain/delete
         else if isDelete(a1) and isRetain(a2)
           if -a1 > a2

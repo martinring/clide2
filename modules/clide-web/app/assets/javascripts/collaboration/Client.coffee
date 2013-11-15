@@ -1,5 +1,28 @@
-define ->   
-  class Client       
+##             _ _     _                                                      ##
+##            | (_)   | |                                                     ##
+##         ___| |_  __| | ___      clide 2                                    ##
+##        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  ##
+##       | (__| | | (_| |  __/     http://clide.flatmap.net                   ##
+##        \___|_|_|\__,_|\___|                                                ##
+##                                                                            ##
+##   This file is part of Clide.                                              ##
+##                                                                            ##
+##   Clide is free software: you can redistribute it and/or modify            ##
+##   it under the terms of the GNU General Public License as published by     ##
+##   the Free Software Foundation, either version 3 of the License, or        ##
+##   (at your option) any later version.                                      ##
+##                                                                            ##
+##   Clide is distributed in the hope that it will be useful,                 ##
+##   but WITHOUT ANY WARRANTY; without even the implied warranty of           ##
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            ##
+##   GNU General Public License for more details.                             ##
+##                                                                            ##
+##   You should have received a copy of the GNU General Public License        ##
+##   along with Clide.  If not, see <http://www.gnu.org/licenses/>.           ##
+##                                                                            ##
+
+define ->
+  class Client
     constructor: (revision) ->
       @revision          = revision # the next expected revision number
       @state             = new Synchronized # start state
@@ -8,7 +31,7 @@ define ->
 
     setAnnotationTimeout: () ->
       instance = this
-      f = -> 
+      f = ->
         instance.annotationTimeout = null
         instance.annotate(instance.annotation) if instance.annotation?
       @annotationTimeout = window.setTimeout f, 250 # Maximum of 4 Annotations per second
@@ -20,7 +43,7 @@ define ->
       @annotation = @annotation?.transform(operation)
       @setState @state.applyClient(this, operation)
 
-    annotate: (annotation) ->      
+    annotate: (annotation) ->
       @state.annotate(this, annotation)
 
     applyServer: (operation) ->
@@ -48,9 +71,9 @@ define ->
       throw new Error("sendOperation must be defined in child class")
 
     applyOperation: (operation) ->
-      throw new Error("applyOperation must be defined in child class")    
+      throw new Error("applyOperation must be defined in child class")
 
-    class Synchronized      
+    class Synchronized
       applyClient: (client, operation) ->
         client.sendOperation client.revision, operation
         new AwaitingConfirm(operation)
@@ -74,7 +97,7 @@ define ->
 
       transformAnnotation: (annotation) ->
         annotation
-    
+
     class AwaitingConfirm
       constructor: (outstanding) ->
         @outstanding = outstanding
@@ -89,7 +112,7 @@ define ->
 
       syncState: 1
 
-      serverAck: (client) -> 
+      serverAck: (client) ->
         if not client.annotationTimeout? and client.annotation?
           client.sendAnnotation client.revision, client.annotation, 'selection'
           client.annotation = null
@@ -99,18 +122,18 @@ define ->
       annotate: (client, annotation) ->
         client.annotation = annotation
 
-      transformAnnotation: (annotation) ->        
+      transformAnnotation: (annotation) ->
         annotation.transform @outstanding
 
       resend: (client) ->
         client.sendOperation client.revision, @outstanding
 
-    class AwaitingWithBuffer 
+    class AwaitingWithBuffer
       constructor: (outstanding, buffer) ->
         @outstanding = outstanding
-        @buffer = buffer  
+        @buffer = buffer
 
-      applyClient: (client, operation) ->        
+      applyClient: (client, operation) ->
         # Compose the user's changes onto the buffer
         newBuffer = @buffer.compose(operation)
         new AwaitingWithBuffer(@outstanding, newBuffer)

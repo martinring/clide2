@@ -4,8 +4,22 @@
  **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
  **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
  **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
  \*                                                                           */
-
 package clide.actors
 
 import akka.actor._
@@ -27,7 +41,7 @@ private object SessionActor {
   def apply(
     id: Option[Long],
     collaborators: Set[SessionInfo],
-    user: UserInfo,    
+    user: UserInfo,
     project: ProjectInfo,
     conversation: Vector[Talked]) =
       Props(classOf[SessionActor], id, collaborators, user, project, conversation)
@@ -39,18 +53,18 @@ private object SessionActor {
 private class SessionActor(
     var id: Option[Long],
     var collaborators: Set[SessionInfo],
-    var user: UserInfo,    
+    var user: UserInfo,
     var project: ProjectInfo,
     var conversation: Vector[Talked]) extends Actor with ActorLogging {
-  
+
   val level = ProjectAccessLevel.Admin // TODO
   var session: SessionInfo = null
   var peer = context.system.deadLetters
-  val openFiles = Map[Long,FileInfo]()  
+  val openFiles = Map[Long,FileInfo]()
   val fileServers = Map[Long,ActorRef]()
-  
+
   val colors = context.system.settings.config.getStringList("sessionColors").toSet
-  
+
   def randomColor(): String = {
     var remaining = colors
     collaborators.foreach(remaining -= _.color)
@@ -59,23 +73,23 @@ private class SessionActor(
     else
       colors.toSeq(Random.nextInt(colors.size))
   }
-          
+
   def setActive(value: Boolean) = DB.withSession { implicit session: Session =>
-    this.session = this.session.copy(active = value)            
+    this.session = this.session.copy(active = value)
     SessionInfos.update(this.session)
     context.parent ! SessionChanged(this.session)
     this.session
   }
-  
-  def switchFile(next: Option[Long]): Boolean = 
+
+  def switchFile(next: Option[Long]): Boolean =
     if (next.isEmpty || openFiles.contains(next.get)) DB.withSession { implicit session: Session =>
       this.session = this.session.copy(activeFile = next)
       context.parent ! SessionChanged(this.session)
       peer           ! FileSwitched(this.session.activeFile)
-      SessionInfos.update(this.session)      
+      SessionInfos.update(this.session)
       true
     } else false
-  
+
   def initializeFile(id: Long) = {
     log.info("initializing file")
     DB.withSession { implicit session: Session => // TODO: Move to File Actors
@@ -96,7 +110,7 @@ private class SessionActor(
     case SessionStopped(info) => if (info != session) {
       collaborators -= info
       peer ! SessionStopped(info)
-    }    
+    }
     case RequestSessionInfo =>
       sender ! SessionInit(
           session,
@@ -113,14 +127,14 @@ private class SessionActor(
       context.watch(peer)
       peer ! EventSocket(self,"session")
     case LeaveSession | EOF =>
-      setActive(false)      
+      setActive(false)
       peer = context.system.deadLetters
-      context.unwatch(sender)      
+      context.unwatch(sender)
     case CloseSession =>
       context.unwatch(peer)
-      peer = context.system.deadLetters 
+      peer = context.system.deadLetters
       DB.withSession { implicit session: Session =>
-        SessionInfos.delete(this.session)        
+        SessionInfos.delete(this.session)
       }
       context.parent ! SessionStopped(session)
       context.stop(self)
@@ -128,7 +142,7 @@ private class SessionActor(
       if (!switchFile(Some(id))) initializeFile(id)
     case OpenFile(id) =>
       if (!openFiles.contains(id)) initializeFile(id)
-    case AcknowledgeEdit(f) =>      
+    case AcknowledgeEdit(f) =>
       peer ! AcknowledgeEdit(f)
     case Edited(f,op) =>
       peer ! Edited(f,op)
@@ -151,20 +165,20 @@ private class SessionActor(
         peer ! FileClosed(id)
       }.getOrElse {
         peer ! DoesntExist
-      }      
+      }
       openFiles.remove(id)
       fileServers.remove(id)
       if (session.activeFile == Some(id))
-        switchFile(openFiles.keys.headOption)      
-    case msg @ Edit(id,_,_) =>      
-      fileServers.get(id).map{ ref =>        
+        switchFile(openFiles.keys.headOption)
+    case msg @ Edit(id,_,_) =>
+      fileServers.get(id).map{ ref =>
         ref ! msg
       } getOrElse {
         log.info("forwarding edit to path")
         context.parent ! Messages.internal.WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
       }
-    case msg @ Annotate(id,_,_,_) =>      
-      fileServers.get(id).map{ ref =>        
+    case msg @ Annotate(id,_,_,_) =>
+      fileServers.get(id).map{ ref =>
         ref ! msg
       } getOrElse {
         log.info("forwarding annotation to path")
@@ -178,7 +192,7 @@ private class SessionActor(
       val of = OpenedFile(f,s,r)
       if (!openFiles.contains(f.id)) {
         DB.withSession { implicit session: Session =>
-          OpenedFiles.create(this.session.id, f.id)      
+          OpenedFiles.create(this.session.id, f.id)
         }
         openFiles += f.id -> f
       }
@@ -194,29 +208,29 @@ private class SessionActor(
 	    receive(LeaveSession)
       } else {
         fileServers.find(_._2 == ref).map { case (id,_) =>
-          log.info(s"file $id failed")          
+          log.info(s"file $id failed")
           receive(CloseFile(id))
         }
       }
-    case msg@ChangeProjectUserLevel(_,_) => // HACK: replace with invitation      
+    case msg@ChangeProjectUserLevel(_,_) => // HACK: replace with invitation
       context.parent.forward(Messages.internal.WrappedProjectMessage(user,level,msg))
   }
-  
+
   override def postStop() = DB.withSession { implicit session: Session =>
-    SessionInfos.update(this.session)   
+    SessionInfos.update(this.session)
   }
-  
+
   override def preRestart(reason:Throwable, message:Option[Any]){
     log.error(reason, "Unhandled exception for message: {}", message)
   }
-  
+
   override def preStart() = DB.withSession { implicit session: Session =>
-    this.session = id.flatMap { id =>            
+    this.session = id.flatMap { id =>
       SessionInfos.get(id).map { i =>
         val i_ = i.copy(active = true)
         SessionInfos.update(i_)
         i_
-      }      
+      }
     }.getOrElse {
       val res = SessionInfos.create(
         user = this.user.name,

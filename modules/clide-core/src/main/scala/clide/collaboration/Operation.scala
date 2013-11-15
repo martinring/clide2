@@ -1,5 +1,28 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
+ \*                                                                           */
+
 /**
- * adapted from Tim Baumanns Haskell OT library
+ * adapted from Tim Baumanns Haskell OT library (MIT-License)
  * @see https://github.com/Operational-Transformation/ot.hs
  * @author Martin Ring
  */
@@ -16,7 +39,7 @@ sealed trait Action {
     case Retain(n) => n.toString
     case Insert(s) => "\""+s+"\""
     case Delete(n) => (-n).toString
-  }   
+  }
 }
 /** Skip the next `n` positions */
 case class Retain(n: Int) extends Action { require(n>=0) }
@@ -33,24 +56,24 @@ object Operation {
   private def addRetain(n: Int, ops: List[Action]): List[Action] = ops match {
     case Retain(m)::xs => Retain(n+m)::xs
     case xs            => Retain(n)::xs
-  } 
-  
+  }
+
   private def addInsert(s: String, ops: List[Action]): List[Action] = ops match {
     case Delete(d)::xs => Delete(d)::addInsert(s,xs)
     case Insert(t)::xs => Insert(t+s)::xs
     case xs            => Insert(s)::xs
-  } 
-  
+  }
+
   private def addDelete(n: Int, ops: List[Action]): List[Action] = ops match {
     case Delete(m)::xs => Delete(n+m)::xs
     case xs            => Delete(n)::xs
-  }    
-  
-  private def canonicalize(ops: List[Action]): List[Action] = { 
+  }
+
+  private def canonicalize(ops: List[Action]): List[Action] = {
     @tailrec
 	def loop(as: List[Action], bs: List[Action]): List[Action] = (as,bs) match {
 	  case (as,Nil) => as
-	  case (as,Retain(n)::bs) =>          
+	  case (as,Retain(n)::bs) =>
 	    if (n == 0) loop(as,bs)
 	    else loop(addRetain(n,as),bs)
 	  case (as,Insert(i)::bs) =>
@@ -62,7 +85,7 @@ object Operation {
     }
 	loop(Nil,ops.reverse).reverse
   }
-  
+
   def transform(a: Operation, b: Operation): Try[(Operation, Operation)] = {
     @tailrec
     def loop(as: List[Action], bs: List[Action], xs: List[Action], ys: List[Action]): Try[(List[Action],List[Action])] = (as,bs,xs,ys) match {
@@ -84,7 +107,7 @@ object Operation {
           case LT => loop(as,Delete(d-r)::bs,xs,addDelete(r,ys))
           case EQ => loop(as,bs,xs,addDelete(d,ys))
           case GT => loop(Retain(r-d)::as,bs,xs,addDelete(d,ys))
-        } 
+        }
         case (Delete(d),Retain(r)) => (d <=> r) match {
           case LT => loop(as,Retain(r-d)::bs,addDelete(d,xs),ys)
           case EQ => loop(as,bs,addDelete(d,xs),ys)
@@ -95,9 +118,9 @@ object Operation {
       case (Insert(i)::as,Nil,xs,ys) => loop(as,Nil,addInsert(i,xs),addRetain(i.length,ys))
       case _ => Failure(new Exception("the operations couldn't be transformed because they haven't been applied to the same document"))
     }
-    loop(a.actions,b.actions,Nil,Nil).map { case (a,b) => (Operation(a.reverse), Operation(b.reverse)) } 
+    loop(a.actions,b.actions,Nil,Nil).map { case (a,b) => (Operation(a.reverse), Operation(b.reverse)) }
   }
-   
+
   def compose(a: Operation, b: Operation): Try[Operation] = {
     @tailrec
     def loop(as: List[Action], bs: List[Action], xs: List[Action]): Try[List[Action]] = (as,bs,xs) match {
@@ -109,28 +132,28 @@ object Operation {
           case LT => loop(as,Retain(m-n)::bs,addRetain(n,xs))
           case EQ => loop(as,bs,addRetain(n,xs))
           case GT => loop(Retain(n-m)::as,bs,addRetain(m,xs))
-        } 
+        }
         case (Retain(r),Delete(d)) => (r <=> d) match {
           case LT => loop(as,Delete(d-r)::bs,addDelete(r,xs))
           case EQ => loop(as,bs,addDelete(d,xs))
-          case GT => loop(Retain(r-d)::as,bs,addDelete(d,xs))          
-        } 
+          case GT => loop(Retain(r-d)::as,bs,addDelete(d,xs))
+        }
         case (Insert(i),Retain(m)) => (i.length <=> m) match {
           case LT => loop(as,Retain(m-i.length)::bs,addInsert(i,xs))
           case EQ => loop(as,bs,addInsert(i,xs))
           case GT => val (before,after) = i.splitAt(m)
                      loop(Insert(after)::as,bs,addInsert(before,xs))
-        } 
+        }
         case (Insert(i),Delete(d)) => (i.length <=> d) match {
           case LT => loop(as,Delete(d-i.length)::bs,xs)
           case EQ => loop(as,bs,xs)
           case GT => loop(Insert(i.drop(d))::as,bs,xs)
-        }                      
+        }
       }
       case (Delete(d)::as,Nil,xs) => loop(as,Nil,addDelete(d,xs))
       case (Nil,Insert(i)::bs,xs) => loop(Nil,bs,addInsert(i,xs))
       case _ => Failure(new Exception("the operations couldn't be composed since their lengths don't match"))
     }
     loop(a.actions,b.actions,Nil).map(x => Operation(x.reverse))
-  } 
+  }
 }

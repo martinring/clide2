@@ -1,3 +1,26 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
+ \*                                                                           */
+
 @type: rgb(43,145,175);
 @keyword: blue;
 @string: rgb(3, 106, 7);
@@ -46,27 +69,27 @@
 }
 
  /* outer syntax */
-.cm-s-default {   
-  span.sup { 
+.cm-s-default {
+  span.sup {
     font-size: 66%;
     line-height: 0;
     vertical-align: super;
   }
-  span.sub { 
+  span.sub {
     font-size: 66%;
     line-height: 0;
-    vertical-align: sub;    
+    vertical-align: sub;
   }
-  span.bold { 
-    font-weight: bold;    
+  span.bold {
+    font-weight: bold;
   }
-  .outputWidget {        
+  .outputWidget {
     margin-left: 8px;
     padding-left: 8px;
     background: rgba(0,0,0,0.05);
-    border-left: 8px solid @brand-primary;    
+    border-left: 8px solid @brand-primary;
     &.error {
-      border-left-color: @brand-danger;      
+      border-left-color: @brand-danger;
     }
     &.warning {
       border-left-color: @brand-warning;
@@ -88,19 +111,19 @@
     color: @keyword;
     font-weight: bold;
   }
-  span.string {    
+  span.string {
     /*color: gray;*/
     /*background: rgba(0,0,0,0.05);*/
-  }  
+  }
   span.altstring {
     background: rgba(0,0,0,0.05);
   }
   span.verbatim {
     /*background: rgba(0,0,0,0.05);*/
-    color: @verbatim;      
+    color: @verbatim;
   }
   span.comment {
-    color: @comment;     
+    color: @comment;
   }
   span.malformed {
     text-decoration: line-through;
@@ -118,12 +141,12 @@
   /* inner syntax */
   span.tfree {
     font-style: italic;
-    color: @type 
+    color: @type
   }
   span.tvar {
-    color: @type 
+    color: @type
   }
-  span.entity {    
+  span.entity {
     &:hover {
       text-decoration: underline;
     }
@@ -133,13 +156,13 @@
     color: purple ;
   }
   span.skolem {
-    color: #d2691e 
+    color: #d2691e
   }
   span.bound {
-    color: green 
+    color: green
   }
   span.var {
-    color: @variable 
+    color: @variable
   }
   span.numeral {
 
@@ -148,10 +171,10 @@
 
   }
   span.delimiter, span.control {
-    color: gray;    
-  }      
+    color: gray;
+  }
   span.inner_string {
-    
+
   }
   span.inner_comment {
 
@@ -173,11 +196,11 @@
   }
 
   span.typing {
-    
+
   }
 
   span.attribute {
-    
+
   }
 
   span.method {
@@ -236,18 +259,18 @@
   }
 
   span.error, span.bad {
-    border-bottom: 1.5px dotted @brand-danger;    
+    border-bottom: 1.5px dotted @brand-danger;
   }
 
-  span.warning {  
-    border-bottom: 1.5px dotted @brand-warning;    
+  span.warning {
+    border-bottom: 1.5px dotted @brand-warning;
   }
 
   span.info, span.writeln {
-    border-bottom: 1.5px dotted @brand-info;    
+    border-bottom: 1.5px dotted @brand-info;
   }
 }
-  
+
 div.gutter-state-running {
   background: @brand-warning;
   height: 26px;

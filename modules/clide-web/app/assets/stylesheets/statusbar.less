@@ -1,4 +1,27 @@
-#statusbar {  
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
+ \*                                                                           */
+
+ #statusbar {
   position: absolute;
   bottom: 0;
   left: @ribbon-width + @sidebar-width;
@@ -6,7 +29,7 @@
   border-top: 1px solid @sidebar-background;
   background: @sidebar-background;
   color: @sidebar-background-text;
-  height: @statusbar-height;  
+  height: @statusbar-height;
   .buttons {
     cursor: default;
     position: absolute;
@@ -17,7 +40,7 @@
       cursor: pointer;
       line-height: @statusbar-height;
       vertical-align: middle;
-      margin: 0;      
+      margin: 0;
       height: @statusbar-height;
       display: inline-block;
       padding: 0 8px;
@@ -36,10 +59,10 @@
     }
   }
   .statusMessages {
-    list-style: none;  
+    list-style: none;
     padding: 0;
     margin: 0;
-    text-align: right;     
+    text-align: right;
     cursor: s-resize;
     li {
       line-height: @statusbar-height;
@@ -53,16 +76,16 @@
       height: @statusbar-height;
       background: gray;
     }
-    .phase {    
-      
-    }  
-  }  
+    .phase {
+
+    }
+  }
   #output {
-    .message {      
+    .message {
       white-space: pre;
-      word-wrap: auto;          
-    }    
-    padding: 4px 8px;        
+      word-wrap: auto;
+    }
+    padding: 4px 8px;
     position: absolute;
     overflow: auto;
     top: 24px;
@@ -80,7 +103,7 @@
     .transition(none);
   }
   .transition(height ease @fancy-transition);
-  height: @statusbar-height; 
+  height: @statusbar-height;
 }
 
 .extendedStatusbar #statusbar {
@@ -95,7 +118,7 @@
 
   &.working {
     /*text-shadow: 0 0 4px @green;*/
-    .animation(cssAnimation 0.5s 1 linear);    
+    .animation(cssAnimation 0.5s 1 linear);
     @-webkit-keyframes cssAnimation {
       from { -webkit-transform: rotate(1deg) }
       to { -webkit-transform: rotate(360deg) }
@@ -112,7 +135,7 @@
 }
 
 #progress {
-  position: absolute;  
+  position: absolute;
   top: 0;
   left: 0;
   width: 0%;

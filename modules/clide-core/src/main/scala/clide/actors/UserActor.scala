@@ -4,8 +4,22 @@
  **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
  **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
  **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
  \*                                                                           */
-
 package clide.actors
 
 import akka.actor._
@@ -30,7 +44,7 @@ private class UserActor(var user: UserInfo with Password) extends Actor with Act
   import Messages.internal._
   import Messages._
   import Events._
-  
+
   var logins = Map[String,LoginInfo]()
   var projects = Map[String,ProjectInfo]()
   var otherProjects = Map[ProjectInfo,ProjectAccessLevel.Value]()
@@ -39,8 +53,8 @@ private class UserActor(var user: UserInfo with Password) extends Actor with Act
   override def preStart() {
     log.info("initializing user actor")
     DB.withSession { implicit session: Session =>
-      logins = LoginInfos.getByUser(user.name).map(l => l.key -> l).toMap      
-      projects = ProjectInfos.getByOwner(user.name).map(p => p.name -> p).toMap // TODO      
+      logins = LoginInfos.getByUser(user.name).map(l => l.key -> l).toMap
+      projects = ProjectInfos.getByOwner(user.name).map(p => p.name -> p).toMap // TODO
       otherProjects = ProjectAccessLevels.getUserProjects(user.name).toMap.filter(_._1.owner != user.name) // TODO
     }
     for (project <- otherProjects.keys)
@@ -50,10 +64,10 @@ private class UserActor(var user: UserInfo with Password) extends Actor with Act
       context.actorOf(ProjectActor(project),name)
     }
   }
-  
-  def authenticate(key: String): Either[AuthEvent,LoginInfo] = 
-    logins.get(key).toRight(SessionTimedOut) // TODO: Handle Timeouts    
-  
+
+  def authenticate(key: String): Either[AuthEvent,LoginInfo] =
+    logins.get(key).toRight(SessionTimedOut) // TODO: Handle Timeouts
+
   def receive = {
     case Identified(key,msg) => authenticate(key).fold(
         { event => sender ! event },
@@ -62,14 +76,14 @@ private class UserActor(var user: UserInfo with Password) extends Actor with Act
     case External(user,msg) => (external(user) orElse anonymous)(msg)
     // EVENTS
     case DeletedProject(project) =>
-      projects -= project.name    
+      projects -= project.name
       backstagePeers.keys.foreach(_ ! DeletedProject(project))
     case Terminated(peer) =>
       backstagePeers -= peer
     case msg@ChangedProjectUserLevel(project, user, level) =>
-      if (user == this.user.name) {        
+      if (user == this.user.name) {
         otherProjects += project -> level
-        backstagePeers.keys.foreach(_ ! msg)        
+        backstagePeers.keys.foreach(_ ! msg)
       } else {
         context.actorSelection(s"../$user").tell(msg,sender)
       }
@@ -77,7 +91,7 @@ private class UserActor(var user: UserInfo with Password) extends Actor with Act
       log.info("direct message via backstage: {}",msg)
       identified(backstagePeers(sender))(msg)
   }
-  
+
   def anonymous: Receive = {
     case Login(password) =>
       if (!user.authenticate(password)) {
@@ -90,12 +104,12 @@ private class UserActor(var user: UserInfo with Password) extends Actor with Act
         logins += key -> login
         sender ! LoggedIn(user, login)
         context.system.eventStream.publish(LoggedIn(user,login))
-      }      
-        
+      }
+
     case _ => sender ! NotAllowed
   }
-  
-  def external(user: UserInfo): Receive = {       
+
+  def external(user: UserInfo): Receive = {
     case WithProject(name,msg) =>
       projects.get(name) match {
         case Some(project) =>
@@ -103,60 +117,60 @@ private class UserActor(var user: UserInfo with Password) extends Actor with Act
             WrappedProjectMessage(user, ProjectAccessLevel.Write,msg),sender)
         case None => sender ! DoesntExist
       }
-      
+
     case msg =>
       log.info("external "+ msg.toString)
       sender ! NotAllowed
   }
-          
-  def identified(login: LoginInfo): Receive = {        
-    case Login(password) =>      
+
+  def identified(login: LoginInfo): Receive = {
+    case Login(password) =>
       if (!user.authenticate(password)) {
         log.info("login attempt failed")
         sender ! WrongPassword
       } else
         sender ! LoggedIn(user, login)
-      
-    case Logout =>            
+
+    case Logout =>
       DB.withSession { implicit sesion: Session => LoginInfos.delete(login) }
-      logins -= login.key                
+      logins -= login.key
       sender ! LoggedOut(user)
       context.system.eventStream.publish(LoggedOut(user))
-    
-    case CreateProject(name,description) =>      
+
+    case CreateProject(name,description) =>
       if (name.toSeq.exists(!_.isLetterOrDigit)) {
         sender ! ProjectCouldNotBeCreated("The name must only consist of letters and digits")
       } else if (projects.contains(name)) {
         sender ! ProjectCouldNotBeCreated("A project with this name already exists")
-      } else {        
+      } else {
         val project = DB.withSession { implicit session: Session => ProjectInfos.create(name,user.name,description) }
         projects += name -> project
         context.actorOf(ProjectActor(project), project.name)
         sender ! CreatedProject(project)
         backstagePeers.keys.foreach(_ ! CreatedProject(project))
       }
-    
+
     case StartBackstageSession =>
       backstagePeers += sender -> login
       context.watch(sender)
       sender ! EventSocket(self,"backstage")
-      
+
     case WithProject(name,msg) =>
       projects.get(name) match {
         case Some(project) =>
           context.actorSelection(s"$name").tell(
             WrappedProjectMessage(user, ProjectAccessLevel.Admin,msg),sender)
         case None => sender ! DoesntExist
-      } 
-     
+      }
+
     case WithUser(name,msg) =>
       log.info(s"${user.name} received $msg for $name")
       if (name == user.name) (identified(login) orElse anonymous)(msg)
       else context.actorSelection(s"../$name").tell(External(user,msg),sender)
-      
+
     case Validate => sender ! Validated(user)
-    
-    case BrowseProjects =>      
+
+    case BrowseProjects =>
       sender ! UserProjectInfos(projects.values.toSet,otherProjects.keySet)
   }
 }

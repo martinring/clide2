@@ -1,12 +1,35 @@
+##             _ _     _                                                      ##
+##            | (_)   | |                                                     ##
+##         ___| |_  __| | ___      clide 2                                    ##
+##        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  ##
+##       | (__| | | (_| |  __/     http://clide.flatmap.net                   ##
+##        \___|_|_|\__,_|\___|                                                ##
+##                                                                            ##
+##   This file is part of Clide.                                              ##
+##                                                                            ##
+##   Clide is free software: you can redistribute it and/or modify            ##
+##   it under the terms of the GNU General Public License as published by     ##
+##   the Free Software Foundation, either version 3 of the License, or        ##
+##   (at your option) any later version.                                      ##
+##                                                                            ##
+##   Clide is distributed in the hope that it will be useful,                 ##
+##   but WITHOUT ANY WARRANTY; without even the implied warranty of           ##
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            ##
+##   GNU General Public License for more details.                             ##
+##                                                                            ##
+##   You should have received a copy of the GNU General Public License        ##
+##   along with Clide.  If not, see <http://www.gnu.org/licenses/>.           ##
+##                                                                            ##
+
 ### @service services:Dialog ###
-define -> () ->  
+define -> () ->
   queue = []
 
   state = { current: null }
-  
+
   next = (action) ->
-    done = ->      
-      state.current = queue.splice(0,1)[0]      
+    done = ->
+      state.current = queue.splice(0,1)[0]
 
     if state.current?
       result = { }
@@ -61,7 +84,7 @@ define -> () ->
             text: q+':'
             name: q
           )
-        when 'object'          
+        when 'object'
           q.type = q.type or 'text'
           q.text = q.text or q.name+':'
           return q
@@ -75,7 +98,7 @@ define -> () ->
     #  - strings are short for a button with text and name set to the value
     #    and no action
     #  - objects can be defined as { text/name: action }
-    config.buttons = config.buttons.map (button) -> 
+    config.buttons = config.buttons.map (button) ->
       switch typeof button
         when 'string'
           return { text: button, action: (result) -> config.done?(button,result) }
@@ -85,8 +108,8 @@ define -> () ->
               button.text = name
               button.action = action
           return button
-    # if there is already a dialog being displayed, we prepend it to the queue      
-    if state.current?      
+    # if there is already a dialog being displayed, we prepend it to the queue
+    if state.current?
       queue.unshift(state.current)
     # set the config as the current dialog
     state.current = config

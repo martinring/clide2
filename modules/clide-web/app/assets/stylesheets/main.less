@@ -1,3 +1,26 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
+ \*                                                                           */
+
 @import 'theme.less';
 
 @import 'vendor/codemirror/codemirror.less';
@@ -23,7 +46,7 @@ body {
 }
 
 h1,h2,h3,h4,h5,h6 {
-  text-transform: lowercase 
+  text-transform: lowercase
 }
 
 a {
@@ -39,7 +62,7 @@ a {
     visibility: hidden;
   }
 
-  &::-webkit-scrollbar-thumb {  
+  &::-webkit-scrollbar-thumb {
     background: @sidebar-background-hover;
     opacity: 0;
     &:hover {
@@ -55,7 +78,7 @@ a {
   width: 320px;
   img {
     width: 320px;
-    height: 320px;    
+    height: 320px;
   }
 }
 
@@ -78,7 +101,7 @@ a {
   }
 }
 
-@-webkit-keyframes blink {  
+@-webkit-keyframes blink {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
 }
@@ -90,8 +113,8 @@ a {
   right: 0 !important;
   top: 0 !important;
   bottom: 0 !important;
-  height: auto !important;    
-  padding-left: 8px;  
+  height: auto !important;
+  padding-left: 8px;
   background-color: @body-bg;
   color: @text-color;
   .CodeMirror-linenumber {
@@ -102,10 +125,10 @@ a {
     background-color: @body-bg;
   }
   .cm-keyword {
-    color: blue !important;  
-  }    
+    color: blue !important;
+  }
   .cursor {
-    -webkit-animation: blink 1.06s cubic-bezier(1.0,0,0,1.0) infinite;    
+    -webkit-animation: blink 1.06s cubic-bezier(1.0,0,0,1.0) infinite;
     height: 100%;
     width: 0;
     overflow: visible;
@@ -151,7 +174,7 @@ a {
     &.violet {
       background-color: fade(#aa00ff,50%);
       border-color: darken(#aa00ff,20%);
-    }    
+    }
 
   }
 }
@@ -302,7 +325,7 @@ a {
 }
 
 #root.ng-enter, #root.ng-leave {
-  .transition(opacity @fancy-transition ease);  
+  .transition(opacity @fancy-transition ease);
 }
 
 #root.ng-enter.ng-enter-active {

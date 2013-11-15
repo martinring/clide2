@@ -1,3 +1,26 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
+ \*                                                                           */
+
 #sidebarContainer {
   .transition(left @fancy-transition ease);
   bottom: 0;
@@ -11,7 +34,7 @@
   left: 0;
 }
 
-#content {  
+#content {
   bottom: @statusbar-height;
   left: @sidebar-width + @ribbon-width;
   background-color: #ccc;
@@ -43,9 +66,9 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  li {    
+  li {
     .transition(opacity @quick-transition ease );
-    cursor: pointer;    
+    cursor: pointer;
     line-height: @ribbon-width;
     opacity: @ide-mute-opacity;
     text-align: center;
@@ -54,7 +77,7 @@
     &:hover {
       text-decoration: none;
       opacity: 1;
-    }    
+    }
     &.active {
       opacity: 1;
       cursor: default;
@@ -66,8 +89,8 @@
   opacity: @ide-mute-opacity;
   width: @ribbon-width;
   height: @ribbon-width;
-  line-height: @ribbon-width;    
-  text-align: center;  
+  line-height: @ribbon-width;
+  text-align: center;
   vertical-align: middle;
   position: fixed;
   bottom: 0;
@@ -83,7 +106,7 @@
 }
 
 #sidebar {
-  z-index: 2;  
+  z-index: 2;
   position: absolute;
   background-color: @sidebar-background;
   color: @sidebar-background-text;
@@ -95,7 +118,7 @@
   .breadcrumb {
     background-color: transparent;
     padding: 0 0 2px 0;
-    margin-bottom: 8px;    
+    margin-bottom: 8px;
     & > li + li:before {
       content: "/";
       padding: 0 0 0 3px;
@@ -113,13 +136,13 @@
       opacity: 1.0;
     }
 
-    .list-group-item {      
+    .list-group-item {
       padding: 5px 16px;
       margin: 0 -16px;
 
-      background-color: transparent;      
+      background-color: transparent;
       border: none;
-      
+
       color: @sidebar-background-text;
 
       // Hover state
@@ -127,7 +150,7 @@
       &:focus {
         text-decoration: none;
         background-color: @sidebar-background-hover;
-      }      
+      }
 
       // Active class on item itself, not parent
       &.active,
@@ -136,7 +159,7 @@
         cursor: default;
         color: @sidebar-background-text;
         background-color: @sidebar-background;
-        
+
         border-left: 8px solid @gray;
         padding-left: 8px;
 
@@ -147,7 +170,7 @@
         .list-group-item-text {
           color: lighten(@list-group-active-bg, 40%);
         }
-      }      
+      }
       .icon-stop {
         margin-left: 3px;
       }
@@ -156,18 +179,18 @@
     margin-bottom: 16px;
     padding: 0;
     list-style: none;
-    position: relative;    
+    position: relative;
   }
 
   hr {
     margin: 16px;
     color: #EEE;
   }
-  
+
   .content {
     color: @text-color;
     display: block;
-  }  
+  }
 }
 
 #sidebarContent {
@@ -188,15 +211,15 @@
 }
 
 #search {
-  z-index: 7;  
+  z-index: 7;
   position: absolute;
   left: 0;
   top: 0;
   width: @ribbon-width + @sidebar-width;
-  height: @tabbar-height;  
+  height: @tabbar-height;
   background-color: @sidebar-background;
   color: @sidebar-foreground;
-  overflow: hidden;  
+  overflow: hidden;
   //border-bottom: 1px solid @brand-primary;
   #searchBox {
     .transition(background-color @quick-transition ease);
@@ -233,10 +256,10 @@
   pointer-events: none;
   left: 0;
   line-height: @tabbar-height;
-  //opacity: @ide-mute-opacity;  
+  //opacity: @ide-mute-opacity;
   position: fixed;
   text-align: center;
-  top: 0;  
+  top: 0;
   vertical-align: middle;
   width: @ribbon-width;
   z-index: 8;

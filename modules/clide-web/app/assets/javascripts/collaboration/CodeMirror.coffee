@@ -1,3 +1,26 @@
+##             _ _     _                                                      ##
+##            | (_)   | |                                                     ##
+##         ___| |_  __| | ___      clide 2                                    ##
+##        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  ##
+##       | (__| | | (_| |  __/     http://clide.flatmap.net                   ##
+##        \___|_|_|\__,_|\___|                                                ##
+##                                                                            ##
+##   This file is part of Clide.                                              ##
+##                                                                            ##
+##   Clide is free software: you can redistribute it and/or modify            ##
+##   it under the terms of the GNU General Public License as published by     ##
+##   the Free Software Foundation, either version 3 of the License, or        ##
+##   (at your option) any later version.                                      ##
+##                                                                            ##
+##   Clide is distributed in the hope that it will be useful,                 ##
+##   but WITHOUT ANY WARRANTY; without even the implied warranty of           ##
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            ##
+##   GNU General Public License for more details.                             ##
+##                                                                            ##
+##   You should have received a copy of the GNU General Public License        ##
+##   along with Clide.  If not, see <http://www.gnu.org/licenses/>.           ##
+##                                                                            ##
+
 define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annotations) ->
   class CodeMirrorAdapter
     constructor: (@doc,@color) ->
@@ -7,17 +30,17 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
 
     setColor: (color) =>
       @color = color
-      @doc.setSelection(@doc.getCursor('anchor'),@doc.getCursor('head'))      
+      @doc.setSelection(@doc.getCursor('anchor'),@doc.getCursor('head'))
 
     # Removes all event listeners from the CodeMirror instance.
     detach: =>
       @doc.off "beforeChange", @onChange
 
     # Converts a CodeMirror change object into a Operation
-    @operationFromCodeMirrorChange: (change, doc) ->      
+    @operationFromCodeMirrorChange: (change, doc) ->
       from = doc.indexFromPos(change.from)
       to   = doc.indexFromPos(change.to)
-      length = to - from      
+      length = to - from
       new Operation().retain(from)
                          .delete(length)
                          .insert(change.text.join('\n') )
@@ -26,9 +49,9 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
     # Apply an operation to a CodeMirror instance.
     @applyOperationToCodeMirror: (operation, doc) ->
       index = 0 # TODO: Iterate Line/Column based
-      for a in operation.actions 
+      for a in operation.actions
         switch Operation.actionType(a)
-          when 'retain'        
+          when 'retain'
             index += a
           when 'insert'
             doc.replaceRange a, doc.posFromIndex(index)
@@ -43,31 +66,31 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
       head   = doc.indexFromPos(selection.head)
 
       length = doc.getValue().length # TODO: see above
-                  
+
       if anchor is head
         return new Annotations().plain(anchor)
                                 .annotate(0,{'c':['cursor',color]})
                                 .plain(length - anchor)
       else if anchor < head
-        return new Annotations().plain(anchor)                                
+        return new Annotations().plain(anchor)
                                 .annotate(head - anchor,{'c':['selection',color]})
                                 .annotate(0,{'c':['cursor',color]})
                                 .plain(length - head)
       else
         return new Annotations().plain(head)
                                 .annotate(0,{'c':['cursor',color]})
-                                .annotate(anchor - head,{'c':['selection', color]})                                
-                                .plain(length - anchor)  
+                                .annotate(anchor - head,{'c':['selection', color]})
+                                .plain(length - anchor)
 
     registerCallbacks: (cb) =>
       @callbacks = cb
 
     onChange: (doc, change) =>
-      unless @silent      
+      unless @silent
         @trigger "change", CodeMirrorAdapter.operationFromCodeMirrorChange(change, doc)
 
     onSelectionChange: (doc, change) =>
-      unless @silent      
+      unless @silent
         @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(doc, change, @color)
 
     getValue: => @doc.getValue()
@@ -82,7 +105,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
       if cm? then cm.operation =>
         CodeMirrorAdapter.applyOperationToCodeMirror operation, @doc
       else
-        CodeMirrorAdapter.applyOperationToCodeMirror operation, @doc  
+        CodeMirrorAdapter.applyOperationToCodeMirror operation, @doc
       @silent = false
 
     annotate: (c,user,name,from,to) =>
@@ -101,7 +124,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
         for i in c.i
           @annotations[user.id][name].push cm.addLineWidget from.line, widget('div','outputWidget info',i)
       if classes?
-        if to? and c.s?          
+        if to? and c.s?
           marker = @doc.markText from, to,
             replacedWith:      widget('span','',c.s)
             handleMouseEvents: true
@@ -111,7 +134,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             className: classes
             title:     c.t
           @annotations[user.id][name].push marker
-        else          
+        else
           bookmark = @doc.setBookmark from,
             widget:     widget('span','','')
             insertLeft: true
@@ -132,7 +155,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
     applyAnnotation: (annotation, user, name) =>
       cm       = @doc.getEditor()
 
-      work = =>        
+      work = =>
         @resetAnnotations(user, name)
 
         index = 0 # TODO: Iterate Line/Column based with cm.eachLine
@@ -140,13 +163,13 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
           if Annotations.isPlain(a)
             index += a
           else
-            from = @doc.posFromIndex(index)            
+            from = @doc.posFromIndex(index)
             if a.l > 0
               index += a.l
               to = @doc.posFromIndex(index)
               @annotate(a.c,user,name,from,to)
             else
-               @annotate(a.c,user,name,from)        
+               @annotate(a.c,user,name,from)
 
       if cm? then cm.operation => work()
       else work()

@@ -4,8 +4,22 @@
  **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
  **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
  **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
  \*                                                                           */
-
 package clide.actors
 
 import akka.actor._
@@ -22,7 +36,7 @@ import org.h2.jdbc.JdbcSQLException
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private object ProjectActor {
-  def apply(info: ProjectInfo) = 
+  def apply(info: ProjectInfo) =
     Props(classOf[ProjectActor], info)
 }
 
@@ -33,17 +47,17 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
   import clide.actors.Messages.internal._
   import clide.actors.Messages._
   import clide.actors.Events._
-    
+
   var user: UserInfo = null
   var level = ProjectAccessLevel.None
   var root: ActorRef     = context.system.deadLetters
-    
+
   var sessions      = Set[SessionInfo]()
-  var sessionActors = Map[Long,ActorRef]() 
-  
-  // TODO: Persist  
+  var sessionActors = Map[Long,ActorRef]()
+
+  // TODO: Persist
   var conversationHistory = Buffer.empty[Talked]
-       
+
   def admin: Receive = {
     case DeleteProject =>
       DB.withSession { implicit session: Session =>
@@ -51,10 +65,10 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
       }
       sender         ! DeletedProject(info)
       context.parent ! DeletedProject(info)
-      // TODO: Very important: The Event has to be forwarded to the collaborators 
+      // TODO: Very important: The Event has to be forwarded to the collaborators
       // somehow! This is currently a bug!
       context.stop(self)
-      
+
     case ChangeProjectUserLevel(user,level) =>
       try { DB.withSession { implicit session: Session =>
         ProjectAccessLevels.change(info.id, user, level)
@@ -62,10 +76,10 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
         context.parent ! ChangedProjectUserLevel(info, user, level)
       } } catch {
         case e: JdbcSQLException =>
-          sender ! DoesntExist  
-      }      
+          sender ! DoesntExist
+      }
   }
-  
+
   def write: Receive = {
     case StartFileBrowser =>
       val browser = context.actorOf(FileBrowser(true,root))
@@ -73,7 +87,7 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
     case StartSession =>
       sessions.find { session =>
         session.user == user.name &&
-        !session.active        
+        !session.active
       }.map { session =>
         sessionActors.get(session.id).getOrElse {
           context.actorOf(SessionActor(Some(session.id),sessions,user,this.info,conversationHistory.toVector))
@@ -84,7 +98,7 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
     case msg @ WithPath(_,_: FileWriteMessage) =>
       root.forward(msg)
   }
-  
+
   def read: Receive = {
     case StartFileBrowser =>
       val browser = context.actorOf(FileBrowser(false,root))
@@ -95,28 +109,28 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
       val talked = Talked(user.name, what, t, System.currentTimeMillis)
       conversationHistory.append(talked)
       sessionActors.values.foreach(_ ! talked)
-    case Talk(Some(sess),what,t) =>      
+    case Talk(Some(sess),what,t) =>
       log.warning("not supported yet")
       sessionActors.get(sess).map(_ ! Talked(user.name, what, t, System.currentTimeMillis))
   }
-  
-  def none: Receive = {    
+
+  def none: Receive = {
     case _ => sender ! NotAllowed
-  }   
-  
+  }
+
   def receive = {
     case msg@SessionChanged(info) =>
       if (!info.active && sessions.exists(i =>
         i.id != info.id && i.user == info.user && !i.active))
         sender ! CloseSession
       sessions -= info
-      sessions += info      
-      sessionActors += info.id -> sender   
+      sessions += info
+      sessionActors += info.id -> sender
       sessionActors.values.foreach(_.forward(msg))
     case msg@SessionStopped(info) =>
       sessions -= info
       sessionActors -= info.id
-      sessionActors.values.foreach(_.forward(msg))          
+      sessionActors.values.foreach(_.forward(msg))
     case WrappedProjectMessage(user,level,msg) =>
       this.user = user
       this.level = level
@@ -131,13 +145,13 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
           none(msg)
       }
   }
-  
+
   override def preRestart(reason:Throwable, message:Option[Any]){
     log.error(reason, "Unhandled exception for message: {}", message)
-  }  
-  
+  }
+
   override def preStart() {
-    root = context.actorOf(FolderActor(info, None, "files"),"files")    
+    root = context.actorOf(FolderActor(info, None, "files"),"files")
     sessions = DB.withSession { implicit session => // TODO: Move to Schema
       val u = for (session <- SessionInfos if session.projectId === info.id) yield session.active
       u.update(false)
@@ -151,7 +165,7 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
         }
         redundant.head
       }
-    }    
+    }
     log.info(s"project ${info.owner}/${info.name}")
   }
 }

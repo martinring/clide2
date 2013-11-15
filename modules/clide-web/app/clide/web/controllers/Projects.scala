@@ -1,3 +1,26 @@
+ /*            _ _     _                                                      *\
+ **           | (_)   | |                                                     **
+ **        ___| |_  __| | ___      clide 2                                    **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+ **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
+ \*                                                                           */
+
 package clide.web.controllers
 
 import play.api.mvc._
@@ -11,11 +34,11 @@ import clide.collaboration.Operation
 import clide.collaboration.Annotations
 import play.api.Logger
 
-object Projects extends Controller with UserRequests with DefaultResults {  
+object Projects extends Controller with UserRequests with DefaultResults {
   def index(username: String) = UserRequest.async { request =>
-    request.askFor(username)(BrowseProjects).map(defaultResult)    
-  }     
-  
+    request.askFor(username)(BrowseProjects).map(defaultResult)
+  }
+
   def put(username: String) = UserRequest.async(parse.json) { request =>
     Json.fromJson[CreateProject](request.body) match {
       case JsError(e) =>
@@ -24,19 +47,19 @@ object Projects extends Controller with UserRequests with DefaultResults {
     }
   }
 
-  def delete(username: String, name: String) = UserRequest.async(parse.empty) { request =>    
+  def delete(username: String, name: String) = UserRequest.async(parse.empty) { request =>
     request.askFor(username)(WithProject(name,DeleteProject)).map(defaultResult)
   }
-  
+
   def invite(username: String, name: String) = UserRequest.async(parse.json) { request =>
     request.askFor(username)(WithUser((request.body \ "user").as[String],Invite(name))).map(defaultResult)
   }
-  
+
   def backstageSession(username: String) = ActorSocket(
       user = username,
       message = WithUser(username,StartBackstageSession),
       serialize = { msg => Logger.info(msg.toString); serializeEvent(msg) },
-      deserialize = { json =>        
+      deserialize = { json =>
         (json \ "t").asOpt[String] match {
           case Some("init") =>
             BrowseProjects
@@ -45,13 +68,13 @@ object Projects extends Controller with UserRequests with DefaultResults {
             ForgetIt
         }
       })
-  
+
   def session(username: String, name: String) = ActorSocket(
       user = username,
       message = WithUser(username,WithProject(name,StartSession)),
       serialize = { msg => Logger.info(msg.toString); serializeEvent(msg) },
-      deserialize = { json =>        
-        ((json \ "f").asOpt[Long],(json \ "r").asOpt[Long]) match {          
+      deserialize = { json =>
+        ((json \ "f").asOpt[Long],(json \ "r").asOpt[Long]) match {
           case (Some(file),Some(rev)) => (json\"o").asOpt[Operation] match {
             case Some(operation) => Edit(file,rev,operation)
             case None => (json\"a").asOpt[Annotations] match {
@@ -59,14 +82,14 @@ object Projects extends Controller with UserRequests with DefaultResults {
               case None =>
                 println("didn't understand: " + json.toString)
                 ForgetIt
-            }            
+            }
           }
           case _ => (json \ "t").asOpt[String] match {
             case None =>
               Logger.warn("didn't understand: " + json.toString)
               ForgetIt
             case Some(t) => t match {
-              case "init" => 
+              case "init" =>
                 RequestSessionInfo
               case "open" =>
                 SwitchFile((json \ "id").as[Long])
@@ -83,9 +106,9 @@ object Projects extends Controller with UserRequests with DefaultResults {
                 ForgetIt
             }
           }
-        }        
+        }
       })
-  
+
   def fileBrowser(username: String, name: String) = ActorSocket(
       user = username,
       message = WithUser(username,WithProject(name,StartFileBrowser)),
@@ -98,13 +121,13 @@ object Projects extends Controller with UserRequests with DefaultResults {
           case Some(t) => t match {
             case "browse" => // TODO: Make this pretty!
               WithPath((json \ "path").as[Seq[String]], BrowseFolder)
-            case "explore" => 
+            case "explore" =>
               WithPath((json \ "path").as[Seq[String]], ExplorePath)
             case "new" =>
               WithPath((json \ "path").as[Seq[String]], NewFile)
-            case "touchFile" => 
+            case "touchFile" =>
               WithPath((json \ "path").as[Seq[String]], TouchFile)
-            case "touchFolder" => 
+            case "touchFolder" =>
               WithPath((json \ "path").as[Seq[String]], TouchFolder)
             case "rm" =>
               WithPath((json \ "path").as[Seq[String]], Delete)

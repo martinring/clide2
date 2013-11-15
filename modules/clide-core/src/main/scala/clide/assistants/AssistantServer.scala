@@ -4,6 +4,21 @@
  **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
  **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
  **       \___|_|_|\__,_|\___|                                                **
+ **                                                                           **
+ **  This file is part of Clide.                                              **
+ **                                                                           **
+ **  Clide is free software: you can redistribute it and/or modify            **
+ **  it under the terms of the GNU General Public License as published by     **
+ **  the Free Software Foundation, either version 3 of the License, or        **
+ **  (at your option) any later version.                                      **
+ **                                                                           **
+ **  Clide is distributed in the hope that it will be useful,                 **
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+ **  GNU General Public License for more details.                             **
+ **                                                                           **
+ **  You should have received a copy of the GNU General Public License        **
+ **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
  \*                                                                           */
 
 package clide.assistants
@@ -21,21 +36,21 @@ import scala.reflect.ClassTag
 /**
  * An assistant server is the entry point for the implementation of an assistant.
  * It requires a constructor for an AssistantBehavior which takes an AssistantControl
- * as an Argument. The constructor will be called, when a new Assistant Session for a 
+ * as an Argument. The constructor will be called, when a new Assistant Session for a
  * project is created. The name, server and credentials for the assistant must be configured
  * in an application.conf file. (see reference.conf for example values)
- * 
+ *
  * @author Martin Ring <martin.ring@dfki.de>
  */
 class AssistantServer(behavior: AssistantControl => AssistantBehavior) extends Bootable {
   val system = ActorSystem("assistant",ConfigFactory.load)
-  
+
   val config = system.settings.config
-  
+
   def startup() {
     system.actorOf(Props(classOf[AssistantServerActor], (p: ProjectInfo) => Props(classOf[Assistant], p, behavior)), config.getString("assistant.username"))
   }
-  
+
   def shutdown() {
     system.shutdown()
   }
@@ -49,34 +64,34 @@ private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends A
   def onInvitation(project: ProjectInfo, me: LoginInfo) = {
     log.info(s"starting session for ${project.owner}/${project.name}")
     val act = context.actorOf(sessionProps(project))
-    server.tell(IdentifiedFor(me.user,me.key,WithUser(project.owner,WithProject(project.name,StartSession))),act)    
+    server.tell(IdentifiedFor(me.user,me.key,WithUser(project.owner,WithProject(project.name,StartSession))),act)
     context.watch(act)
   }
-  
+
   lazy val config     = context.system.settings.config
-  
+
   lazy val username   = config.getString("assistant.username")
   lazy val password   = config.getString("assistant.password")
   lazy val email      = config.getString("assistant.email")
-  
+
   lazy val serverPath = config.getString("assistant.server-path")
   lazy val server     = context.actorOf(ServerForwarder(serverPath), "server-forwarder")
-  
+
   private def login() = {
     log.info("attempting login")
     server ! AnonymousFor(username,Login(password))
   }
-  
+
   private def signup() = {
     log.info(s"signing up $username")
     server ! SignUp(username,email,password)
   }
-  
+
   def receive = loggedOut
-  
+
   private def loggedOut: Receive = {
     login()
-    
+
     {
       case DoesntExist =>
         log.info(s"user $username hasnt been signed up yet")
@@ -87,15 +102,15 @@ private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends A
       case SignedUp(info) =>
         log.info(s"signed up")
         login()
-      case LoggedIn(info, login) => // TODO: UserInfo contains password hash!!!        
+      case LoggedIn(info, login) => // TODO: UserInfo contains password hash!!!
         context.become(loggedIn(login))
     }
-  }  
-  
+  }
+
   private def loggedIn(loginInfo: LoginInfo): Receive = {
     log.info(s"logged in")
     server ! IdentifiedFor(username,loginInfo.key,StartBackstageSession)
-    
+
     {
       case LoggedOut(user) =>
         context.become(loggedOut)
@@ -108,10 +123,10 @@ private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends A
         peer ! BrowseProjects
     }
   }
-  
+
   private def backstage(loginInfo: LoginInfo, peer: ActorRef): Receive = {
     val sessions = scala.collection.mutable.Map.empty[Long,ActorRef]
-    
+
     {
       case UserProjectInfos(own,other) =>
         log.info("received project infos")
