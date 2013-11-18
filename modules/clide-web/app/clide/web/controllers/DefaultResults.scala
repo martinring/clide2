@@ -23,11 +23,14 @@
 
 package clide.web.controllers
 
+import scala.language.implicitConversions
+
 import clide.actors.Events._
-import clide.web.json.Conversions._
-import play.api.mvc._
-import play.api.mvc.Results._
+import clide.web.json.Conversions.ProjectInfoWrites
 import play.api.libs.json.Json
+import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import play.api.mvc.Results._
+import play.api.mvc.SimpleResult
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
@@ -41,7 +44,7 @@ trait DefaultResults {
     case SessionTimedOut => Unauthorized("timeout")
     case NotLoggedIn => Unauthorized("You are not logged in.")
     case NotAllowed  => Forbidden("You are not allowed to access this resource")
-    case TimeOut => Results.InternalServerError("An error occurred while processing your request on the server. :(")
+    case TimeOut => InternalServerError("An error occurred while processing your request on the server. :(")
     case Validated(info) => Ok(Json.obj(
         "username" -> info.name,
         "email" -> info.email))

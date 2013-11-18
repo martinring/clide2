@@ -30,6 +30,8 @@ import clide.actors.Events._
 import clide.actors.Messages.{CreateProject}
 import clide.collaboration.AnnotationDiff._
 import play.api.data.validation.ValidationError
+import scala.language.implicitConversions
+import scala.language.reflectiveCalls
 
 object Conversions {
   implicit object FileInfoWrites extends Writes[FileInfo] {

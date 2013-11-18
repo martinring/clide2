@@ -34,6 +34,7 @@ import isabelle.XML
 import isabelle.Isabelle_System
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 trait IsabelleSession { self: AssistantBehavior with Control =>
   var session: Session = null

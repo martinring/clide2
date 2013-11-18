@@ -23,16 +23,16 @@
 
 package clide.web.controllers
 
-import play.api.mvc._
-import play.api.libs.json._
-import clide.actors.Messages._
-import clide.actors.Events._
-import clide.web.json.Conversions._
 import scala.concurrent.Future
-import clide.models.ProjectAccessLevel
-import clide.collaboration.Operation
+
+import clide.actors.Messages._
 import clide.collaboration.Annotations
+import clide.collaboration.Operation
+import clide.models.ProjectAccessLevel
+import clide.web.json.Conversions._
 import play.api.Logger
+import play.api.libs.json._
+import play.api.mvc._
 
 object Projects extends Controller with UserRequests with DefaultResults {
   def index(username: String) = UserRequest.async { request =>

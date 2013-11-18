@@ -24,6 +24,7 @@ package clide.actors.util
 
 import akka.actor._
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 /**
  * A [[ServerForwarder]] serves as a utility actor for connected systems, which

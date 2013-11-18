@@ -23,16 +23,18 @@
 
 package clide.web
 
-import play.api._
-import akka.actor.ActorRef
-import play.api.libs.concurrent.Akka
-import akka.actor._
-import scala.concurrent.duration._
-import akka.util.Timeout
 import scala.concurrent.Await
 import scala.concurrent.Promise
-import akka.pattern._
+import scala.concurrent.duration.DurationInt
+import scala.language.postfixOps
+
+import akka.actor.ActorRef
+import akka.util.Timeout
 import clide.actors.util.ServerForwarder
+import play.api.Application
+import play.api.GlobalSettings
+import play.api.Play.current
+import play.api.libs.concurrent.Akka
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>

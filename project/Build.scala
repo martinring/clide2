@@ -64,10 +64,10 @@ object ApplicationBuild extends Build {
       </developers>),
     publishArtifact in Test := false)
 
-  val commonSettings = Seq(
+  val commonSettings = sonatypeSettings ++ Seq(
     version := v,
     scalaVersion := scala.version,
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature")) ++ sonatypeSettings
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"))
 
   // Core
   // ===========================================================================
@@ -118,15 +118,8 @@ object ApplicationBuild extends Build {
     resourceGenerators in Compile <+= JavascriptCompiler(fullCompilerOptions = None),
     resourceGenerators in Compile <+= Angular.ModuleCompiler,
     resourceGenerators in Compile <+= Angular.BoilerplateGenerator,
-    lessEntryPoints         <<= (sourceDirectory in Compile){ base =>
-      base / "assets" / "stylesheets" * "main.less" },
-    coffeescriptEntryPoints <<= (sourceDirectory in Compile){ base =>
-      base / "assets" ** "*.coffee" },
-    javascriptEntryPoints <<= (sourceDirectory in Compile){ base =>
-      (base / "assets" ** "*.js") ---
-      (base / "assets" / "libs" / "bootstrap" / "assets" ** "*") ---
-      (base / "assets" / "libs" / "bootstrap" / "js" / "tests" ** "*") ---
-      (base / "assets" / "libs" / "codemirror" / "test" ** "*") }
+    lessEntryPoints <<= (sourceDirectory in Compile){ base =>
+      base / "assets" / "stylesheets" * "main.less" }
   )
 
   val web = play.Project(

@@ -27,6 +27,7 @@ import isabelle._
 import clide.models.OpenedFile
 import clide.assistants.Cursor
 import clide.collaboration.{Operation,Retain,Insert,Delete}
+import scala.language.implicitConversions
 
 trait IsabelleConversions { self: IsabelleSession =>
   implicit def fileToNodeName(file: OpenedFile): Document.Node.Name = {

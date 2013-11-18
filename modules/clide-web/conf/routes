@@ -14,7 +14,6 @@ GET     /api/projects/:user/:name/session   clide.web.controllers.Projects.sessi
 
 # Javascript routing
 GET     /client/javascripts/routes.js       clide.web.controllers.Application.javascriptRoutes
-GET     /client/javascripts-min/routes.js   clide.web.controllers.Application.javascriptRoutes
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /client/*file                       controllers.Assets.at(path="/public", file)

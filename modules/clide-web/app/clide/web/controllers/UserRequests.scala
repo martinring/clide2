@@ -44,6 +44,8 @@ import scala.util.Success
 import scala.util.Failure
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.concurrent.Akka
+import scala.language.implicitConversions
+import scala.language.postfixOps
 
 trait UserRequests { this: Controller =>
   implicit val timeout = Timeout(2.5 seconds)
