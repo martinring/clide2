@@ -57,6 +57,6 @@ Maven:
 License
 -------
 
-(c) copyright 2013 by Martin Ring <<martin.ring@dfki.de>>
+(c) copyright 2012-2013 by Martin Ring <<martin.ring@dfki.de>>
 
-Clide2 is licensed under the Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0.html)
+Clide2 is licensed under the LGPL v3.0 (http://www.gnu.org/copyleft/lesser.html)
