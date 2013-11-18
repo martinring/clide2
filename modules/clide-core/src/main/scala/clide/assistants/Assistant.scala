@@ -36,12 +36,13 @@ import scala.util.Success
 import scala.util.Failure
 import scala.collection.mutable.Buffer
 import scala.concurrent.Future
+import scala.language.postfixOps
 
 /**
  * @param owner The Session, this cursor belongs to
  * @param file  The referenced file state
  * @param anchor The position of the cursor
- * @param head Optional value indicating the end of the selected range if something is seleced. This might lie before or after the anchor position.
+ * @param head Optional value indicating the end of the selected range if something is seleced. This might be before or after the anchor position.
  * @todo head is not implemented right now
  * @author Martin Ring <martin.ring@dfki.de>
  */
@@ -94,7 +95,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         else operation
 
         if (annotations.isDefinedAt(file))
-          annotations(file) = annotations(file).mapValues(a => Annotations.transform(a, operation).get)
+          annotations(file) = annotations(file).mapValues(_ transform operation get)
 
       case Edited(file,operation) =>
         val prev = files(file)
@@ -106,7 +107,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         else operation
 
         if (annotations.isDefinedAt(file))
-          annotations(file) = annotations(file).mapValues(a => Annotations.transform(a, operation).get)
+          annotations(file) = annotations(file).mapValues(_ transform operation get)
 
       case Annotated(file,user,as,name) =>
         if (annotations.isDefinedAt(file))

@@ -37,18 +37,27 @@ sealed trait Annotation {
     case Annotate(_,c) => Annotate(n,c)
   }
 }
+
 case class Plain(length: Int) extends Annotation {
   override def toString = length.toString
 }
 
 object AnnotationType extends Enumeration {
   val Class          = Value("c")
+  
   val Tooltip        = Value("t")
+  
   val ErrorMessage   = Value("e")
   val WarningMessage = Value("w")
   val InfoMessage    = Value("i")
-  val Substitution   = Value("s")
   val Output         = Value("o")
+  
+  val Substitution   = Value("s")
+  
+  val Suggestion     = Value("p")
+  val Completion     = Value("m")
+  
+  val ReadOnly       = Value("r")  
 }
 
 case class Annotate(length: Int, content: Set[(AnnotationType.Value,String)]) extends Annotation {

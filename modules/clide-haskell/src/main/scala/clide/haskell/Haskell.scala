@@ -23,26 +23,15 @@
 
 package clide.haskell
 
-import com.typesafe.config.ConfigFactory
-import akka.actor.ActorSystem
-import akka.actor.Props
-import akka.kernel.Bootable
-import scala.concurrent.duration._
-import clide.assistants.{AssistantServer, AssistantBehavior, AssistantControl}
-import clide.models._
-import clide.collaboration.Operation
-import akka.actor.ActorLogging
-import akka.actor.Cancellable
-import scala.collection.mutable.Map
-import scala.concurrent.Future
-import scala.sys.process._
 import java.io.FileWriter
-import clide.assistants.Cursor
-import clide.collaboration.Annotations
-import akka.actor.Actor
-import clide.collaboration.AnnotationType
-import clide.collaboration.Insert
-import clide.collaboration.Delete
+
+import scala.Array.canBuildFrom
+import scala.collection.mutable.Map
+import scala.sys.process.stringSeqToProcess
+
+import clide.assistants._
+import clide.collaboration._
+import clide.models._
 
 object Haskell extends AssistantServer(HaskellBehavior)
 
@@ -80,7 +69,7 @@ case class HaskellBehavior(control: AssistantControl) extends AssistantBehavior 
     fileChanged(file,new Operation(List(Delete(file.state.length))),Seq.empty)
   }
 
-  val Output = """^.*:([0-9]+):([0-9]+):(Warning|Error): ?(.*)$""".r
+  val Output = """^.*:([0-9]+):([0-9]+):(.*)$""".r
 
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) {
     control.annotate(file, "substitutions", HaskellMarkup.substitutions(file.state))
@@ -92,10 +81,14 @@ case class HaskellBehavior(control: AssistantControl) extends AssistantBehavior 
 	write.write(file.state)
 	write.close()
 
-	val lines = Seq("ghc-mod","check",name).lines ++ Seq("ghc-mod", "lint", name).lines
+	val lines = {
+      val outer = Seq("ghc-mod","check",name).lines
+      if (outer.nonEmpty) outer else
+        Seq("ghc-mod","lint", name).lines
+    }
 
 	val errs = lines.collect {
-      case Output(line,ch,t,msg)   => ((line.toInt,ch.toInt),t,msg)
+      case Output(line,ch,msg)   => ((line.toInt,ch.toInt),if (msg.toLowerCase.contains("error")) "Error" else if (msg.toLowerCase.contains("warning")) "Warning" else "Info" ,msg)
     }
 
     log.info("lines: {}", errs)

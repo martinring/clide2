@@ -74,7 +74,7 @@ object HaskellMarkup {
       case None => as.plain(state.length())
     }
   }
-
+   
   def toAnnotations(errors: List[((Int,Int),String,String)], state: String): Annotations = {
     var result = new Annotations
     val lines = state.split("\n").map(_.length() + 1).toList
@@ -93,10 +93,12 @@ object HaskellMarkup {
           position = o
         }
         t match {
-          case "Error"   =>
-            result = result.annotate(0, Set(AnnotationType.ErrorMessage   -> prettify(e)))
+          case "Error" =>
+            result = result.annotate(0, Set(AnnotationType.ErrorMessage   -> prettify(e)))                                          
           case "Warning" =>
             result = result.annotate(0, Set(AnnotationType.WarningMessage -> prettify(e)))
+          case other =>
+            result = result.annotate(0, Set(AnnotationType.ErrorMessage -> (other + ": " + prettify(e))))            
         }
     }
     result.plain(state.length - position)

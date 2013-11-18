@@ -50,10 +50,10 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
 
   var user: UserInfo = null
   var level = ProjectAccessLevel.None
-  var root: ActorRef     = context.system.deadLetters
+  var root: ActorRef     = context.system.deadLetters    
 
-  var sessions      = Set[SessionInfo]()
-  var sessionActors = Map[Long,ActorRef]()
+  var sessions      = Set.empty[SessionInfo]
+  var sessionActors = Map.empty[Long,ActorRef]
 
   // TODO: Persist
   var conversationHistory = Buffer.empty[Talked]
