@@ -38,7 +38,7 @@ trait AssistantBehavior {
   /**
    * Everything that needs to be set up can be set up here. It is guaranteed, that
    * this method will be called first and no other method will be called until the
-   * returned future has been completed.
+   * execution has been completed.
    *
    * @param project the project, the assistant is watching
    */
@@ -53,7 +53,8 @@ trait AssistantBehavior {
   /**
    * Should return a set of mime types that the assistant will automatically
    * react on. If the set is empty, the assistant will only be activated if a user
-   * actively requests it's help in a specific file.
+   * actively requests it's help in a specific file or the assistant actively opens
+   * a file through it's control.
    */
   def mimeTypes: Set[String]
 
@@ -79,7 +80,11 @@ trait AssistantBehavior {
   def fileClosed(file: OpenedFile): Unit
 
   /**
-   * called when a file in the assistants scope has been edited.
+   * called when a file in the assistants scope was edited.
+   * May do long blocking comuptations. Internally it will be executed concurrently 
+   * while all new updates to the file will be cumulated and will appear as one update 
+   * after the method returned. Other Events are postponed during execution.
+   * 
    * @param file the state of the file **after** the edit occured.
    * @param delta the operation that has been performed
    */
