@@ -1,18 +1,18 @@
 <div id='ide' ng-class='{sidebar:sidebar||searchActive,extendedStatusbar:output}'>
-  <div ng-class='{extendedStatusbar:output}'>    
+  <div ng-class='{extendedStatusbar:output}'>
     <nav id="ribbon" class='bgcolor-{{session.me.color}}'>
       <ul class="nav menu" ng-init='sidebarSection="files"'>
         <li title='Files' ng-click='select("files")' ng-class='{active: sidebarSection=="files"}'><i class='fa fa-list-ul'></i></li>
-        <li title='Collaboration' ng-click='select("collab")' ng-class='{active: sidebarSection=="collab"}'><i class='fa fa-group'></i></li>        
+        <li title='Collaboration' ng-click='select("collab")' ng-class='{active: sidebarSection=="collab"}'><i class='fa fa-group'></i></li>
         <li title='Edit' ng-click='select("edit")' ng-class='{active: sidebarSection=="edit"}'><i class='fa fa-pencil'></i></li>
         <li title='View' ng-click='select("view")' ng-class='{active: sidebarSection=="view"}'><i class='fa fa-eye'></i></li>
         <li title='Settings' ng-click='select("settings")' ng-class='{active: sidebarSection=="settings"}'><i class='fa fa-gear'></i></li>
-        <li title='Help' ng-click='select("help")' ng-class='{active: sidebarSection=="help"}'><i class='fa fa-question-circle'></i></li        
+        <li title='Help' ng-click='select("help")' ng-class='{active: sidebarSection=="help"}'><i class='fa fa-question-circle'></i></li
       </ul>
       <div id="sidebarButton" ng-click='sidebar=!sidebar'><i class='fa fa-arrow-circle-right'></i></div>
     </nav>
     <div id="sidebarContainer">
-      <!--<div id="search" class='bordercolor-{{session.me.color}}'>        
+      <!--<div id="search" class='bordercolor-{{session.me.color}}'>
         <input id="searchBox" ng-model='search.name' ng-focus='searchActive=true' ng-blur='searchActive=false'>
           <div class="searchButton bgcolor-{{session.me.color}}" ng-click='sidebar=true'><i class='fa fa-search'></i></div>
         </input>
@@ -20,7 +20,7 @@
       <a id='backstageButton' title='Backstage' href='/{{session.me.user}}/backstage'><i class='fa fa-arrow-right'></i></a>
       <nav id="sidebar">
         <ul id="sidebarContent" class='touchScroll'>
-          <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>            
+          <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>
             <h3>Files
             <div class='pull-right btn-group' ng-show='files.state=="connected"'>
               <a class='btn btn-default' ng-click='browseTo(files.currentDir.info.path.slice(0,-1))' ng-disabled='files.currentDir.info.parent==null'>
@@ -35,7 +35,7 @@
             </div>
             </h3>
             <ul class="breadcrumb" ng-show='files.state=="connected"'>
-              <li ng-repeat='segment in files.currentDir.path'>                
+              <li ng-repeat='segment in files.currentDir.path'>
                 <a ng-click='browseTo(segment.path)' ng-show='segment.name != "$home"'>
                   {{segment.name}}
                 </a>
@@ -43,10 +43,10 @@
                   <i class='fa fa-home'></i>
                 </a>
               </li>
-            </ul>            
+            </ul>
             <div class='list-group' ng-show='files.state=="connected"'>
               <a ng-repeat='file in files.currentDir.files | orderBy:["-isDirectory","+name"]'
-                 ng-click='openFile(file)'                
+                 ng-click='openFile(file)'
                  class='list-group-item bordercolor-{{session.me.color}}'
                  context-menu='fileContextMenu(file)'
                  ng-class='{ active: file.id==session.me.activeFile, open: file.doc!=null, "text-muted": file.deleted }'>
@@ -54,37 +54,37 @@
                  <span class='pull-right'>
                    <i class='fa fa-stop color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id} ' title='{{user.user}}'></i>
                  </span>
-              </a>              
+              </a>
               <div class='placeholder' ng-if='files.currentDir.files.length == 0'>
                 This folder is empty. Create a <a ng-click='createFile(files.currentDir.info)'>new file</a> or <a ng-click='createFolder(files.currentDir.info)'>folder</a> to get started.
               </div>
             </div>
             <div class='alert alert-info' ng-show='files.state=="connecting"'>
               Connecting to server...
-            </div>            
+            </div>
             <div class='alert alert-warning' ng-show='files.state=="disconnected"'>
               The connection to the server file system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a class='alert-link' ng-click='reconnect()'>reconnect</a>.
             </div>
           </li>
           <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
-            <div ng-show='session.state=="connected"' class='pull-right' style='position:relative'>              
+            <div ng-show='session.state=="connected"' class='pull-right' style='position:relative'>
               <span class='btn dropdown-toggle bgcolor-{{session.me.color}}' style='color:white' title='click to choose color'><i class='fa fa-user'></i></span>
               <ul class="dropdown-menu" role='menu'>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('crimson')"><i class='fa fa-fw fa-stop color-crimson'></i> Crimson</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('red')"><i class='fa fa-fw fa-stop color-red'></i> Red</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('orange')"><i class='fa fa-fw fa-stop color-orange'></i> Orange</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('yellow')"><i class='fa fa-fw fa-stop color-yellow'></i> Yellow</a></li>
-                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('lime')"><i class='fa fa-fw fa-stop color-lime'></i> Lime</a></li>              
+                <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('lime')"><i class='fa fa-fw fa-stop color-lime'></i> Lime</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('cyan')"><i class='fa fa-fw fa-stop color-cyan'></i> Cyan</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('blue')"><i class='fa fa-fw fa-stop color-blue'></i> Blue</a></li>
                 <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('violet')"><i class='fa fa-fw fa-stop color-violet'></i> Violet</a></li>
               </ul>
             </div>
-            <h3>Collaboration</h3>      
+            <h3>Collaboration</h3>
             <div ng-show="session.state=='connected'">
               <div ng-show='session.me'>
-                <p>                
-                  <ng-pluralize count='session.collaborators.length' 
+                <p>
+                  <ng-pluralize count='session.collaborators.length'
                                 when="{'0': 'You are currently the only user in this project.',
                                        '1': 'One other user is participating in this project:',
                                        '2': 'Two other users are participating in this project:',
@@ -99,25 +99,25 @@
                       <label>
                         <input disabled type='checkbox' ng-model='stream.show'> {{stream.name}}
                       </label>
-                    </div>                    
+                    </div>
                   </div>
                 </li>
               </ul>
               <div class='list-group'>
                 <a class='list-group-item' ng-click='invite()'>
                   <i class='fa fa-fw fa-envelope'></i> invite a collaborator...
-                </a>                
-              </div>                      
+                </a>
+              </div>
             </div>
             <div class='alert alert-info' ng-show='session.state=="connecting"'>
               Connecting to server...
-            </div>            
+            </div>
             <div class='alert alert-warning' ng-show='session.state=="disconnected"'>
               The connection to the collaboration system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a class='alert-link' ng-click='reconnectSession()'>reconnect</a>.
             </div>
           </li>
           <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
-            <h3>Edit</h3>   
+            <h3>Edit</h3>
             <div class='list-group'>
               <a class='list-group-item'>
                 <i class='fa fa-fw fa-cut'></i> Cut
@@ -127,13 +127,13 @@
               </a>
               <a class='list-group-item'>
                 <i class='fa fa-fw fa-paste'></i> Paste
-              </a>                              
+              </a>
             </div>
           </li>
           <li class="section" id='section-view' ng-class='{active: sidebarSection=="view"}' ng-click='sidebarSection="view"'>
             <h3>View</h3>
             <div class='form-group'>
-              <div class='checkbox'>                
+              <div class='checkbox'>
                 <label>
                   <input type='checkbox' ng-model='showLineNumbers'> Show Line Numbers
                 </label>
@@ -158,12 +158,14 @@
             </div>
           </li>
           <li class="section" id='section-settings' ng-class='{active: sidebarSection=="settings"}' ng-click='sidebarSection="settings"'>
-            <h3>Settings</h3>            
-                  
+            <h3>Settings</h3>
+
           </li>
           <li class="section" id='section-help' ng-class='{active: sidebarSection=="help"}' ng-click='sidebarSection="help"'>
-            <h3>Help</h3>  
-            (c) 2012-2013 by Martin Ring
+            <h3>Help</h3>
+            &copy; 2012-2013 Martin Ring<br/>
+            Licensed under LGPL v3<br/>
+            Version {{version}}, last updated {{date}}.
           </li>
         </ul>
       </nav>
@@ -181,7 +183,7 @@
           </div>
         </div>
       </div>
-      <div id="statusbar"> 
+      <div id="statusbar">
         <div>
           <ul class="buttons">
             <li id='chatButton'
@@ -219,11 +221,11 @@
                   <small><span class='text-muted'>{{date(message.t) | date:'MM/dd/yyyy HH:mm:ss' }}</span></small><br/>
                   <span class='message' ng-class='{"text-muted": message.s == session.me.user}'>{{message.s}}: <span class='message' style='font-family: {{editorFont}}'>{{message.m}}</span></span>
                 </li>
-              </ul>                
+              </ul>
             </div>
           </div>
         </div>
-      </div>  
+      </div>
     </div>
   </div>
 </div>

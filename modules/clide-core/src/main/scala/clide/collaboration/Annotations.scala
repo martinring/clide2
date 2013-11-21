@@ -53,8 +53,8 @@ object AnnotationType extends Enumeration {
   val Output         = Value("o")
   
   val Substitution   = Value("s")
-  
-  val Suggestion     = Value("p")
+    
+  val HelpRequest    = Value("h")
   val Completion     = Value("m")
   
   val ReadOnly       = Value("r")  

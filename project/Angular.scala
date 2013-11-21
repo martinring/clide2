@@ -1,25 +1,26 @@
- /*            _ _     _                                                      *\
- **           | (_)   | |                                                     **
- **        ___| |_  __| | ___      clide 2                                    **
- **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
- **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
- **       \___|_|_|\__,_|\___|                                                **
- **                                                                           **
- **  This file is part of Clide.                                              **
- **                                                                           **
- **  Clide is free software: you can redistribute it and/or modify            **
- **  it under the terms of the GNU General Public License as published by     **
- **  the Free Software Foundation, either version 3 of the License, or        **
- **  (at your option) any later version.                                      **
- **                                                                           **
- **  Clide is distributed in the hope that it will be useful,                 **
- **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
- **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
- **  GNU General Public License for more details.                             **
- **                                                                           **
- **  You should have received a copy of the GNU General Public License        **
- **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
- \*                                                                           */
+/*             _ _     _                                                      *\
+**            | (_)   | |                                                     **
+**         ___| |_  __| | ___      clide 2                                    **
+**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+**        \___|_|_|\__,_|\___|                                                **
+**                                                                            **
+**   This file is part of Clide.                                              **
+**                                                                            **
+**   Clide is free software: you can redistribute it and/or modify            **
+**   it under the terms of the GNU Lesser General Public License as           **
+**   published by the Free Software Foundation, either version 3 of           **
+**   the License, or (at your option) any later version.                      **
+**                                                                            **
+**   Clide is distributed in the hope that it will be useful,                 **
+**   but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+**   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+**   GNU General Public License for more details.                             **
+**                                                                            **
+**   You should have received a copy of the GNU Lesser General Public         **
+**   License along with Clide.                                                **
+**   If not, see <http://www.gnu.org/licenses/>.                              **
+\*                                                                            */
 
 import sbt._
 import sbt.Keys._
@@ -148,7 +149,7 @@ object Angular {
 		builder ++= names.map(file => "'"+what+"/"+file+"'").mkString(",")
 		builder ++= "],function("
 		builder ++= names.mkString(",")
-		builder ++= "){var module=angular.module('"+appName+"."+what+"',[]);"
+		builder ++= s"){var module=angular.module('$appName.$what',[]);"
 		builder ++= names.map(file => "module."+ngf+"('"+(if(capitalize)file.capitalize else file)+postfix+"',"+file+")").mkString(";")
 		builder ++= "})"
 		IO.write(outFile, builder.toString)
@@ -163,11 +164,11 @@ object Angular {
   	  builder ++= (configs.map(file=>string(configDir+"/"+file)).toSeq ++ moduleDirs.keys.map(string).toSeq).mkString(",")
       builder ++= "],function("
       builder ++= (configs.toSeq).mkString(",")
-      builder ++= "){var app=angular.module('"+appName+"',["
+      builder ++= s"){var app=angular.module('$appName',["
       builder ++= (moduleDirs.keys.map(f=>"'"+appName+"."+f+"'") ++ otherModules.values.map(f=>"'"+f+"'")).mkString(",")
       builder ++= "]);"
       builder ++= configs.map(f=>"app.config("+f+");").mkString
-      builder ++= "app.value('version','"+appVersion+"');return app"
+      builder ++= s"app.value('version','$appVersion');app.value('date',$System.currentTimeMillis);return app"
       builder ++= "})"
       IO.write(appFile, builder.toString)
     }

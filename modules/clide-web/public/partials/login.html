@@ -1,7 +1,7 @@
-<dialog>  
+<dialog>
   <div class='row'>
     <div class='col-sm-5 col-sm-offset-1 col-lg-4 col-lg-offset-2'>
-      <h2 class='title' title='version {{version}}'>Welcome to clide</h2>
+      <h2 title='version {{version}}'>Welcome to clide</h2>
       <form name='loginForm' role='form'>
         <p class='text-danger' ng-bind="error['']" ng-show="error['']"></p>
         <div class="form-group" ng-class='{"has-error": error.username}'>
@@ -13,37 +13,42 @@
           <label for='password'>password:</label>
           <span class='text-danger pull-right' ng-bind="error['password']" ng-show="error['password']"></span>
           <input class='form-control' type='password' id='password' name='password' ng-model='data.password' required>
-        </div>        
-        <label for='staySignedIn' class='checkbox'>
+        </div>
+        <label for='staySignedIn' class='checkbox-inline'>
           <span class="icons">
             <span class="first-icon fui-checkbox-unchecked"></span>
             <span class="second-icon fui-checkbox-checked"></span>
           </span>
-          <input type='checkbox' name='staySignedIn' data-toggle='checkbox' ng-model='data.staySignedIn' id='staySignedIn'> keep me signed in
-        </label>                        
+          <input type='checkbox' name='staySignedIn' data-toggle='checkbox' disabled ng-model='data.staySignedIn' id='staySignedIn'> keep me signed in
+        </label>
         <div class='pull-right'>
           <a class='btn btn-link' href='/signup'>Sign Up</a>
           <button type='submit' class='btn btn-primary' ng-click='login()' ng-disabled='!loginForm.$valid || app.wait'>
             <i class="icon-signin"></i> Login
           </button>
         </div>
-        <div class='clearfix'></div>
       </form>
+      <div class='clearfix'></div>
     </div>
     <div class='col-sm-5 col-lg-4'>
-      <div class='banner'>
+      <div class='banner text-justify'>
+        <a href='http://www.dfki.de'><img class='pull-right' src="/client/images/DFKI_Logo.svg" alt="DFKI Logo" height='32px'></a>
         <h2 class='title'>What is this?</h2>
-        <p>Clide has initially been developed as a proof of concept of a web 
-        interface for the interactive thorem proover 
-        <a href='http://isabelle.in.tum.de/'>Isabelle</a>. Currently it is 
-        extended into a language agnostic, collaborative IDE running completely 
-        in the cloud at your service.</p>
-        <p>Clide is maintained by <a href='http://github.com/martinring'>Martin 
-        Ring</a> at the <a href='http://www.dfki.de'>German Research Center for 
+
+        <p>Clide is a language agnostic, collaborative IDE running in the cloud at your service.</p>
+        <p>It is developed and maintained by <a href='http://github.com/martinring'>Martin
+        Ring</a> at the <a href='http://www.dfki.de'>German Research Center for
         Artificial Intelligence (DFKI)</a> in Bremen, Germany.</p>
-        <p>If you want to know what is running under the hood, feel free to explore
-        the <a href='http://github.com/martinring/clide2'>github project</a>.</p>
+        <p>If you want to know what is running under the hood or you want to build
+        a plugin, feel free to explore the <a href='http://github.com/martinring/clide2'>github project</a> or get in touch.</p>
       </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class='col-sm-10 col-sm-offset-1 col-lg-8 col-lg-offset-2 text-right'>
+      <small class='text-muted'>
+        &copy; 2012-2013 Martin Ring - Licensed under LGPL v3 - You're looking at version {{version}}. Last updated {{date}}.
+      </small>
     </div>
   </div>
 </dialog>

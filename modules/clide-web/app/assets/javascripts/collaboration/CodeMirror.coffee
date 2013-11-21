@@ -8,24 +8,32 @@
 ##   This file is part of Clide.                                              ##
 ##                                                                            ##
 ##   Clide is free software: you can redistribute it and/or modify            ##
-##   it under the terms of the GNU General Public License as published by     ##
-##   the Free Software Foundation, either version 3 of the License, or        ##
-##   (at your option) any later version.                                      ##
+##   it under the terms of the GNU Lesser General Public License as           ##
+##   published by the Free Software Foundation, either version 3 of           ##
+##   the License, or (at your option) any later version.                      ##
 ##                                                                            ##
 ##   Clide is distributed in the hope that it will be useful,                 ##
 ##   but WITHOUT ANY WARRANTY; without even the implied warranty of           ##
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            ##
 ##   GNU General Public License for more details.                             ##
 ##                                                                            ##
-##   You should have received a copy of the GNU General Public License        ##
-##   along with Clide.  If not, see <http://www.gnu.org/licenses/>.           ##
+##   You should have received a copy of the GNU Lesser General Public         ##
+##   License along with Clide.                                                ##
+##   If not, see <http://www.gnu.org/licenses/>.                              ##
 ##                                                                            ##
 
-define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annotations) ->
+define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Operation,Annotations,CodeMirror) ->
+  CodeMirror.commands.getHelp = (cm) ->
+    doc = cm.getDoc()
+    if doc? and !doc.somethingSelected()
+      CodeMirror.signal(doc,'getHelp',doc,doc.indexFromPos(doc.getCursor()))
+  CodeMirror.keyMap['default']['Ctrl-Space'] = 'getHelp'
+
   class CodeMirrorAdapter
     constructor: (@doc,@color) ->
       @doc.on "beforeChange", @onChange
       @doc.on "beforeSelectionChange", @onSelectionChange
+      @doc.on "getHelp", @onGetHelp
       @annotations = {}
 
     setColor: (color) =>
@@ -93,6 +101,11 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
       unless @silent
         @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(doc, change, @color)
 
+    onGetHelp: (doc, index) =>
+      key = Math.random().toString(36).substr(2)
+      annotation = new Annotations().plain(index).annotate(0,{'c': ['cursor',@color],'h': [key]}).plain(doc.getValue().length - index)
+      @trigger 'annotate', annotation
+
     getValue: => @doc.getValue()
 
     trigger: (event,args...) =>
@@ -141,7 +154,6 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
           @annotations[user.id][name].push bookmark
 
     @registerMouseEvents: (doc) =>
-
 
     resetAnnotations: (user, name) => if user?
       unless @annotations[user.id]?

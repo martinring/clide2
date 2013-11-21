@@ -1,25 +1,26 @@
- /*            _ _     _                                                      *\
- **           | (_)   | |                                                     **
- **        ___| |_  __| | ___      clide 2                                    **
- **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
- **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
- **       \___|_|_|\__,_|\___|                                                **
- **                                                                           **
- **  This file is part of Clide.                                              **
- **                                                                           **
- **  Clide is free software: you can redistribute it and/or modify            **
- **  it under the terms of the GNU General Public License as published by     **
- **  the Free Software Foundation, either version 3 of the License, or        **
- **  (at your option) any later version.                                      **
- **                                                                           **
- **  Clide is distributed in the hope that it will be useful,                 **
- **  but WITHOUT ANY WARRANTY; without even the implied warranty of           **
- **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
- **  GNU General Public License for more details.                             **
- **                                                                           **
- **  You should have received a copy of the GNU General Public License        **
- **  along with Clide.  If not, see <http://www.gnu.org/licenses/>.           **
- \*                                                                           */
+/*             _ _     _                                                      *\
+**            | (_)   | |                                                     **
+**         ___| |_  __| | ___      clide 2                                    **
+**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
+**        \___|_|_|\__,_|\___|                                                **
+**                                                                            **
+**   This file is part of Clide.                                              **
+**                                                                            **
+**   Clide is free software: you can redistribute it and/or modify            **
+**   it under the terms of the GNU Lesser General Public License as           **
+**   published by the Free Software Foundation, either version 3 of           **
+**   the License, or (at your option) any later version.                      **
+**                                                                            **
+**   Clide is distributed in the hope that it will be useful,                 **
+**   but WITHOUT ANY WARRANTY; without even the implied warranty of           **
+**   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            **
+**   GNU General Public License for more details.                             **
+**                                                                            **
+**   You should have received a copy of the GNU Lesser General Public         **
+**   License along with Clide.                                                **
+**   If not, see <http://www.gnu.org/licenses/>.                              **
+\*                                                                            */
 
 package clide.haskell
 
@@ -74,7 +75,7 @@ object HaskellMarkup {
       case None => as.plain(state.length())
     }
   }
-   
+
   def toAnnotations(errors: List[((Int,Int),String,String)], state: String): Annotations = {
     var result = new Annotations
     val lines = state.split("\n").map(_.length() + 1).toList
@@ -94,11 +95,11 @@ object HaskellMarkup {
         }
         t match {
           case "Error" =>
-            result = result.annotate(0, Set(AnnotationType.ErrorMessage   -> prettify(e)))                                          
+            result = result.annotate(0, Set(AnnotationType.ErrorMessage   -> prettify(e)))
           case "Warning" =>
             result = result.annotate(0, Set(AnnotationType.WarningMessage -> prettify(e)))
           case other =>
-            result = result.annotate(0, Set(AnnotationType.ErrorMessage -> (other + ": " + prettify(e))))            
+            result = result.annotate(0, Set(AnnotationType.ErrorMessage -> (other + ": " + prettify(e))))
         }
     }
     result.plain(state.length - position)

@@ -1,9 +1,9 @@
-<div id='backstage'>  
-  <div class='container'>    
+<div id='backstage'>
+  <div class='container'>
     <h1 class='title'>{{user}}'s backstage area</h1>
     <div class='row'>
-      <div class='col-sm-4 col-md-3'>        
-        <div>        
+      <div class='col-sm-4 col-md-3'>
+        <div>
           <h2>Projects
           <div class='btn-group pull-right'>
             <a class='btn btn-default' ng-click='createProject()'><i class="fa fa-plus"></i></a>
@@ -17,7 +17,7 @@
               <h4 class='list-group-item-heading'>{{project.owner}}/{{project.name}}</h4>
               <p class='list-group-item-text' ng-bind='project.description'></p>
             </a>
-          </div>          
+          </div>
           <h4>Collaborating</h4>
           <p ng-show='Projects.otherProjects.length==0' class='alert alert-info'>
             You have not yet been invited to collaborate in any project.
@@ -27,11 +27,11 @@
               <h4 class='list-group-item-heading'>{{project.owner}}/{{project.name}}</h4>
               <p class='list-group-item-text' ng-bind='project.description'></p>
             </a>
-          </div>          
+          </div>
         </div>
         <div>
           <h2>Profile</h2>
-          <p><img class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=400'></img></p>          
+          <p><img class='gravatar' src='http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=400'></img></p>
           <ul class='list-unstyled fa-ul'>
           <li><i class='fa fa-li fa-user'></i> {{user}}</li>
           <li><i class='fa fa-li fa-envelope'></i> {{email}}</li>
@@ -51,8 +51,15 @@
           <p>You are looking at version {{version}}.</p>
           <p>Copyright 2011-2013 by <a href='http://github.com/martinring'>Martin Ring</a>.</p>
           <p>The source code is hosted on <a href='http://github.com/martinring/clide2'>github</a>.</p>
-        </div>              
-      </div>      
-    </div>      
+        </div>
+      </div>
+    </div>
+    <div class='row'>
+      <div class='col-sm-12'>
+        <small class='text-muted pull-right'>
+        &copy; 2012-2013 Martin Ring - Licensed under LGPL v3 - You're looking at version {{version}}. Last updated {{date}}.
+        </small>
+      </div>
+    </div>
   </div>
 </div>
