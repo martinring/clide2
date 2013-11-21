@@ -25,27 +25,25 @@ package clide.actors
 
 import akka.actor._
 import clide.models._
-import clide.Core.DB
-import clide.Core.DAL._
-import clide.Core.DAL.profile.simple._
 import scala.util.Random
 import scala.collection.JavaConversions._
 import scala.collection.mutable.Map
 import scala.slick.session.Session
 import clide.actors.Messages._
 import clide.actors.Events._
+import clide.persistence.DBAccess
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private object SessionActor {
-  def apply(
+  def props(
     id: Option[Long],
     collaborators: Set[SessionInfo],
     user: UserInfo,
     project: ProjectInfo,
-    conversation: Vector[Talked]) =
-      Props(classOf[SessionActor], id, collaborators, user, project, conversation)
+    conversation: Vector[Talked])(implicit dbAccess: DBAccess) =
+      Props(classOf[SessionActor], id, collaborators, user, project, conversation, dbAccess)
 }
 
 /**
@@ -56,7 +54,10 @@ private class SessionActor(
     var collaborators: Set[SessionInfo],
     var user: UserInfo,
     var project: ProjectInfo,
-    var conversation: Vector[Talked]) extends Actor with ActorLogging {
+    var conversation: Vector[Talked])
+    (implicit val dbAccess: DBAccess) extends Actor with ActorLogging{
+  import dbAccess.schema._
+  import dbAccess.{db => DB}
 
   val level = ProjectAccessLevel.Admin // TODO
   var session: SessionInfo = null
@@ -94,7 +95,7 @@ private class SessionActor(
   def initializeFile(id: Long) = {
     log.info("initializing file")
     DB.withSession { implicit session: Session => // TODO: Move to File Actors
-      FileInfos.get(id).firstOption.fold(peer ! DoesntExist){ info => // TODO: Move to Schema
+      FileInfos.get(id).fold(peer ! DoesntExist){ info => // TODO: Move to Schema
         log.info("forwarding openfile to path")
         context.parent ! Messages.internal.WrappedProjectMessage(user,level,WithPath(info.path,Messages.internal.OpenFile(this.session)))
       }

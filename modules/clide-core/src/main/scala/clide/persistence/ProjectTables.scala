@@ -145,14 +145,10 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
       q.firstOption
     }
 
-    def getForProject(id: Long)(implicit session: Session) = {
-      val q = for (i <- SessionInfos if i.projectId === id) yield i
-      q.elements
-    }
+    def getForProject(id: Long)(implicit session: Session) = 
+      Query(SessionInfos).filter(_.projectId === id).elements
 
-    def getForUser(name: String)(implicit session: Session) = {
-      val q = for (i <- SessionInfos if i.userName === name) yield i
-      q.elements
-    }
+    def getForUser(name: String)(implicit session: Session) = 
+      Query(SessionInfos).filter(_.userName === name).elements
   }
 }

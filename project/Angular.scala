@@ -168,7 +168,7 @@ object Angular {
       builder ++= (moduleDirs.keys.map(f=>"'"+appName+"."+f+"'") ++ otherModules.values.map(f=>"'"+f+"'")).mkString(",")
       builder ++= "]);"
       builder ++= configs.map(f=>"app.config("+f+");").mkString
-      builder ++= s"app.value('version','$appVersion');app.value('date',$System.currentTimeMillis);return app"
+      builder ++= s"app.value('version','$appVersion');app.value('date',${System.currentTimeMillis});return app"
       builder ++= "})"
       IO.write(appFile, builder.toString)
     }

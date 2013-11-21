@@ -61,17 +61,20 @@ trait FileTables { this: Profile with ProjectTables with Mappers =>
       FileInfo(id,project,path,mimeType,deleted,exists,isDirectory,parent)
     }
 
-    def get(project: ProjectInfo, path: Seq[String]) = for {
-      file <- FileInfos if file.projectId === project.id && file.path === path
-    } yield file
+    def get(project: ProjectInfo, path: Seq[String])(implicit session: Session) = 
+      Query(FileInfos).filter(_.projectId === project.id).filter(_.path === path).firstOption
 
-    def get(id: Long) = for {
-      file <- FileInfos if file.id === id
-    } yield file
+    def get(id: Long)(implicit session: Session) = 
+      Query(FileInfos).filter(_.id === id).firstOption
 
-    def getChildren(id: Long) = for {
-      file <- FileInfos if file.parentId === id
-    } yield file
+    def getChildren(id: Long)(implicit session: Session) = 
+      Query(FileInfos).filter(_.parentId === id).elements
+      
+    def update(file: FileInfo)(implicit session: Session) =
+      Query(FileInfos).filter(_.id === file.id).update(file)
+      
+    def delete(file: FileInfo)(implicit session: Session) =
+      Query(FileInfos).filter(_.id === file.id).delete
   }
 
   object OpenedFiles extends Table[(Long,Long)]("openFiles") {
@@ -132,5 +135,8 @@ trait FileTables { this: Profile with ProjectTables with Mappers =>
     def clear(file: Long)(implicit session: Session) =
       Query(Revisions).filter(_.fileId === file)
                       .delete
+                      
+    def create(file: Long, id: Long, content: Operation)(implicit session: Session) =
+      this.insert(Revision(file,id,content))
   }
 }

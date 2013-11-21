@@ -25,26 +25,26 @@ package clide.actors
 
 import akka.actor._
 import clide.models._
-import clide.Core.DB
-import clide.Core.DAL._
-import clide.Core.DAL.profile.simple._
 import clide.actors.files._
 import scala.collection.mutable.Buffer
 import scala.slick.session.Session
 import org.h2.jdbc.JdbcSQLException
+import clide.persistence.DBAccess
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private object ProjectActor {
-  def apply(info: ProjectInfo) =
-    Props(classOf[ProjectActor], info)
+  def apply(info: ProjectInfo)(implicit dbAccess: DBAccess) =
+    Props(classOf[ProjectActor], info, dbAccess)
 }
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
+private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAccess) extends Actor with ActorLogging {
+  import dbAccess.schema._
+  import dbAccess.{db => DB}
   import clide.actors.Messages.internal._
   import clide.actors.Messages._
   import clide.actors.Events._
@@ -91,10 +91,10 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
         !session.active
       }.map { session =>
         sessionActors.get(session.id).getOrElse {
-          context.actorOf(SessionActor(Some(session.id),sessions,user,this.info,conversationHistory.toVector))
+          context.actorOf(SessionActor.props(Some(session.id),sessions,user,this.info,conversationHistory.toVector))
         }
       }.getOrElse {
-        context.actorOf(SessionActor(None,sessions,user,this.info,conversationHistory.toVector))
+        context.actorOf(SessionActor.props(None,sessions,user,this.info,conversationHistory.toVector))
       }.forward(EnterSession)
     case msg @ WithPath(_,_: FileWriteMessage) =>
       root.forward(msg)
@@ -152,20 +152,10 @@ private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLoggin
   }
 
   override def preStart() {
-    root = context.actorOf(FolderActor(info, None, "files"),"files")
-    sessions = DB.withSession { implicit session => // TODO: Move to Schema
-      val u = for (session <- SessionInfos if session.projectId === info.id) yield session.active
-      u.update(false)
-      val q = for (session <- SessionInfos if session.projectId === info.id) yield session
-      val r = q.elements.toSet
-      r.map(_.user).map { user =>
-        val redundant = r.filter(_.user == user)
-        if (redundant.size > 1) redundant.tail.foreach { info =>
-          val q = for (session <- SessionInfos if session.id === info.id) yield session
-          q.delete
-        }
-        redundant.head
-      }
+    root = context.actorOf(FolderActor.props(info, None, "files"),"files")
+    sessions = DB.withSession { implicit session =>
+      SessionInfos.getForProject(info.id).toSet
+      // TODO: Clean up unused sessions again
     }
     log.info(s"project ${info.owner}/${info.name}")
   }

@@ -25,23 +25,25 @@ package clide.actors
 
 import akka.actor._
 import clide.models._
-import clide.Core.DB
-import clide.Core.DAL._
 import scala.slick.session.Session
 import java.util.UUID
+import clide.persistence.DBAccess
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private object UserActor {
-  def apply(user: UserInfo with Password) =
-    Props(classOf[UserActor], user)
+  def props(user: UserInfo with Password)(implicit dbAccess: DBAccess) =
+    Props(classOf[UserActor], user, dbAccess)
 }
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private class UserActor(var user: UserInfo with Password) extends Actor with ActorLogging {
+private class UserActor(var user: UserInfo with Password)(implicit val dbAccess: DBAccess) extends Actor with ActorLogging {
+  println("instance created")
+  import dbAccess.schema._
+  import dbAccess.{db => DB}
   import Messages.internal._
   import Messages._
   import Events._

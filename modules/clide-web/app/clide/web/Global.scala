@@ -28,33 +28,36 @@ import scala.concurrent.Await
 import scala.concurrent.Promise
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
-
 import akka.actor.ActorRef
 import akka.util.Timeout
-import clide.actors.util.ServerForwarder
 import play.api.Application
 import play.api.GlobalSettings
 import play.api.Play.current
 import play.api.libs.concurrent.Akka
+import clide.Core
+import play.api.Logger
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-object Global extends GlobalSettings {
-  implicit val timeout      = Timeout(30 seconds)
-  private val serverForwarder = Promise[ActorRef]()
-
-  def server: ActorRef = {
-    import play.api.Play.current
-    implicit val dispatcher = Akka.system.dispatcher
-    Await.result(serverForwarder.future, 30 seconds)
-  }
-
-  override def onStart(app: Application) {
-    import play.api.Play.current
-    val serverPath = app.configuration.getString("server-path").get
-    serverForwarder.success {
-      Akka.system.actorOf(ServerForwarder(serverPath), "server")
+object Global extends GlobalSettings with Core {
+  private var serverRef: ActorRef = null 
+  def server = if (serverRef == null) {
+    Logger.info("creating user server")
+    serverRef = createUserServer()
+    serverRef
+  } else serverRef
+  
+  override def beforeStart(app: Application) {
+    try {
+      startup()
+    } catch {
+      case e => e.printStackTrace()
     }
+  }  
+  
+  override def onStop(app: Application) {
+    shutdown()
+    serverRef = null
   }
 }

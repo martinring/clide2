@@ -26,7 +26,7 @@
 
 import scala.slick.driver.ExtendedDriver
 
-class DAL(override val profile: ExtendedDriver) extends
+class Schema(override val profile: ExtendedDriver) extends
   FileTables with ProjectTables with UserTables with Profile with Mappers {
 
   import profile.simple._

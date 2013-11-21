@@ -28,17 +28,16 @@ import clide.models.ProjectInfo
 import java.io.File
 import akka.actor.ActorLogging
 import clide.models._
-import clide.Core.DB
-import clide.Core.DAL._
-import clide.Core.DAL.profile.simple._ // TODO: MOVE ALL TO SCHEMA
 import clide.actors._
+import clide.persistence.DBAccess
+import scala.slick.session.Session
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private[actors] object FolderActor {
-  def apply(project: ProjectInfo, parent: Option[FileInfo], name: String) =
-    Props(classOf[FolderActor], project, parent, name)
+  def props(project: ProjectInfo, parent: Option[FileInfo], name: String)(implicit dbAccess: DBAccess) =
+    Props(classOf[FolderActor], project, parent, name, dbAccess)
 }
 
 /**
@@ -46,9 +45,9 @@ private[actors] object FolderActor {
  *
  * @author Martin Ring <martin.ring@dfki.de>
  **/
-private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String) extends Actor
-                                                                           with ActorLogging
-                                                                           with FileEventSource {
+private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String)(implicit val dbAccess: DBAccess) extends Actor with ActorLogging with FileEventSource {
+  import dbAccess.schema._
+  import dbAccess.{db => DB}
   import Messages._
   import Events._
 
@@ -59,10 +58,10 @@ private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo]
   def file:     File          = new File(project.root + info.path.mkString(File.pathSeparator)) // TODO
 
   def getFolder(name: String) = context.child(name).getOrElse{
-    context.actorOf(FolderActor(project, Some(info), name),name) }
+    context.actorOf(FolderActor.props(project, Some(info), name),name) }
 
   def getFile(name: String) = context.child(name).getOrElse{
-    context.actorOf(FileActor(project, info, name),name) }
+    context.actorOf(FileActor.props(project, info, name),name) }
 
   def getExisting(name: String) = context.child(name).orElse {
     children.values.find(_.path.last == name).map { i =>
@@ -132,13 +131,12 @@ private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo]
       // the disk right now. For those cases we have to mark the
       // file as deleted and postpone the deletion. Otherwise we
       // can remove all evidences right away.
-      info = info.copy(deleted = true)
-      val q = FileInfos.get(info.id)
+      info = info.copy(deleted = true)      
       if (!file.delete()) {
-        DB.withSession { implicit session: Session => q.update(info) }
+        DB.withSession { implicit session: Session => FileInfos.update(info) }
         file.deleteOnExit() // HACK: Schedule deletion instead
       } else {
-        DB.withSession { implicit session: Session => q.delete }
+        DB.withSession { implicit session: Session => FileInfos.delete(info) }
       }
       triggerFileEvent(FileDeleted(info))
       context.stop(self)
@@ -151,10 +149,9 @@ private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo]
   }
 
   override def preStart = {
-    initFileEventSource()
-    val q = FileInfos.get(project, parent.map(_.path :+ name).getOrElse(Seq.empty))
+    initFileEventSource()    
     DB.withSession { implicit session: Session =>
-      q.firstOption match {
+      FileInfos.get(project, parent.map(_.path :+ name).getOrElse(Seq.empty)) match {
         case None => // The file did not previously exist
           info = FileInfos.create(
             project = project.id,
@@ -170,13 +167,13 @@ private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo]
         case Some(info) =>
           if (info.deleted) { // The file was in a deleted state
             this.info = info.copy(deleted = false)
-            q.update(this.info)
+            FileInfos.update(this.info)
             log.info("created file " + info)
             triggerFileEvent(FileCreated(info))
           } else {
             this.info = info
           }
-          this.children = FileInfos.getChildren(info.id).elements().map(i => i.id -> i).toMap
+          this.children = FileInfos.getChildren(info.id).map(i => i.id -> i).toMap
           log.info(this.children.toString)
       }
     }

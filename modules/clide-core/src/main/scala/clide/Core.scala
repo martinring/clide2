@@ -31,21 +31,27 @@ import clide.actors.UserServer
 import scala.slick.session.Database
 import scala.reflect.runtime.universe
 import scala.slick.driver.ExtendedDriver
-import clide.persistence.DAL
 import scala.slick.session.Session
+import com.typesafe.config.Config
+import clide.persistence.Schema
+import clide.persistence.DBAccess
 
-/**
- * This is the main entry point for the microkernel akka application. It sets up
- * the configuration and then starts an instance of a
- * [[clide.actors.UserServer `UserServer`]].
- *
- * @author Martin Ring <martin.ring@dfki.de>
- */
-object Core extends Bootable {
-  private val system   = ActorSystem("clide",ConfigFactory.load.getConfig("clide"))
-  private val config   = system.settings.config
-
-  private val profile = {
+trait Core {
+  private var config: Config = null 
+  private var system: ActorSystem = null
+  
+  def startup() {
+    config = ConfigFactory.load.getConfig("clide-core")
+    system = ActorSystem("clide", config)
+  }
+  
+  def shutdown() {
+    system.shutdown()
+    system = null
+    config = null
+  }
+  
+  private lazy val profile = {
     val runtimeMirror = universe.runtimeMirror(getClass.getClassLoader)
     val module = runtimeMirror.staticModule(config.getString("db.profile"))
     runtimeMirror.reflectModule(module).instance.asInstanceOf[ExtendedDriver]
@@ -56,34 +62,36 @@ object Core extends Bootable {
    * If you are unfamiliar with slick, you should have a look at the
    * <a href='http://slick.typesafe.com/docs/'>slick documentation</a>.
    */
-  lazy val DAL = new DAL(profile)
-
+  lazy val schema = new Schema(profile)  
+  
   /**
    * The database connection as configured in the `application.conf` file.
    */
-  lazy val DB = slick.session.Database.forURL(
+  lazy val db = slick.session.Database.forURL(
     url      = config.getString("db.url"),
     user     = config.getString("db.user"),
     password = config.getString("db.password"),
     driver   = config.getString("db.driver"))
-
+  
   /**
    * Starts up the server by creating an instance of
    * [[clide.actors.UserServer `UserServer`]]
    */
-  def startup() {
-    val server = Some(system.actorOf(UserServer(), "users"))
-  }
-
-  /**
-   * Stops the actor system (and all actors).
-   *
-   * @todo this should be more gentle in shutting down all actors.
-   */
-  def shutdown() {
-    system.shutdown()
+  def createUserServer() = {
+    if (system == null) sys.error("system uninitialized")
+    system.actorOf(UserServer.props(DBAccess(db, schema)), "users")    
   }
 }
+
+/**
+ * This is the main entry point for the microkernel akka application. It sets up
+ * the configuration and then starts an instance of a
+ * [[clide.actors.UserServer `UserServer`]].
+ *
+ * @author Martin Ring <martin.ring@dfki.de>
+ */
+object Core extends Core with Bootable
+
 
 /**
  * The CoreApp can be utilized to start an instance of the core server without
@@ -95,7 +103,7 @@ object CoreApp extends App {
   args match {
     case Array("schema") =>
       println("creating database schema")
-      Core.DB.withSession{ implicit session: Session => Core.DAL.create }
+      Core.db.withSession{ implicit session: Session => Core.schema.create }
     case _ =>
   }
   Core.startup()

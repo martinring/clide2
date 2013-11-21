@@ -75,8 +75,7 @@ object ApplicationBuild extends Build {
 
   val coreDependencies = Seq(
     akka.actor, akka.remote, akka.kernel, akka.testkit,
-    spray.json, scala.pickling,
-    scala.reflect,
+    spray.json, scala.reflect,
     slick,h2,slf4j,scalatest,scalacheck)
 
   val coreSettings =

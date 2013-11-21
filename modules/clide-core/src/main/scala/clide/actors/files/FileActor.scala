@@ -30,21 +30,22 @@ import java.io.File
 import clide.actors._
 import scala.collection.mutable.{Buffer,Map}
 import scala.util.{Failure,Success}
-import clide.Core.DB
-import clide.Core.DAL._
-import clide.Core.DAL.profile.simple._ // TODO: MOVE ALL TO SCHEMA
+import clide.persistence.DBAccess
+import scala.slick.session.Session
 
 private[actors] object FileActor {
-  def apply(project: ProjectInfo, parent: FileInfo, name: String) =
-    Props(classOf[FileActor], project, parent, name)
+  def props(project: ProjectInfo, parent: FileInfo, name: String)(implicit dbAccess: DBAccess) =
+    Props(classOf[FileActor], project, parent, name,dbAccess)
 }
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Actor
+private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: String)(implicit dbAccess: DBAccess) extends Actor
                                                                          with ActorLogging
                                                                          with FileEventSource {
+  import dbAccess.schema._
+  import dbAccess.{db => DB}
   import Messages._
   import Events._
 
@@ -142,7 +143,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
           // TODO
           log.warning("edit couldnt be applied")
         case Success(o) =>
-          DB.withSession { implicit session: Session => Revisions.insert(Revision(info.id,server.revision,o)) }
+          DB.withSession { implicit session: Session => Revisions.create(info.id,server.revision,o) }
           clients.keys.filter(_ != sender).foreach(_ ! Edited(info.id, o))
           sender ! AcknowledgeEdit(info.id)
       }
@@ -151,13 +152,12 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
       //
 
     case Delete => // TODO !!
-      info = info.copy(deleted = true)
-      val q = FileInfos.get(info.id)
+      info = info.copy(deleted = true)      
       if (info.exists && !file.delete()) {
-        DB.withSession { implicit session: Session => q.update(info) }
+        DB.withSession { implicit session: Session => FileInfos.update(info) }
         file.deleteOnExit() // HACK: Schedule deletion instead
       } else {
-        DB.withSession { implicit session: Session => q.delete }
+        DB.withSession { implicit session: Session => FileInfos.delete(info) }
       }
       triggerFileEvent(FileDeleted(info))
       context.stop(self)
@@ -173,10 +173,9 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
   }
 
   override def preStart() {
-    initFileEventSource()
-    val q = FileInfos.get(project, parent.path :+ name)
+    initFileEventSource()    
     DB.withSession { implicit session: Session =>
-      q.firstOption match {
+      FileInfos.get(project, parent.path :+ name) match {
         case None => // The file did not previously exist
           info = FileInfos.create(
             project = project.id,
@@ -205,7 +204,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
         case Some(info) =>
           if (info.deleted) { // The file was in a deleted state
             this.info = info.copy(deleted = false)
-            q.update(this.info)
+            FileInfos.update(this.info)
             log.info("file created: " + info)
             triggerFileEvent(FileCreated(this.info))
           } else {

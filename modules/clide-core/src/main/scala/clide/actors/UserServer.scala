@@ -25,22 +25,24 @@ package clide.actors
 
 import akka.actor._
 import clide.models._
-import clide.Core.DB
-import clide.Core.DAL._
 import slick.session.Session
+import scala.slick.session.Database
+import clide.persistence.DBAccess
 
 /**
  *
  * @author Martin Ring <martin.ring@dfki.de>
  */
 object UserServer {
-  private[clide] def apply() = Props[UserServer]
+  private[clide] def props(implicit dbAccess: DBAccess) = Props(classOf[UserServer], dbAccess)
 }
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private class UserServer extends Actor with ActorLogging {
+private class UserServer(implicit val dbAccess: DBAccess) extends Actor with ActorLogging {  
+  import dbAccess.schema._
+  import dbAccess.{db => DB}
   import Messages.internal._
   import Messages._
   import Events._
@@ -59,7 +61,7 @@ private class UserServer extends Actor with ActorLogging {
         }
         else {
           UserInfos.insert(user)
-          context.actorOf(UserActor(user), user.name)
+          context.actorOf(UserActor.props(user), user.name)
 	      sender ! SignedUp(user)
 	      context.system.eventStream.publish(SignedUp(user))
         }
@@ -87,7 +89,7 @@ private class UserServer extends Actor with ActorLogging {
     DB.withSession { implicit session: Session =>
       users = UserInfos.getAll.toList
     }
-    users.foreach { user => context.actorOf(UserActor(user), user.name) }
+    users.foreach { user => context.actorOf(UserActor.props(user), user.name) }
     log.info("waiting for requests")
   }
 }
