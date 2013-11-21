@@ -2,17 +2,18 @@
   <div class='row'>
     <div class='col-sm-5 col-sm-offset-1 col-lg-4 col-lg-offset-2'>
       <h2 title='version {{version}}'>Welcome to clide</h2>
+      <p>
+      Please enter your credentials
+      </p>
       <form name='loginForm' role='form'>
         <p class='text-danger' ng-bind="error['']" ng-show="error['']"></p>
         <div class="form-group" ng-class='{"has-error": error.username}'>
-          <label for='username'>username:</label>
           <span class='text-danger pull-right' ng-bind="error['username']" ng-show="error['username']"></span>
-          <input class='form-control' type='text' name='username' id='username' ng-model='data.username' required autofocus>
+          <input class='form-control' type='text' name='username' id='username' placeholder='username' ng-model='data.username' required autofocus>
         </div>
         <div class="form-group" ng-class='{"has-error": error.password}'>
-          <label for='password'>password:</label>
           <span class='text-danger pull-right' ng-bind="error['password']" ng-show="error['password']"></span>
-          <input class='form-control' type='password' id='password' name='password' ng-model='data.password' required>
+          <input class='form-control' type='password' id='password' name='password' placeholder='password' ng-model='data.password' required>
         </div>
         <label for='staySignedIn' class='checkbox-inline'>
           <span class="icons">
@@ -24,7 +25,7 @@
         <div class='pull-right'>
           <a class='btn btn-link' href='/signup'>Sign Up</a>
           <button type='submit' class='btn btn-primary' ng-click='login()' ng-disabled='!loginForm.$valid || app.wait'>
-            <i class="icon-signin"></i> Login
+            <i class="fa fa-sign-in"></i> Login
           </button>
         </div>
       </form>

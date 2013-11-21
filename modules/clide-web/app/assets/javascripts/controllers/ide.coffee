@@ -158,13 +158,13 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
         text: 'Open'
         action: -> $scope.openFile(file)
       ,
-        icon: 'trash'
+        icon: 'trash-o'
         text: 'Delete'
         action: -> $scope.deleteFile(file)
       ]
     else
       openOrClose = if $scope.session.me.activeFile is file.id
-          icon: 'remove'
+          icon: 'times'
           text: 'Close'
           action: -> $scope.closeFile(file.id)
         else
@@ -172,7 +172,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
           text: 'Edit'
           action: -> $scope.openFile(file)
       [ openOrClose,
-        icon: 'trash'
+        icon: 'trash-o'
         text: 'Delete'
         action: -> $scope.deleteFile(file)
       ]

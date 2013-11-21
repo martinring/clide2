@@ -54,7 +54,7 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
 
   $scope.projectContextMenu = (project) ->
     [
-      icon: 'trash'
+      icon: 'trash-o'
       text: "delete '#{project.name}'"
       action: -> $scope.deleteProject(project)
     ]
