@@ -30,6 +30,7 @@ import akka.sbt.AkkaKernelPlugin
 import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions}
 import Dependencies._
 import Util._
+import scalajs.sbtplugin.ScalaJSPlugin._
 
 
 object ApplicationBuild extends Build {
@@ -90,6 +91,33 @@ object ApplicationBuild extends Build {
     base = file("modules/clide-core"))
     .settings(coreSettings:_*)
     .configs(Atmos)
+
+  // Collaboration
+  // ===========================================================================
+
+  val collaborationDependencies = Seq()
+
+  val collaborationSettings = commonSettings
+
+  val collaboration = Project(
+    id   = "clide-collaboration",
+    base = file("modules/clide-collaboration"))
+    .settings(collaborationSettings:_*)
+
+  // Client
+  // ===========================================================================
+
+  val clientDependencies = Seq(scala.pickling)
+
+  val clientSettings = commonSettings ++ scalaJSSettings ++ Seq(
+    unmanagedSources in (Compile, ScalaJSKeys.packageJS) +=
+      sourceDirectory.value / "main" / "javascript" / "main.js")
+
+  val client = Project(
+    id   = "clide-client",
+    base = file("modules/clide-client"))
+    .settings(clientSettings:_*)
+    .dependsOn(collaboration)
 
   // Web
   // ===========================================================================
