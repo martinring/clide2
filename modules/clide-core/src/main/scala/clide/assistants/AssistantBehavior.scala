@@ -104,9 +104,6 @@ trait AssistantBehavior {
   /**
    * called when some active collaborator moved the cursor in some file that
    * belongs to the assistants scope.
-   *
-   * @owner the collaborator that is the owner of the cursor
-   * @offset the new position of the cursor (as an absolute offset)
    */
   def cursorMoved(cursor: Cursor): Unit
 }

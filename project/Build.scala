@@ -29,15 +29,15 @@ import com.typesafe.sbt.SbtAtmos.{Atmos,atmosSettings}
 import akka.sbt.AkkaKernelPlugin
 import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions}
 import Dependencies._
+import Util._
 
 
 object ApplicationBuild extends Build {
   val v = "2.0-SNAPSHOT"
 
-  override def rootProject = Some(core)
+  override def rootProject = Some(web)
 
   val sonatypeSettings = Seq(
-    organization := "net.flatmap",
     publishMavenStyle := true,
     publishTo := {
       val nexus = "https://oss.sonatype.org/"
@@ -49,24 +49,21 @@ object ApplicationBuild extends Build {
     // To publish on maven-central, all required artifacts must also be hosted on maven central.
     // So we remove special repos from the pom
     //pomIncludeRepository := { _ => false },
-    licenses := Seq("GNU General Public License" -> url("http://www.gnu.org/licenses/lgpl.html")),
-    homepage := Some(url("http://clide.flatmap.net")),
-    pomExtra := (
-      <scm>
-        <url>git@github.com:martinring/clide2.git</url>
-        <connection>scm:git:git@github.com:martinring/clide2.git</connection>
-      </scm>
-      <developers>
-        <developer>
-          <id>martinring</id>
-          <name>Martin Ring</name>
-          <url>http://gihub.com/martinring</url>
-        </developer>
-      </developers>),
+    pomExtra := Developers(
+      Developer("martinring", "Martin Ring", url("http://github.com/martinring"))),
     publishArtifact in Test := false)
 
   val commonSettings = sonatypeSettings ++ Seq(
     version := v,
+    organization := "net.flatmap",
+    organizationName := "flatmap",
+    organizationHomepage := Some(url("http://www.flatmap.net")),
+    startYear := Some(2012),
+    licenses := Seq("GNU Lesser General Public License" -> url("http://www.gnu.org/licenses/lgpl.html")),
+    homepage := Some(url("http://clide.flatmap.net")),
+    scmInfo := Some(ScmInfo(
+      browseUrl = url("https://github.com/martinring/clide2"),
+      connection = "scm:git:git@github.com:martinring/clide2.git")),
     scalaVersion := scala.version,
     scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"))
 

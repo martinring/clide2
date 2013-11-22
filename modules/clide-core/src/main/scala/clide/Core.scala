@@ -58,7 +58,7 @@ trait Core {
   }
 
   /**
-   * The Data Access Layer. (see [[clide.persistence.DAL `clide.persistence.DAL`]])
+   * The Data Access Layer. (see [[clide.persistence.Schema `clide.persistence.Schema`]])
    * If you are unfamiliar with slick, you should have a look at the
    * <a href='http://slick.typesafe.com/docs/'>slick documentation</a>.
    */
