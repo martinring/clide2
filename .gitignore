@@ -21,3 +21,4 @@ bin
 /data.trace.db
 /files
 /data.*
+*.exe
