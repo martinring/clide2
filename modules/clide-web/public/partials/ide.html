@@ -207,7 +207,7 @@
         </div>
         <div id="output">
           <div ng-if='showChat'>
-            <form ng-submit='chat()' name='chatForm'>
+            <form ng-submit='chat(chatMessage);chatMessage=""' name='chatForm'>
               <div class='input-group'>
                 <input ng-model='chatMessage' class='form-control' required>
                 <span class='input-group-btn'>
