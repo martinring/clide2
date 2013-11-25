@@ -16,20 +16,22 @@ trait JQLite extends Object {
   def eq()
   def find()
   def hasClass()
-  def html()
+  def html(): String
+  def html(value: String): JQLite
   def next()
   def on()
   def off()
   def parent()
   def prepend()
   def prop()
-  def ready(fn: Function0[Any]): Any 
+  def ready(fn: Function0[Any]): JQLite 
   def remove()
   def removeAttr()
-  def removeClass()
+  def removeClass(className: String): JQLite
   def removeData()
   def replaceWith()
-  def text()
+  def text(): String
+  def text(value: String): JQLite
   def toggleClass()
   def triggerHandler()
   def unbind()  

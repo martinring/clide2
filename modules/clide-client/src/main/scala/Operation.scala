@@ -22,46 +22,23 @@
 **   If not, see <http://www.gnu.org/licenses/>.                              **
 \*                                                                            */
 
+/**
+ * @author Martin Ring
+ */
 package clide.collaboration
 
-import scala.reflect.ClassTag
-import akka.actor.{Actor,ActorRef,Props}
-import scala.util.{Try,Success,Failure}
-import akka.actor.ActorLogging
-import scala.collection.mutable.Buffer
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
+import scala.annotation.tailrec
+import clide.util.compare._
 
-class Server(initialState: Document) {
-  private val history: Buffer[Operation] = Buffer.empty
-  private var state: Document = initialState
+sealed trait Operation { def length: Int }
+case object Noop extends Operation { val length = 0 }
+case class Retain(length: Int, next: Operation) extends Operation
+case class Insert(text: String, next: Operation) extends Operation { def length = text.length }
+case class Delete(length: Int, next: Operation) extends Operation
 
-  def text = state.content
-  def revision = history.length
-  def getHistory = history.view
-
-  def applyOperation(operation: Operation, rev: Long): Try[Operation] = {
-    val result = for {
-	  concurrentOps <- Try {
-	    require((0 to revision) contains rev, "invalid revision: " + rev)
-	    history.view(rev.toInt, revision) // TODO: Long Revisions
-	  }
-	  operation <- concurrentOps.foldLeft(Success(operation): Try[Operation]) {
-	    case (a,b) => a.flatMap(a => Operation.transform(a,b).map(_._1)) }
-	  nextState <- state(operation)
-	} yield (nextState, operation)
-	result.map {
-	  case (nextState,operation) =>
-	    history.append(operation)
-	    state = nextState
-	    operation
-	}
-  }
-
-  def transformAnnotation(rev: Int, as: Annotations): Try[Annotations] = for {
-      concurrentOps <- Try {
-        require((0 to revision) contains rev, "invalid revision: " + rev)
-        history.view(rev, revision)
-      }
-      annotation <- concurrentOps.foldLeft(Success(as): Try[Annotations]) {
-        case (a,b) => a.flatMap(a => Annotations.transform(a,b)) }
-  } yield annotation
+object Operation {
+  
 }

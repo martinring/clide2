@@ -68,6 +68,28 @@ object ApplicationBuild extends Build {
     scalaVersion := scala.version,
     scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"))
 
+  // Collaboration
+  // ===========================================================================
+
+  val collaborationDependencies = Seq.empty
+
+  val collaborationSettings = commonSettings
+
+  val collaboration = Project(
+    id   = "clide-collaboration",
+    base = file("modules/clide-collaboration"))
+    .settings(collaborationSettings:_*)
+
+  //val collaborationJSSettings = collaborationSettings ++ scalaJSSettings ++ Seq(
+  //  sourceDirectory := (sourceDirectory in collaboration).value,
+  //  unmanagedSources in (Compile, ScalaJSKeys.packageJS) +=
+  //    baseDirectory.value / "src" / "main" / "javascript" / "export.js")
+  //
+  //  val collaborationJS = Project(
+  //    id = "clide-collaboration-js",
+  //    base = file("modules/clide-collaboration-js"))
+  //  .settings(collaborationJSSettings:_*)
+
   // Core
   // ===========================================================================
 
@@ -91,25 +113,25 @@ object ApplicationBuild extends Build {
     base = file("modules/clide-core"))
     .settings(coreSettings:_*)
     .configs(Atmos)
+    .dependsOn(collaboration)
 
-  // Collaboration
+  // Scala-JS-DOM
   // ===========================================================================
 
-  val collaborationDependencies = Seq()
-
-  val collaborationSettings = commonSettings
-
-  val collaboration = Project(
-    id   = "clide-collaboration",
-    base = file("modules/clide-collaboration"))
-    .settings(collaborationSettings:_*)
+  val domDependencies = Seq.empty
+  val domSettings = scalaJSSettings
+  val dom = Project(
+    id   = "scala-js-dom",
+    base = file("modules/scala-js-dom"))
+    .settings(domSettings:_*)
 
   // Client
   // ===========================================================================
 
-  val clientDependencies = Seq(scala.pickling)
+  val clientDependencies = Seq.empty
 
   val clientSettings = commonSettings ++ scalaJSSettings ++ Seq(
+    unmanagedSourceDirectories in Compile += (sourceDirectory in collaboration).value,
     unmanagedSources in (Compile, ScalaJSKeys.packageJS) +=
       sourceDirectory.value / "main" / "javascript" / "main.js")
 
@@ -117,9 +139,9 @@ object ApplicationBuild extends Build {
     id   = "clide-client",
     base = file("modules/clide-client"))
     .settings(clientSettings:_*)
-    .dependsOn(collaboration)
+    .dependsOn(dom)
 
-  // Web
+  // Web - Server
   // ===========================================================================
 
   val webDependencies = Seq(jscala,

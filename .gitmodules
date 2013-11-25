@@ -1,0 +1,3 @@
+[submodule "modules/scala-js-dom"]
+	path = modules/scala-js-dom
+	url = git://github.com/martinring/scala-js-dom
