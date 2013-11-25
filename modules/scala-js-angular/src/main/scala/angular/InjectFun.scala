@@ -1,0 +1,5 @@
+package angular
+
+class InjectFun {
+
+}

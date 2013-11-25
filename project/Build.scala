@@ -115,15 +115,25 @@ object ApplicationBuild extends Build {
     .configs(Atmos)
     .dependsOn(collaboration)
 
-  // Scala-JS-DOM
+  // scala.js libs
   // ===========================================================================
 
-  val domDependencies = Seq.empty
-  val domSettings = scalaJSSettings
   val dom = Project(
     id   = "scala-js-dom",
     base = file("modules/scala-js-dom"))
-    .settings(domSettings:_*)
+    .settings(scalaJSSettings:_*)
+
+  val jquery = Project(
+    id   = "scala-js-jquery",
+    base = file("modules/scala-js-jquery"))
+    .settings(scalaJSSettings:_*)
+    .dependsOn(dom)
+
+  val angular = Project(
+    id   = "scala-js-angular",
+    base = file("modules/scala-js-angular"))
+    .settings(scalaJSSettings:_*)
+    .dependsOn(dom,jquery)
 
   // Client
   // ===========================================================================
@@ -133,13 +143,13 @@ object ApplicationBuild extends Build {
   val clientSettings = commonSettings ++ scalaJSSettings ++ Seq(
     unmanagedSourceDirectories in Compile += (sourceDirectory in collaboration).value,
     unmanagedSources in (Compile, ScalaJSKeys.packageJS) +=
-      sourceDirectory.value / "main" / "javascript" / "main.js")
+      sourceDirectory.value / "main" / "javascript" / "startup.js")
 
   val client = Project(
     id   = "clide-client",
     base = file("modules/clide-client"))
     .settings(clientSettings:_*)
-    .dependsOn(dom)
+    .dependsOn(dom, angular)
 
   // Web - Server
   // ===========================================================================
