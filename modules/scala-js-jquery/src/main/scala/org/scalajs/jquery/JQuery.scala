@@ -1,5 +1,6 @@
-package jquery
+package org.scalajs.jquery
 
+import org.scalajs.dom._
 import scala.scalajs.js._
 import scala.scalajs.js.annotation._
 
@@ -59,8 +60,8 @@ trait JQueryCallback extends Object {
 }
 
 trait JQueryGenericPromise[T] extends Object {
-  def then[U](onFulfill: Function1[T, U], onReject: Function1[Any, U]): JQueryGenericPromise[U] = ???
-  def then[U](onFulfill: Function1[T, U]): JQueryGenericPromise[U] = ???
+  def `then`[U](onFulfill: Function1[T, U], onReject: Function1[Any, U]): JQueryGenericPromise[U] = ???
+  def `then`[U](onFulfill: Function1[T, U]): JQueryGenericPromise[U] = ???
   // FIXME: def then[U](onFulfill: Function1[T, JQueryGenericPromise[U]], onReject: Function1[Any, U]): JQueryGenericPromise[U] = ???
   // FIXME: def then[U](onFulfill: Function1[T, JQueryGenericPromise[U]]): JQueryGenericPromise[U] = ???
   // FIXME: def then[U](onFulfill: Function1[T, U], onReject: Function1[Any, JQueryGenericPromise[U]]): JQueryGenericPromise[U] = ???
@@ -80,15 +81,15 @@ trait JQueryPromise[T] extends Object {
   def pipe(doneFilter: Function1[Any, Any], failFilter: Function1[Any, Any]): JQueryPromise[Any] = ???
   def pipe(doneFilter: Function1[Any, Any]): JQueryPromise[Any] = ???
   def pipe(): JQueryPromise[Any] = ???
-  def then[U](onFulfill: Function1[T, U], onReject: Function, onProgress: Function): JQueryPromise[U] = ???
-  def then[U](onFulfill: Function1[T, U], onReject: Function): JQueryPromise[U] = ???
-  def then[U](onFulfill: Function1[T, U]): JQueryPromise[U] = ???
+  def `then`[U](onFulfill: Function1[T, U], onReject: Function, onProgress: Function): JQueryPromise[U] = ???
+  def `then`[U](onFulfill: Function1[T, U], onReject: Function): JQueryPromise[U] = ???
+  def `then`[U](onFulfill: Function1[T, U]): JQueryPromise[U] = ???
   // FIXME: def then[U](onFulfill: Function1[T, JQueryGenericPromise[U]], onReject: Function, onProgress: Function): JQueryPromise[U] = ???
   // FIXME: def then[U](onFulfill: Function1[T, JQueryGenericPromise[U]], onReject: Function): JQueryPromise[U] = ???
   // FIXME: def then[U](onFulfill: Function1[T, JQueryGenericPromise[U]]): JQueryPromise[U] = ??? 
-  def then[U](onFulfill: Function, onReject: Function, onProgress: Function): JQueryPromise[U] = ???
-  def then[U](onFulfill: Function, onReject: Function): JQueryPromise[U] = ???
-  def then[U](onFulfill: Function): JQueryPromise[U] = ???
+  def `then`[U](onFulfill: Function, onReject: Function, onProgress: Function): JQueryPromise[U] = ???
+  def `then`[U](onFulfill: Function, onReject: Function): JQueryPromise[U] = ???
+  def `then`[U](onFulfill: Function): JQueryPromise[U] = ???
 }
 
 trait JQueryDeferred[T] extends JQueryPromise[T] {

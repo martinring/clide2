@@ -1,32 +1,24 @@
-package angular
+package org.scalajs.angular
 
 import scala.scalajs.js._
 import scala.scalajs.js.annotation._
-import jquery.js._
+import org.scalajs.jquery._
+import org.scalajs.dom._
 
-package js {
-trait Injectable extends Object {
-  var `$inject`: Array[String] = _
-}
-
-package ng {
-
-@JSName("ng.IServiceProvider")
 trait IServiceProvider extends Object {
   def `$get`(): Dynamic = ???
 }
 
-@JSName("ng.IAngularStatic")
-trait IAngularStatic extends Object {
+package object angular extends Object {
   def bind(context: Any, fn: Function, args: Any*): Function = ???
-  def bootstrap(element: String, modules: Array[Any]): auto.IInjectorService = ???
-  def bootstrap(element: String): auto.IInjectorService = ???
+  def bootstrap(element: String, modules: Array[Any]): IInjectorService = ???
+  def bootstrap(element: String): IInjectorService = ???
   //def bootstrap(element: JQuery, modules: Array[Any]): auto.IInjectorService = ???
   //def bootstrap(element: JQuery): auto.IInjectorService = ???
-  def bootstrap(element: Element, modules: Array[Any]): auto.IInjectorService = ???
-  def bootstrap(element: Element): auto.IInjectorService = ???
-  def bootstrap(element: Document, modules: Array[Any]): auto.IInjectorService = ???
-  def bootstrap(element: Document): auto.IInjectorService = ???
+  def bootstrap(element: Element, modules: Array[Any]): IInjectorService = ???
+  def bootstrap(element: Element): IInjectorService = ???
+  def bootstrap(element: Document, modules: Array[Any]): IInjectorService = ???
+  def bootstrap(element: Document): IInjectorService = ???
   def copy(source: Any, destination: Any): Dynamic = ???
   def copy(source: Any): Dynamic = ???
   val element: JQueryStatic = ???
@@ -37,8 +29,8 @@ trait IAngularStatic extends Object {
   def fromJson(json: String): Dynamic = ???
   def identity(arg: Any): Dynamic = ???
   def identity(): Dynamic = ???
-  def injector(modules: Array[Any]): auto.IInjectorService = ???
-  def injector(): auto.IInjectorService = ???
+  def injector(modules: Array[Any]): IInjectorService = ???
+  def injector(): IInjectorService = ???
   def isArray(value: Any): Boolean = ???
   def isDate(value: Any): Boolean = ???
   def isDefined(value: Any): Boolean = ???
@@ -59,7 +51,6 @@ trait IAngularStatic extends Object {
   var version: Any = _
 }
 
-@JSName("ng.IModule")
 trait IModule extends Object {
   def animation(name: String, animationFactory: Function): IModule = ???
   def animation(name: String, inlineAnnotadedFunction: Array[Any]): IModule = ???
@@ -94,7 +85,6 @@ trait IModule extends Object {
   var requires: Array[String] = _
 }
 
-@JSName("ng.IAttributes")
 trait IAttributes extends Object {
   @JSBracketAccess
   def apply(name: String): Any = ???
@@ -107,20 +97,18 @@ trait IAttributes extends Object {
   var $attr: Object = _
 }
 
-@JSName("ng.IFormController")
 trait IFormController extends Object {
   var `$pristine`: Boolean = _
   var `$dirty`: Boolean = _
   var `$valid`: Boolean = _
   var `$invalid`: Boolean = _
   var `$error`: Any = _
-  def `$addControl`(control: ng.INgModelController): Unit = ???
-  def `$removeControl`(control: ng.INgModelController): Unit = ???
+  def `$addControl`(control: INgModelController): Unit = ???
+  def `$removeControl`(control: INgModelController): Unit = ???
   def `$setDirty`(): Unit = ???
   def `$setPristine`(): Unit = ???
 }
 
-@JSName("ng.INgModelController")
 trait INgModelController extends Object {
   def `$render`(): Unit = ???
   def `$setValidity`(validationErrorKey: String, isValid: Boolean): Unit = ???
@@ -136,17 +124,14 @@ trait INgModelController extends Object {
   var `$invalid`: Boolean = _
 }
 
-@JSName("ng.IModelParser")
 trait IModelParser extends Object {
   def apply(value: Any): Dynamic = ???
 }
 
-@JSName("ng.IModelFormatter")
 trait IModelFormatter extends Object {
   def apply(value: Any): Dynamic = ???
 }
 
-@JSName("ng.IScope")
 trait IScope extends Object {
   def `$apply`(): Dynamic = ???
   def `$apply`(exp: String): Dynamic = ???
@@ -182,7 +167,6 @@ trait IScope extends Object {
   var `$$phase`: Any = _
 }
 
-@JSName("ng.IAngularEvent")
 trait IAngularEvent extends Object {
   var targetScope: IScope = _
   var currentScope: IScope = _
@@ -192,15 +176,12 @@ trait IAngularEvent extends Object {
   var stopPropagation: Function = _
 }
 
-@JSName("ng.IWindowService")
 trait IWindowService extends Window {
 }
 
-@JSName("ng.IBrowserService")
 trait IBrowserService extends Object {
 }
 
-@JSName("ng.ITimeoutService")
 trait ITimeoutService extends Object {
   def apply(func: Function, delay: Number, invokeApply: Boolean): IPromise[Any] = ???
   def apply(func: Function, delay: Number): IPromise[Any] = ???
@@ -208,7 +189,6 @@ trait ITimeoutService extends Object {
   def cancel(promise: IPromise[Any]): Boolean = ???
 }
 
-@JSName("ng.IIntervalService")
 trait IIntervalService extends Object {
   def apply(func: Function, delay: Number, count: Number, invokeApply: Boolean): IPromise[Any] = ???
   def apply(func: Function, delay: Number, count: Number): IPromise[Any] = ???
@@ -216,17 +196,14 @@ trait IIntervalService extends Object {
   def cancel(promise: IPromise[Any]): Boolean = ???
 }
 
-@JSName("ng.IFilterService")
 trait IFilterService extends Object {
   def apply(name: String): Function = ???
 }
 
-@JSName("ng.IFilterProvider")
 trait IFilterProvider extends IServiceProvider {
   def register(name: String, filterFactory: Function): IServiceProvider = ???
 }
 
-@JSName("ng.ILocaleService")
 trait ILocaleService extends Object {
   var id: String = _
   var NUMBER_FORMATS: ILocaleNumberFormatDescriptor = _
@@ -234,7 +211,6 @@ trait ILocaleService extends Object {
   var pluralCat: Function1[Any, String] = _
 }
 
-@JSName("ng.ILocaleNumberFormatDescriptor")
 trait ILocaleNumberFormatDescriptor extends Object {
   var DECIMAL_SEP: String = _
   var GROUP_SEP: String = _
@@ -242,7 +218,6 @@ trait ILocaleNumberFormatDescriptor extends Object {
   var CURRENCY_SYM: String = _
 }
 
-@JSName("ng.ILocaleNumberPatternDescriptor")
 trait ILocaleNumberPatternDescriptor extends Object {
   var minInt: Number = _
   var minFrac: Number = _
@@ -255,7 +230,6 @@ trait ILocaleNumberPatternDescriptor extends Object {
   var lgSize: Number = _
 }
 
-@JSName("ng.ILocaleDateTimeFormatDescriptor")
 trait ILocaleDateTimeFormatDescriptor extends Object {
   var MONTH: Array[String] = _
   var SHORTMONTH: Array[String] = _
@@ -272,7 +246,6 @@ trait ILocaleDateTimeFormatDescriptor extends Object {
   var shortTime: String = _
 }
 
-@JSName("ng.ILogService")
 trait ILogService extends Object {
   var debug: ILogCall = _
   var error: ILogCall = _
@@ -281,24 +254,20 @@ trait ILogService extends Object {
   var warn: ILogCall = _
 }
 
-@JSName("ng.ILogCall")
 trait ILogCall extends Object {
   def apply(args: Any*): Unit = ???
 }
 
-@JSName("ng.IParseService")
 trait IParseService extends Object {
   def apply(expression: String): ICompiledExpression = ???
 }
 
-@JSName("ng.ICompiledExpression")
 trait ICompiledExpression extends Object {
   def apply(context: Any, locals: Any): Dynamic = ???
   def apply(context: Any): Dynamic = ???
   def assign(context: Any, value: Any): Dynamic = ???
 }
 
-@JSName("ng.ILocationService")
 trait ILocationService extends Object {
   def absUrl(): String = ???
   def hash(): String = ???
@@ -316,7 +285,6 @@ trait ILocationService extends Object {
   def url(url: String): ILocationService = ???
 }
 
-@JSName("ng.ILocationProvider")
 trait ILocationProvider extends IServiceProvider {
   def hashPrefix(): String = ???
   def hashPrefix(prefix: String): ILocationProvider = ???
@@ -324,11 +292,9 @@ trait ILocationProvider extends IServiceProvider {
   def html5Mode(active: Boolean): ILocationProvider = ???
 }
 
-@JSName("ng.IDocumentService")
 trait IDocumentService extends Document {
 }
 
-@JSName("ng.IExceptionHandlerService")
 trait IExceptionHandlerService extends Object {
   def apply(exception: Error, cause: String): Unit = ???
   def apply(exception: Error): Unit = ???
@@ -338,7 +304,6 @@ trait IExceptionHandlerService extends Object {
 //trait IRootElementService extends JQuery {
 //}
 
-@JSName("ng.IQService")
 trait IQService extends Object {
   def all(promises: Array[IPromise[Any]]): IPromise[Array[Any]] = ???
   def defer[T](): IDeferred[T] = ???
@@ -347,7 +312,6 @@ trait IQService extends Object {
   def when[T](value: T): IPromise[T] = ???
 }
 
-@JSName("ng.IPromise")
 trait IPromise[T] extends Object {
   // FIXME: def then[TResult](successCallback: Function1[T, IHttpPromise[TResult]], errorCallback: Function1[Any, Any], notifyCallback: Function1[Any, Any]): IPromise[TResult] = ???
   //def then[TResult](successCallback: Function1[T, IHttpPromise[TResult]], errorCallback: Function1[Any, Any]): IPromise[TResult] = ???
@@ -364,7 +328,6 @@ trait IPromise[T] extends Object {
   def `finally`[TResult](finallyCallback: Function0[Any]): IPromise[TResult] = ???
 }
 
-@JSName("ng.IDeferred")
 trait IDeferred[T] extends Object {
   def resolve(value: T): Unit = ???
   def resolve(): Unit = ???
@@ -374,17 +337,14 @@ trait IDeferred[T] extends Object {
   var promise: IPromise[T] = _
 }
 
-@JSName("ng.IAnchorScrollService")
 trait IAnchorScrollService extends Object {
   def apply(): Unit = ???
 }
 
-@JSName("ng.IAnchorScrollProvider")
 trait IAnchorScrollProvider extends IServiceProvider {
   def disableAutoScrolling(): Unit = ???
 }
 
-@JSName("ng.ICacheFactoryService")
 trait ICacheFactoryService extends Object {
   def apply(cacheId: String, optionsMap: Any): ICacheObject = ???
   def apply(cacheId: String): ICacheObject = ???
@@ -392,7 +352,6 @@ trait ICacheFactoryService extends Object {
   def get(cacheId: String): ICacheObject = ???
 }
 
-@JSName("ng.ICacheObject")
 trait ICacheObject extends Object {
   def info(): Any = ???
   def put(key: String, value: Any): Unit = ???
@@ -403,7 +362,6 @@ trait ICacheObject extends Object {
   def destroy(): Unit = ???
 }
 
-@JSName("ng.ICompileService")
 trait ICompileService extends Object {
   def apply(element: String, transclude: ITemplateLinkingFunction, maxPriority: Number): ITemplateLinkingFunction = ???
   def apply(element: String, transclude: ITemplateLinkingFunction): ITemplateLinkingFunction = ???
@@ -416,19 +374,16 @@ trait ICompileService extends Object {
   //def apply(element: JQuery): ITemplateLinkingFunction = ???
 }
 
-@JSName("ng.ICompileProvider")
 trait ICompileProvider extends IServiceProvider {
   def directive(name: String, directiveFactory: Function): ICompileProvider = ???
   def directive(directivesMap: Any): ICompileProvider = ???
 }
 
-@JSName("ng.ITemplateLinkingFunction")
 trait ITemplateLinkingFunction extends Object {
   //def apply(scope: IScope, cloneAttachFn: Function2[JQuery, IScope, Any]): JQuery = ???
   def apply(scope: IScope): JQuery = ???
 }
 
-@JSName("ng.IControllerService")
 trait IControllerService extends Object {
   def apply(controllerConstructor: Function, locals: Any): Dynamic = ???
   def apply(controllerConstructor: Function): Dynamic = ???
@@ -436,13 +391,11 @@ trait IControllerService extends Object {
   def apply(controllerName: String): Dynamic = ???
 }
 
-@JSName("ng.IControllerProvider")
 trait IControllerProvider extends IServiceProvider {
   def register(name: String, controllerConstructor: Function): Unit = ???
   def register(name: String, dependencyAnnotadedConstructor: Array[Any]): Unit = ???
 }
 
-@JSName("ng.IHttpService")
 trait IHttpService extends Object {
   def apply(config: IRequestConfig): IHttpPromise[Any] = ???
   def get(url: String, RequestConfig: Any): IHttpPromise[Any] = ???
@@ -461,7 +414,6 @@ trait IHttpService extends Object {
   var pendingRequests: Array[Any] = _
 }
 
-@JSName("ng.IRequestConfig")
 trait IRequestConfig extends Object {
   var method: String = _
   var url: String = _
@@ -475,12 +427,10 @@ trait IRequestConfig extends Object {
   var timeout: Any = _
 }
 
-@JSName("ng.IHttpPromiseCallback")
 trait IHttpPromiseCallback[T] extends Object {
   def apply(data: T, status: Number, headers: Function1[String, String], config: IRequestConfig): Unit = ???
 }
 
-@JSName("ng.IHttpPromiseCallbackArg")
 trait IHttpPromiseCallbackArg[T] extends Object {
   var data: T = _
   var status: Number = _
@@ -488,7 +438,6 @@ trait IHttpPromiseCallbackArg[T] extends Object {
   var config: IRequestConfig = _
 }
 
-@JSName("ng.IHttpPromise")
 trait IHttpPromise[T] extends IPromise[T] {
   def success(callback: IHttpPromiseCallback[T]): IHttpPromise[T] = ???
   def error(callback: IHttpPromiseCallback[T]): IHttpPromise[T] = ???
@@ -498,14 +447,12 @@ trait IHttpPromise[T] extends IPromise[T] {
   // FIXME: def then[TResult](successCallback: Function1[IHttpPromiseCallbackArg[T], IPromise[TResult]]): IPromise[TResult] = ???
 }
 
-@JSName("ng.IHttpProvider")
 trait IHttpProvider extends IServiceProvider {
   var defaults: IRequestConfig = _
   var interceptors: Array[Any] = _
   var responseInterceptors: Array[Any] = _
 }
 
-@JSName("ng.IHttpBackendService")
 trait IHttpBackendService extends Object {
   def apply(method: String, url: String, post: Any, callback: Function, headers: Any, timeout: Number, withCredentials: Boolean): Unit = ???
   def apply(method: String, url: String, post: Any, callback: Function, headers: Any, timeout: Number): Unit = ???
@@ -515,7 +462,6 @@ trait IHttpBackendService extends Object {
   def apply(method: String, url: String): Unit = ???
 }
 
-@JSName("ng.IInterpolateService")
 trait IInterpolateService extends Object {
   def apply(text: String, mustHaveExpression: Boolean): IInterpolationFunction = ???
   def apply(text: String): IInterpolationFunction = ???
@@ -523,12 +469,10 @@ trait IInterpolateService extends Object {
   def startSymbol(): String = ???
 }
 
-@JSName("ng.IInterpolationFunction")
 trait IInterpolationFunction extends Object {
   def apply(context: Any): String = ???
 }
 
-@JSName("ng.IInterpolateProvider")
 trait IInterpolateProvider extends IServiceProvider {
   def startSymbol(): String = ???
   def startSymbol(value: String): IInterpolateProvider = ???
@@ -536,15 +480,12 @@ trait IInterpolateProvider extends IServiceProvider {
   def endSymbol(value: String): IInterpolateProvider = ???
 }
 
-@JSName("ng.ITemplateCacheService")
 trait ITemplateCacheService extends ICacheObject {
 }
 
-@JSName("ng.IRootScopeService")
 trait IRootScopeService extends IScope {
 }
 
-@JSName("ng.ISCEService")
 trait ISCEService extends Object {
   def getTrusted(`type`: String, mayBeTrusted: Any): Dynamic = ???
   def getTrustedCss(value: Any): Dynamic = ???
@@ -566,25 +507,21 @@ trait ISCEService extends Object {
   def isEnabled(): Boolean = ???
 }
 
-@JSName("ng.ISCEProvider")
 trait ISCEProvider extends IServiceProvider {
   def enabled(value: Boolean): Unit = ???
 }
 
-@JSName("ng.ISCEDelegateService")
 trait ISCEDelegateService extends Object {
   def getTrusted(`type`: String, mayBeTrusted: Any): Dynamic = ???
   def trustAs(`type`: String, value: Any): Dynamic = ???
   def valueOf(value: Any): Dynamic = ???
 }
 
-@JSName("ng.ISCEDelegateProvider")
 trait ISCEDelegateProvider extends IServiceProvider {
   def resourceUrlBlacklist(blacklist: Array[Any]): Unit = ???
   def resourceUrlWhitelist(whitelist: Array[Any]): Unit = ???
 }
 
-@JSName("ng.IDirective")
 trait IDirective extends Object {
   var compile: Function3[Any, IAttributes, Function2[IScope, Function, Unit], Any] = _
   var controller: Any = _
@@ -630,9 +567,6 @@ trait IAugmentedJQuery extends JQuery {
   def inheritedData(): Dynamic = ???
 }*/
 
-package auto {
-
-@JSName("ng.auto.IInjectorService")
 trait IInjectorService extends Object {
   def annotate(fn: Function): Array[String] = ???
   def annotate(inlineAnnotadedFunction: Array[Any]): Array[String] = ???
@@ -644,23 +578,13 @@ trait IInjectorService extends Object {
   def invoke(func: Function): Dynamic = ???
 }
 
-@JSName("ng.auto.IProvideService")
 trait IProvideService extends Object {
   def constant(name: String, value: Any): Unit = ???
   def decorator(name: String, decorator: Function): Unit = ???
   def decorator(name: String, decoratorInline: Array[Any]): Unit = ???
-  def factory(name: String, serviceFactoryFunction: Function): ng.IServiceProvider = ???
-  def provider(name: String, provider: ng.IServiceProvider): ng.IServiceProvider = ???
-  def provider(name: String, serviceProviderConstructor: Function): ng.IServiceProvider = ???
-  def service(name: String, constructor: Function): ng.IServiceProvider = ???
-  def value(name: String, value: Any): ng.IServiceProvider = ???
-}
-
-}
-
-}
-}
-
-package object js extends GlobalScope {
-  var angular: ng.IAngularStatic = _
+  def factory(name: String, serviceFactoryFunction: Function): IServiceProvider = ???
+  def provider(name: String, provider: IServiceProvider): IServiceProvider = ???
+  def provider(name: String, serviceProviderConstructor: Function): IServiceProvider = ???
+  def service(name: String, constructor: Function): IServiceProvider = ???
+  def value(name: String, value: Any): IServiceProvider = ???
 }

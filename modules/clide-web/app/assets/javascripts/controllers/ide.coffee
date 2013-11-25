@@ -63,9 +63,12 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   $scope.editorFontSizeDefault = 12
   $scope.editorFontSize = $scope.editorFontSizeDefault
 
+  $scope.chatMessage = ''
   $scope.chat = () ->
-    Session.chat($scope.chatMessage)
-    $scope.chatMessage = ""
+    console.log $scope
+    if $scope.chatMessage? and $scope.chatMessage isnt ''
+      Session.chat($scope.chatMessage)
+      $scope.chatMessage = ''
 
   $scope.sidebar = true
   $scope.root = null
