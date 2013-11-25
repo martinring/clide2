@@ -146,6 +146,10 @@ case class HaskellBehavior(control: AssistantControl) extends AssistantBehavior 
       })
     }
   }
+    
+  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) {
+    
+  }
 }
 
 object HaskellApp extends App {
