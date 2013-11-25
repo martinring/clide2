@@ -102,6 +102,10 @@ case class IsabelleAssistantBehavior(control: AssistantControl) extends Assistan
   def cursorMoved(cursor: Cursor){
 
   }
+  
+  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) {
+    
+  }
 }
 
 object IsabelleApp extends App {

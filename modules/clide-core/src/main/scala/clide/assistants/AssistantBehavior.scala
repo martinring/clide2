@@ -106,4 +106,13 @@ trait AssistantBehavior {
    * belongs to the assistants scope.
    */
   def cursorMoved(cursor: Cursor): Unit
+  
+  /**
+   * called when a chat message arrives
+   * @param from username of the sender
+   * @param msg the message content
+   * @param tpe optional message type (TODO: Make enumeration)
+   * @param timestamp
+   */
+  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long): Unit
 }

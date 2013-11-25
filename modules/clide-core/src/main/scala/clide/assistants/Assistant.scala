@@ -172,6 +172,9 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           self ! Continue
       }
       context.become(working)
+    
+    case Talked(from, msg, tpe, timestamp) =>
+      behavior.receiveChatMessage(from,msg,tpe,timestamp)
 
     case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
       val ps = annotations.positions(AnnotationType.Class,"cursor")
