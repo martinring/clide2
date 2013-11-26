@@ -153,7 +153,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         case Success(_) =>
           self ! Continue
         case Failure(e) =>
-          log.error("there is a problem with the behavior: {}", e)
+          log.error(e, "there is a problem with the behavior")
           self ! Continue
       }
       context.become(working)
@@ -167,8 +167,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         case Success(_) =>
           self ! Continue
         case Failure(e) =>
-          log.error(e, "there is a problem with the behavior: {}", e.getMessage())
-          e.printStackTrace()
+          log.error(e, "there is a problem with the behavior")
           self ! Continue
       }
       context.become(working)
@@ -192,7 +191,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           case Success(_) =>
             self ! Continue
           case Failure(e) =>
-            log.error("there is a problem with the behavior: {}", e)
+            log.error(e, "there is a problem with the behavior")
             self ! Continue
         }
         context.become(working)
