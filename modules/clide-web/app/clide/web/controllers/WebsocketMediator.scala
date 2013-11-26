@@ -34,6 +34,7 @@ import akka.util.Timeout
 import scala.util.Success
 import scala.util.Failure
 import play.api.Logger
+import scala.concurrent.duration._
 
 object WebsocketMediator {
   case class Init(ref: ActorRef, msg: Message)
@@ -52,7 +53,7 @@ class WebsocketMediator extends Actor with ActorLogging {
       log.info("forwarding event socket")
       this.peer = peer
       context.watch(peer)
-      client ! out
+      client ! out    
     case e: Event =>
       log.info(e.toString())
       channel.push(e)
@@ -61,7 +62,8 @@ class WebsocketMediator extends Actor with ActorLogging {
       peer ! msg
     case Terminated(ref) =>
       log.info("terminated")
+      peer ! EOF
       channel.eofAndEnd()
-      context.stop(self)
+      context.stop(self)    
   }
 }
