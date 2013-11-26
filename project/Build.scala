@@ -123,20 +123,11 @@ object ApplicationBuild extends Build {
     base = file("modules/scala-js-dom"))
     .settings(scalaJSSettings:_*)
 
-  val jquery = Project(
-    id   = "scala-js-jquery",
-    base = file("modules/scala-js-jquery"))
-    .settings(scalaJSSettings:_*)
-    .settings(
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature")
-    )
-    .dependsOn(dom)
-
   val angular = Project(
     id   = "scala-js-angular",
     base = file("modules/scala-js-angular"))
     .settings(scalaJSSettings:_*)
-    .dependsOn(dom,jquery)
+    .dependsOn(dom)
 
   val codemirror = Project(
     id = "scala-js-codemirror",
