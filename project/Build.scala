@@ -94,6 +94,8 @@ object ApplicationBuild extends Build {
   // ===========================================================================
 
   val coreDependencies = Seq(
+    "ch.qos.logback" % "logback-classic" % "1.0.13",
+
     akka.actor, akka.remote, akka.kernel, akka.testkit,
     spray.json, scala.reflect,
     slick,h2,slf4j,scalatest,scalacheck)
@@ -154,8 +156,7 @@ object ApplicationBuild extends Build {
   // Web - Server
   // ===========================================================================
 
-  val webDependencies = Seq(jscala,
-    akka.remote, playplugins.mailer)
+  val webDependencies = Seq()
 
   val webSettings = Angular.defaultSettings ++ commonSettings ++ Seq(
     resolvers += Resolver.sonatypeRepo("snapshots"),
