@@ -2,7 +2,6 @@ package org.scalajs.angular
 
 import scala.scalajs.js._
 import scala.scalajs.js.annotation._
-import org.scalajs.jquery._
 import org.scalajs.dom._
 
 trait IServiceProvider extends Object {
@@ -21,7 +20,8 @@ package object angular extends Object {
   def bootstrap(element: Document): IInjectorService = ???
   def copy(source: Any, destination: Any): Dynamic = ???
   def copy(source: Any): Dynamic = ???
-  val element: JQueryStatic = ???
+  def element(html: String): JqLite = ???
+  def element(element: Element): JqLite = ???
   def equals(value1: Any, value2: Any): Boolean = ???
   def extend(destination: Any, sources: Any*): Dynamic = ???
   def forEach(obj: Any, iterator: Function2[Any, Any, Any], context: Any): Dynamic = ???
@@ -381,7 +381,7 @@ trait ICompileProvider extends IServiceProvider {
 
 trait ITemplateLinkingFunction extends Object {
   //def apply(scope: IScope, cloneAttachFn: Function2[JQuery, IScope, Any]): JQuery = ???
-  def apply(scope: IScope): JQuery = ???
+  def apply(scope: IScope): JqLite = ???
 }
 
 trait IControllerService extends Object {

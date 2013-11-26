@@ -4,6 +4,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 import org.scalajs.dom._
 
+@JSName("CodeMirror")
 class CodeMirror private () extends js.Object {  
   def this(host: HTMLElement) = this()
   def this(host: HTMLElement, options: EditorConfiguration) = this()
@@ -117,25 +118,24 @@ class Doc extends js.Object {
   def indexFromPos(`object`: Pos): js.Number = ???
 }
 
-@JSName("LineHandle")
+@JSName("CodeMirror.LineHandle")
 trait LineHandle extends js.Object {
   var text: js.String = _
 }
 
-@JSName("TextMarker")
+@JSName("CodeMirror.TextMarker")
 trait TextMarker extends js.Object {
   def clear(): js.Dynamic = ???
   def find(): Pos = ???
   def getOptions(copyWidget: js.Boolean): TextMarkerOptions = ???
 }
 
-@JSName("LineWidget")
+@JSName("CodeMirror.LineWidget")
 trait LineWidget extends js.Object {
   def clear(): Unit = ???
   def changed(): js.Dynamic = ???
 }
 
-@JSName("EditorChange")
 trait EditorChange extends js.Object {
   var from: Pos = _
   var to: Pos = _
@@ -143,12 +143,10 @@ trait EditorChange extends js.Object {
   var removed: js.String = _
 }
 
-@JSName("EditorChangeLinkedList")
 trait EditorChangeLinkedList extends EditorChange {
   var next: EditorChangeLinkedList = _
 }
 
-@JSName("EditorChangeCancellable")
 trait EditorChangeCancellable extends EditorChange {
   def update(from: Pos, to: Pos, text: js.String): js.Dynamic = ???
   def update(from: Pos, to: Pos): js.Dynamic = ???
@@ -157,13 +155,12 @@ trait EditorChangeCancellable extends EditorChange {
   def cancel(): js.Dynamic = ???
 }
 
-@JSName("Pos")
+@JSName("CodeMirror.Pos")
 trait Pos extends js.Object {
   var ch: js.Number = _
   var line: js.Number = _
 }
 
-@JSName("EditorConfiguration")
 trait EditorConfiguration extends js.Object {
   var value: js.Any = _
   var mode: js.Any = _
@@ -201,7 +198,6 @@ trait EditorConfiguration extends js.Object {
   var viewportMargin: js.Number = _
 }
 
-@JSName("TextMarkerOptions")
 trait TextMarkerOptions extends js.Object {
   var className: js.String = _
   var inclusiveLeft: js.Boolean = _
@@ -217,6 +213,7 @@ trait TextMarkerOptions extends js.Object {
   var shared: js.Boolean = _
 }
 
+@JSName("CodeMirror")
 object CodeMirror extends js.Object {
   def fromTextArea(host: HTMLTextAreaElement, options: EditorConfiguration): CodeMirror = ???
   def fromTextArea(host: HTMLTextAreaElement): CodeMirror = ???
