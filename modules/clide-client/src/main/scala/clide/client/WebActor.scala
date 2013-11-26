@@ -1,7 +1,17 @@
 package clide.client
 
-import scala.scalajs.js.WebSocket
+import org.scalajs.dom._
 
-class WebActor(url: String) {
-  private val socket = new WebSocket("")
+abstract class WebActor(url: String) {
+  private val socket = new WebSocket(url)  
+  type Receive = PartialFunction[Any,Unit]
+  def receive: Receive  
+  object Terminated
+  socket.onmessage = { e =>
+    
+  }
+  socket.onclose = { e =>
+    
+  }
+  
 }
