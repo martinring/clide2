@@ -47,6 +47,7 @@ trait Core {
   
   def shutdown() {
     system.shutdown()
+    system.awaitTermination()
     system = null
     config = null
   }
@@ -78,6 +79,7 @@ trait Core {
    * [[clide.actors.UserServer `UserServer`]]
    */
   def createUserServer() = {
+    db.withSession{ implicit session: Session => schema.create }
     if (system == null) sys.error("system uninitialized")
     system.actorOf(UserServer.props(DBAccess(db, schema)), "users")    
   }
@@ -100,12 +102,6 @@ object Core extends Core with Bootable
  * @author Martin Ring <martin.ring@dfki.de>
  */
 object CoreApp extends App {
-  args match {
-    case Array("schema") =>
-      println("creating database schema")
-      Core.db.withSession{ implicit session: Session => Core.schema.create }
-    case _ =>
-  }
   Core.startup()
   readLine()
   Core.shutdown()
