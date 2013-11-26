@@ -23,9 +23,10 @@
 ##                                                                            ##
 
 ### @controller controllers:AppController ###
-define -> ($scope, $location, Auth, Toasts, version) ->
+define -> ($scope, $location, Auth, Toasts, version, date) ->
   $scope.user = Auth.user
   $scope.version = version
+  $scope.date = new Date(date).toLocaleDateString()
   $scope.goBack = () ->
     window.history.back();
   $scope.logout = () ->
