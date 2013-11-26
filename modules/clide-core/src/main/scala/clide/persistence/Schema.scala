@@ -25,6 +25,7 @@
  package clide.persistence
 
 import scala.slick.driver.ExtendedDriver
+ import scala.slick.jdbc.meta.MTable
 
 class Schema(override val profile: ExtendedDriver) extends
   FileTables with ProjectTables with UserTables with Profile with Mappers {
@@ -41,7 +42,11 @@ class Schema(override val profile: ExtendedDriver) extends
     SessionInfos,
     UserInfos)
 
+  /**
+   * creates the tables, that don't exist already
+   */
   def create(implicit session: Session) {
-    tables.map(_.ddl).reduce(_++_).create
+    val ddls = for (table <- tables if !MTable.getTables.list.exists(_.name.name == table.tableName)) yield table.ddl    
+    if (ddls.nonEmpty) ddls.reduce(_++_).create
   }
 }
