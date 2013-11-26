@@ -154,8 +154,8 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
   override def preStart() {
     root = context.actorOf(FolderActor.props(info, None, "files"),"files")
     sessions = DB.withSession { implicit session =>
-      SessionInfos.getForProject(info.id).toSet
-      // TODO: Clean up unused sessions again
+      SessionInfos.cleanProject(info.id)
+      SessionInfos.getForProject(info.id).toSet      
     }
     log.info(s"project ${info.owner}/${info.name}")
   }

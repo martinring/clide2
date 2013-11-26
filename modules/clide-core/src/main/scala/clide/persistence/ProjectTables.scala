@@ -144,6 +144,22 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
       val q = for (i <- SessionInfos if i.id === id) yield i
       q.firstOption
     }
+     
+    // TODO: Make single query
+    def cleanProject(id: Long)(implicit session: Session) = {
+      // delete duplicates and keep newest
+      val newest = for {
+        (name,ss) <- SessionInfos.filter(_.projectId === id) groupBy (_.userName) 
+      } yield name -> ss.map(_.id).max
+      
+      val toDelete = for {        
+        (name,newest) <- newest.elements        
+      } {
+        SessionInfos.filter(other => other.projectId === id && other.userName === name && other.id =!= newest).delete
+      }
+      // set all sessions to inactive
+      Query(SessionInfos).map(_.active).update(false)
+    }
 
     def getForProject(id: Long)(implicit session: Session) = 
       Query(SessionInfos).filter(_.projectId === id).elements

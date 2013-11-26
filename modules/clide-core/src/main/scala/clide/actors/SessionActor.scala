@@ -218,8 +218,8 @@ private class SessionActor(
       context.parent.forward(Messages.internal.WrappedProjectMessage(user,level,msg))
   }
 
-  override def postStop() = DB.withSession { implicit session: Session =>
-    SessionInfos.update(this.session)
+  override def postStop() = DB.withSession { implicit session: Session =>    
+    SessionInfos.update(this.session.copy(active = false))
   }
 
   override def preRestart(reason:Throwable, message:Option[Any]){
