@@ -6,14 +6,13 @@ Clide2 (beta)
 Features
 --------
 
-* **Mobile** - The default front end of clide runs in the browser and utilizes state-of-the-art HTML5.
+* **Mobile** - The default front-end of clide runs in any modern browser and utilizes state-of-the-art HTML5 techniques while the back-end can be anywhere. That way you can do heavy theorem proving on your tablet if you wish.
 
-* **Collaborative** - The entire architecture is natively built around collaboration.
+* **Collaborative** - The entire architecture of clide is built around the concept collaboration.
 
-* **Extensible** - Clide introduces the concept of *universal collaboration*: the distinction between human and non-human collaborators is dropped.
+* **Extensible** - Clide introduces the concept of *universal collaboration*: the distinction between human and non-human collaborators is dropped, which allows for very rich plug-ins.
 
 * **Distributed** - All aspects of the development experience can be provided on different servers. Clide takes care of coordinating all those information and integrating them into a smooth user experience.
-
 
 Live Demo
 ---------
@@ -37,9 +36,13 @@ If you consider contributing to the project, you should first set up a local ins
 
 4. start the server with `bin/clide-web`.
 
-5. Use your browser (recommended is a current WebKit based or Internet Explorer 11) to navigate to `localhost:9000`.
+5. Use your (recently updated) HTML5-enabled browser to navigate to `localhost:9000`.
 
-You can then sign up as a new user, create projects and collaborate on files. But you will want to install additional *Assistant*-Servers in order to get semantic help and content assist functionality as you would expect from an IDE:
+Adjust `conf/application.conf` to your needs.
+
+You can then sign up a new user, create projects and collaborate on files.
+
+But you will want to install additional *Assistant*-Servers in order to get semantic help and content assist functionality as you would expect from an IDE:
 
 ```
 > TODO: Describe Isabelle Assistant Setup
