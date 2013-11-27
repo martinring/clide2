@@ -28,7 +28,7 @@ If you consider contributing to the project, you should first set up a local ins
 
 1. Download a copy of the current snapshot bundle from
 
-   > http://martin.flatmap.net/downloads/clide/clide-web-2.0-SNAPSHOT.zip
+   > http://martin.flatmap.net/clide/clide-web-2.0-SNAPSHOT.zip
 
 2. Unzip somewhere on your system
 
@@ -51,16 +51,18 @@ But you will want to install additional *Assistant*-Servers in order to get sema
 Building Assistants
 -------------------
 
-The clide-core dependency can be obtained from sonatype central maven repo.
+Assistants are standalone applications that connect a clide server via [akka remoting](http://doc.akka.io/docs/akka/snapshot/scala/remoting.html).
 
-Sbt:
+To build an assistant you must create a new project. (We will focus on sbt
+here, but it is also possible to use maven or something else to manage your project)
+
+You will then want to include the clide-core dependency which can be obtained from sonatype central maven repo.
 
 ```
-"net.flatmap" %% "clide-core" % "2.0-SNAPSHOT"
+libraryDependencies += "net.flatmap" %% "clide-core" % "2.0-SNAPSHOT"
 ```
 
-
-Maven:
+The corresponding maven dependency would be
 
 ```
 <dependency>
@@ -69,6 +71,31 @@ Maven:
   <version>2.0-SNAPSHOT</version>
 </dependency>
 ```
+
+You must also add the Sonatype snapshot repo as a resolver as there is no
+stable release of clide yet:
+
+```
+resolvers += Resolver.sonatypeRepo("snapshots")
+```
+
+Now the entry point for the creation of an Assistant is the abstract class `AssistantServer` which expects a constructor for an `AssistantBehavior` as an argument.
+
+```
+object Example extends AssistantServer(ExampleBehavior)
+```
+
+You can now define the Behavior as an implementation of `AssistantBehavior`
+
+```
+case class ExampleBehavior(control: AssistantControl) extends AssistantBehavior {
+  ...
+}
+```
+
+There are a number of methods to implement here. You can consult the [API doc](http://martin.flatmap.net/clide/api/#clide.assistants.AssistantBehavior).
+
+For now that is the way of creating assistants. This will possibly be changed in the future. Please be aware of the early beta state!
 
 License
 -------
