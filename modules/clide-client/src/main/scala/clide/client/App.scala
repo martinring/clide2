@@ -1,19 +1,19 @@
 package clide.client
 
 import scala.scalajs.js
-import org.scalajs.angular._
+import clide.client.libs._
 
-object App {  
-  import scala.scalajs.js.JsGlobal._
+object App {    
+  import DomGlobals._
   
-  def run() {
+  def init() {
     val clide = angular.module("clide", js.Array[js.String]())
-    clide.controllercontroller("AppController", js.Array("$scope", { (scope: js.Dynamic) =>
-	  scope.name = "It works"
+    clide.controller("AppController", js.Array[js.Any]("$scope", { ($scope: js.Dynamic with IScope) =>      
+	  $scope.name = "It works"
 	}))
-	angular.element(document).ready { () =>
-	  console.log("hallo")
-	  angular.bootstrap(document, js.Array[js.String]("clide"))
+	angular.element(document.asInstanceOf[Element]).ready { () =>
+	  console.log("ready")
+	  angular.bootstrap(document, js.Array[js.Any]("clide"))
 	}
   }
 }

@@ -1,6 +1,5 @@
-package org.scalajs.angular
+package clide.client.libs
 
-import org.scalajs.dom._
 import scala.scalajs.js.annotation._
 
 trait JqLite {

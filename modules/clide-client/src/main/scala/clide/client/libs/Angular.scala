@@ -1,14 +1,18 @@
-package org.scalajs.angular
+package clide.client.libs
 
 import scala.scalajs.js._
 import scala.scalajs.js.annotation._
-import org.scalajs.dom._
+
+trait Dependencies {
+  val dependencies: Array[String]
+  val constructor: Function
+}
 
 trait IServiceProvider extends Object {
   def `$get`(): Dynamic = ???
 }
 
-package object angular extends Object {
+object angular extends Object {
   def bind(context: Any, fn: Function, args: Any*): Function = ???
   def bootstrap(element: String, modules: Array[Any]): IInjectorService = ???
   def bootstrap(element: String): IInjectorService = ???
@@ -98,15 +102,15 @@ trait IAttributes extends Object {
 }
 
 trait IFormController extends Object {
-  var `$pristine`: Boolean = _
-  var `$dirty`: Boolean = _
-  var `$valid`: Boolean = _
-  var `$invalid`: Boolean = _
-  var `$error`: Any = _
-  def `$addControl`(control: INgModelController): Unit = ???
-  def `$removeControl`(control: INgModelController): Unit = ???
-  def `$setDirty`(): Unit = ???
-  def `$setPristine`(): Unit = ???
+  var $pristine: Boolean = _
+  var $dirty: Boolean = _
+  var $valid: Boolean = _
+  var $invalid: Boolean = _
+  var $error: Any = _
+  def $addControl(control: INgModelController): Unit = ???
+  def $removeControl(control: INgModelController): Unit = ???
+  def $setDirty(): Unit = ???
+  def $setPristine(): Unit = ???
 }
 
 trait INgModelController extends Object {
@@ -133,38 +137,38 @@ trait IModelFormatter extends Object {
 }
 
 trait IScope extends Object {
-  def `$apply`(): Dynamic = ???
-  def `$apply`(exp: String): Dynamic = ???
-  def `$apply`(exp: Function1[IScope, Any]): Dynamic = ???
-  def `$broadcast`(name: String, args: Any*): IAngularEvent = ???
-  def `$destroy`(): Unit = ???
-  def `$digest`(): Unit = ???
-  def `$emit`(name: String, args: Any*): IAngularEvent = ???
-  def `$eval`(expression: String, args: Object): Dynamic = ???
-  def `$eval`(expression: String): Dynamic = ???
-  def `$eval`(expression: Function1[IScope, Any], args: Object): Dynamic = ???
-  def `$eval`(expression: Function1[IScope, Any]): Dynamic = ???
-  def `$evalAsync`(expression: String): Unit = ???
-  def `$evalAsync`(expression: Function1[IScope, Any]): Unit = ???
-  def `$new`(isolate: Boolean): IScope = ???
-  def `$new`(): IScope = ???
-  def `$on`(name: String, listener: Function): Function = ???
-  def `$watch`(watchExpression: String, listener: String, objectEquality: Boolean): Function = ???
-  def `$watch`(watchExpression: String, listener: String): Function = ???
-  def `$watch`(watchExpression: String): Function = ???
-  def `$watch`(watchExpression: String, listener: Function3[Any, Any, IScope, Any], objectEquality: Boolean): Function = ???
-  def `$watch`(watchExpression: String, listener: Function3[Any, Any, IScope, Any]): Function = ???
-  def `$watch`(watchExpression: Function1[IScope, Any], listener: String, objectEquality: Boolean): Function = ???
-  def `$watch`(watchExpression: Function1[IScope, Any], listener: String): Function = ???
-  def `$watch`(watchExpression: Function1[IScope, Any]): Function = ???
-  def `$watch`(watchExpression: Function1[IScope, Any], listener: Function3[Any, Any, IScope, Any], objectEquality: Boolean): Function = ???
-  def `$watch`(watchExpression: Function1[IScope, Any], listener: Function3[Any, Any, IScope, Any]): Function = ???
-  def `$watchCollection`(watchExpression: String, listener: Function3[Any, Any, IScope, Any]): Function = ???
-  def `$watchCollection`(watchExpression: Function1[IScope, Any], listener: Function3[Any, Any, IScope, Any]): Function = ???
-  var `$parent`: IScope = _
-  var `$id`: Number = _
-  var `$$isolateBindings`: Any = _
-  var `$$phase`: Any = _
+  def $apply(): Dynamic = ???
+  def $apply(exp: String): Dynamic = ???
+  def $apply(exp: Function1[IScope, Any]): Dynamic = ???
+  def $broadcast(name: String, args: Any*): IAngularEvent = ???
+  def $destroy(): Unit = ???
+  def $digest(): Unit = ???
+  def $emit(name: String, args: Any*): IAngularEvent = ???
+  def $eval(expression: String, args: Object): Dynamic = ???
+  def $eval(expression: String): Dynamic = ???
+  def $eval(expression: Function1[IScope, Any], args: Object): Dynamic = ???
+  def $eval(expression: Function1[IScope, Any]): Dynamic = ???
+  def $evalAsync(expression: String): Unit = ???
+  def $evalAsync(expression: Function1[IScope, Any]): Unit = ???
+  def $new(isolate: Boolean): IScope = ???
+  def $new(): IScope = ???
+  def $on(name: String, listener: Function): Function = ???
+  def $watch(watchExpression: String, listener: String, objectEquality: Boolean): Function = ???
+  def $watch(watchExpression: String, listener: String): Function = ???
+  def $watch(watchExpression: String): Function = ???
+  def $watch(watchExpression: String, listener: Function3[Any, Any, IScope, Any], objectEquality: Boolean): Function = ???
+  def $watch(watchExpression: String, listener: Function3[Any, Any, IScope, Any]): Function = ???
+  def $watch(watchExpression: Function1[IScope, Any], listener: String, objectEquality: Boolean): Function = ???
+  def $watch(watchExpression: Function1[IScope, Any], listener: String): Function = ???
+  def $watch(watchExpression: Function1[IScope, Any]): Function = ???
+  def $watch(watchExpression: Function1[IScope, Any], listener: Function3[Any, Any, IScope, Any], objectEquality: Boolean): Function = ???
+  def $watch(watchExpression: Function1[IScope, Any], listener: Function3[Any, Any, IScope, Any]): Function = ???
+  def $watchCollection(watchExpression: String, listener: Function3[Any, Any, IScope, Any]): Function = ???
+  def $watchCollection(watchExpression: Function1[IScope, Any], listener: Function3[Any, Any, IScope, Any]): Function = ???
+  var $parent: IScope = _
+  var $id: Number = _
+  var $$isolateBindings: Any = _
+  var $$phase: Any = _
 }
 
 trait IAngularEvent extends Object {
@@ -319,9 +323,12 @@ trait IPromise[T] extends Object {
   //def then[TResult](successCallback: Function1[T, IPromise[TResult]], errorCallback: Function1[Any, Any], notifyCallback: Function1[Any, Any]): IPromise[TResult] = ???
   //def then[TResult](successCallback: Function1[T, IPromise[TResult]], errorCallback: Function1[Any, Any]): IPromise[TResult] = ???
   //def then[TResult](successCallback: Function1[T, IPromise[TResult]]): IPromise[TResult] = ???
-  def then[TResult](successCallback: Function1[T, TResult], errorCallback: Function1[Any, TResult], notifyCallback: Function1[Any, Any]): IPromise[TResult] = ???
-  def then[TResult](successCallback: Function1[T, TResult], errorCallback: Function1[Any, TResult]): IPromise[TResult] = ???
-  def then[TResult](successCallback: Function1[T, TResult]): IPromise[TResult] = ???
+  @JsName("then")
+  def andThen[TResult](successCallback: Function1[T, TResult], errorCallback: Function1[Any, TResult], notifyCallback: Function1[Any, Any]): IPromise[TResult] = ???
+  @JsName("then")
+  def andThen[TResult](successCallback: Function1[T, TResult], errorCallback: Function1[Any, TResult]): IPromise[TResult] = ???
+  @JsName("then")
+  def andThen[TResult](successCallback: Function1[T, TResult]): IPromise[TResult] = ???
   // FIXME:def `catch`[TResult](onRejected: Function1[Any, IHttpPromise[TResult]]): IPromise[TResult] = ???
   //def `catch`[TResult](onRejected: Function1[Any, IPromise[TResult]]): IPromise[TResult] = ???
   def `catch`[TResult](onRejected: Function1[Any, TResult]): IPromise[TResult] = ???

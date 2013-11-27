@@ -54,7 +54,7 @@ object Global extends GlobalSettings with Core {
     } catch {
       case e => e.printStackTrace()
     }
-  }  
+  }
   
   override def onStop(app: Application) {
     shutdown()

@@ -117,26 +117,6 @@ object ApplicationBuild extends Build {
     .configs(Atmos)
     .dependsOn(collaboration)
 
-  // scala.js libs
-  // ===========================================================================
-
-  val dom = Project(
-    id   = "scala-js-dom",
-    base = file("modules/scala-js-dom"))
-    .settings(scalaJSSettings:_*)
-
-  val angular = Project(
-    id   = "scala-js-angular",
-    base = file("modules/scala-js-angular"))
-    .settings(scalaJSSettings:_*)
-    .dependsOn(dom)
-
-  val codemirror = Project(
-    id = "scala-js-codemirror",
-    base = file("modules/scala-js-codemirror"))
-    .settings(scalaJSSettings:_*)
-    .dependsOn(dom)
-
   // Client
   // ===========================================================================
 
@@ -151,7 +131,6 @@ object ApplicationBuild extends Build {
     id   = "clide-client",
     base = file("modules/clide-client"))
     .settings(clientSettings:_*)
-    .dependsOn(dom, angular)
 
   // Web - Server
   // ===========================================================================

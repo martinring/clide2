@@ -1,17 +1,28 @@
 package clide.client
 
-import org.scalajs.dom._
+import clide.client.libs._
 
 abstract class WebActor(url: String) {
-  private val socket = new WebSocket(url)  
+  private val socket = new WebSocket(url)
   type Receive = PartialFunction[Any,Unit]
-  def receive: Receive  
+  
+  def receive: Receive
+  
   object Terminated
-  socket.onmessage = { e =>
-    
+  
+  socket.onmessage = { e: MessageEvent =>
+    val msg = angular.fromJson(e.data.asInstanceOf[String])
   }
-  socket.onclose = { e =>
+  
+  socket.onclose = { e: CloseEvent =>
     
   }
   
+  socket.onopen = { e: Event =>
+    
+  }
+  
+  socket.onerror = { e: ErrorEvent =>
+    
+  }
 }

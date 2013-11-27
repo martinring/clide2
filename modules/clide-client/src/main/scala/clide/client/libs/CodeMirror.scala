@@ -1,8 +1,7 @@
-package org.scalajs
+package clide.client.libs
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
-import org.scalajs.dom._
 
 @JSName("CodeMirror")
 class CodeMirror private () extends js.Object {  

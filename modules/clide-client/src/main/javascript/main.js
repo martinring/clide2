@@ -27,5 +27,4 @@
  * @author Martin Ring <martin.ring@dfki.de>
  **/
 
-var app = new ScalaJS.classes.App(angular, window);
-app.start();
+var app = new ScalaJS.modules.clide_client_App.start();
