@@ -30,6 +30,7 @@ import clide.collaboration.Annotations
 import clide.collaboration.Operation
 import akka.event.LoggingAdapter
 import akka.actor.Actor
+import scala.concurrent.ExecutionContext
 
 /**
  * Defines the controls, which an AssistantBehavior is capable of. Every method is non-blocking
@@ -39,6 +40,8 @@ import akka.actor.Actor
  */
 trait AssistantControl {
   val log: LoggingAdapter
+  
+  implicit def executionContext: ExecutionContext
 
   def chat(message: String, tpe: Option[String] = None): Unit
 

@@ -33,6 +33,8 @@ import clide.actors.util.ServerForwarder
 import com.typesafe.config.ConfigFactory
 import akka.kernel.Bootable
 import scala.reflect.ClassTag
+import scala.concurrent.Future
+import clide.collaboration.Operation
 
 /**
  * An assistant server is the entry point for the implementation of an assistant.
@@ -43,7 +45,7 @@ import scala.reflect.ClassTag
  *
  * @author Martin Ring <martin.ring@dfki.de>
  */
-class AssistantServer(behavior: AssistantControl => AssistantBehavior) extends Bootable {
+class AssistantServer(behavior: AssistantControl => AssistBehavior)(implicit dummy: DummyImplicit) extends Bootable {    
   val system = ActorSystem("assistant",ConfigFactory.load)
 
   val config = system.settings.config
@@ -54,6 +56,26 @@ class AssistantServer(behavior: AssistantControl => AssistantBehavior) extends B
 
   def shutdown() {
     system.shutdown()
+  }
+  
+  @deprecated("Use Future-based AssistBehavior instead!","2.0-SNAPSHOT")
+  def this(behavior: AssistantControl => AssistantBehavior) = this {(control: AssistantControl) =>
+    val underlying = behavior(control)
+    import control.executionContext
+    new AssistBehavior {
+      def start(project: ProjectInfo): Future[Unit] = Future(underlying.start(project))
+	  def stop: Future[Unit] = Future(underlying.stop)
+	  def mimeTypes: Set[String] = underlying.mimeTypes
+	  def fileOpened(file: OpenedFile): Future[Unit] = Future(underlying.fileOpened(file))
+	  def fileActivated(file: OpenedFile): Future[Unit] = Future(underlying.fileActivated(file))
+	  def fileInactivated(file: OpenedFile): Future[Unit] = Future(underlying.fileInactivated(file))
+	  def fileClosed(file: OpenedFile): Future[Unit] = Future(underlying.fileClosed(file))
+	  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]): Future[Unit] = Future(underlying.fileChanged(file, delta, cursors))
+	  def collaboratorJoined(who: SessionInfo): Future[Unit] = Future(underlying.collaboratorJoined(who))
+  	  def collaboratorLeft(who: SessionInfo): Future[Unit] = Future(underlying.collaboratorLeft(who))
+	  def cursorMoved(cursor: Cursor): Future[Unit] = Future(underlying.cursorMoved(cursor))
+	  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long): Future[Unit] = Future(underlying.receiveChatMessage(from, msg, tpe, timestamp))
+    }
   }
 }
 
