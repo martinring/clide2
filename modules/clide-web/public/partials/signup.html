@@ -1,23 +1,21 @@
-<dialog id='signup'>  
-  <div class='row'>    
+<dialog id='signup'>
+  <div class='row'>
     <div class='col-sm-5 col-sm-offset-1 col-lg-4 col-lg-offset-2'>
       <h2 class='title'>Sign up</h2>
       <form name='signupForm' role='form'>
+        <p>Joining clide is easy! Just enter your desired log-in credentials as well as a valid email address below.</p>
         <p class='text-danger' ng-bind="error['']" ng-show="error['']"></p>
         <div class='form-group' ng-class='{"has-error": error.username}'>
-          <label for='name'>username:</label> 
           <span class='text-danger pull-right' ng-bind='error.username' ng-show='error.username'></span>
-          <input class='form-control' type='text' ng-model='data.username' name='name' required autofocus></input>
+          <input class='form-control' type='text' ng-model='data.username' name='name' required autofocus placeholder='username'></input>
         </div>
         <div class='form-group' ng-class='{"has-error": error.email}'>
-          <label for='email'>email address:</label>
           <span class='text-danger pull-right' ng-bind='error.email' ng-show='error.email'></span>
-          <input class='form-control' type='email' ng-model='data.email' name='email' required ng-change='updateGravatar()'></input>        
+          <input class='form-control' type='email' ng-model='data.email' name='email' required ng-change='updateGravatar()' placeholder='email'></input>
         </div>
         <div class='form-group' ng-class='{"has-error": error.password}'>
-          <label for='password'>password:</label>
           <span class='text-danger pull-right' ng-bind='error.password' ng-show='error.password'></span>
-          <input class='form-control' type='password' ng-model='data.password' name='password' ng-minlength='8' required></input>
+          <input class='form-control' type='password' ng-model='data.password' name='password' ng-minlength='8' required placeholder='password'></input>
         </div>
         <div class='pull-right'>
           <button class='btn btn-primary' type='submit' class='default' ng-click='signup()' ng-disabled='!signupForm.$valid || app.wait'>Sign Up</button>
@@ -27,7 +25,7 @@
       </form>
     </div>
     <div class='col-sm-5 col-lg-4'>
-      <div class='gravatar' style='background-image:url(http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=320)'>
+      <div class='gravatar' style='background-image:url(http://gravatar.com/avatar/{{gravatar}}?d=identicon&s=300)'>
       </div>
     </div>
   </div>
