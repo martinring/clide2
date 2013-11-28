@@ -67,45 +67,24 @@ trait Control {
 
 case class IsabelleAssistantBehavior(control: AssistantControl) extends AssistantBehavior with Control
   with IsabelleSession with IsabelleConversions {
-
+  
   def mimeTypes = Set("text/x-isabelle")
-
-  def fileOpened(file: OpenedFile) {
-
-  }
-
-  def fileActivated(file: OpenedFile) {
-
-  }
-
-  def fileInactivated(file: OpenedFile) {
-
-  }
-
-  def fileClosed(file: OpenedFile) {
-
-  }
-
-  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) {
+  
+  def fileOpened(file: OpenedFile)      = session.update(initEdits(file,Seq.empty))
+  def fileActivated(file: OpenedFile)   = session.update(initEdits(file,Seq.empty))
+  def fileInactivated(file: OpenedFile) = session.update(closeEdits(file))
+  def fileClosed(file: OpenedFile)      = session.update(removeEdits(file))
+  
+  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = {
     val edits = opToDocumentEdits(file, cursors, delta)
     session.update(edits)
   }
 
-  def collaboratorJoined(who: SessionInfo){
-
-  }
-
-  def collaboratorLeft(who: SessionInfo){
-
-  }
-
-  def cursorMoved(cursor: Cursor){
-
-  }
+  def collaboratorJoined(who: SessionInfo) = ()
+  def collaboratorLeft(who: SessionInfo) = ()
   
-  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) {
-    
-  }
+  def cursorMoved(cursor: Cursor) = ()  
+  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) = ()
 }
 
 object IsabelleApp extends App {

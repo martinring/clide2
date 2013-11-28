@@ -60,6 +60,18 @@ trait IsabelleConversions { self: IsabelleSession =>
          name -> Document.Node.Edits(List(Text.Edit.insert(0,file.state))),
          name -> cursors)
   }
+  
+  def closeEdits(file: OpenedFile): List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
+    val name: Document.Node.Name = file
+    List(session.header_edit(name, file),
+         name -> Document.Node.Perspective(true, Text.Perspective.empty, overlays))
+  }
+  
+  def removeEdits(file: OpenedFile): List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
+    val name: Document.Node.Name = file
+    List(name -> Document.Node.Clear(), // TODO: There must be a better way to do this
+         name -> Document.Node.Perspective(true, Text.Perspective.empty, overlays))
+  }
 
   def opToEdits(operation: Operation): List[Text.Edit] = operation.actions.foldLeft((0,Nil: List[Text.Edit])) {
     case ((i,edits),Retain(n)) => (i+n,edits)
