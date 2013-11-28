@@ -24,7 +24,7 @@
 
 package clide.isabelle
 
-import clide.assistants.AssistantBehavior
+import clide.assistants.AssistBehavior
 import clide.models._
 import scala.concurrent.Promise
 import isabelle.Session
@@ -35,14 +35,20 @@ import isabelle.XML
 import isabelle.Isabelle_System
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.concurrent.Promise
 import scala.language.postfixOps
 
-trait IsabelleSession { self: AssistantBehavior with Control =>
+trait IsabelleSession { self: AssistBehavior with Control =>
   var session: Session = null
   var project: ProjectInfo = null
-
-  def start(project: ProjectInfo) {
-    this.project = project
+  private var currentChange: Promise[Unit] = Promise().success(())
+  def nextChange = {
+    currentChange = Promise()
+    currentChange.future
+  }
+  
+  def start(project: ProjectInfo) = {
+    this.project = project    
     val ops = isabelle.Options.init
     val initialized = Promise[Unit]()
     control.log.info("building session content")
@@ -64,7 +70,7 @@ trait IsabelleSession { self: AssistantBehavior with Control =>
       }
       override def text_edits(reparse_limit: Int, previous: Document.Version, edits: List[Document.Edit_Text]) = {
         val result = super.text_edits(reparse_limit, previous, edits)
-        control.log.info("text_edits = {}", result)
+        control.log.info("thy_load.text_edits({},{},{})", reparse_limit, previous, edits)
         result
       }
     })
@@ -77,12 +83,13 @@ trait IsabelleSession { self: AssistantBehavior with Control =>
         control.stop()
       case Session.Failed   =>
         control.chat("I couldn't start")
-        initialized.failure(sys.error("isabelle session failed to initialize"))
+        if (!initialized.isCompleted)
+          initialized.failure(sys.error("isabelle session failed to initialize"))
       case Session.Ready    =>
         session.update_options(ops)
-        initialized.success(())
+        if (!initialized.isCompleted)
+          initialized.success(())
         control.chat("I'm ready to go!")
-
     } }
     session.syslog_messages += { msg =>
       control.log.info("SYSLOG: {}", XML.content(msg.body))
@@ -91,12 +98,24 @@ trait IsabelleSession { self: AssistantBehavior with Control =>
     session.raw_output_messages += { msg =>
       control.log.info("OUTPUT: {}", XML.content(msg.body))
     }
+    session.commands_changed += { msg =>     
+      if (msg.assignment && !currentChange.isCompleted) 
+        currentChange.success(())
+      control.log.info("COMMANDS_CHANGED: {}, {}", msg.assignment, msg.nodes.map(session.snapshot(_, Nil)).map(_.version))      
+    }
     session.start(List("-S","HOL"))
     control.chat("ghc is here")
-    Await.ready(initialized.future, 5 minutes)
+    initialized.future
   }
 
-  def stop {
+  def stop = {
+    val done = Promise[Unit]
+    session.phase_changed += (p => p match {
+      case Session.Inactive =>
+        if (!done.isCompleted) done.success(())
+      case _ =>
+    })
     session.stop()
+    done.future
   }
 }

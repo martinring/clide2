@@ -30,7 +30,7 @@ import akka.actor.Props
 import akka.kernel.Bootable
 import isabelle.Isabelle_System
 import scala.concurrent.duration._
-import clide.assistants.AssistantBehavior
+import clide.assistants.AssistBehavior
 import clide.assistants.AssistantControl
 import clide.assistants.AssistantServer
 import clide.models.ProjectInfo
@@ -49,7 +49,7 @@ import isabelle.Document
 import clide.assistants.Cursor
 import akka.actor.Cancellable
 
-object Isabelle extends AssistantServer(IsabelleAssistantBehavior) {
+object Isabelle extends AssistantServer(IsabelleAssistBehavior) {
   override def startup() {
     Isabelle_System.init()
     super.startup()
@@ -65,26 +65,45 @@ trait Control {
   def control: AssistantControl
 }
 
-case class IsabelleAssistantBehavior(control: AssistantControl) extends AssistantBehavior with Control
+case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehavior with Control
   with IsabelleSession with IsabelleConversions {
   
   def mimeTypes = Set("text/x-isabelle")
   
-  def fileOpened(file: OpenedFile)      = session.update(initEdits(file,Seq.empty))
-  def fileActivated(file: OpenedFile)   = session.update(initEdits(file,Seq.empty))
-  def fileInactivated(file: OpenedFile) = session.update(closeEdits(file))
-  def fileClosed(file: OpenedFile)      = session.update(removeEdits(file))
+  val thys = scala.collection.mutable.Map.empty[Document.Node.Name,(Document.Version,OpenedFile)]
+  
+  def fileOpened(file: OpenedFile) = {
+    control.log.info("fileOpened({})", file.info.path)
+    session.update(initEdits(file,Seq.empty))
+    nextChange
+  }
+  def fileActivated(file: OpenedFile) = {
+    control.log.info("fileActivated({})", file.info.path)
+    session.update(initEdits(file,Seq.empty))
+    nextChange
+  } 
+  def fileInactivated(file: OpenedFile) = {
+    session.update(closeEdits(file))
+    nextChange
+  }
+  
+  def fileClosed(file: OpenedFile) = {
+    session.update(removeEdits(file))
+    nextChange
+  }
   
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = {
+    control.log.info("fileChanged({},{},...)", file.info.path, delta)
     val edits = opToDocumentEdits(file, cursors, delta)
     session.update(edits)
+    nextChange
   }
 
-  def collaboratorJoined(who: SessionInfo) = ()
-  def collaboratorLeft(who: SessionInfo) = ()
+  def collaboratorJoined(who: SessionInfo) = Future.successful(())
+  def collaboratorLeft(who: SessionInfo) = Future.successful(())
   
-  def cursorMoved(cursor: Cursor) = ()  
-  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) = ()
+  def cursorMoved(cursor: Cursor) = Future.successful(())
+  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) = Future.successful(())
 }
 
 object IsabelleApp extends App {
