@@ -157,7 +157,7 @@ object Conversions {
     case FolderContent(folder,files) => Json.obj("t"->"folder","info"->folder,"files"->files)
     case CreatedProject(p)      => "createdproject" of p
     case DeletedProject(p)      => "deletedproject" of p.id
-    case SessionInit(s,cs,conv) => Json.obj("t"->"welcome","info"->s,"others"->cs,"chat"->conv.map{case Talked(w,m,t,tp) => Json.obj("s"->w,"m"->m,"t"->t,"tp"->tp)})
+    case SessionInit(s,cs,conv) => Json.obj("t"->"welcome","info"->s,"others"->cs,"chat"->conv.map{case Talked(w,m,tp,t) => Json.obj("s"->w,"m"->m,"t"->t,"tp"->tp)})
     case SessionChanged(s) => "session_changed" of s
     case SessionStopped(s) => "session_stopped" of s
     case FileInitFailed(f) => "failed" of f
