@@ -656,9 +656,9 @@
 @quick-transition: 0.1s;
 @fancy-transition: 0.2s;
 
-@sidebar-background: #383c40; // #232323;
-@sidebar-background-text: spin(#fff - @text-color, 180);
-@sidebar-background-hover: fade(@sidebar-background-text,25%);
+@sidebar-background: #f3f3f3; // #232323;
+@sidebar-background-text: @text-color;
+@sidebar-background-hover: mix(@sidebar-background-text,@sidebar-background, 10%);
 @sidebar-foreground: @body-bg;
 @sidebar-foreground-text: @text-color;
 
