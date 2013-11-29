@@ -63,6 +63,25 @@ trait AssistantControl {
   def annotate(file: OpenedFile, name: String, annotations: Annotations): Unit
 
   /**
+   * indicate activity on a file.
+   * 
+   * @param file the file
+   * @param busy when set to true, an activity indicator will be displayed to users  
+   *             otherwise all progress or activity indicators will be removed.
+   *             Note, that this flag will be automatically set while the behavior
+   *             has not returned from a file update yet.
+   * @param progress can be set to Some(x) where x is a value between 0 and 1 indicating
+   *                 the progress on the file
+   * @param failed when set to true users will be notified about failure in the file 
+   */
+  //def updateFileStatus(file: OpenedFile, busy: Boolean, progress: Option[Double] = None, failed: Boolean = false): Unit     
+    
+  //def indicateFailure(file: OpenedFile, message: String): Unit
+  //def indicateFailure(file: OpenedFile): Unit
+  //def progress(file: OpenedFile, progress: Double): Unit
+  //def 
+  
+  /**
    * Change a file
    *
    * @param file the state of the file, which is being referenced

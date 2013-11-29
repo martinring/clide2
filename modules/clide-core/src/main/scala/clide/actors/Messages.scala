@@ -90,7 +90,13 @@ object Messages {
   case class OpenFile(id: Long) extends SessionMessage
   case class CloseFile(id: Long) extends SessionMessage
   case class Edit(id: Long, revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
-  case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage
+  case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage  
+  
+  trait ProcessingMessage extends SessionMessage
+  case class WorkingOnFile(file: Long) extends ProcessingMessage
+  case class ProgressOnFile(file: Long, progress: Double) extends ProcessingMessage
+  case class DoneWithFile(file: Long) extends ProcessingMessage
+  case class FailureInFile(file: Long, msg: Option[String]) extends ProcessingMessage
 
   private[actors] object internal {
     trait UserMessageWrapper
@@ -101,7 +107,7 @@ object Messages {
     case class WrappedProjectMessage(
       user: UserInfo,
       level: ProjectAccessLevel.Value,
-      message: ProjectMessage)
+      message: ProjectMessage)          
 
     case class OpenFile(user: SessionInfo) extends FileReadMessage
   }

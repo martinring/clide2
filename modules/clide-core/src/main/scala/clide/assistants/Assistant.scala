@@ -84,6 +84,10 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
 
   def edit(file: OpenedFile, edit: Operation): Future[Unit] = ???
 
+  def updateFileStatus(file: OpenedFile, busy: Boolean, progress: Option[Double] = None, failed: Boolean = false) = {
+    ???
+  }
+  
   def stop() = self ! PoisonPill
 
   implicit val executionContext = context.dispatcher
@@ -135,15 +139,20 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
     }
   }
   
-  def doWork(task: Future[Unit]) {
+  def doWork(file: Option[Long])(task: Future[Unit]) {
     // can be forced to block for tiny computations with Future.sucessfull
     if (!task.isCompleted) {
+      file.foreach(peer ! WorkingOnFile(_))
       context.become(working)
       task.onComplete {
-        case Success(_) => self ! Continue
+        case Success(_) => 
+          self ! Continue
+          file.foreach(peer ! DoneWithFile(_))
         case Failure(e) =>
           log.error(e, "there is a problem with the behavior")
           self ! Continue
+          file.foreach(peer ! FailureInFile(_,Some(e.getMessage())))
+          
       }
     }
   }
@@ -156,7 +165,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         files(info.id) = file
       } else if (behavior.mimeTypes.intersect(file.info.mimeType.toSet).nonEmpty) {
         files(info.id) = file
-        doWork(for {
+        doWork(Some(info.id))(for {
           _ <- behavior.fileOpened(file)
           _ <- behavior.fileActivated(file)
         } yield())
@@ -165,22 +174,22 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
     case FileClosed(file) if files.isDefinedAt(file) =>
       val f = files(file)
       files.remove(file)
-      doWork(for {
+      doWork(None)(for {
         _ <- behavior.fileInactivated(files(file))
         _ <- behavior.fileClosed(files(file))
       } yield ())
 
     case Processed(Edited(file,operation)) if files.isDefinedAt(file) =>
-      doWork(behavior.fileChanged(files(file), operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))      
+      doWork(Some(file))(behavior.fileChanged(files(file), operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))      
 
     case Edited(file,operation) if files.isDefinedAt(file) =>
       val prev = files(file)
       val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
       files(file) = next
-      doWork(behavior.fileChanged(next, operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))      
+      doWork(Some(file))(behavior.fileChanged(next, operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))      
     
     case Talked(from, msg, tpe, timestamp) if (from != assistantName || receiveOwnChatMessages) => 
-      doWork(behavior.receiveChatMessage(from,msg,tpe,timestamp))
+      doWork(None)(behavior.receiveChatMessage(from,msg,tpe,timestamp))
 
     case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
       // TODO: More universal approach on cursor positions etc.
@@ -194,7 +203,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           cursors(file.info.id) = Map.empty
 
         cursors(file.info.id) += user.id -> Cursor(user,file,pos)
-        doWork(behavior.cursorMoved(Cursor(user,file,pos)))
+        doWork(Some(file.info.id))(behavior.cursorMoved(Cursor(user,file,pos)))
       }
 
     case SessionChanged(info) =>

@@ -52,7 +52,9 @@
                  ng-class='{ active: file.id==session.me.activeFile, open: file.doc!=null, "text-muted": file.deleted }'>
                  <i class="fa fa-folder-open fa fa-fixed-width" ng-show='file.loading'></i><i ng-show='!file.loading' class='fa fa-fixed-width' ng-class='{ "fa fa-folder-close": file.isDirectory, "fa fa-file": !file.isDirectory }'></i> {{file.name}}
                  <span class='pull-right'>
-                   <i class='fa fa-stop color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id} ' title='{{user.user}}'></i>
+                   <span class='color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true}' title='{{user.user}}'>
+                     <i class='animate-show-fade fa fa-asterisk fa-spin' ng-show='session.fileStates[file.id][user.id].t == "w"'></i>
+                   </span>
                  </span>
               </a>
               <div class='placeholder' ng-if='files.currentDir.files.length == 0'>

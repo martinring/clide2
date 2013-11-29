@@ -112,7 +112,7 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
       sessionActors.values.foreach(_ ! talked)
     case Talk(Some(sess),what,t) =>
       log.warning("not supported yet")
-      sessionActors.get(sess).map(_ ! Talked(user.name, what, t, System.currentTimeMillis))
+      sessionActors.get(sess).map(_ ! Talked(user.name, what, t, System.currentTimeMillis))    
   }
 
   def none: Receive = {
@@ -145,6 +145,8 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
         case _ =>
           none(msg)
       }
+    case proc@ProcessingEvent(who,e) if (sessionActors(who) == sender) =>      
+      sessionActors.filter(_._1 != who).foreach(_._2 ! proc)
   }
 
   override def preRestart(reason:Throwable, message:Option[Any]){

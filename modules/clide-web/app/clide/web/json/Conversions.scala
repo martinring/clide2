@@ -33,6 +33,7 @@ import clide.collaboration.AnnotationDiff._
 import play.api.data.validation.ValidationError
 import scala.language.implicitConversions
 import scala.language.reflectiveCalls
+import clide.actors.Messages.{WorkingOnFile,DoneWithFile,FailureInFile}
 
 object Conversions {
   implicit object FileInfoWrites extends Writes[FileInfo] {
@@ -176,6 +177,9 @@ object Conversions {
     case Talked(w,m,tp,t) => "talk" of Json.obj("s" -> w, "m" -> m,"t"->t,"tp"->tp)
     case UserProjectInfos(own, other)                  => "projects" of Json.obj("own"->own, "other"->other)
     case ChangedProjectUserLevel(project, user, level) => "access" of Json.obj("p"->project,"u"->user,"l"->level.id)
+    case ProcessingEvent(who, WorkingOnFile(f)) => "process" of Json.obj("f"->f,"u"->who,"t"->"w")
+    case ProcessingEvent(who, DoneWithFile(f)) => "process" of Json.obj("f"->f,"u"->who,"t"->"d")
+    case ProcessingEvent(who, FailureInFile(f,msg)) => "process" of Json.obj("f"->f,"u"->who,"t"->"f","m"->msg)    
     case _ => error("couldnt translate")
   }
 }

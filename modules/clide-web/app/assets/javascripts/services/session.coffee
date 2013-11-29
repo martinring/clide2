@@ -34,6 +34,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     collaborators: null
     openFiles: null
     talkback: null
+    fileStates: { }
     chat: []
     me: null
 
@@ -172,6 +173,10 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
             when 'session_stopped'
               apply ->
                 remove(msg.c.id)
+            when 'process'
+              apply ->
+                session.fileStates[msg.c.f] = {}
+                session.fileStates[msg.c.f][msg.c.u] = msg.c
     ws.onopen = (e) ->
       apply -> session.state = 'connected'
       for msg in queue

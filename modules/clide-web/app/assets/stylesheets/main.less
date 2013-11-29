@@ -55,6 +55,24 @@ a {
   cursor: pointer;
 }
 
+.animate-show-fade {
+  opacity:1;
+}
+
+.animate-show-fade.ng-hide-add {
+  .transition(opacity ease-out 1s);
+  display:block!important;
+}
+
+.animate-show-fade.ng-hide-remove {
+  .transition(opacity ease-out 0.2s);
+  display:block!important;
+}
+
+.animate-show-fade.ng-hide {
+  opacity:0;
+}
+
 .touchScroll {
   &::-webkit-scrollbar {
     width: 4px;

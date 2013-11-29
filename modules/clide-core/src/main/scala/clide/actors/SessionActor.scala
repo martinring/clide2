@@ -204,6 +204,10 @@ private class SessionActor(
       peer ! FileOpened(of)
       if (!switchFile(Some(f.id)))
         log.error("couldnt switch file")
+    case proc: ProcessingMessage =>
+      context.parent ! ProcessingEvent(session.id, proc)
+    case proc: ProcessingEvent =>
+      peer ! proc
     case Terminated(ref) =>
       if (ref == peer) {
 	    log.info("going idle due to termination")

@@ -41,10 +41,13 @@ import scala.language.postfixOps
 trait IsabelleSession { self: AssistBehavior with Control =>
   var session: Session = null
   var project: ProjectInfo = null
-  private var currentChange: Promise[Unit] = Promise().success(())
-  def nextChange = {
+  
+  private var currentChange: Promise[Document.Version] = Promise().failure(sys.error("you shouldnt be here. ;)"))
+  private val thys = scala.collection.mutable.Map.empty[(Document.Node.Name,Document.Version),OpenedFile]
+         
+  def nextChange(file: OpenedFile) = {
     currentChange = Promise()
-    currentChange.future
+    currentChange.future.mapTo[Unit]
   }
   
   def start(project: ProjectInfo) = {
@@ -98,9 +101,10 @@ trait IsabelleSession { self: AssistBehavior with Control =>
     session.raw_output_messages += { msg =>
       control.log.info("OUTPUT: {}", XML.content(msg.body))
     }
-    session.commands_changed += { msg =>     
+    session.commands_changed += { msg =>
+      require(msg.nodes.size == 1)
       if (msg.assignment && !currentChange.isCompleted) 
-        currentChange.success(())
+        currentChange.success(session.snapshot(msg.nodes.head,Nil).version)      
       control.log.info("COMMANDS_CHANGED: {}, {}", msg.assignment, msg.nodes.map(session.snapshot(_, Nil)).map(_.version))      
     }
     session.start(List("-S","HOL"))

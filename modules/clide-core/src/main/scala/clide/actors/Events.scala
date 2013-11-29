@@ -27,6 +27,7 @@ import akka.actor.ActorRef
 import clide.collaboration.Operation
 import clide.collaboration.Annotations
 import clide.collaboration.AnnotationDiff.AnnotationDiff
+import clide.actors.Messages.ProcessingMessage
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
@@ -72,6 +73,7 @@ object Events {
   case class ChangedProjectUserLevel(project: ProjectInfo, user: String, level: ProjectAccessLevel.Value) extends ProjectEvent
 
   trait SessionEvent extends Event
+  trait BroadcastEvent extends SessionEvent
   case class SessionInit(
       info: SessionInfo,
       collaborators: Set[SessionInfo],
@@ -87,7 +89,17 @@ object Events {
   case class AcknowledgeEdit(file: Long) extends SessionEvent
   case class Talked(from: String, msg: String, tpe: Option[String], timestamp: Long) extends SessionEvent
   case class MetaInfo(file: Long, info: Map[String,String])
+    
+  /**
+   * @param who the session id of the collaborator processing the file
+   */
+  case class ProcessingEvent(who: Long, update: ProcessingMessage) extends SessionEvent
 
+  /**
+   * Used to transmit all the projects of a user
+   * @param userProject   the projects owned by the user
+   * @param collaborating the projects the user collaborates in
+   */
   case class UserProjectInfos(
       userProjects: Set[ProjectInfo],
       collaborating: Set[ProjectInfo]) extends Event
