@@ -66,6 +66,9 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   val files             = Map.empty[Long,OpenedFile]
   val behavior = createBehavior(this)
   val cursors  = Map.empty[Long,Map[Long,Cursor]]
+  val config = context.system.settings.config
+  val assistantName          = config.getString("assistant.username")
+  val receiveOwnChatMessages = config.getBoolean("assistant.receiveOwnChatMessages")
 
   def chat(msg: String, tpe: Option[String] = None) = {
     peer ! Talk(None,msg,tpe)
@@ -176,10 +179,11 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       files(file) = next
       doWork(behavior.fileChanged(next, operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))      
     
-    case Talked(from, msg, tpe, timestamp) =>
+    case Talked(from, msg, tpe, timestamp) if (from != assistantName || receiveOwnChatMessages) => 
       doWork(behavior.receiveChatMessage(from,msg,tpe,timestamp))
 
     case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
+      // TODO: More universal approach on cursor positions etc.
       val ps = annotations.positions(AnnotationType.Class,"cursor")
       if (ps.nonEmpty) for {
         user  <- collaborators.find(_.id == user)

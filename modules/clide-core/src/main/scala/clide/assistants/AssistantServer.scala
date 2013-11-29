@@ -58,6 +58,7 @@ class AssistantServer(behavior: AssistantControl => AssistBehavior)(implicit dum
     system.shutdown()
   }
   
+  // should be deprecated some time in the future, when assistbehavior becomes stable
   //@deprecated("Use Future-based AssistBehavior instead!","2.0-SNAPSHOT")
   def this(behavior: AssistantControl => AssistantBehavior) = this {(control: AssistantControl) =>
     val underlying = behavior(control)
