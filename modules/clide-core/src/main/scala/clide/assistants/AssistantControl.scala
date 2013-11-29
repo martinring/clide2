@@ -79,7 +79,11 @@ trait AssistantControl {
   //def indicateFailure(file: OpenedFile, message: String): Unit
   //def indicateFailure(file: OpenedFile): Unit
   //def progress(file: OpenedFile, progress: Double): Unit
-  //def 
+  //def
+  
+  def workOnFile(file: OpenedFile): Unit
+  def doneWithFile(file: OpenedFile): Unit
+  def failedInFile(file: OpenedFile, message: Option[String]): Unit
   
   /**
    * Change a file

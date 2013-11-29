@@ -67,8 +67,10 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   val behavior = createBehavior(this)
   val cursors  = Map.empty[Long,Map[Long,Cursor]]
   val config = context.system.settings.config
-  val assistantName          = config.getString("assistant.username")
-  val receiveOwnChatMessages = config.getBoolean("assistant.receiveOwnChatMessages")
+  val assistantName             = config.getString("assistant.username")
+  val receiveOwnChatMessages    = config.getBoolean("assistant.receiveOwnChatMessages")
+  val automaticWorkingIndicator = config.getBoolean("assistant.automaticWorkingIndicator")
+  val automaticFailureIndicator = config.getBoolean("assistant.automaticFailureIndicator")
 
   def chat(msg: String, tpe: Option[String] = None) = {
     peer ! Talk(None,msg,tpe)
@@ -84,9 +86,9 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
 
   def edit(file: OpenedFile, edit: Operation): Future[Unit] = ???
 
-  def updateFileStatus(file: OpenedFile, busy: Boolean, progress: Option[Double] = None, failed: Boolean = false) = {
-    ???
-  }
+  def workOnFile(file: OpenedFile): Unit = peer ! WorkingOnFile(file.info.id)
+  def doneWithFile(file: OpenedFile): Unit = peer ! DoneWithFile(file.info.id)
+  def failedInFile(file: OpenedFile, message: Option[String]): Unit = peer ! FailureInFile(file.info.id, message)
   
   def stop() = self ! PoisonPill
 
@@ -142,16 +144,16 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   def doWork(file: Option[Long])(task: Future[Unit]) {
     // can be forced to block for tiny computations with Future.sucessfull
     if (!task.isCompleted) {
-      file.foreach(peer ! WorkingOnFile(_))
+      if (automaticWorkingIndicator) file.foreach(peer ! WorkingOnFile(_))
       context.become(working)
       task.onComplete {
         case Success(_) => 
           self ! Continue
-          file.foreach(peer ! DoneWithFile(_))
+          if (automaticWorkingIndicator) file.foreach(peer ! DoneWithFile(_))
         case Failure(e) =>
           log.error(e, "there is a problem with the behavior")
           self ! Continue
-          file.foreach(peer ! FailureInFile(_,Some(e.getMessage())))
+          if (automaticFailureIndicator) file.foreach(peer ! FailureInFile(_,Some(e.getMessage())))
           
       }
     }
