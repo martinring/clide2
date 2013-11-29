@@ -35,7 +35,8 @@ import scala.concurrent.Future
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-@deprecated("Use Future-based AssistBehavior instead!","2.0-SNAPSHOT")
+// should be deprecated some time in the future, when assistbehavior becomes stable
+//@deprecated("Use Future-based AssistBehavior instead!","2.0-SNAPSHOT")
 trait AssistantBehavior {
   /**
    * Everything that needs to be set up can be set up here. It is guaranteed, that
