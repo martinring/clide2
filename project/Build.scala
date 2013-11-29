@@ -80,16 +80,6 @@ object ApplicationBuild extends Build {
     base = file("modules/clide-collaboration"))
     .settings(collaborationSettings:_*)
 
-  //val collaborationJSSettings = collaborationSettings ++ scalaJSSettings ++ Seq(
-  //  sourceDirectory := (sourceDirectory in collaboration).value,
-  //  unmanagedSources in (Compile, ScalaJSKeys.packageJS) +=
-  //    baseDirectory.value / "src" / "main" / "javascript" / "export.js")
-  //
-  //  val collaborationJS = Project(
-  //    id = "clide-collaboration-js",
-  //    base = file("modules/clide-collaboration-js"))
-  //  .settings(collaborationJSSettings:_*)
-
   // Core
   // ===========================================================================
 
@@ -104,6 +94,7 @@ object ApplicationBuild extends Build {
     commonSettings ++
     AkkaKernelPlugin.distSettings ++
     atmosSettings ++ Seq(
+      unmanagedSourceDirectories in Compile += (sourceDirectory in collaboration).value,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       resolvers += spray.resolver,
       libraryDependencies ++= coreDependencies
@@ -115,7 +106,6 @@ object ApplicationBuild extends Build {
     base = file("modules/clide-core"))
     .settings(coreSettings:_*)
     .configs(Atmos)
-    .dependsOn(collaboration)
 
   // Client
   // ===========================================================================
