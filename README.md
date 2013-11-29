@@ -51,7 +51,7 @@ But you will want to install additional *Assistant*-Servers in order to get sema
 Building Assistants
 -------------------
 
-Assistants are standalone applications that connect a clide server via [akka remoting](http://doc.akka.io/docs/akka/snapshot/scala/remoting.html).
+Assistants are standalone applications that connect to a clide server via [akka remoting](http://doc.akka.io/docs/akka/snapshot/scala/remoting.html).
 
 To build an assistant you must create a new project. (We will focus on sbt
 here, but it is also possible to use maven or something else to manage your project)
