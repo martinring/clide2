@@ -8,6 +8,8 @@ import clide.collaboration._
  * @author Martin Ring <martin.ring@dfki.de>
  */
 trait AssistBehavior {
+  val noop: Future[Unit] = Future.successful(())
+  
   /**
    * Everything that needs to be set up can be set up here. It is guaranteed, that
    * this method will be called first and no other method will be called until the

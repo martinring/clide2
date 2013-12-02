@@ -74,36 +74,37 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
   
   def fileOpened(file: OpenedFile) = {
     control.log.info("fileOpened({})", file.info.path)
-    session.update(initEdits(file,Seq.empty))
-    nextChange
+    noop
+    //session.update(initEdits(file,Seq.empty))
+    //nextChange(file)
   }
   def fileActivated(file: OpenedFile) = {
     control.log.info("fileActivated({})", file.info.path)
     session.update(initEdits(file,Seq.empty))
-    nextChange
+    nextChange(file)
   } 
   def fileInactivated(file: OpenedFile) = {
     session.update(closeEdits(file))
-    nextChange
+    nextChange(file)
   }
   
   def fileClosed(file: OpenedFile) = {
     session.update(removeEdits(file))
-    nextChange
+    nextChange(file)
   }
   
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = {
     control.log.info("fileChanged({},{},...)", file.info.path, delta)
     val edits = opToDocumentEdits(file, cursors, delta)
     session.update(edits)
-    nextChange
+    nextChange(file)
   }
 
-  def collaboratorJoined(who: SessionInfo) = Future.successful(())
-  def collaboratorLeft(who: SessionInfo) = Future.successful(())
+  def collaboratorJoined(who: SessionInfo) = noop
+  def collaboratorLeft(who: SessionInfo) = noop
   
-  def cursorMoved(cursor: Cursor) = Future.successful(())
-  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) = Future.successful(())
+  def cursorMoved(cursor: Cursor) = noop
+  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) = noop
 }
 
 object IsabelleApp extends App {
