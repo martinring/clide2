@@ -93,23 +93,31 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   def workOnFile(file: OpenedFile): Unit = workOnFile(file.info.id)
   
   def workOnFile(file: Long): Unit = {
-    if (workStates(file) == true)
-      workTimeouts.get(file).foreach(_.cancel())
-    else context.system.scheduler.scheduleOnce(workIndicatorDelay){ () =>
-      workStates(file) = true
+    if (workIndicatorDelay.length > 0) {
+	  if (workStates(file))
+	    workTimeouts.get(file).foreach(_.cancel())
+	  else context.system.scheduler.scheduleOnce(workIndicatorDelay){ () =>
+	    workStates(file) = true
+	    peer ! WorkingOnFile(file)
+	  }
+    } else {
       peer ! WorkingOnFile(file)
-    }
+    }    
   }
   
   def doneWithFile(file: OpenedFile): Unit = doneWithFile(file.info.id)
   
   def doneWithFile(file: Long): Unit = {
-    if (workStates(file) == false)
-      workTimeouts.get(file).foreach(_.cancel())
-    else context.system.scheduler.scheduleOnce(workIndicatorDelay){ () =>
-      workStates(file) = false
+    if (workIndicatorDelay.length > 0) {
+      if (workStates(file) == false)
+        workTimeouts.get(file).foreach(_.cancel())
+      else context.system.scheduler.scheduleOnce(workIndicatorDelay){ () =>
+        workStates(file) = false
+        peer ! DoneWithFile(file)
+      }
+    } else{
       peer ! DoneWithFile(file)
-    }      
+    }
   }
   
   def failedInFile(file: OpenedFile, message: Option[String]): Unit = failedInFile(file.info.id, message)
