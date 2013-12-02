@@ -114,7 +114,7 @@
   bottom: 0;
   top: 0;
   width: @sidebar-width + @ribbon-width;
-  padding: 32px 0 0 @ribbon-width;
+  padding: 0 0 0 @ribbon-width;
   //.box-shadow(0 0 4px #000);
   .breadcrumb {
     background-color: transparent;
@@ -190,15 +190,21 @@
 }
 
 #sidebarContent {
-  padding: 0 16px 16px 16px;
+  padding: 0;
   margin: 0;
   position: absolute;
-  overflow-x: hidden;
-  overflow-y: scroll;
   bottom: 0;
   left: @ribbon-width;
   right: 0;
   top: 0;
+  &:focus {
+    outline: none;
+  }
+}
+
+#sidebarSections {
+  padding: 0 16px 16px 16px;
+  margin: 0;
 }
 
 

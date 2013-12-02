@@ -25,6 +25,7 @@
 @import 'theme.less';
 
 @import 'vendor/codemirror/codemirror.less';
+@import 'vendor/jquery/jquery.jscrollpane.less';
 
 @import 'clui/dialog.less';
 @import 'clui/spinner.less';
@@ -71,24 +72,6 @@ a {
 
 .animate-show-fade.ng-hide {
   opacity:0;
-}
-
-.touchScroll {
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-button {
-    visibility: hidden;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: @sidebar-background-hover;
-    opacity: 0;
-    &:hover {
-      opacity: 1;
-    }
-  }
 }
 
 #signup .gravatar {
