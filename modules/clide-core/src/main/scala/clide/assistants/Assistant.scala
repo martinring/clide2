@@ -109,7 +109,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         if (annotations.isDefinedAt(file))
           annotations(file) = annotations(file).mapValues(_ transform operation get)
 
-      case Edited(file,operation) =>
+      case Edited(file,operation) if files.isDefinedAt(file) =>
         val prev = files(file)
         val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
         files(file) = next
@@ -121,7 +121,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         if (annotations.isDefinedAt(file))
           annotations(file) = annotations(file).mapValues(_ transform operation get)
 
-      case Annotated(file,user,as,name) =>
+      case Annotated(file,user,as,name) if files.isDefinedAt(file) =>
         if (annotations.isDefinedAt(file))
           annotations(file) += (user,name) -> as
 
