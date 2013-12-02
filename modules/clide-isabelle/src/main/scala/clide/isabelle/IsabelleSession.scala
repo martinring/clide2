@@ -42,7 +42,7 @@ trait IsabelleSession { self: AssistBehavior with Control =>
   var session: Session = null
   var project: ProjectInfo = null
   
-  private var currentChange: Promise[Document.Version] = Promise().failure(sys.error("you shouldnt be here. ;)"))
+  private var currentChange: Promise[Document.Version] = Promise().failure(new Exception("you shouldn't be here ;)"))
   private val thys = scala.collection.mutable.Map.empty[(Document.Node.Name,Document.Version),OpenedFile]
          
   def nextChange(file: OpenedFile) = {
