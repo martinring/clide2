@@ -71,6 +71,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   val receiveOwnChatMessages    = config.getBoolean("assistant.receiveOwnChatMessages")
   val automaticWorkingIndicator = config.getBoolean("assistant.automaticWorkingIndicator")
   val automaticFailureIndicator = config.getBoolean("assistant.automaticFailureIndicator")
+  val workIndicatorDelay = Duration(config.getMilliseconds("assistant.workIndicatorDelay"), MILLISECONDS)
 
   def chat(msg: String, tpe: Option[String] = None) = {
     peer ! Talk(None,msg,tpe)
@@ -86,9 +87,34 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
 
   def edit(file: OpenedFile, edit: Operation): Future[Unit] = ???
 
-  def workOnFile(file: OpenedFile): Unit = peer ! WorkingOnFile(file.info.id)
-  def doneWithFile(file: OpenedFile): Unit = peer ! DoneWithFile(file.info.id)
-  def failedInFile(file: OpenedFile, message: Option[String]): Unit = peer ! FailureInFile(file.info.id, message)
+  val workStates: Map[Long, Boolean] = Map.empty.withDefaultValue(false)
+  val workTimeouts: Map[Long, Cancellable] = Map.empty 
+  
+  def workOnFile(file: OpenedFile): Unit = workOnFile(file.info.id)
+  
+  def workOnFile(file: Long): Unit = {
+    if (workStates(file) == true)
+      workTimeouts.get(file).foreach(_.cancel())
+    else context.system.scheduler.scheduleOnce(workIndicatorDelay){ () =>
+      workStates(file) = true
+      peer ! WorkingOnFile(file)
+    }
+  }
+  
+  def doneWithFile(file: OpenedFile): Unit = doneWithFile(file.info.id)
+  
+  def doneWithFile(file: Long): Unit = {
+    if (workStates(file) == false)
+      workTimeouts.get(file).foreach(_.cancel())
+    else context.system.scheduler.scheduleOnce(workIndicatorDelay){ () =>
+      workStates(file) = false
+      peer ! DoneWithFile(file)
+    }      
+  }
+  
+  def failedInFile(file: OpenedFile, message: Option[String]): Unit = failedInFile(file.info.id, message)
+  
+  def failedInFile(file: Long, message: Option[String]): Unit = peer ! FailureInFile(file, message)
   
   def stop() = self ! PoisonPill
 
@@ -144,16 +170,16 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   def doWork(file: Option[Long])(task: Future[Unit]) {
     // can be forced to block for tiny computations with Future.sucessfull
     if (!task.isCompleted) {
-      if (automaticWorkingIndicator) file.foreach(peer ! WorkingOnFile(_))
+      if (automaticWorkingIndicator) file.foreach(workOnFile(_))
       context.become(working)
       task.onComplete {
         case Success(_) => 
           self ! Continue
-          if (automaticWorkingIndicator) file.foreach(peer ! DoneWithFile(_))
+          if (automaticWorkingIndicator) file.foreach(doneWithFile(_))
         case Failure(e) =>
           log.error(e, "there is a problem with the behavior")
           self ! Continue
-          if (automaticFailureIndicator) file.foreach(peer ! FailureInFile(_,Some(e.getMessage())))
+          if (automaticFailureIndicator) file.foreach(failedInFile(_,Some(e.getMessage())))
           
       }
     }
