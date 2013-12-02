@@ -127,15 +127,16 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         w = angular.element("<#{type} class='#{classes} #{cs}'>#{content}</#{type}>")[0]
         w.title = c.t if c.t
         return w
+      line = if to? then to.line else from.line
       if c.e? and cm = @doc.getEditor()
         for e in c.e
-          @annotations[user.id][name].push cm.addLineWidget from.line, widget('div','outputWidget error',e)
+          @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget error',e)
       if c.w? and cm = @doc.getEditor()
         for w in c.w
-          @annotations[user.id][name].push cm.addLineWidget from.line, widget('div','outputWidget warning',w)
+          @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget warning',w)
       if c.i? and cm = @doc.getEditor()
         for i in c.i
-          @annotations[user.id][name].push cm.addLineWidget from.line, widget('div','outputWidget info',i)
+          @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget info',i)
       if classes?
         if to? and c.s?
           marker = @doc.markText from, to,
