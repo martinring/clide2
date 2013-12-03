@@ -124,7 +124,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
 
     if (nfile.$$emergencyResetMode)
       nfile.$$emergencyResetMode = false
-      Toast.push 'info', 'resetted ' + nfile.name
+      Toasts.push 'info', 'resetted ' + nfile.name
 
     session.openFiles[file.info.id] = (nfile)
 
@@ -203,7 +203,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
               apply ->
                 remove(msg.c.id)
             when 'process'
-              apply ->
+              f = ->
                 session.fileStates[msg.c.f] = session.fileStates[msg.c.f] or {}
                 session.fileStates[msg.c.f][msg.c.u] = session.fileStates[msg.c.f][msg.c.u] or {}
                 switch msg.c.t
@@ -215,6 +215,11 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
                     session.fileStates[msg.c.f][msg.c.u].looking = true
                   when 'i'
                     session.fileStates[msg.c.f][msg.c.u].looking = false
+              if silence
+                f()
+              else
+                apply f
+
       f(msg)
     ws.onopen = (e) ->
       apply -> session.state = 'connected'

@@ -58,7 +58,36 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
   var sessionActors = Map.empty[Long,ActorRef]
 
   // TODO: Persist
-  var eventHistory = Buffer.empty[BroadcastEvent]
+  var eventHistory = Buffer.empty[BroadcastEvent]  
+  
+  def saveEvent(e: BroadcastEvent) = {    
+    e.msg match {
+      case StoppedLookingAtFile(f) => 
+        eventHistory = eventHistory.filter {
+          case BroadcastEvent(e.who,_,LookingAtFile(`f`)) => false
+          case _ => true
+        }
+      case DoneWithFile(f) =>
+        eventHistory = eventHistory.filter {
+          case BroadcastEvent(e.who,_,DoneWithFile(`f`)) => false
+          case _ => true
+        }
+      case ProgressOnFile(f,p) =>
+        eventHistory = eventHistory.filter {
+          case BroadcastEvent(e.who,_,ProgressOnFile(_,_)) => false
+          case _ => true
+        }
+        eventHistory.append(e)
+      case FailureInFile(f,msg) =>
+        eventHistory = eventHistory.filter {
+          case BroadcastEvent(e.who,_,FailureInFile(_,_)) => false
+          case _ => true
+        }
+        eventHistory.append(e)
+      case _ =>
+        eventHistory.append(e)
+    }    
+  } 
 
   def admin: Receive = {
     case DeleteProject =>
@@ -127,7 +156,7 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
       sessionActors -= info.id
       sessionActors.values.foreach(_.forward(msg))
     case bc: BroadcastEvent =>
-      eventHistory.append(bc)
+      saveEvent(bc)
       sessionActors.values.foreach(_ ! bc)
     case WrappedProjectMessage(user,isHuman,level,msg) =>
       this.isHuman = isHuman

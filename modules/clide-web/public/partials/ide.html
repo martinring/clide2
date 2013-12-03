@@ -175,9 +175,8 @@
       </nav>
       <div id='content'>
         <div class="tabs">
-          <ul class="headers">
-            <li ng-repeat='file in session.openFiles' ng-class='{active: session.me.activeFile==file.id}' ng-show='session.state=="connected"'>
-              <i class='fa fa-stop fa-fw color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true,activeFile:file.id}' title='{{user.user}}'></i>
+          <ul class="headers" ng-show='session.state=="connected"'>
+            <li ng-repeat='file in session.openFiles' ng-class='{active: session.me.activeFile==file.id}'>
               <a ng-click='openFile(file.id)'>{{file.name}}</a>
               <button type="button" class="close" aria-hidden="true" ng-click='closeFile(file.id)'>&times;</button>
             </li>
