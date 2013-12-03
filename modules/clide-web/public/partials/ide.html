@@ -51,7 +51,7 @@
                    class='list-group-item bordercolor-{{session.me.color}}'
                    context-menu='fileContextMenu(file)'
                    ng-class='{ active: file.id==session.me.activeFile, open: file.doc!=null, "text-muted": file.deleted }'>
-                   <i class="fa fa-folder-open fa fa-fixed-width" ng-show='file.loading'></i><i ng-show='!file.loading' class='fa fa-fixed-width' ng-class='{ "fa fa-folder-close": file.isDirectory, "fa fa-file": !file.isDirectory }'></i> {{file.name}}
+                   <i class="fa fa-folder-open fa-fw" ng-show='file.loading'></i><i ng-show='!file.loading' class='fa fa-fw' ng-class='{ "fa-folder": file.isDirectory, "fa-file": !file.isDirectory }'></i> {{file.name}}
                    <span class='pull-right'>
                      <span class='color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true}' title='{{user.user}}'>
                        <i class='animate-show-fade fa fa-asterisk' ng-class='{ "fa-spin": session.fileStates[file.id][user.id].working }' ng-show='session.fileStates[file.id][user.id].looking'></i>
