@@ -84,10 +84,13 @@ class AssistantServer(behavior: AssistantControl => AssistBehavior)(implicit dum
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends Actor with ActorLogging {
+  var actors = Map.empty[ActorRef,(ProjectInfo,LoginInfo)]
+  
   /** May be overridden to modify invitation behaviour **/
   def onInvitation(project: ProjectInfo, me: LoginInfo) = {
     log.info(s"starting session for ${project.owner}/${project.name}")
     val act = context.actorOf(sessionProps(project))
+    actors += act -> (project,me)    
     server.tell(IdentifiedFor(me.user,me.key,WithUser(project.owner,WithProject(project.name,StartSession))),act)
     context.watch(act)
   }
@@ -158,14 +161,20 @@ private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends A
       case ChangedProjectUserLevel(project, user, level) if (user == loginInfo.user) =>
         if (level >= ProjectAccessLevel.Read)
           onInvitation(project, loginInfo)
-        else
+        else          
           sessions.get(project.id).map(_ ! PoisonPill)
+          sessions.remove(project.id)
       case CreatedProject(project) =>
         onInvitation(project,loginInfo)
       case DeletedProject(project) =>
         sessions.get(project.id).map(_ ! PoisonPill)
-      case Terminated(sess) =>
-        sessions.find(_._2 == sess).foreach(i => sessions.remove(i._1))
+      case Terminated(sess) =>        
+        sessions.find(_._2 == sess).foreach { case (id,act) =>
+          actors.get(sess).foreach { case (p,i) =>
+            log.info("restarting project actor")
+            onInvitation(p,i)
+          }
+        }
     }
   }
 }

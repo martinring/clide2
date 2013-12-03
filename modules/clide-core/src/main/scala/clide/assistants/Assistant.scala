@@ -170,8 +170,12 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           (file,as) <- annotations
           ((user,name),as) <- as
         } self ! Annotated(file,user,as,name)
-
-      case _ => this.stash()
+        
+      case Terminated(_) =>
+        log.warning("peer terminated")
+        context.stop(self)        
+        
+      case _ => this.stash()      
     }
   }
   
@@ -248,6 +252,8 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         if (!files.contains(file))
           peer ! OpenFile(file)
       }
+      
+    case Terminated(_) => context.stop(self)
   }
 
   private case object Initialized
@@ -257,6 +263,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
     case EventSocket(ref,"session") =>
       log.debug("session started")
       peer = ref
+      context.watch(peer)
       behavior.start(project).onComplete {
         case Success(()) => self ! Initialized
         case Failure(e)  => self ! InitializationFailed(e)
@@ -274,6 +281,8 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       this.info = info
       this.collaborators ++= collaborators
       context.become(initialized)
+    
+    case Terminated(_) => context.stop(self)
   }
 
   override def postStop() {
