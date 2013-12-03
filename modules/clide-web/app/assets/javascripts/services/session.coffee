@@ -74,8 +74,19 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     adapter = new CMAdapter(nfile.doc, session.me.color)
 
     client.applyOperation = adapter.applyOperation
-    client.sendOperation = (rev,op) -> send
-        f: nfile.id # TODO: handle on server!
+    reset = () ->
+      Toasts.push('warning', 'emergency resetting ' + nfile.name + ' due to server timeout')
+      delete session.openFiles[file.info.id]
+      send
+        t: 'close'
+        id: file.info.id
+      send
+        t: 'open'
+        id: file.info.id
+    client.sendOperation = (rev,op) ->
+      nfile.$$emergencyReset = setTimeout(reset, 3000)
+      send
+        f: nfile.id
         r: rev
         o: op.actions
     client.sendAnnotation = (rev,an,name) -> send
@@ -88,7 +99,9 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       change: (op) -> client.applyClient(op)
       annotate: (a) -> client.annotate(a)
 
-    nfile.$ackEdit = () -> client.serverAckEdit()
+    nfile.$ackEdit = () ->
+      clearTimeout(nfile.$$emergencyReset)
+      client.serverAckEdit()
     nfile.$ackAnnotation = () -> client.serverAckAnnotation()
     nfile.$apply = (os) -> client.applyServer(os)
     nfile.$syncState = -> client.syncState()
