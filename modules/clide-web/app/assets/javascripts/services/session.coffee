@@ -63,12 +63,16 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
 
     nfile.id   = file.info.id
     nfile.name = file.info.name
-    if file.info.mimeType is 'text/isabelle'
-      nfile.doc  = CodeMirror.Doc file.state,
-        name: 'isabelle'
-        words: idw
+
+    if nfile.doc?
+      nfile.doc.setValue(file.state)
     else
-      nfile.doc = CodeMirror.Doc file.state, (file.info.mimeType or 'text/plain')
+      if file.info.mimeType is 'text/isabelle'
+        nfile.doc  = CodeMirror.Doc file.state,
+          name: 'isabelle'
+          words: idw
+      else
+        nfile.doc = CodeMirror.Doc file.state, (file.info.mimeType or 'text/plain')
 
     client  = new Client(file.revision)
     adapter = new CMAdapter(nfile.doc, session.me.color)
@@ -76,7 +80,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     client.applyOperation = adapter.applyOperation
     reset = () ->
       Toasts.push('warning', 'emergency resetting ' + nfile.name + ' due to server timeout')
-      delete session.openFiles[file.info.id]
+      nfile.$$emergencyResetMode = true
       send
         t: 'close'
         id: file.info.id
@@ -84,7 +88,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         t: 'open'
         id: file.info.id
     client.sendOperation = (rev,op) ->
-      nfile.$$emergencyReset = setTimeout(reset, 3000)
+      nfile.$$emergencyReset = setTimeout(reset, 2000)
       send
         f: nfile.id
         r: rev
@@ -117,6 +121,10 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       nfile.annotations[u.id].push
         show: true
         name: n
+
+    if (nfile.$$emergencyResetMode)
+      nfile.$$emergencyResetMode = false
+      Toast.push 'info', 'resetted ' + nfile.name
 
     session.openFiles[file.info.id] = (nfile)
 
