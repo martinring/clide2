@@ -69,9 +69,7 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
   with IsabelleSession with IsabelleConversions {
   
   def mimeTypes = Set("text/x-isabelle")
-  
-  val thys = scala.collection.mutable.Map.empty[Document.Node.Name,(Document.Version,OpenedFile)]
-  
+    
   def fileOpened(file: OpenedFile) = {
     control.log.info("fileOpened({})", file.info.path)
     noop
@@ -80,31 +78,30 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
   }
   def fileActivated(file: OpenedFile) = {
     control.log.info("fileActivated({})", file.info.path)
-    session.update(initEdits(file,Seq.empty))
-    nextChange(file)
+    noop
   } 
   def fileInactivated(file: OpenedFile) = {
-    session.update(closeEdits(file))
-    nextChange(file)
+    updateFile(file, file, closeEdits(file))
+    noop
   }
   
   def fileClosed(file: OpenedFile) = {
-    session.update(removeEdits(file))
-    nextChange(file)
+    updateFile(file, file, removeEdits(file))
+    noop
   }
   
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = {
     control.log.info("fileChanged({},{},...)", file.info.path, delta)
     val edits = opToDocumentEdits(file, cursors, delta)
-    session.update(edits)
-    nextChange(file)
+    updateFile(file,file,edits)
+    noop
   }
 
   def collaboratorJoined(who: SessionInfo) = noop
   def collaboratorLeft(who: SessionInfo) = noop
   
   def cursorMoved(cursor: Cursor) = noop
-  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) = noop
+  def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long) = noop
 }
 
 object IsabelleApp extends App {

@@ -26,10 +26,10 @@ package clide.actors
 import akka.actor._
 import clide.models._
 import clide.actors.files._
-import scala.collection.mutable.Buffer
 import scala.slick.session.Session
 import org.h2.jdbc.JdbcSQLException
 import clide.persistence.DBAccess
+import scala.collection.mutable.Buffer
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
@@ -49,7 +49,8 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
   import clide.actors.Messages._
   import clide.actors.Events._
 
-  var user: UserInfo = null
+  var isHuman: Boolean = false
+  var user: UserInfo = null  
   var level = ProjectAccessLevel.None
   var root: ActorRef     = context.system.deadLetters
 
@@ -57,7 +58,7 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
   var sessionActors = Map.empty[Long,ActorRef]
 
   // TODO: Persist
-  var conversationHistory = Buffer.empty[Talked]
+  var eventHistory = Buffer.empty[BroadcastEvent]
 
   def admin: Receive = {
     case DeleteProject =>
@@ -91,10 +92,10 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
         !session.active
       }.map { session =>
         sessionActors.get(session.id).getOrElse {
-          context.actorOf(SessionActor.props(Some(session.id),sessions,user,this.info,conversationHistory.toVector))
+          context.actorOf(SessionActor.props(Some(session.id),sessions,user,this.info,isHuman,eventHistory.toList))
         }
       }.getOrElse {
-        context.actorOf(SessionActor.props(None,sessions,user,this.info,conversationHistory.toVector))
+        context.actorOf(SessionActor.props(None,sessions,user,this.info,isHuman,eventHistory.toList))
       }.forward(EnterSession)
     case msg @ WithPath(_,_: FileWriteMessage) =>
       root.forward(msg)
@@ -105,14 +106,7 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
       val browser = context.actorOf(FileBrowser(false,root))
       browser.forward(StartFileBrowser)
     case msg @ WithPath(_,_: FileReadMessage) =>
-      root.forward(msg)
-    case Talk(None,what,t) =>
-      val talked = Talked(user.name, what, t, System.currentTimeMillis)
-      conversationHistory.append(talked)
-      sessionActors.values.foreach(_ ! talked)
-    case Talk(Some(sess),what,t) =>
-      log.warning("not supported yet")
-      sessionActors.get(sess).map(_ ! Talked(user.name, what, t, System.currentTimeMillis))    
+      root.forward(msg)    
   }
 
   def none: Receive = {
@@ -132,7 +126,11 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
       sessions -= info
       sessionActors -= info.id
       sessionActors.values.foreach(_.forward(msg))
-    case WrappedProjectMessage(user,level,msg) =>
+    case bc: BroadcastEvent =>
+      eventHistory.append(bc)
+      sessionActors.values.foreach(_ ! bc)
+    case WrappedProjectMessage(user,isHuman,level,msg) =>
+      this.isHuman = isHuman
       this.user = user
       this.level = level
       level match {
@@ -145,8 +143,6 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
         case _ =>
           none(msg)
       }
-    case proc@ProcessingEvent(who,e) if (sessionActors(who) == sender) =>      
-      sessionActors.filter(_._1 != who).foreach(_._2 ! proc)
   }
 
   override def preRestart(reason:Throwable, message:Option[Any]){

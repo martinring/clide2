@@ -63,8 +63,8 @@ object Authentication extends Controller with UserRequests {
   def login = UserRequest.async(parse.json) { implicit request =>
     loginForm.bind(request.body).fold(
       formWithErrors => Future.successful(BadRequest(formWithErrors.errorsAsJson)),
-      { case (name,password) =>
-        request.askFor(name)(Login(password)).map {
+      { case (name,password) => // We assume that users logging in via web interface are humans
+        request.askFor(name)(Login(password,isHuman = true)).map {
           case LoggedIn(user,login) =>
             Ok(Json.obj(
                 "username" -> user.name,

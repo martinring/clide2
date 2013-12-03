@@ -121,5 +121,5 @@ trait AssistBehavior {
    *         messages will be automatically accumulated where possible so that you will receive 
    *         e.g. only one `fileChanged` notification afterwards with a combined delta. 
    */
-  def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long): Future[Unit]
+  def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long): Future[Unit]
 }

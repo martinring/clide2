@@ -54,7 +54,7 @@
                    <i class="fa fa-folder-open fa fa-fixed-width" ng-show='file.loading'></i><i ng-show='!file.loading' class='fa fa-fixed-width' ng-class='{ "fa fa-folder-close": file.isDirectory, "fa fa-file": !file.isDirectory }'></i> {{file.name}}
                    <span class='pull-right'>
                      <span class='color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true}' title='{{user.user}}'>
-                       <i class='animate-show-fade fa fa-asterisk fa-spin' ng-show='session.fileStates[file.id][user.id].t == "w"'></i>
+                       <i class='animate-show-fade fa fa-asterisk' ng-class='{ "fa-spin": session.fileStates[file.id][user.id].working }' ng-show='session.fileStates[file.id][user.id].looking'></i>
                      </span>
                    </span>
                 </a>
@@ -204,8 +204,10 @@
           <ul class="statusMessages" ng-mousedown='startSlidebar($event)'>
             <!--<li id="syncState">{{session.syncState()}}</li>
             <li id="traffic">{{session.activeAnnotations()}}</li>
-            --><li id="sessionStatus" class="phase">
-              <i class='fa fa-cloud'></i>
+            --><li>
+              <span class="color-{{session.me.color}}" title='{{session.me.user}}'>
+                <i class='fa fa-asterisk' ng-class='{ "fa-spin": session.fileStates[session.me.activeFile][session.me.id].working }'></i>
+              </span>
             </li>
           </ul>
         </div>

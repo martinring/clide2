@@ -93,11 +93,17 @@ object Projects extends Controller with UserRequests with DefaultResults {
               case "init" =>
                 RequestSessionInfo
               case "open" =>
-                SwitchFile((json \ "id").as[Long])
+                OpenFile((json \ "id").as[Long])
               case "close" =>
                 CloseFile((json \ "id").as[Long])
               case "color" =>
                 SetColor((json \ "c").as[String])
+              case "looking" =>
+                LookingAtFile((json \ "f").as[Long])
+              case "ignoring" =>
+                StoppedLookingAtFile((json \ "f").as[Long])
+              case "eof" =>
+                EOF
               case "invite" =>
                 ChangeProjectUserLevel((json \ "u").as[String], ProjectAccessLevel.Write)
               case "chat" =>

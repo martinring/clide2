@@ -27,7 +27,7 @@ package clide.assistants
 import akka.actor._
 import clide.models._
 import clide.actors.Events._
-import clide.actors.Messages.{RequestSessionInfo,SwitchFile,IdentifiedFor,WithUser,Talk}
+import clide.actors.Messages.{RequestSessionInfo,IdentifiedFor,WithUser,Talk}
 import clide.collaboration.{Annotations,Operation,Document,AnnotationType}
 import scala.collection.mutable.Map
 import scala.collection.mutable.Set
@@ -78,8 +78,8 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   }
 
 
-  case object Continue
-
+  case object Continue  
+  
   def openFile(path: Seq[String]): Future[OpenedFile] = ???
 
   def annotate(file: OpenedFile, name: String, annotations: Annotations): Unit =
@@ -211,8 +211,8 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       val f = files(file)
       files.remove(file)
       doWork(None)(for {
-        _ <- behavior.fileInactivated(files(file))
-        _ <- behavior.fileClosed(files(file))
+        _ <- behavior.fileInactivated(f)
+        _ <- behavior.fileClosed(f)
       } yield ())
 
     case Processed(Edited(file,operation)) if files.isDefinedAt(file) =>
@@ -222,10 +222,10 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       val prev = files(file)
       val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
       files(file) = next
-      doWork(Some(file))(behavior.fileChanged(next, operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))      
+      doWork(Some(file))(behavior.fileChanged(next, operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))    
     
-    case Talked(from, msg, tpe, timestamp) if (from != assistantName || receiveOwnChatMessages) => 
-      doWork(None)(behavior.receiveChatMessage(from,msg,tpe,timestamp))
+    case BroadcastEvent(who, when, Talk(to, msg, tpe)) if (who != info.id || receiveOwnChatMessages) =>
+      doWork(None)(behavior.receiveChatMessage(collaborators.find(_.id == who).get,msg,tpe,when))
 
     case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
       // TODO: More universal approach on cursor positions etc.
@@ -242,10 +242,11 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         doWork(Some(file.info.id))(behavior.cursorMoved(Cursor(user,file,pos)))
       }
 
-    case SessionChanged(info) =>
-      log.debug("session changed: {}", info)
-      if (info.active && info.activeFile.isDefined && !files.contains(info.activeFile.get)) {
-        peer ! OpenFile(info.activeFile.get)
+    case BroadcastEvent(who, when, LookingAtFile(file)) =>
+      for (who <- collaborators.find(_.id == who) if who.isHuman) {
+        log.debug("{} is looking at file {}", who.user, file)
+        if (!files.contains(file))
+          peer ! OpenFile(file)
       }
   }
 
@@ -272,10 +273,6 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       log.debug("session info received")
       this.info = info
       this.collaborators ++= collaborators
-      collaborators.foreach { info =>
-        if (info.active && info.activeFile.isDefined) {
-          peer ! OpenFile(info.activeFile.get)
-      } }
       context.become(initialized)
   }
 

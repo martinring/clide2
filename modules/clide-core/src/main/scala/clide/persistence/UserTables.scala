@@ -63,8 +63,9 @@ trait UserTables { this: Profile =>
     def user     = foreignKey("fk_login_user", userName, UserInfos)(_.name,
         onUpdate = ForeignKeyAction.Cascade,
         onDelete = ForeignKeyAction.Cascade)
+    def isHuman  = column[Boolean]("isHuman")
 
-    def *        = userName ~ key ~ timeout <> (LoginInfo.apply _, LoginInfo.unapply _)
+    def *        = userName ~ key ~ timeout ~ isHuman <> (LoginInfo.apply _, LoginInfo.unapply _)
 
     def create(info: LoginInfo)(implicit session: Session) = {
       *.insert(info)

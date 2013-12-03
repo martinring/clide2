@@ -109,12 +109,9 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
     def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def userName     = column[String]("name")
     def color        = column[String]("color")
-    def projectId    = column[Long]("project")
-    def activeFileId = column[Option[Long]]("activeFile")
+    def projectId    = column[Long]("project")    
     def active       = column[Boolean]("active")
-    def activeFile   = foreignKey("fk_session_file", activeFileId, FileInfos)(_.id,
-        onUpdate = ForeignKeyAction.SetNull,
-        onDelete = ForeignKeyAction.SetNull)
+    def isHuman      = column[Boolean]("isHuman")
     def user         = foreignKey("fk_session_user", userName, UserInfos)(_.name,
         onUpdate = ForeignKeyAction.Cascade,
         onDelete = ForeignKeyAction.Cascade)
@@ -122,12 +119,12 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
         onUpdate = ForeignKeyAction.Cascade,
         onDelete = ForeignKeyAction.Cascade)
 
-    def * = id ~ userName ~ color ~ projectId ~ activeFileId ~ active <> (SessionInfo.apply _, SessionInfo.unapply _)
+    def * = id ~ userName ~ color ~ projectId ~ isHuman ~ active <> (SessionInfo.apply _, SessionInfo.unapply _)
 
-    def create(user: String, color: String, project: Long, activeFile: Option[Long], active: Boolean)(implicit session: Session) = {
-      val q = this.id.? ~ this.userName ~ this.color ~ this.projectId ~ this.activeFileId ~ this.active returning this.id
-      val id = q.insert((None,user,color,project,activeFile,active))
-      SessionInfo(id,user,color,project,activeFile,active)
+    def create(user: String, color: String, project: Long, isHuman: Boolean, active: Boolean)(implicit session: Session) = {
+      val q = this.id.? ~ this.userName ~ this.color ~ this.projectId ~ this.isHuman ~ this.active returning this.id
+      val id = q.insert((None,user,color,project,isHuman,active))
+      SessionInfo(id,user,color,project,isHuman,active)
     }
 
     def update(info: SessionInfo)(implicit session: Session) = {

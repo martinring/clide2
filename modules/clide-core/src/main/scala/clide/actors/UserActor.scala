@@ -52,7 +52,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
   var projects = Map[String,ProjectInfo]()
   var otherProjects = Map[ProjectInfo,ProjectAccessLevel.Value]()
   var backstagePeers: Map[ActorRef,LoginInfo] = Map()
-
+  
   override def preStart() {
     log.info("initializing user actor")
     DB.withSession { implicit session: Session =>
@@ -76,7 +76,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
         { event => sender ! event },
         { login => (identified(login) orElse anonymous)(msg) })
     case Anonymous(msg) => anonymous(msg)
-    case External(user,msg) => (external(user) orElse anonymous)(msg)
+    case External(user,login,msg) => (external(user,login) orElse anonymous)(msg)
     // EVENTS
     case DeletedProject(project) =>
       projects -= project.name
@@ -96,13 +96,13 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
   }
 
   def anonymous: Receive = {
-    case Login(password) =>
+    case Login(password, isHuman) =>
       if (!user.authenticate(password)) {
         log.info("login attempt failed")
         sender ! WrongPassword
       } else {
         val key   = UUID.randomUUID().toString()
-        val login = LoginInfo(user.name,key,None) // TODO: Handle Timeouts!
+        val login = LoginInfo(user.name,key,None,isHuman) // TODO: Handle Timeouts!
         DB.withSession { implicit Session: Session => LoginInfos.create(login) }
         logins += key -> login
         sender ! LoggedIn(user, login)
@@ -112,12 +112,13 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
     case _ => sender ! NotAllowed
   }
 
-  def external(user: UserInfo): Receive = {
+  def external(user: UserInfo, login: LoginInfo): Receive = {
     case WithProject(name,msg) =>
       projects.get(name) match {
         case Some(project) =>
           context.actorSelection(s"$name").tell(
-            WrappedProjectMessage(user, ProjectAccessLevel.Write,msg),sender)
+              // TODO: ProjectAccessLevel!!!
+            WrappedProjectMessage(user, login.isHuman, ProjectAccessLevel.Write, msg),sender)
         case None => sender ! DoesntExist
       }
 
@@ -127,12 +128,16 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
   }
 
   def identified(login: LoginInfo): Receive = {
-    case Login(password) =>
+    case Login(password, isHuman) =>
       if (!user.authenticate(password)) {
         log.info("login attempt failed")
         sender ! WrongPassword
-      } else
+      } else if (isHuman == login.isHuman) {
         sender ! LoggedIn(user, login)
+      } else {
+        log.warning("login key shared between human and non human users: {}", login)
+        DB.withSession { implicit s: Session => LoginInfos.delete(login) }
+      }
 
     case Logout =>
       DB.withSession { implicit sesion: Session => LoginInfos.delete(login) }
@@ -162,14 +167,14 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
       projects.get(name) match {
         case Some(project) =>
           context.actorSelection(s"$name").tell(
-            WrappedProjectMessage(user, ProjectAccessLevel.Admin,msg),sender)
+            WrappedProjectMessage(user, login.isHuman, ProjectAccessLevel.Admin, msg),sender)
         case None => sender ! DoesntExist
       }
 
     case WithUser(name,msg) =>
       log.info(s"${user.name} received $msg for $name")
       if (name == user.name) (identified(login) orElse anonymous)(msg)
-      else context.actorSelection(s"../$name").tell(External(user,msg),sender)
+      else context.actorSelection(s"../$name").tell(External(user,login,msg),sender)
 
     case Validate => sender ! Validated(user)
 

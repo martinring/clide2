@@ -26,8 +26,7 @@ import clide.models._
 import akka.actor.ActorRef
 import clide.collaboration.Operation
 import clide.collaboration.Annotations
-import clide.collaboration.AnnotationDiff.AnnotationDiff
-import clide.actors.Messages.ProcessingMessage
+import clide.actors.Messages.BroadcastMessage
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
@@ -72,28 +71,25 @@ object Events {
   case class DeletedProject(project: ProjectInfo) extends ProjectEvent
   case class ChangedProjectUserLevel(project: ProjectInfo, user: String, level: ProjectAccessLevel.Value) extends ProjectEvent
 
-  trait SessionEvent extends Event
-  trait BroadcastEvent extends SessionEvent
+  trait SessionEvent extends Event  
   case class SessionInit(
       info: SessionInfo,
       collaborators: Set[SessionInfo],
-      conversation: List[Talked]) extends SessionEvent
+      eventHistory: List[BroadcastEvent]) extends SessionEvent
   case class SessionChanged(info: SessionInfo) extends SessionEvent
   case class SessionStopped(info: SessionInfo) extends SessionEvent
-  case class FileSwitched(id: Option[Long]) extends SessionEvent
   case class FileClosed(id: Long) extends SessionEvent
   case class FileOpened(file: OpenedFile) extends SessionEvent
   case class Edited(file: Long, op: Operation) extends SessionEvent
   case class Annotated(file: Long, user: Long, an: Annotations, name: String) extends SessionEvent
   // TODO case class AnnotationChanged(file: Long, user: Long, an: AnnotationDiff, name: String) extends SessionEvent
   case class AcknowledgeEdit(file: Long) extends SessionEvent
-  case class Talked(from: String, msg: String, tpe: Option[String], timestamp: Long) extends SessionEvent
   case class MetaInfo(file: Long, info: Map[String,String])
     
   /**
    * @param who the session id of the collaborator processing the file
    */
-  case class ProcessingEvent(who: Long, update: ProcessingMessage) extends SessionEvent
+  case class BroadcastEvent(who: Long, timestamp: Long, msg: BroadcastMessage) extends SessionEvent
 
   /**
    * Used to transmit all the projects of a user

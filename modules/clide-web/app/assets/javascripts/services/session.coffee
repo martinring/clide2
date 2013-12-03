@@ -49,6 +49,15 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
 
   apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f) else f()
 
+  setActiveFile = (id) ->
+    if session.me.activeFile? then send
+      t: 'ignoring'
+      f: session.me.activeFile
+    session.me.activeFile = id
+    if id? then send
+      t: 'looking'
+      f: id
+
   initFile = (file) ->
     nfile = session.openFiles[file.info.id] or { }
 
@@ -129,7 +138,8 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     ws.onmessage = (e) ->
       console.log "received: #{e.data}"
       msg = JSON.parse(e.data)
-      switch typeof msg
+      silence = false
+      f = (msg) -> switch typeof msg
         when 'number'
           f = getOpenFile(msg)
           if f
@@ -151,22 +161,20 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
               apply ->
                 session.me = msg.info
                 session.collaborators = msg.others
-                session.chat = msg.chat.reverse()
+              silence = true
+              f(event) for event in msg.events.reverse()
+              silence = false
             when 'opened'
-              apply -> initFile(msg.c)
+              apply ->
+                initFile(msg.c)
+                setActiveFile(msg.c.info.id)
             when 'failed'
               Toasts.push("danger","the initialization of the requested file failed on the server")
             when 'talk'
-              apply ->
-                session.talkback?(msg.c)
-                session.chat.unshift(msg.c)
+              session.chat.unshift(msg.c)
+              (apply -> session.talkback?(msg.c)) unless silence
             when 'close'
-              apply ->
-                delete session.openFiles[msg.c]
-                session.me.activeFile = null
-            when 'switch'
-              apply ->
-                session.me.activeFile = msg.c
+              console.log 'close file acknowledged'
             when 'session_changed'
               apply ->
                 update(msg.c)
@@ -175,8 +183,18 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
                 remove(msg.c.id)
             when 'process'
               apply ->
-                session.fileStates[msg.c.f] = {}
-                session.fileStates[msg.c.f][msg.c.u] = msg.c
+                session.fileStates[msg.c.f] = session.fileStates[msg.c.f] or {}
+                session.fileStates[msg.c.f][msg.c.u] = session.fileStates[msg.c.f][msg.c.u] or {}
+                switch msg.c.t
+                  when 'w'
+                    session.fileStates[msg.c.f][msg.c.u].working = true
+                  when 'd'
+                    session.fileStates[msg.c.f][msg.c.u].working = false
+                  when 'l'
+                    session.fileStates[msg.c.f][msg.c.u].looking = true
+                  when 'i'
+                    session.fileStates[msg.c.f][msg.c.u].looking = false
+      f(msg)
     ws.onopen = (e) ->
       apply -> session.state = 'connected'
       for msg in queue
@@ -209,11 +227,17 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
       socket or get(username, project, init)
       send
         t: 'init'
-    openFile: (id) -> unless session.me.activeFile is id
-      send
+    openFile: (id) -> unless id is session.me.activeFile
+      existing = getOpenFile(id)
+      if existing
+        setActiveFile(id)
+      else send
         t: 'open'
         id: id
     closeFile: (id) ->
+      apply ->
+        delete session.openFiles[id]
+        setActiveFile(null)
       send
         t: 'close'
         id: id
@@ -238,5 +262,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
 
     close: ->
       queue = []
+      send
+        t: 'eof'
       socket?.close()
   )

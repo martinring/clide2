@@ -29,6 +29,6 @@ import java.sql.Date
 case class LoginInfo(
   user: String,
   key: String,
-  timeout: Option[Date]
+  timeout: Option[Date],
+  isHuman: Boolean
 )
-

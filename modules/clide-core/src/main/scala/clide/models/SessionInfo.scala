@@ -28,7 +28,7 @@ case class SessionInfo(
   user: String,
   color: String,
   project: Long,
-  activeFile: Option[Long],
+  isHuman: Boolean,
   active: Boolean) {
   override def equals(other: Any) = other match {
     case SessionInfo(id,_,_,_,_,_) => id == this.id

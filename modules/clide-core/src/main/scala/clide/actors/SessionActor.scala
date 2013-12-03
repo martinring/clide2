@@ -32,6 +32,7 @@ import scala.slick.session.Session
 import clide.actors.Messages._
 import clide.actors.Events._
 import clide.persistence.DBAccess
+import scala.concurrent.duration._
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
@@ -42,8 +43,9 @@ private object SessionActor {
     collaborators: Set[SessionInfo],
     user: UserInfo,
     project: ProjectInfo,
-    conversation: Vector[Talked])(implicit dbAccess: DBAccess) =
-      Props(classOf[SessionActor], id, collaborators, user, project, conversation, dbAccess)
+    isHuman: Boolean,
+    eventHistory: List[BroadcastEvent])(implicit dbAccess: DBAccess) =
+      Props(classOf[SessionActor], id, collaborators, user, project, isHuman, eventHistory, dbAccess)
 }
 
 /**
@@ -52,9 +54,10 @@ private object SessionActor {
 private class SessionActor(
     var id: Option[Long],
     var collaborators: Set[SessionInfo],
-    var user: UserInfo,
-    var project: ProjectInfo,
-    var conversation: Vector[Talked])
+    val user: UserInfo,
+    val project: ProjectInfo,
+    val isHuman: Boolean,
+    var eventHistory: List[BroadcastEvent])
     (implicit val dbAccess: DBAccess) extends Actor with ActorLogging{
   import dbAccess.schema._
   import dbAccess.{db => DB}
@@ -62,11 +65,33 @@ private class SessionActor(
   val level = ProjectAccessLevel.Admin // TODO
   var session: SessionInfo = null
   var peer = context.system.deadLetters
-  val openFiles = Map[Long,FileInfo]()
-  val fileServers = Map[Long,ActorRef]()
+  val openFiles = Map.empty[Long,FileInfo]
+  val fileServers = Map.empty[Long,ActorRef]
 
+  val activityTimeouts = Map.empty[Long,Cancellable]
+  
+  import context.dispatcher
+      
+  def indicateActivity(file: Long) {
+    if (isHuman) {
+      if (activityTimeouts.isDefinedAt(file)) {
+        activityTimeouts.get(file).foreach(_.cancel)          
+      } else {
+        log.info("indicating activity")
+        context.parent ! BroadcastEvent(session.id, System.currentTimeMillis, WorkingOnFile(file))  
+      }
+      activityTimeouts(file) = context.system.scheduler.scheduleOnce(1.second) {
+        log.info("indicating inactivity")
+        context.parent ! BroadcastEvent(session.id, System.currentTimeMillis, DoneWithFile(file))
+        activityTimeouts.remove(file)
+      }
+    }
+  }
+  
   val colors = context.system.settings.config.getStringList("sessionColors").toSet
 
+  def wrap(msg: ProjectMessage) = Messages.internal.WrappedProjectMessage(user,isHuman,level,msg)
+  
   def randomColor(): String = {
     var remaining = colors
     collaborators.foreach(remaining -= _.color)
@@ -83,21 +108,14 @@ private class SessionActor(
     this.session
   }
 
-  def switchFile(next: Option[Long]): Boolean =
-    if (next.isEmpty || openFiles.contains(next.get)) DB.withSession { implicit session: Session =>
-      this.session = this.session.copy(activeFile = next)
-      context.parent ! SessionChanged(this.session)
-      peer           ! FileSwitched(this.session.activeFile)
-      SessionInfos.update(this.session)
-      true
-    } else false
-
   def initializeFile(id: Long) = {
+    if (fileServers.contains(id))
+      fileServers(id) ! EOF
     log.info("initializing file")
     DB.withSession { implicit session: Session => // TODO: Move to File Actors
       FileInfos.get(id).fold(peer ! DoesntExist){ info => // TODO: Move to Schema
         log.info("forwarding openfile to path")
-        context.parent ! Messages.internal.WrappedProjectMessage(user,level,WithPath(info.path,Messages.internal.OpenFile(this.session)))
+        context.parent ! wrap(WithPath(info.path,Messages.internal.OpenFile(this.session)))
       }
     }
   }
@@ -117,10 +135,10 @@ private class SessionActor(
       sender ! SessionInit(
           session,
           collaborators,
-          conversation.toList)
+          eventHistory)
       openFiles.values.foreach { file => // TODO: Move in ResetFile or so
         fileServers.get(file.id).map(_ ! Messages.internal.OpenFile(this.session)).getOrElse {
-          context.parent ! Messages.internal.WrappedProjectMessage(user,level,WithPath(file.path,Messages.internal.OpenFile(this.session)))
+          context.parent ! wrap(WithPath(file.path,Messages.internal.OpenFile(this.session)))
         }
       }
     case EnterSession =>
@@ -140,24 +158,23 @@ private class SessionActor(
       }
       context.parent ! SessionStopped(session)
       context.stop(self)
-    case SwitchFile(id) =>
-      if (!switchFile(Some(id))) initializeFile(id)
     case OpenFile(id) =>
-      if (!openFiles.contains(id)) initializeFile(id)
+      initializeFile(id)
     case AcknowledgeEdit(f) =>
+      indicateActivity(f)
       peer ! AcknowledgeEdit(f)
     case Edited(f,op) =>
-      peer ! Edited(f,op)
+      peer ! Edited(f,op)      
     case Annotated(f,u,an,n) =>
-      peer ! Annotated(f,u,an,n)
+      peer ! Annotated(f,u,an,n)      
     case SetColor(value) =>
       session = session.copy(color = value)
       context.parent ! SessionChanged(session)
-    case msg @ Talk(_,_,_) =>
-      context.parent ! Messages.internal.WrappedProjectMessage(user,level,msg)
-    case msg @ Talked(_,_,_,_) =>
-      conversation :+= msg
-      peer ! msg
+    case msg: BroadcastMessage if sender == peer =>
+      context.parent ! BroadcastEvent(session.id, System.currentTimeMillis, msg)
+    case e: BroadcastEvent =>
+      eventHistory = e :: eventHistory
+      peer ! e
     case CloseFile(id) =>
       DB.withSession { implicit session: Session =>
         OpenedFiles.delete(this.session.id,id)
@@ -170,25 +187,21 @@ private class SessionActor(
       }
       openFiles.remove(id)
       fileServers.remove(id)
-      if (session.activeFile == Some(id))
-        switchFile(openFiles.keys.headOption)
     case msg @ Edit(id,_,_) =>
       fileServers.get(id).map{ ref =>
         ref ! msg
       } getOrElse {
         log.info("forwarding edit to path")
-        context.parent ! Messages.internal.WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
-      }
+        context.parent ! wrap(WithPath(openFiles(id).path, msg))
+      }      
     case msg @ Annotate(id,_,_,_) =>
       fileServers.get(id).map{ ref =>
         ref ! msg
       } getOrElse {
         log.info("forwarding annotation to path")
-        context.parent ! Messages.internal.WrappedProjectMessage(user,level,WithPath(openFiles(id).path, msg))
+        context.parent ! wrap(WithPath(openFiles(id).path, msg))
       }
     case msg @ FileInitFailed(f) =>
-      if (session.activeFile == Some(f))
-        switchFile(None)
       peer ! msg
     case msg @ Events.internal.OTState(f,s,r) =>
       val of = OpenedFile(f,s,r)
@@ -202,12 +215,6 @@ private class SessionActor(
       fileServers += f.id -> sender
       context.watch(sender)
       peer ! FileOpened(of)
-      if (!switchFile(Some(f.id)))
-        log.error("couldnt switch file")
-    case proc: ProcessingMessage =>
-      context.parent ! ProcessingEvent(session.id, proc)
-    case proc: ProcessingEvent =>
-      peer ! proc
     case Terminated(ref) =>
       if (ref == peer) {
 	    log.info("going idle due to termination")
@@ -219,7 +226,7 @@ private class SessionActor(
         }
       }
     case msg@ChangeProjectUserLevel(_,_) => // HACK: replace with invitation
-      context.parent.forward(Messages.internal.WrappedProjectMessage(user,level,msg))
+      context.parent.forward(wrap(msg))
   }
 
   override def postStop() = DB.withSession { implicit session: Session =>    
@@ -242,7 +249,7 @@ private class SessionActor(
         user = this.user.name,
         color = randomColor(),
         project = project.id,
-        activeFile = None,
+        isHuman = this.isHuman,
         active = true)
       context.parent ! SessionChanged(res)
       res

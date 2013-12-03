@@ -24,6 +24,7 @@
 
 package clide.isabelle
 
+import isabelle._
 import clide.assistants.AssistBehavior
 import clide.models._
 import scala.concurrent.Promise
@@ -42,12 +43,11 @@ trait IsabelleSession { self: AssistBehavior with Control =>
   var session: Session = null
   var project: ProjectInfo = null
   
-  private var currentChange: Promise[Document.Version] = Promise().failure(new Exception("you shouldn't be here ;)"))
-  private val thys = scala.collection.mutable.Map.empty[(Document.Node.Name,Document.Version),OpenedFile]
-         
-  def nextChange(file: OpenedFile) = {
-    currentChange = Promise()
-    currentChange.future.mapTo[Unit]
+  private var files = scala.collection.mutable.Map.empty[Document.Node.Name,(Future[Document.Version],OpenedFile)]              
+  
+  def updateFile(name: Document.Node.Name, file: OpenedFile, update: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])]) = {
+    session.update(update)
+    files(name) = (session.current_state.history.tip.version, file)
   }
   
   def start(project: ProjectInfo) = {
@@ -103,8 +103,6 @@ trait IsabelleSession { self: AssistBehavior with Control =>
     }
     session.commands_changed += { msg =>
       require(msg.nodes.size == 1)
-      if (msg.assignment && !currentChange.isCompleted) 
-        currentChange.success(session.snapshot(msg.nodes.head,Nil).version)      
       control.log.info("COMMANDS_CHANGED: {}, {}", msg.assignment, msg.nodes.map(session.snapshot(_, Nil)).map(_.version))      
     }
     session.start(List("-S","HOL"))

@@ -58,8 +58,7 @@ private class UserServer(implicit val dbAccess: DBAccess) extends Actor with Act
           sender ! ActionFailed(Map("name" -> "this name is already registered"))
         } else if (UserInfos.getByEmail(user.email).isDefined) {
           sender ! ActionFailed(Map("email" -> "this email is already registered"))
-        }
-        else {
+        } else {
           UserInfos.insert(user)
           context.actorOf(UserActor.props(user), user.name)
 	      sender ! SignedUp(user)

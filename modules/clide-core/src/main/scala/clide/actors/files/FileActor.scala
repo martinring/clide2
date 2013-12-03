@@ -111,7 +111,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
         resendAnnotations(sender)
       }
 
-    case Annotate(_,rev,as,name) =>
+    case Annotate(_,rev,as,name) if clients.isDefinedAt(sender) =>
       if (!otActive) initOt()
       server.transformAnnotation(rev.toInt, as) match { // TODO: Ugly: rev.toInt
         case Failure(e) =>
@@ -136,7 +136,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
           annotations((clients(sender).id,name)) = (server.revision,as)
       }
 
-    case Edit(_,rev,ops) =>
+    case Edit(_,rev,ops) if clients.contains(sender) =>
       if (!otActive) initOt()
       server.applyOperation(ops,rev) match {
         case Failure(e) =>
@@ -148,6 +148,9 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
           sender ! AcknowledgeEdit(info.id)
       }
 
+    case EOF =>
+      clients.remove(sender)
+      
     case TouchFile =>
       //
 

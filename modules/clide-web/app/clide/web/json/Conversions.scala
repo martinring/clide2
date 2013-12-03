@@ -33,7 +33,8 @@ import clide.collaboration.AnnotationDiff._
 import play.api.data.validation.ValidationError
 import scala.language.implicitConversions
 import scala.language.reflectiveCalls
-import clide.actors.Messages.{WorkingOnFile,DoneWithFile,FailureInFile}
+import clide.actors.Messages.{WorkingOnFile,DoneWithFile,FailureInFile,LookingAtFile,StoppedLookingAtFile}
+import clide.actors.Messages.Talk
 
 object Conversions {
   implicit object FileInfoWrites extends Writes[FileInfo] {
@@ -147,8 +148,14 @@ object Conversions {
   }
 
   private implicit def plain(name: String) = Json.obj("t"->name)
-
+  
   def serializeEvent(event: Event): JsValue = event match {
+    case BroadcastEvent(who,when,Talk(w,m,tp))            => "talk" of Json.obj("s" -> who, "t" -> when, "m" -> m, "tp" -> tp)
+    case BroadcastEvent(who,when,WorkingOnFile(f))        => "process" of Json.obj("f"->f,"u"->who,"t"->"w")
+    case BroadcastEvent(who,when,DoneWithFile(f))         => "process" of Json.obj("f"->f,"u"->who,"t"->"d")
+    case BroadcastEvent(who,when,FailureInFile(f,msg))    => "process" of Json.obj("f"->f,"u"->who,"t"->"f","m"->msg)
+    case BroadcastEvent(who,when,LookingAtFile(f))        => "process" of Json.obj("f"->f,"u"->who,"t"->"l")
+    case BroadcastEvent(who,when,StoppedLookingAtFile(f)) => "process" of Json.obj("f"->f,"u"->who,"t"->"i")
     case TimeOut                => error("the request timed out")
     case Welcome                => "welcome"
     case UnexpectedTermination  => error("internal server error (unexpected termination)")
@@ -158,14 +165,13 @@ object Conversions {
     case FolderContent(folder,files) => Json.obj("t"->"folder","info"->folder,"files"->files)
     case CreatedProject(p)      => "createdproject" of p
     case DeletedProject(p)      => "deletedproject" of p.id
-    case SessionInit(s,cs,conv) => Json.obj("t"->"welcome","info"->s,"others"->cs,"chat"->conv.map{case Talked(w,m,tp,t) => Json.obj("s"->w,"m"->m,"t"->t,"tp"->tp)})
+    case SessionInit(s,cs,conv) => Json.obj("t"->"welcome","info"->s,"others"->cs,"events"->conv.map(serializeEvent))
     case SessionChanged(s) => "session_changed" of s
     case SessionStopped(s) => "session_stopped" of s
     case FileInitFailed(f) => "failed" of f
     case FileCreated(f)    => "newfile" of f
     case FileDeleted(f)    => "rmfile" of f
-    case FileId(i)         => "file" of i
-    case FileSwitched(i)   => "switch" of i
+    case FileId(i)         => "file" of i    
     case FileClosed(i)     => "close" of i
     case FileOpened(i)     => "opened" of i
     case Edited(file,o)    => Json.obj("f"->file,"o"->o)
@@ -174,12 +180,8 @@ object Conversions {
     case AcknowledgeEdit(f) => JsNumber(f)
     case NotAllowed    => "e" of "internal error: forbidden action"
     case DoesntExist   => "e" of "internal error: the referenced resource doesn't exist on the server"
-    case Talked(w,m,tp,t) => "talk" of Json.obj("s" -> w, "m" -> m,"t"->t,"tp"->tp)
     case UserProjectInfos(own, other)                  => "projects" of Json.obj("own"->own, "other"->other)
-    case ChangedProjectUserLevel(project, user, level) => "access" of Json.obj("p"->project,"u"->user,"l"->level.id)
-    case ProcessingEvent(who, WorkingOnFile(f)) => "process" of Json.obj("f"->f,"u"->who,"t"->"w")
-    case ProcessingEvent(who, DoneWithFile(f)) => "process" of Json.obj("f"->f,"u"->who,"t"->"d")
-    case ProcessingEvent(who, FailureInFile(f,msg)) => "process" of Json.obj("f"->f,"u"->who,"t"->"f","m"->msg)    
+    case ChangedProjectUserLevel(project, user, level) => "access" of Json.obj("p"->project,"u"->user,"l"->level.id)      
     case _ => error("couldnt translate")
   }
 }

@@ -39,13 +39,14 @@ object Messages {
   case object ForgetIt extends Message
 
   trait UserServerMessage extends Message
+  // FIXME: Security: plain password!!!
   case class SignUp(name: String, email: String, password: String) extends UserServerMessage
   case class IdentifiedFor(user: String, key: String, message: UserMessage) extends UserServerMessage
   case class AnonymousFor(user: String, message: UserMessage) extends UserServerMessage
 
   trait UserMessage extends Message
   case object Validate extends UserMessage
-  case class Login(password: String) extends UserMessage
+  case class Login(password: String, isHuman: Boolean = false) extends UserMessage
   case object Logout extends UserMessage
   case class CreateProject(name: String, description: Option[String]) extends UserMessage
   case class WithUser(name: String, message: UserMessage) extends UserMessage with SessionMessage
@@ -83,16 +84,20 @@ object Messages {
   case object EnterSession extends SessionMessage
   case object LeaveSession extends SessionMessage
   case object CloseSession extends SessionMessage
-  case object RequestSessionInfo extends SessionMessage
-  case class Talk(to: Option[Long], msg: String, tpe: Option[String]) extends SessionMessage with ProjectMessage
+  case object RequestSessionInfo extends SessionMessage  
   case class SetColor(value: String) extends SessionMessage
-  case class SwitchFile(id: Long) extends SessionMessage
   case class OpenFile(id: Long) extends SessionMessage
   case class CloseFile(id: Long) extends SessionMessage
   case class Edit(id: Long, revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
   case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage  
   
-  trait ProcessingMessage extends SessionMessage
+  trait BroadcastMessage extends SessionMessage
+  
+  case class Talk(to: Option[Long], msg: String, tpe: Option[String]) extends BroadcastMessage
+  
+  trait ProcessingMessage extends BroadcastMessage
+  case class LookingAtFile(file: Long) extends ProcessingMessage
+  case class StoppedLookingAtFile(file: Long) extends ProcessingMessage
   case class WorkingOnFile(file: Long) extends ProcessingMessage
   case class ProgressOnFile(file: Long, progress: Double) extends ProcessingMessage
   case class DoneWithFile(file: Long) extends ProcessingMessage
@@ -102,12 +107,13 @@ object Messages {
     trait UserMessageWrapper
 	case class Identified(key: String, message: UserMessage) extends UserMessageWrapper
 	case class Anonymous(message: UserMessage) extends UserMessageWrapper
-	case class External(sender: UserInfo, message: UserMessage) extends UserMessageWrapper
+	case class External(sender: UserInfo, login: LoginInfo, message: UserMessage) extends UserMessageWrapper
 
     case class WrappedProjectMessage(
       user: UserInfo,
+      isHuman: Boolean,
       level: ProjectAccessLevel.Value,
-      message: ProjectMessage)          
+      message: ProjectMessage)
 
     case class OpenFile(user: SessionInfo) extends FileReadMessage
   }
