@@ -250,7 +250,6 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   $scope.select = (section) ->
     $scope.sidebar = true
     $scope.sidebarSection = section
-    #top = $("#section-#{section}").position().top - 8
-    #currentST = $('#sidebarContent').scrollTop()
-    #$('#sidebarContent').animate
-    #  scrollTop: currentST + top
+    top = $("#section-#{section}").position().top - 16
+    api = $('#sidebarContent').data('jsp')
+    api.scrollTo(0,top)

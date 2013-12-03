@@ -130,7 +130,11 @@
     }
   }
   .section {
-    color: @sidebar-background-text;
+    color: fade(@sidebar-background-text,50%);
+    .transition(color @quick-transition ease);
+    &.active {
+      color: @sidebar-background-text;
+    }
 
     .list-group-item {
       padding: 5px 16px;
@@ -139,7 +143,7 @@
       background-color: transparent;
       border: none;
 
-      color: @sidebar-background-text;
+      color: inherit;
 
       // Hover state
       &:hover,
@@ -153,7 +157,7 @@
       &.active:hover,
       &.active:focus {
         cursor: default;
-        color: @sidebar-background-text;
+        color: inherit;
         background-color: @sidebar-background;
 
         border-left: 8px solid @gray;
