@@ -88,15 +88,15 @@
                 <div ng-show='session.me'>
                   <p>
                     <ng-pluralize count='session.collaborators.length'
-                                  when="{'0': 'You are currently the only user in this project.',
-                                         '1': 'One other user is participating in this project:',
-                                         '2': 'Two other users are participating in this project:',
-                                         'other': '{} other users are participating in this project:'}">
-                    </ng-pluralize>
+                                  when="{'0': 'You are currently the only collaborator',
+                                         '1': 'One other collaborator is participating',
+                                         '2': 'Two other collaborators are participating',
+                                         'other': '{} other collaborators are participating'}">
+                    </ng-pluralize> in this project:
                   </p>
                 <ul class='list-group'>
-                  <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
-                    <i class='fa fa-fw fa-stop color-{{user.color}}'></i> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
+                  <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-isHuman','-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
+                    <i class='fa fa-fw color-{{user.color}}' ng-class="{'fa-user': user.isHuman, 'fa-cloud': !user.isHuman}"></i> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
                     <div class='form-group' ng-show='user.active && session.activeAnnotations()[user.id].length > 0'>
                       <div class='checkbox' ng-repeat='stream in session.activeAnnotations()[user.id]'>
                         <label>
