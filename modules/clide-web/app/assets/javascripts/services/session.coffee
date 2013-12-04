@@ -192,6 +192,10 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
             when 'failed'
               Toasts.push("danger","the initialization of the requested file failed on the server")
             when 'talk'
+              if msg.c.s is session.me.id
+                msg.c.s = session.me
+              else
+                msg.c.s = getUser(msg.c.s)
               session.chat.unshift(msg.c)
               (apply -> session.talkback?(msg.c)) unless silence
             when 'close'

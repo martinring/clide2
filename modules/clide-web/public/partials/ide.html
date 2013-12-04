@@ -176,7 +176,7 @@
       <div id='content'>
         <div class="tabs">
           <ul class="headers" ng-show='session.state=="connected"'>
-            <li ng-repeat='file in session.openFiles' ng-class='{active: session.me.activeFile==file.id}'>
+            <li ng-repeat='file in session.openFiles' class='{{ (file.id === session.me.activeFile) ? "active" : ""}}'>
               <a ng-click='openFile(file.id)'>{{file.name}}</a>
               <button type="button" class="close" aria-hidden="true" ng-click='closeFile(file.id)'>&times;</button>
             </li>
@@ -224,7 +224,7 @@
               <ul style='margin: 0; list-style: none; padding: 0'>
                 <li ng-repeat='message in session.chat track by $index'>
                   <small><span class='text-muted'>{{date(message.t) | date:'MM/dd/yyyy HH:mm:ss' }}</span></small><br/>
-                  <span class='message' ng-class='{"text-muted": message.s == session.me.user}'>{{message.s}}: <span class='message' style='font-family: {{editorFont}}'>{{message.m}}</span></span>
+                  <span class='message' ng-class='{"text-muted": message.s.user == session.me.user}'><i class='fa fa-fw fa-stop' class='color-{{message.s.color}}'></i> {{message.s.user}}: <span class='message' style='font-family: {{editorFont}}'>{{message.m}}</span></span>
                 </li>
               </ul>
             </div>
