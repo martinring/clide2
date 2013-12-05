@@ -49,4 +49,11 @@ class Schema(override val profile: ExtendedDriver) extends
     val ddls = for (table <- tables if !MTable.getTables.list.exists(_.name.name == table.tableName)) yield table.ddl    
     if (ddls.nonEmpty) ddls.reduce(_++_).create
   }
+  
+  def reset(implicit session: Session) {
+    val ddls = for (table <- tables if MTable.getTables.list.exists(_.name.name == table.tableName )) yield table.ddl
+    if (ddls.nonEmpty) ddls.reduce(_++_).drop
+    val allDdls = tables.map(_.ddl)
+    if (allDdls.nonEmpty) allDdls.reduce(_++_).create
+  }
 }
