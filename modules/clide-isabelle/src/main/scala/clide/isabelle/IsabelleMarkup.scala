@@ -39,26 +39,29 @@ import isabelle.Protocol
 object IsabelleMarkup {
   def annotations(xml: XML.Tree, c: Set[(AnnotationType.Value,String)] = Set.empty): List[Annotation] = xml match {
     case XML.Wrapped_Elem(markup, body, body2) =>
-      println("marlup:" + markup)
-      println("bory: " + body)
+      println("markup:" + markup)
+      println("body: " + body)
       println("body2: " + body2)
 
       markup.name match {
         case Markup.ERROR | Markup.BAD =>
           body2.flatMap(annotations(_,Set(
-              AnnotationType.Class -> "error")))
+              AnnotationType.Class -> "error",
+              AnnotationType.ErrorMessage -> XML.content(body))))
         case Markup.WARNING =>
           body2.flatMap(annotations(_,Set(
-              AnnotationType.Class -> "warning")))
+              AnnotationType.Class -> "warning",
+              AnnotationType.WarningMessage -> XML.content(body))))
         case Markup.WRITELN =>
-          body2.flatMap(annotations(_,Set(
-              AnnotationType.Class -> "info")))
+          body2.flatMap(annotations(_,Set(              
+              AnnotationType.InfoMessage -> XML.content(body))))
         case Markup.INFORMATION =>
           body2.flatMap(annotations(_,Set(
-              AnnotationType.Class -> "info")))
+              AnnotationType.Class -> "info",
+              AnnotationType.InfoMessage -> XML.content(body))))
         case Markup.TYPING =>
-          body2.flatMap(annotations(_,Set(
-              AnnotationType.Class   -> "typing")))
+          body2.flatMap(annotations(_,Set(              
+              AnnotationType.Tooltip -> ("type: " + XML.content(body)))))
         case other =>
           body2.flatMap(annotations(_))
       }

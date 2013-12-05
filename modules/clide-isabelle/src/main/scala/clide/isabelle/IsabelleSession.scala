@@ -39,15 +39,19 @@ import scala.concurrent.duration._
 import scala.concurrent.Promise
 import scala.language.postfixOps
 
-trait IsabelleSession { self: AssistBehavior with Control =>
+trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversions =>
   var session: Session = null
   var project: ProjectInfo = null
   
-  private var files = scala.collection.mutable.Map.empty[Document.Node.Name,(Future[Document.Version],OpenedFile)]              
+  private var files = scala.collection.mutable.Map.empty[Document.Node.Name,(scala.concurrent.Future[Document.Version],OpenedFile)]                 
   
-  def updateFile(name: Document.Node.Name, file: OpenedFile, update: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])]) = {
+  def updateFile(name: Document.Node.Name, file: OpenedFile, update: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])]): scala.concurrent.Future[Unit] = {
     session.update(update)
-    files(name) = (session.current_state.history.tip.version, file)
+    val p = Promise[Document.Version]()
+    val version = session.current_state.history.tip.version
+    version.map { v => p.success(v); control.log.info("version {}", v) }
+    files(name) = (p.future, file)
+    p.future.map(_ => ())(control.executionContext)
   }
   
   def start(project: ProjectInfo) = {
@@ -102,8 +106,19 @@ trait IsabelleSession { self: AssistBehavior with Control =>
       control.log.info("OUTPUT: {}", XML.content(msg.body))
     }
     session.commands_changed += { msg =>
-      require(msg.nodes.size == 1)
-      control.log.info("COMMANDS_CHANGED: {}, {}", msg.assignment, msg.nodes.map(session.snapshot(_, Nil)).map(_.version))      
+      //require(msg.nodes.size == 1)
+      //control.log.info("COMMANDS_CHANGED: {}, {}", msg.assignment, msg.nodes.map(session.snapshot(_, Nil)).map(_.version))
+      for {
+        node <- msg.nodes
+        val snapshot = session.snapshot(node,Nil)
+        val version  = snapshot.version        
+      } for {
+        (v,state) <- files.get(snapshot.node_name)
+        if v.value.flatMap(_.toOption) == Some(snapshot.version)
+      } {
+        control.log.info("annotating snapshot {}", snapshot.node_name)
+        control.annotate(state, "semantic", IsabelleMarkup.highlighting(state, snapshot))
+      }      
     }
     session.start(List("-S","HOL"))
     control.chat("ghc is here")
