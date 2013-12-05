@@ -22,3 +22,4 @@ bin
 /files
 /data.*
 *.exe
+/*.db
