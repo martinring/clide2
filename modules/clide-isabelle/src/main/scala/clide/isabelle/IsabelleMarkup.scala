@@ -78,6 +78,12 @@ object IsabelleMarkup {
           Markup.ENTITY  -> "entity")
 
       val c2 = markup.name match {
+        case Markup.ENTITY => 
+          val as = markup.properties.collect {
+            case ("def",id) => AnnotationType.Entity -> id
+            case ("ref",id) => AnnotationType.Ref -> id
+          }        
+          as.toSet
         case m if classes.isDefinedAt(m) => Set(AnnotationType.Class -> classes(m))
         case other          => Set.empty
       }

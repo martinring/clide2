@@ -52,6 +52,9 @@ object AnnotationType extends Enumeration {
   val InfoMessage    = Value("i")
   val Output         = Value("o")
   
+  val Entity         = Value("n")
+  val Ref            = Value("l")
+  
   val Substitution   = Value("s")
     
   val HelpRequest    = Value("h")
