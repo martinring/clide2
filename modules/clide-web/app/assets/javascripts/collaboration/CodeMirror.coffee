@@ -137,6 +137,9 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
       if c.i? and cm = @doc.getEditor()
         for i in c.i
           @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget info',i)
+      if c.o? and cm = @doc.getEditor()
+        for i in c.o
+          @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget info',i)
       if classes?
         if to? and c.s?
           marker = @doc.markText from, to,

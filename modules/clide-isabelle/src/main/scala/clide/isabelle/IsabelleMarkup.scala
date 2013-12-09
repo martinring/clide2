@@ -47,10 +47,7 @@ object IsabelleMarkup {
         case Markup.WARNING =>
           body2.flatMap(annotations(_,Set(
               AnnotationType.Class -> "warning",
-              AnnotationType.WarningMessage -> XML.content(body))))
-        case Markup.WRITELN =>
-          body2.flatMap(annotations(_,Set(              
-              AnnotationType.InfoMessage -> XML.content(body))))
+              AnnotationType.WarningMessage -> XML.content(body))))        
         case Markup.INFORMATION =>
           body2.flatMap(annotations(_,Set(
               AnnotationType.Class -> "info",
@@ -110,10 +107,10 @@ object IsabelleMarkup {
     val node = snapshot.version.nodes(snapshot.node_name)
     node.commands.foldLeft (new Annotations) {
       case (as,cmd) => if (!cmd.is_ignored) {
-        val state = snapshot.state.command_state(snapshot.version, cmd)
+        val state = snapshot.state.command_state(snapshot.version, cmd)               
         val output = state.results.entries.map(_._2)
           .filterNot(Protocol.is_result(_))
-          .map(XML.content(_))
+          .collect{ case XML.Elem(markup,body) => isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n") }
           .mkString("\n")
         as.annotate(cmd.length, Set(AnnotationType.Output -> output))
       } else {

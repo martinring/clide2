@@ -40,7 +40,7 @@ import scala.concurrent.Promise
 import scala.language.postfixOps
 
 trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversions =>
-  var session: Session = null
+  var session: Session     = null
   var project: ProjectInfo = null
   
   private var files = scala.collection.mutable.Map.empty[Document.Node.Name,(scala.concurrent.Future[Document.Version],OpenedFile)]                 
@@ -118,6 +118,7 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
       } {
         control.log.info("annotating snapshot {}", snapshot.node_name)
         control.annotate(state, "semantic", IsabelleMarkup.highlighting(state, snapshot))
+        control.annotate(state, "output", IsabelleMarkup.output(snapshot))
       }      
     }
     session.start(List("-S","HOL"))
