@@ -45,11 +45,12 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
   
   private var files = scala.collection.mutable.Map.empty[Document.Node.Name,(scala.concurrent.Future[Document.Version],OpenedFile)]                 
   
-  def updateFile(name: Document.Node.Name, file: OpenedFile, update: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])]): scala.concurrent.Future[Unit] = {
+  def updateFile(name: Document.Node.Name, file: OpenedFile, update: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])]): scala.concurrent.Future[Unit] = {    
     session.update(update)
     val p = Promise[Document.Version]()
+    val s = scala.concurrent.Future(control.annotate(file, "substitutions", IsabelleMarkup.substitutions(file.state)))(control.executionContext)
     val version = session.current_state.history.tip.version
-    version.map { v => p.success(v); control.log.info("version {}", v) }
+    version.map(p.success)
     files(name) = (p.future, file)
     p.future.map(_ => ())(control.executionContext)
   }
@@ -62,7 +63,7 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
     val content = Build.session_content(ops, false, Nil, "HOL")
     session = new Session(new isabelle.Thy_Load(content.loaded_theories, content.syntax) {
       override def append(dir: String, source_path: Path): String = {
-        control.log.info("thy_load.append({}, {})", dir, source_path)
+        //control.log.info("thy_load.append({}, {})", dir, source_path)
         val path = source_path.expand
         if (path.is_absolute) Isabelle_System.platform_path(path)
         else {
@@ -70,14 +71,14 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
         }
       }
       override def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A = {
-        control.log.info("thy_load.with_thy_text({},{})", name, f)
+        //control.log.info("thy_load.with_thy_text({},{})", name, f)
         //thys.get(name).map(file => f(file.state)).getOrElse {
           f("")
         //}
       }
       override def text_edits(reparse_limit: Int, previous: Document.Version, edits: List[Document.Edit_Text]) = {
         val result = super.text_edits(reparse_limit, previous, edits)
-        control.log.info("thy_load.text_edits({},{},{})", reparse_limit, previous, edits)
+        //control.log.info("thy_load.text_edits({},{},{})", reparse_limit, previous, edits)
         result
       }
     })
@@ -96,14 +97,13 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
         session.update_options(ops)
         if (!initialized.isCompleted)
           initialized.success(())
-        control.chat("I'm ready to go!")
     } }
     session.syslog_messages += { msg =>
       control.log.info("SYSLOG: {}", XML.content(msg.body))
       control.chat(XML.content(msg.body))
     }
     session.raw_output_messages += { msg =>
-      control.log.info("OUTPUT: {}", XML.content(msg.body))
+      //control.log.info("OUTPUT: {}", XML.content(msg.body))
     }
     session.commands_changed += { msg =>
       //require(msg.nodes.size == 1)
@@ -121,7 +121,7 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
       }      
     }
     session.start(List("-S","HOL"))
-    control.chat("ghc is here")
+    control.chat("i'm starting up, please wait a second")
     initialized.future
   }
 

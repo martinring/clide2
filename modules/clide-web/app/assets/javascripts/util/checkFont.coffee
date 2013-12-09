@@ -27,7 +27,7 @@ define ->
   sansWidth  = calculateWidth("sans-serif")
 
   if monoWidth is sansWidth
-    log.error('monospace and sans-serif widths are the same. checkFont will not be reliable!')
+    console.warn('monospace and sans-serif widths are the same. checkFont will not be reliable!')
 
   return (fontName) ->
     monoWidth isnt calculateWidth("#{fontName}, monospace") or

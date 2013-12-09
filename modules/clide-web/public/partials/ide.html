@@ -2,7 +2,7 @@
   <div ng-class='{extendedStatusbar:output}'>
     <nav id="ribbon" class='bgcolor-{{session.me.color}}'>
       <ul class="nav menu" ng-init='sidebarSection="files"'>
-        <li title='Files' ng-click='select("files")' ng-class='{active: sidebarSection=="files"}'><i class='fa fa-list-ul'></i></li>
+        <li title='Files' ng-click='select("files")' ng-class='{active: sidebarSection=="files"}'><i class='fa fa-list'></i></li>
         <li title='Collaboration' ng-click='select("collab")' ng-class='{active: sidebarSection=="collab"}'><i class='fa fa-group'></i></li>
         <li title='Edit' ng-click='select("edit")' ng-class='{active: sidebarSection=="edit"}'><i class='fa fa-pencil'></i></li>
         <li title='View' ng-click='select("view")' ng-class='{active: sidebarSection=="view"}'><i class='fa fa-eye'></i></li>
@@ -41,7 +41,7 @@
                     {{segment.name}}
                   </a>
                   <a ng-click='browseTo(segment.path)' ng-show='segment.name == "$home"'>
-                    <i class='fa fa-home'></i>
+                    <i class='fa fa-fw fa-home'></i>
                   </a>
                 </li>
               </ul>
@@ -52,11 +52,7 @@
                    context-menu='fileContextMenu(file)'
                    ng-class='{ active: file.id==session.me.activeFile, open: file.doc!=null, "text-muted": file.deleted }'>
                    <i class="fa fa-folder-open fa-fw" ng-show='file.loading'></i><i ng-show='!file.loading' class='fa fa-fw' ng-class='{ "fa-folder": file.isDirectory, "fa-file": !file.isDirectory }'></i> {{file.name}}
-                   <span class='pull-right'>
-                     <span class='color-{{user.color}}' ng-repeat ='user in session.collaborators | filter:{active:true}' title='{{user.user}}'>
-                       <i class='animate-show-fade fa fa-asterisk' ng-class='{ "fa-spin": session.fileStates[file.id][user.id].working }' ng-show='session.fileStates[file.id][user.id].looking'></i>
-                     </span>
-                   </span>
+                   <i ng-repeat ='user in session.collaborators | filter:{active:true}' title='{{user.user}}' class='pull-right color-{{user.color}} animate-show-fade fa fa-asterisk' ng-class='{ "fa-spin": !user.isHuman || session.fileStates[file.id][user.id].working }' ng-show='user.isHuman &&  session.fileStates[file.id][user.id].looking || session.fileStates[file.id][user.id].working'></i>
                 </a>
                 <div class='placeholder' ng-if='files.currentDir.files.length == 0'>
                   This folder is empty. Create a <a ng-click='createFile(files.currentDir.info)'>new file</a> or <a ng-click='createFolder(files.currentDir.info)'>folder</a> to get started.

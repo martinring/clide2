@@ -68,7 +68,7 @@
   margin: 0;
   padding: 0;
   li {
-    .transition(opacity @quick-transition ease );
+    .transition(all @quick-transition ease);
     cursor: pointer;
     line-height: @ribbon-width;
     opacity: @ide-mute-opacity;
@@ -76,6 +76,7 @@
     vertical-align: middle;
     width: @ribbon-width;
     &:hover {
+      font-size: 20px;
       text-decoration: none;
       opacity: 1;
     }

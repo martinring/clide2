@@ -26,20 +26,22 @@ define ['util/checkFont'], (checkFont) ->
   monospace = [
     'Inconsolata'
     'Consolas'
-    'DejaVu Sans Mono'
     'Monaco'
+    'DejaVu Sans Mono'
     'Ubuntu Mono'
+    'Menlo'
     'Bitstream Vera Sans Mono'
+    'Lucida Console'
     'Courier New'
     'Droid Sans Mono'
     'Latin Modern Mono'
-    'Lucida Console'
-    'Menlo'
+    'monospace'
   ]
 
   math = [
     'Computer Modern'
     'Cambria Math'
+    'serif'
   ]
 
   return (

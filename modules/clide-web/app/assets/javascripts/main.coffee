@@ -33,7 +33,7 @@ require.config
       exports: 'jsRoutes'
 
 
-require ['app','util/fonts'], (app) ->
+require ['app'], (app) ->
   app.run ($rootScope, Session, Files) ->
     $rootScope.$on '$routeChangeSuccess', (e,n,o) ->
       $rootScope.title = n.$$route.title
