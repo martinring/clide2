@@ -230,6 +230,27 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
     
     case BroadcastEvent(who, when, Talk(to, msg, tpe)) if (who != info.id || receiveOwnChatMessages) =>
       doWork(None)(behavior.receiveChatMessage(collaborators.find(_.id == who).get,msg,tpe,when))
+      
+    case SessionChanged(session) =>
+      val existing = collaborators.find(_.id == session.id)
+      existing match {
+        case Some(old) => 
+          collaborators.remove(old)
+          // TODO: Handle sesion changes
+          if (!old.active && session.active)
+            doWork(None)(behavior.collaboratorJoined(session))
+          if (old.active && !session.active)
+            doWork(None)(behavior.collaboratorLeft(session))
+          collaborators.add(session)
+        case None =>
+          collaborators.add(session)
+          if (session.active)
+            doWork(None)(behavior.collaboratorJoined(session))
+      }      
+      
+    case SessionStopped(session) =>      
+      collaborators.filter(_.id != session.id)
+      behavior.collaboratorLeft(session)
 
     case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
       // TODO: More universal approach on cursor positions etc.
