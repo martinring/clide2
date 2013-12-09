@@ -270,8 +270,9 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
     case BroadcastEvent(who, when, LookingAtFile(file)) =>
       for (who <- collaborators.find(_.id == who) if who.isHuman) {
         log.debug("{} is looking at file {}", who.user, file)
-        if (!files.contains(file))
+        if (!files.contains(file)) {
           peer ! OpenFile(file)
+        }
       }
       
     case Terminated(_) => context.stop(self)

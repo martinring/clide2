@@ -59,7 +59,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
   def backstageSession(username: String) = ActorSocket(
       user = username,
       message = WithUser(username,StartBackstageSession),
-      serialize = { msg => Logger.info(msg.toString); serializeEvent(msg) },
+      serialize = serializeEvent,
       deserialize = { json =>
         (json \ "t").asOpt[String] match {
           case Some("init") =>
@@ -73,7 +73,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
   def session(username: String, name: String) = ActorSocket(
       user = username,
       message = WithUser(username,WithProject(name,StartSession)),
-      serialize = { msg => Logger.info(msg.toString); serializeEvent(msg) },
+      serialize = serializeEvent,
       deserialize = { json =>
         ((json \ "f").asOpt[Long],(json \ "r").asOpt[Long]) match {
           case (Some(file),Some(rev)) => (json\"o").asOpt[Operation] match {
@@ -81,7 +81,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
             case None => (json\"a").asOpt[Annotations] match {
               case Some(annotation) => Annotate(file,rev,annotation,(json\"n").as[String])
               case None =>
-                println("didn't understand: " + json.toString)
+                Logger.warn("didn't understand: " + json.toString)
                 ForgetIt
             }
           }
@@ -119,7 +119,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
   def fileBrowser(username: String, name: String) = ActorSocket(
       user = username,
       message = WithUser(username,WithProject(name,StartFileBrowser)),
-      serialize = { serializeEvent },
+      serialize = serializeEvent,
       deserialize = { json =>
         (json \ "t").asOpt[String] match {
           case None =>

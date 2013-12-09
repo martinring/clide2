@@ -71,7 +71,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
             log.error(s"unable to apply revision $op (${e.getMessage}")
         }
       }
-      log.info(server.text)
+      log.info("done")
       otActive = true
     }
   }

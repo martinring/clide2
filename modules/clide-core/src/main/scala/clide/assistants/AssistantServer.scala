@@ -26,6 +26,9 @@ package clide.assistants
 
 import com.typesafe.config.Config
 import akka.actor._
+import akka.actor.OneForOneStrategy._
+import akka.actor.SupervisorStrategy._
+import scala.concurrent.duration._
 import clide.actors.Messages._
 import clide.actors.Events._
 import clide.models._
@@ -34,6 +37,7 @@ import com.typesafe.config.ConfigFactory
 import akka.kernel.Bootable
 import scala.reflect.ClassTag
 import scala.concurrent.Future
+
 import clide.collaboration.Operation
 
 /**
@@ -57,6 +61,10 @@ class AssistantServer(behavior: AssistantControl => AssistBehavior)(implicit dum
   def shutdown() {
     system.shutdown()
   }
+  
+  /*override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 5 seconds) {
+    case _: 
+  }*/
   
   // should be deprecated some time in the future, when assistbehavior becomes stable
   //@deprecated("Use Future-based AssistBehavior instead!","2.0-SNAPSHOT")
@@ -168,6 +176,8 @@ private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends A
         onInvitation(project,loginInfo)
       case DeletedProject(project) =>
         sessions.get(project.id).map(_ ! PoisonPill)
+      case ServerForwarder.Restarted =>
+        throw new Exception("the server was restarted")
       case Terminated(sess) =>        
         sessions.find(_._2 == sess).foreach { case (id,act) =>
           actors.get(sess).foreach { case (p,i) =>
@@ -176,5 +186,13 @@ private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends A
           }
         }
     }
+  }
+  
+  override def preStart {
+    server ! ServerForwarder.Subscribe
+  }
+  
+  override def postStop {
+    server ! ServerForwarder.Unsubscribe
   }
 }

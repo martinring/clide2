@@ -50,18 +50,18 @@ class WebsocketMediator extends Actor with ActorLogging {
       client = sender
       ref ! message
     case EventSocket(peer,_) =>
-      log.info("forwarding event socket")
+      log.debug("forwarding event socket")
       this.peer = peer
       context.watch(peer)
       client ! out    
     case e: Event =>
-      log.info(e.toString())
+      log.debug(e.toString())
       channel.push(e)
     case msg: Message =>
-      log.info(msg.toString())
+      log.debug(msg.toString())
       peer ! msg
     case Terminated(ref) =>
-      log.info("terminated")
+      log.debug("terminated")
       peer ! EOF
       channel.eofAndEnd()
       context.stop(self)    

@@ -54,6 +54,10 @@ object ServerForwarder {
    *   (i.e. `"akka.tcp://clide@127.0.0.1:9001/user/users"`)
    */
   def apply(path: String) = Props(classOf[ServerForwarder], path)
+  
+  case object Subscribe
+  case object Unsubscribe
+  case object Restarted
 }
 
 /**
@@ -66,16 +70,27 @@ private class ServerForwarder(path: String) extends Actor with Stash with ActorL
     log.info("connecting to server at {}", path)
     context.actorSelection(path) ! Identify("server")
   }
+  
+  var subscribers = Set[ActorRef]()
+  
+  def handleSubscriptions: Receive = {    
+    case ServerForwarder.Subscribe => 
+      subscribers += sender
+      context.watch(sender)
+    case ServerForwarder.Unsubscribe => 
+      subscribers -= sender
+    case Terminated(ref) if subscribers.contains(ref) =>
+      subscribers -= ref
+  }
 
   def connecting: Receive = {
     connect()
     context.setReceiveTimeout(4 seconds)
-
-    {
+    handleSubscriptions orElse {
       case ActorIdentity("server",Some(ref)) =>
         context.become(connected(ref))
       case ActorIdentity("server",None) =>
-      case ReceiveTimeout => connect()
+      case ReceiveTimeout => connect()      
       case _ => stash()
     }
   }
@@ -84,9 +99,9 @@ private class ServerForwarder(path: String) extends Actor with Stash with ActorL
     log.info("connected")
     context.watch(server)
     context.setReceiveTimeout(Duration.Undefined)
+    subscribers.foreach(_ ! ServerForwarder.Restarted)
     unstashAll()
-
-    {
+    handleSubscriptions orElse {      
       case Terminated(`server`) =>
         context.become(connecting)
       case ActorIdentity("server",_) =>

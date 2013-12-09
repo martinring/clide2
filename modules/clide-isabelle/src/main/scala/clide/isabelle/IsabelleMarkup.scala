@@ -39,10 +39,6 @@ import isabelle.Protocol
 object IsabelleMarkup {
   def annotations(xml: XML.Tree, c: Set[(AnnotationType.Value,String)] = Set.empty): List[Annotation] = xml match {
     case XML.Wrapped_Elem(markup, body, body2) =>
-      println("markup:" + markup)
-      println("body: " + body)
-      println("body2: " + body2)
-
       markup.name match {
         case Markup.ERROR | Markup.BAD =>
           body2.flatMap(annotations(_,Set(
