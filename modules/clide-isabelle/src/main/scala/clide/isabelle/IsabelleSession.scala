@@ -115,7 +115,7 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
       } for {
         (v,state) <- files.get(snapshot.node_name)
         if v.value.flatMap(_.toOption) == Some(snapshot.version)
-      } {
+      } {        
         control.log.info("annotating snapshot {}", snapshot.node_name)
         control.annotate(state, "semantic", IsabelleMarkup.highlighting(state, snapshot))
         control.annotate(state, "output", IsabelleMarkup.output(snapshot))

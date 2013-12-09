@@ -46,8 +46,8 @@ object AnnotationType extends Enumeration {
   /** supported values are ... TODO */
   val Class          = Value("c")
   
-  /** currently only supports "running" */
-  val LineState      = Value("ls")  
+  /** currently supports "running", "finished" and "failed" */
+  val Progress      = Value("ls")  
   
   /** can be set to arbitary content and will set a html title attribute */
   val Tooltip        = Value("t")

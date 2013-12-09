@@ -31,6 +31,8 @@ import clide.collaboration.Operation
 import akka.event.LoggingAdapter
 import akka.actor.Actor
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Defines the controls, which an AssistantBehavior is capable of. Every method is non-blocking
@@ -59,8 +61,9 @@ trait AssistantControl {
    * @param file the state of the file, which is being referenced
    * @param name the name of the annotation stream to update
    * @param annotations the updated annotation stream
+   * @param delay optional delay. can be used to delay error annotations, so that they will not be broadcasted if the error gets removed during the delay
    */
-  def annotate(file: OpenedFile, name: String, annotations: Annotations): Unit
+  def annotate(file: OpenedFile, name: String, annotations: Annotations, delay: FiniteDuration = Duration.Zero): Unit
 
   /**
    * indicate activity on a file.

@@ -82,8 +82,19 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   
   def openFile(path: Seq[String]): Future[OpenedFile] = ???
 
-  def annotate(file: OpenedFile, name: String, annotations: Annotations): Unit =
+  var annotationDelays = Map.empty[Long,Cancellable]
+  
+  def annotate(file: OpenedFile, name: String, annotations: Annotations): Unit = {
+    annotationDelays.get(file.info.id).map(_.cancel())
     peer ! Annotate(file.info.id, file.revision, annotations, name)
+  }
+  
+  def annotate(file: OpenedFile, name: String, annotations: Annotations, delay: FiniteDuration): Unit = {
+    if (delay == Duration.Zero)
+      annotate(file,name,annotations)
+    else
+      annotationDelays(file.info.id) = context.system.scheduler.scheduleOnce(delay)(annotate(file,name,annotations))    
+  }    
 
   def edit(file: OpenedFile, edit: Operation): Future[Unit] = ???
 

@@ -61,6 +61,8 @@ object IsabelleMarkup {
 
     case XML.Elem(markup, body) =>
       val classes = Map(
+          Markup.RUNNING -> "warning",
+          Markup.FINISHED -> "info",
           Markup.COMMENT -> "comment",
           Markup.TFREE   -> "tfree",
           Markup.BOUND   -> "bound",
@@ -71,6 +73,8 @@ object IsabelleMarkup {
           Markup.ENTITY  -> "entity")
 
       val c2 = markup.name match {
+        case Markup.RUNNING | Markup.FINISHED | Markup.FAILED =>
+          Set(AnnotationType.Progress -> markup.name)
         case Markup.ENTITY => 
           val as = markup.properties.collect {
             case ("def",id) => AnnotationType.Entity -> id
@@ -89,12 +93,6 @@ object IsabelleMarkup {
       }
   }
 
-  /**
-   *  TODO
-  def tooltips(snapshot: Document.Snapshot): Annotations = {
-
-  }*/
-
   def highlighting(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {
     val xml = snapshot.state.markup_to_XML(snapshot.version, snapshot.node, _ => true)
     xml.flatMap(annotations(_)).foldLeft(new Annotations) {
@@ -102,7 +100,7 @@ object IsabelleMarkup {
       case (as, Annotate(n,c)) => as.annotate(n, c)
     }
   }
-
+  
   def output(snapshot: Document.Snapshot): Annotations = {
     val node = snapshot.version.nodes(snapshot.node_name)
     node.commands.foldLeft (new Annotations) {
@@ -110,7 +108,8 @@ object IsabelleMarkup {
         val state = snapshot.state.command_state(snapshot.version, cmd)               
         val output = state.results.entries.map(_._2)
           .filterNot(Protocol.is_result(_))
-          .collect{ case XML.Elem(markup,body) => isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n") }
+          .collect{ case XML.Elem(markup,body) if markup.name == Markup.WRITELN_MESSAGE =>            
+            isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n") }
           .mkString("\n")
         as.annotate(cmd.length, Set(AnnotationType.Output -> output))
       } else {
@@ -118,7 +117,7 @@ object IsabelleMarkup {
       }
     }
   }
-
+  
   def substitutions(state: String): Annotations =
     Symbol.iterator(state).foldLeft(new Annotations) {
       case (as, sym) if sym.length == 1 || Symbol.decode(sym) == sym =>
