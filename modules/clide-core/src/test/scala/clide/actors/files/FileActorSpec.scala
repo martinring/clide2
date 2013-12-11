@@ -13,30 +13,15 @@ import clide.actors.Messages
 import clide.actors.Events
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import clide.actors.ActorSpec
+import clide.collaboration.Operation
+import clide.collaboration.Insert
 
-class FileActorSpec(system: ActorSystem) extends TestKit(system) with ImplicitSender
-  with WordSpecLike with MustMatchers with BeforeAndAfterAll {
-  
+class FileActorSpec(system: ActorSystem) extends TestKit(system) with ActorSpec {
   def this() = this(ActorSystem("file-test"))
   
-  override def afterAll {
-    TestKit.shutdownActorSystem(system)
-  }
-        
-  lazy val schema = new Schema(scala.slick.driver.H2Driver)  
-  
-  lazy val db = slick.session.Database.forURL(
-    url      = "jdbc:h2:test",
-    user     = "sa",
-    password = "",
-    driver   = "org.h2.Driver")
-    
-  implicit val dbAccess = DBAccess(db,schema)
-    
-  val testUser    = UserInfo("test-user", "test@clide.flatmap.net") withPassword "banana"  
-  
   import schema._
-  
+    
   // Setup
   val testProject = db.withSession { implicit session: Session =>
     schema.reset
@@ -45,6 +30,8 @@ class FileActorSpec(system: ActorSystem) extends TestKit(system) with ImplicitSe
   }   
   
   val root = system.actorOf(FolderActor.props(testProject, None, "root"))
+  val path = Seq("subfolder","bar.thy")
+  var id: Long = -1
   
   "A folder actor hierarchy" must {
     "be empty to start with" in {
@@ -79,5 +66,25 @@ class FileActorSpec(system: ActorSystem) extends TestKit(system) with ImplicitSe
       }
       expectNoMsg(1 second)
     }
-  }
+    
+    "create the correct mime-types for files" in {
+      root ! Messages.WithPath(path, Messages.TouchFile)
+      expectMsgPF(1 second) {
+        case Events.FileCreated(file) if file.mimeType == Some("text/x-isabelle") => file.id
+      }
+    }
+    
+    val testSessionHuman = SessionInfo(0, testUser.name, "cyan", testProject.id, true, true)      
+    
+    "return an empty otstate for new files and return an acknowledgement when editing a file" in {
+      root ! Messages.WithPath(path, Messages.internal.OpenFile(testSessionHuman))
+      val id = expectMsgPF(1 second) {
+        case Events.internal.OTState(info, content@"", revision@0) => info.id
+      }
+      root ! Messages.WithPath(path, Messages.Edit(id, 0, Operation(List(Insert("hallo")))))
+      expectMsgPF(1 second) {
+        case Events.AcknowledgeEdit(`id`) => true
+      }
+    }
+  }    
 }

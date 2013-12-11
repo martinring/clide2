@@ -1,0 +1,20 @@
+12-11 16:23:40 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Tabelle "users" nicht gefunden
+Table "users" not found; SQL statement:
+select s3."name", s3."email", s3."password" from "users" s3 [42102-166]
+12-11 16:31:02 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Tabelle "users" nicht gefunden
+Table "users" not found; SQL statement:
+select s3."name", s3."email", s3."password" from "users" s3 [42102-166]
+12-11 16:31:02 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLException: Tabelle "users" nicht gefunden
+Table "users" not found; SQL statement:
+select s3."name", s3."email", s3."password" from "users" s3 [42102-166]
+12-11 16:31:02 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Tabelle "users" nicht gefunden
+Table "users" not found; SQL statement:
+select s3."name", s3."email", s3."password" from "users" s3 [42102-166]
+12-11 16:31:17 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Tabelle "users" nicht gefunden
+Table "users" not found; SQL statement:
+select s3."name", s3."email", s3."password" from "users" s3 [42102-166]

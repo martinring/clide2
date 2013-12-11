@@ -51,18 +51,29 @@ private class UserServer(implicit val dbAccess: DBAccess) extends Actor with Act
 
   def receive = {
     case SignUp(name,email,password) =>
-      log.info("attempting to sign up")
-      val user = UserInfo(name,email).withPassword(password)
-      DB.withSession { implicit s: Session =>
-        if (UserInfos.get(user.name).isDefined) {
-          sender ! ActionFailed(Map("name" -> "this name is already registered"))
-        } else if (UserInfos.getByEmail(user.email).isDefined) {
-          sender ! ActionFailed(Map("email" -> "this email is already registered"))
-        } else {
-          UserInfos.insert(user)
-          context.actorOf(UserActor.props(user), user.name)
-	      sender ! SignedUp(user)
-	      context.system.eventStream.publish(SignedUp(user))
+      var errors = Map.empty[String,String]
+      if (name == "")
+        errors += "name" -> "error.required"
+      if (password.length < 8)
+        errors += "password" -> "error.minLength(8)"
+      if (email.length < 4 || !email.contains('@')) 
+        errors += "email" -> "error.email"
+      if (errors.nonEmpty)
+        sender ! ActionFailed(errors)
+      else {
+        log.info("attempting to sign up")
+        val user = UserInfo(name,email).withPassword(password)
+        DB.withSession { implicit s: Session =>
+          if (UserInfos.get(user.name).isDefined) {
+            sender ! ActionFailed(Map("name" -> "error.unique"))
+          } else if (UserInfos.getByEmail(user.email).isDefined) {
+            sender ! ActionFailed(Map("email" -> "error.unique"))
+          } else {
+            UserInfos.insert(user)
+            context.actorOf(UserActor.props(user), user.name)
+            sender ! SignedUp(user)
+	        context.system.eventStream.publish(SignedUp(user))
+          }
         }
       }
 
