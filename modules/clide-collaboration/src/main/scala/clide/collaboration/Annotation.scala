@@ -216,8 +216,8 @@ object Annotations {
       case (aa@(a::as),bb@(b::bs),xs) => (a,b) match {
         case (a,Insert(i)) => loop(aa,bs,addWithLength(i.length,a,xs))
         case (a,Retain(m)) => (a.length <=> m) match {
-          case LT => loop(as,Retain(m-a.length)::bs,addWithLength(a.length,a,xs))
-          case EQ => loop(as,bs,addWithLength(a.length,a,xs))
+          case LT => loop(as,Retain(m-a.length)::bs,add(a,xs))
+          case EQ => loop(as,bs,add(a,xs))
           case GT => loop(addWithLength(a.length-m,a,as),bs,addWithLength(m,a,xs))
         }
         case (a,Delete(d)) => (a.length <=> d) match {
@@ -229,7 +229,7 @@ object Annotations {
       case (Nil,Insert(i)::bs,xs) => loop(Nil,bs,addPlain(i.length,xs))
       case _ => Failure(new Exception("the annotation couldn't be transformed because it hasn't been applied to the same document as the operation"))
     }
-    loop(a.annotations,o.actions,Nil).map(as => Annotations(as.reverse))
+    loop(a.annotations.reverse,o.actions.reverse,Nil).map(Annotations.apply)
   }
 
   def compose(a: Annotations, b: Annotations): Try[Annotations] = {
@@ -262,6 +262,6 @@ object Annotations {
       case (Nil,b::bs,xs) if b.length == 0 => loop(Nil,bs,add(b,xs))
       case _ => Failure(sys.error("the annotation lengths don't match!"))
     }
-    loop(a.annotations, b.annotations, Nil).map(as => Annotations.apply(as.reverse))
+    loop(a.annotations.reverse, b.annotations.reverse, Nil).map(Annotations.apply)
   }
 }
