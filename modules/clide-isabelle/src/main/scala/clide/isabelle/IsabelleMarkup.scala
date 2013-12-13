@@ -35,6 +35,7 @@ import isabelle.XML
 import isabelle.HTML
 import clide.collaboration.AnnotationType
 import isabelle.Protocol
+import isabelle.Text
 
 object IsabelleMarkup {
   def annotations(xml: XML.Tree, c: Set[(AnnotationType.Value,String)] = Set.empty): List[Annotation] = xml match {
@@ -61,16 +62,17 @@ object IsabelleMarkup {
 
     case XML.Elem(markup, body) =>
       val classes = Map(
-          Markup.RUNNING -> "warning",
+          Markup.RUNNING  -> "warning",
           Markup.FINISHED -> "info",
-          Markup.COMMENT -> "comment",
-          Markup.TFREE   -> "tfree",
-          Markup.BOUND   -> "bound",
-          Markup.FREE    -> "free",
-          Markup.TVAR    -> "tvar",
-          Markup.SKOLEM  -> "skolem",
-          Markup.BAD     -> "error",
-          Markup.ENTITY  -> "entity")
+          Markup.COMMENT  -> "comment",
+          Markup.TFREE    -> "tfree",
+          Markup.BOUND    -> "bound",
+          Markup.FREE     -> "free",
+          Markup.TVAR     -> "tvar",
+          Markup.SKOLEM   -> "skolem",
+          Markup.BAD      -> "error",
+          //Markup.
+          Markup.ENTITY   -> "entity")
 
       val c2 = markup.name match {
         case Markup.RUNNING | Markup.FINISHED | Markup.FAILED =>
@@ -101,10 +103,9 @@ object IsabelleMarkup {
     }
   }
   
-  def output(snapshot: Document.Snapshot): Annotations = {
-    val node = snapshot.version.nodes(snapshot.node_name)
+  def output(snapshot: Document.Snapshot, positions: Set[Text.Offset]): Annotations = {    
     node.commands.foldLeft (new Annotations) {
-      case (as,cmd) => if (!cmd.is_ignored) {
+      case (as,cmd) => if (cmd. !cmd.is_ignored) {
         val state = snapshot.state.command_state(snapshot.version, cmd)               
         val output = state.results.entries.map(_._2)
           .filterNot(Protocol.is_result(_))

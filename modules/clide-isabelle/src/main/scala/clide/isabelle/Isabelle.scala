@@ -67,14 +67,12 @@ trait Control {
 
 case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehavior with Control
   with IsabelleSession with IsabelleConversions {
-  
+
   def mimeTypes = Set("text/x-isabelle")
-    
+
   def fileOpened(file: OpenedFile) = {
     control.log.info("fileOpened({})", file.info.path)
     noop
-    //session.update(initEdits(file,Seq.empty))
-    //nextChange(file)
   }
   def fileActivated(file: OpenedFile) = {
     control.log.info("fileActivated({})", file.info.path)
@@ -97,15 +95,17 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
   def collaboratorJoined(who: SessionInfo) = noop
   def collaboratorLeft(who: SessionInfo) = noop
   
-  def cursorMoved(cursor: Cursor) = noop
+  def cursorMoved(cursor: Cursor) = {
+    
+  }
+  
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long) = noop
 }
 
 object IsabelleApp extends App {
   Isabelle.startup()
-  readLine()
-  scala.actors.Scheduler.shutdown()
+  readLine()    
   Isabelle.shutdown()
-  Isabelle.system.awaitTermination()
+  Isabelle.system.awaitTermination()  
   sys.exit()
 }

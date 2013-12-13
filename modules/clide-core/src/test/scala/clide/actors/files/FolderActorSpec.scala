@@ -17,19 +17,8 @@ import clide.actors.ActorSpec
 import clide.collaboration.Operation
 import clide.collaboration.Insert
 
-class FileActorSpec(system: ActorSystem) extends TestKit(system) with ActorSpec {
-  def this() = this(ActorSystem("file-test"))
-  
-  import schema._
-    
-  // Setup
-  val testProject = db.withSession { implicit session: Session =>
-    schema.reset
-    UserInfos.insert(testUser)
-    ProjectInfos.create("test-project","test-user",None)
-  }   
-  
-  val root = system.actorOf(FolderActor.props(testProject, None, "root"))
+class FolderActorSpec extends TestKit(ActorSystem("test")) with ActorSpec {
+  val root = system.actorOf(FolderActor.props(testProject1a, None, "root"))
   val path = Seq("subfolder","bar.thy")
   var id: Long = -1
   
@@ -37,7 +26,7 @@ class FileActorSpec(system: ActorSystem) extends TestKit(system) with ActorSpec 
     "be empty to start with" in {
       root ! Messages.BrowseFolder
       expectMsgPF(1 second) {
-        case Events.FolderContent(info,content) if content.isEmpty && info.project == testProject.id => info 
+        case Events.FolderContent(info,content) if content.isEmpty && info.project == testProject1a.id => info 
       }
     }    
     
@@ -74,7 +63,7 @@ class FileActorSpec(system: ActorSystem) extends TestKit(system) with ActorSpec 
       }
     }
     
-    val testSessionHuman = SessionInfo(0, testUser.name, "cyan", testProject.id, true, true)      
+    val testSessionHuman = SessionInfo(0, testUser1.name, "cyan", testProject1a.id, true, true)      
     
     "return an empty otstate for new files and return an acknowledgement when editing a file" in {
       root ! Messages.WithPath(path, Messages.internal.OpenFile(testSessionHuman))

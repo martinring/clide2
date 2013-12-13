@@ -38,6 +38,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.Promise
 import scala.language.postfixOps
+import clide.assistants.Cursor
+import scala.concurrent.Future
 
 trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversions =>
   var session: Session     = null
@@ -53,6 +55,21 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
     version.map(p.success)
     files(name) = (p.future, file)
     p.future.map(_ => ())(control.executionContext)
+  }
+  
+  def refreshAnnotations(nodes: List[Document.Node.Name]) = {
+    for {
+      node    <- nodes
+      snapshot = session.snapshot(node,Nil)
+      version  = snapshot.version        
+    } for {
+      (v,state) <- files.get(snapshot.node_name)
+      if v.value.flatMap(_.toOption) == Some(snapshot.version)
+    } {        
+      control.log.info("annotating snapshot {}", snapshot.node_name)
+      control.annotate(state, "semantic", IsabelleMarkup.highlighting(state, snapshot))
+      control.annotate(state, "output",   IsabelleMarkup.output(snapshot, Set.empty))
+    }
   }
   
   def start(project: ProjectInfo) = {
@@ -102,24 +119,8 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
       control.log.info("SYSLOG: {}", XML.content(msg.body))
       control.chat(XML.content(msg.body))
     }
-    session.raw_output_messages += { msg =>
-      //control.log.info("OUTPUT: {}", XML.content(msg.body))
-    }
     session.commands_changed += { msg =>
-      //require(msg.nodes.size == 1)
-      //control.log.info("COMMANDS_CHANGED: {}, {}", msg.assignment, msg.nodes.map(session.snapshot(_, Nil)).map(_.version))
-      for {
-        node <- msg.nodes
-        val snapshot = session.snapshot(node,Nil)
-        val version  = snapshot.version        
-      } for {
-        (v,state) <- files.get(snapshot.node_name)
-        if v.value.flatMap(_.toOption) == Some(snapshot.version)
-      } {        
-        control.log.info("annotating snapshot {}", snapshot.node_name)
-        control.annotate(state, "semantic", IsabelleMarkup.highlighting(state, snapshot))
-        control.annotate(state, "output", IsabelleMarkup.output(snapshot))
-      }      
+      
     }
     session.start(List("-S","HOL"))
     control.chat("i'm starting up, please wait a second")

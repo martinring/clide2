@@ -103,31 +103,31 @@
   .symbol {
     font-family: 'Main';
   }
-  span.keyword {
+  span.cm-keyword {
     color: @keyword;
   }
-  span.operator {
+  span.cm-operator {
 
   }
-  span.command, span.cm-command {
+  span.cm-command, span.cm-command {
     color: @keyword;
     font-weight: bold;
   }
-  span.string {
+  span.cm-string {
     /*color: gray;*/
     /*background: rgba(0,0,0,0.05);*/
   }
-  span.altstring {
+  span.cm-altstring {
     background: rgba(0,0,0,0.05);
   }
-  span.verbatim {
+  span.cm-verbatim {
     /*background: rgba(0,0,0,0.05);*/
     color: @verbatim;
   }
   span.comment {
     color: @comment;
   }
-  span.malformed {
+  span.cm-malformed {
     text-decoration: line-through;
   }
 
@@ -141,19 +141,19 @@
 
   }
   /* inner syntax */
-  span.tfree {
+  span.cm-tfree {
     font-style: italic;
     color: @type
   }
-  span.tvar {
+  span.cm-tvar {
     color: @type
   }
-  span.entity {
+  span.cm-entity {
     &:hover {
       text-decoration: underline;
     }
   }
-  span.free, span.term {
+  span.cm-free, span.cm-term {
     font-family: Math;
     color: purple ;
   }
