@@ -104,8 +104,8 @@ object IsabelleMarkup {
   }
   
   def output(snapshot: Document.Snapshot, positions: Set[Text.Offset]): Annotations = {    
-    node.commands.foldLeft (new Annotations) {
-      case (as,cmd) => if (cmd. !cmd.is_ignored) {
+    snapshot.node.commands.foldLeft (new Annotations) {
+      case (as,cmd) => if (!cmd.is_ignored) {
         val state = snapshot.state.command_state(snapshot.version, cmd)               
         val output = state.results.entries.map(_._2)
           .filterNot(Protocol.is_result(_))
