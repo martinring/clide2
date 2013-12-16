@@ -96,7 +96,7 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
   def collaboratorLeft(who: SessionInfo) = noop
   
   def cursorMoved(cursor: Cursor) = {
-    
+    noop
   }
   
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long) = noop
