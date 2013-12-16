@@ -49,7 +49,9 @@ import isabelle.Document
 import clide.assistants.Cursor
 import akka.actor.Cancellable
 
-object Isabelle extends AssistantServer(IsabelleAssistBehavior) {
+object Isabelle extends Isabelle
+
+class Isabelle extends AssistantServer(IsabelleAssistBehavior) {
   override def startup() {
     Isabelle_System.init()
     super.startup()

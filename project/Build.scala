@@ -27,7 +27,7 @@ import Keys._
 import play.Project._
 import com.typesafe.sbt.SbtAtmos.{Atmos,atmosSettings}
 import akka.sbt.AkkaKernelPlugin
-import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions}
+import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions, distMainClass }
 import Dependencies._
 import Util._
 import scalajs.sbtplugin.ScalaJSPlugin._
@@ -173,6 +173,8 @@ object ApplicationBuild extends Build {
     scala.actors)
 
   val isabelleSettings = commonSettings ++ AkkaKernelPlugin.distSettings ++ Seq(
+    distJvmOptions in Dist := "-Xms512M -Xmx1024M",
+    distMainClass := "clide.isabelle.Isabelle",
     libraryDependencies ++= isabelleDependencies)
 
   val isabelle = Project(
