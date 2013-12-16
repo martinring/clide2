@@ -79,7 +79,7 @@ trait Core {
    * [[clide.actors.UserServer `UserServer`]]
    */
   def createUserServer() = {
-    db.withSession{ implicit session: Session => schema.create }
+    db.withSession{ implicit session: Session => schema.createAllIfNotExist() }
     if (system == null) sys.error("system uninitialized")
     system.actorOf(UserServer.props(DBAccess(db, schema)), "users")    
   }

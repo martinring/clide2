@@ -16,8 +16,12 @@ import scala.language.postfixOps
 import clide.actors.ActorSpec
 import clide.collaboration.Operation
 import clide.collaboration.Insert
+import clide.actors.TestSetup
 
 class FolderActorSpec extends TestKit(ActorSystem("test")) with ActorSpec {
+  val setup = new TestSetup
+  import setup._   
+  
   val root = system.actorOf(FolderActor.props(testProject1a, None, "root"))
   val path = Seq("subfolder","bar.thy")
   var id: Long = -1

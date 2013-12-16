@@ -28,6 +28,10 @@ import clide.models._
 import scala.slick.session.Session
 import java.util.UUID
 import clide.persistence.DBAccess
+import akka.pattern.ask
+import scala.concurrent.duration._
+import akka.util.Timeout
+import scala.util.Success
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
@@ -77,7 +81,6 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
         { login => (identified(login) orElse anonymous)(msg) })
     case Anonymous(msg) => anonymous(msg)
     case External(user,login,msg) => (external(user,login) orElse anonymous)(msg)
-    // EVENTS
     case DeletedProject(project) =>
       projects -= project.name
       backstagePeers.keys.foreach(_ ! DeletedProject(project))
@@ -90,8 +93,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
       } else {
         context.actorSelection(s"../$user").tell(msg,sender)
       }
-    case msg if backstagePeers.contains(sender) && identified(backstagePeers(sender)).isDefinedAt(msg) => // TODO: Move to dedicated backstage actor
-      log.info("direct message via backstage: {}",msg)
+    case msg if backstagePeers.contains(sender) && identified(backstagePeers(sender)).isDefinedAt(msg) => // TODO: Move to dedicated backstage actor      
       identified(backstagePeers(sender))(msg)
   }
 
@@ -123,7 +125,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
       }
 
     case msg =>
-      log.info("external "+ msg.toString)
+      log.info("unauthorized external "+ msg.toString)
       sender ! NotAllowed
   }
 
@@ -146,8 +148,8 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
       context.system.eventStream.publish(LoggedOut(user))
 
     case CreateProject(name,description) =>
-      if (name.toSeq.exists(!_.isLetterOrDigit)) {
-        sender ! ProjectCouldNotBeCreated("The name must only consist of letters and digits")
+      if (name.toSeq.exists(a => !a.isLetterOrDigit && !(a == '-'))) {
+        sender ! ProjectCouldNotBeCreated("The name must only consist of letters, digits and dashes")
       } else if (projects.contains(name)) {
         sender ! ProjectCouldNotBeCreated("A project with this name already exists")
       } else {
@@ -155,7 +157,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
         projects += name -> project
         context.actorOf(ProjectActor(project), project.name)
         sender ! CreatedProject(project)
-        backstagePeers.keys.foreach(_ ! CreatedProject(project))
+        backstagePeers.keys.filter(_ != sender).foreach(_ ! CreatedProject(project))
       }
 
     case StartBackstageSession =>
@@ -172,9 +174,8 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
       }
 
     case WithUser(name,msg) =>
-      log.info(s"${user.name} received $msg for $name")
-      if (name == user.name) (identified(login) orElse anonymous)(msg)
-      else context.actorSelection(s"../$name").tell(External(user,login,msg),sender)
+      if (name == user.name) (identified(login) orElse anonymous)(msg) 
+      else context.parent.forward(UserServer.Forward(name, External(user, login, msg)))
 
     case Validate => sender ! Validated(user)
 

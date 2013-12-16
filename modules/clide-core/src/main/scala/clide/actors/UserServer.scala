@@ -35,6 +35,8 @@ import clide.persistence.DBAccess
  */
 object UserServer {
   private[clide] def props(implicit dbAccess: DBAccess) = Props(classOf[UserServer], dbAccess)
+  
+  case class Forward(name: String, msg: Messages.Message)
 }
 
 /**
@@ -75,13 +77,12 @@ private class UserServer(implicit val dbAccess: DBAccess) extends Actor with Act
 	        context.system.eventStream.publish(SignedUp(user))
           }
         }
-      }
+      }          
 
     case IdentifiedFor(name,key,message) =>
       context.child(name) match {
         case None      => sender ! DoesntExist
         case Some(ref) =>
-          log.info(f"identified forward to $name: $message")
           ref.forward(Identified(key,message))
       }
 
@@ -89,8 +90,16 @@ private class UserServer(implicit val dbAccess: DBAccess) extends Actor with Act
       context.child(name) match {
         case None => sender ! DoesntExist
         case Some(ref) =>
-          log.info(f"anonymous forward to $name: $message")
           ref.forward(Anonymous(message))
+      }
+      
+    // Name resoultion here, to support distributed hierarchy in the future
+    case UserServer.Forward(name, msg) =>
+      context.child(name) match {
+        case None => 
+          sender ! DoesntExist
+        case Some(ref) =>
+          ref.forward(msg)
       }
   }
 

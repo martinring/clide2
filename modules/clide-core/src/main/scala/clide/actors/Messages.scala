@@ -104,7 +104,7 @@ object Messages {
   case class FailureInFile(file: Long, msg: Option[String]) extends ProcessingMessage
 
   private[actors] object internal {
-    trait UserMessageWrapper
+    trait UserMessageWrapper extends Message
 	case class Identified(key: String, message: UserMessage) extends UserMessageWrapper
 	case class Anonymous(message: UserMessage) extends UserMessageWrapper
 	case class External(sender: UserInfo, login: LoginInfo, message: UserMessage) extends UserMessageWrapper

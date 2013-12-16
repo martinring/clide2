@@ -8,6 +8,9 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
 class UserServerSpec extends TestKit(ActorSystem("test")) with ActorSpec {
+  val setup = new TestSetup
+  import setup._
+  
   val userServer = system.actorOf(UserServer.props, "users")
   
   "the user server" must {
