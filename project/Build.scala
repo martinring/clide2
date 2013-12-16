@@ -168,11 +168,11 @@ object ApplicationBuild extends Build {
   // Isabelle Assistant
   // ---------------------------------------------------------------------------
 
-  val isabelleDependencies = assistantDependencies ++ AkkaKernelPlugin.distSettings ++ Seq(
+  val isabelleDependencies = assistantDependencies ++ Seq(
     scala.swing,
     scala.actors)
 
-  val isabelleSettings = commonSettings ++ Seq(
+  val isabelleSettings = commonSettings ++ AkkaKernelPlugin.distSettings ++ Seq(
     libraryDependencies ++= isabelleDependencies)
 
   val isabelle = Project(
