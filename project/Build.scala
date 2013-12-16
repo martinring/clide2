@@ -59,6 +59,7 @@ object ApplicationBuild extends Build {
     organization := "net.flatmap",
     organizationName := "flatmap",
     organizationHomepage := Some(url("http://www.flatmap.net")),
+    parallelExecution in Test := false,
     startYear := Some(2012),
     licenses := Seq("GNU Lesser General Public License" -> url("http://www.gnu.org/licenses/lgpl.html")),
     homepage := Some(url("http://clide.flatmap.net")),
@@ -167,7 +168,7 @@ object ApplicationBuild extends Build {
   // Isabelle Assistant
   // ---------------------------------------------------------------------------
 
-  val isabelleDependencies = assistantDependencies ++ Seq(
+  val isabelleDependencies = assistantDependencies ++ AkkaKernelPlugin.distSettings ++ Seq(
     scala.swing,
     scala.actors)
 
@@ -185,7 +186,7 @@ object ApplicationBuild extends Build {
 
   val haskellDependencies = assistantDependencies
 
-  val haskellSettings = commonSettings ++ Seq(
+  val haskellSettings = commonSettings ++ AkkaKernelPlugin.distSettings ++ Seq(
     libraryDependencies ++= haskellDependencies)
 
   val haskell = Project(
