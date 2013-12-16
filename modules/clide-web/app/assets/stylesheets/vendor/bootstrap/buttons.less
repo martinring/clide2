@@ -8,6 +8,7 @@
 
 // Core styles
 .btn {
+  background-clip: padding-box;
   display: inline-block;
   padding: @padding-base-vertical @padding-base-horizontal;
   margin-bottom: 0; // For input.btn
@@ -17,7 +18,7 @@
   text-align: center;
   vertical-align: middle;
   cursor: pointer;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   border-radius: @border-radius-base;
   white-space: nowrap;
   .user-select(none);
@@ -35,7 +36,7 @@
   &:active,
   &.active {
     outline: 0;
-    background-image: none;    
+    background-image: none;
   }
 
   &.disabled,
@@ -44,6 +45,7 @@
     cursor: not-allowed;
     pointer-events: none; // Future-proof disabling of clicks
     .opacity(.65);
+    color: rgba(255,255,255, 0.4);
   }
 
 }
@@ -155,3 +157,5 @@ input[type="button"] {
     width: 100%;
   }
 }
+
+

@@ -22,6 +22,7 @@
 **   If not, see <http://www.gnu.org/licenses/>.                              **
 \*                                                                            */
 
+@import 'fonts.less';
 @import 'theme.less';
 
 @import 'vendor/codemirror/codemirror.less';
@@ -38,8 +39,6 @@
 @import 'statusbar.less';
 @import 'isabelle.less';
 
-/*@import 'fonts.less';
-@import 'isabelle.less';*/
 
 body {
   .user-select(none);
@@ -47,6 +46,8 @@ body {
   background-color: #00AAE4;
   /*background-image: url('/client/images/clouds.svg');*/
   -webkit-font-smoothing: antialiased;
+  /* Disable zooming on windows 8 devices */
+  -ms-content-zooming: none;
 }
 
 a {

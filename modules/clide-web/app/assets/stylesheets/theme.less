@@ -72,7 +72,12 @@
 @import "vendor/bootstrap/utilities.less";
 @import "vendor/bootstrap/responsive-utilities.less";
 
-input[type="range"] {
-  background-color: transparent;
-  border: none;
+/*
+Additional letter-spacing for the document and its controls.
+*/
+body,
+button, input,
+textarea, .win-textarea,
+select, option {
+  letter-spacing: 0.02em;
 }
