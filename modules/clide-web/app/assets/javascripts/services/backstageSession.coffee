@@ -44,6 +44,7 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
       session.state = 'connecting'
     ws.onmessage = (e) ->
       msg = JSON.parse(e.data)
+      console.log 'backstage receive: ', msg
       switch typeof msg
         when 'object'
           if msg.f? and msg.o?
@@ -69,11 +70,13 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
                 session.projects = session.projects.filter((p) -> p.id isnt msg.c)
                 session.otherProjects = session.otherProjects.filter((p) -> p.id isnt msg.c)
     ws.onopen = (e) ->
+      console.log 'socket open'
       apply -> session.state = 'connected'
       for msg in queue
         ws.send(msg)
       queue = []
     ws.onclose = (e) ->
+      console.log 'socket close'
       socket = undefined
       session.projects = null
       session.otherProjects = null
