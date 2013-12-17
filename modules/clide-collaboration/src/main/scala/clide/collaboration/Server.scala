@@ -36,6 +36,10 @@ class Server(initialState: Document) {
   def revision = history.length
   def getHistory = history.view
 
+  /**
+   * an operation arrives from a client
+   * @param rev the revision the client refers to
+   */
   def applyOperation(operation: Operation, rev: Long): Try[Operation] = {
     val result = for {
 	  concurrentOps <- Try {
@@ -53,7 +57,11 @@ class Server(initialState: Document) {
 	    operation
 	}
   }
-
+  
+  /**
+   * transform a client annotation to fit the most recent revision
+   * @param rev the revision the client refers to
+   */
   def transformAnnotation(rev: Int, as: Annotations): Try[Annotations] = for {
       concurrentOps <- Try {
         require((0 to revision) contains rev, "invalid revision: " + rev)
