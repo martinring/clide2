@@ -40,6 +40,9 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.concurrent.Promise
+import clide.actors.Messages
+import clide.collaboration.Client
 
 /**
  * @param owner The Session, this cursor belongs to
@@ -64,9 +67,10 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   var info: SessionInfo = null
   val collaborators     = Set.empty[SessionInfo]
   val files             = Map.empty[Long,OpenedFile]
-  val behavior = createBehavior(this)
-  val cursors  = Map.empty[Long,Map[Long,Cursor]]
-  val config = context.system.settings.config
+  val clients           = Map.empty[Long,Client]
+  val behavior          = createBehavior(this)
+  val cursors           = Map.empty[Long,Map[Long,Cursor]]
+  val config            = context.system.settings.config
   val assistantName             = config.getString("assistant.username")
   val receiveOwnChatMessages    = config.getBoolean("assistant.receiveOwnChatMessages")
   val automaticWorkingIndicator = config.getBoolean("assistant.automaticWorkingIndicator")
@@ -77,10 +81,18 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
     peer ! Talk(None,msg,tpe)
   }
 
-
   case object Continue  
-  
-  def openFile(path: Seq[String]): Future[OpenedFile] = ???
+
+  var fileRequests = List.empty[(Long,Promise[OpenedFile])]   
+  def openFile(id: Long): Future[OpenedFile] = 
+    files.get(id) match {
+      case Some(file) => Future.successful(file)
+      case None =>
+        val promise = Promise[OpenedFile]
+        fileRequests ::= (id -> promise)
+        peer ! OpenFile(id)
+        promise.future
+    }
 
   var annotationDelays = Map.empty[Long,Cancellable]
   
@@ -94,11 +106,11 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       annotate(file,name,annotations)
     else
       annotationDelays(file.info.id) = context.system.scheduler.scheduleOnce(delay)(annotate(file,name,annotations))    
-  }    
+  }
 
   def edit(file: OpenedFile, edit: Operation): Future[Unit] = ???
 
-  val workStates: Map[Long, Boolean] = Map.empty.withDefaultValue(false)
+  val workStates:   Map[Long, Boolean]     = Map.empty.withDefaultValue(false)
   val workTimeouts: Map[Long, Cancellable] = Map.empty 
   
   def workOnFile(file: OpenedFile): Unit = workOnFile(file.info.id)

@@ -52,6 +52,7 @@ define ['routes','codemirror','modes/isabelle'], (routes) ->
         tabSize: 2
         gutters: ['CodeMirror-foldgutter','CodeMirror-linenumbers']
         foldGutter: true
+        fixedGutter: false
         extraKeys:
           'Shift-Ctrl-C': 'toggleComment'
 
