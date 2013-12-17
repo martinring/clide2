@@ -41,6 +41,8 @@ object WebsocketMediator {
 }
 
 class WebsocketMediator extends Actor with ActorLogging {
+  log.info("mediator created")
+  
   val (out,channel) = Concurrent.broadcast[Event]
   var peer   = context.system.deadLetters
   var client = context.system.deadLetters
@@ -50,15 +52,15 @@ class WebsocketMediator extends Actor with ActorLogging {
       client = sender
       ref ! message
     case EventSocket(peer,_) =>
-      log.debug("forwarding event socket")
+      log.info("forwarding event socket")
       this.peer = peer
       context.watch(peer)
       client ! out    
-    case e: Event =>
-      log.debug(e.toString())
+    case e: Event =>      
+      log.info(e.toString())
       channel.push(e)
     case msg: Message =>
-      log.debug(msg.toString())
+      log.info(msg.toString())
       peer ! msg
     case Terminated(ref) =>
       log.debug("terminated")

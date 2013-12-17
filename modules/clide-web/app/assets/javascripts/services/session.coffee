@@ -38,6 +38,8 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     chat: []
     me: null
 
+  initCycle = null
+
   session.activeDoc = ->
     session.openFiles?[session.me.activeFile]?.doc
 
@@ -79,7 +81,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
 
     client.applyOperation = adapter.applyOperation
     reset = () ->
-      Toasts.push('warning', 'emergency resetting ' + nfile.name + ' due to server timeout')
+      console.warning('warning', 'emergency resetting ' + nfile.name + ' due to server timeout')
       nfile.$$emergencyResetMode = true
       send
         t: 'close'
@@ -88,7 +90,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         t: 'open'
         id: file.info.id
     client.sendOperation = (rev,op) ->
-      nfile.$$emergencyReset = setTimeout(reset, 2000)
+      nfile.$$emergencyReset = setTimeout(reset, 1000)
       send
         f: nfile.id
         r: rev
@@ -124,7 +126,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
 
     if (nfile.$$emergencyResetMode)
       nfile.$$emergencyResetMode = false
-      Toasts.push 'info', 'resetted ' + nfile.name
+      console.log 'resetted ' + nfile.name
 
     session.openFiles[file.info.id] = (nfile)
 
@@ -150,9 +152,8 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
         return s
     return null
 
-  get = (username, project, init) ->
+  get = (username, project) ->
     ws = new WebSocket(pc.session(username,project).webSocketURL())
-    queue.push(JSON.stringify(init)) if init?
     socket = ws
     apply ->
       session.state = 'connecting'
@@ -177,6 +178,7 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
             when 'e'
               Toasts.push 'danger', msg.c
             when 'welcome'
+              clearInterval(initCycle)
               session.openFiles = { }
               #document.getElementById('theme').href = "/client/stylesheets/colors/#{msg.info.color}.css"
               apply ->
@@ -255,8 +257,8 @@ define ['routes','collaboration/Operation','collaboration/CodeMirror','collabora
     info: session
     init: (username, project, init) ->
       socket or get(username, project, init)
-      send
-        t: 'init'
+      # some strange websocket bug in play???
+      initCycle = setInterval((() -> send { t: 'init' }),500)
     openFile: (id) -> unless id is session.me.activeFile
       existing = getOpenFile(id)
       if existing

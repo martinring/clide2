@@ -35,6 +35,7 @@
                 </a>
               </div>
               </h3>
+              <p class='text-muted' ng-show='files.currentDir == null'>loading...</p>
               <ul class="breadcrumb" ng-show='files.state=="connected"'>
                 <li ng-repeat='segment in files.currentDir.path'>
                   <a ng-click='browseTo(segment.path)' ng-show='segment.name != "$home"'>
@@ -80,6 +81,7 @@
                 </ul>
               </div>
               <h3>Collaboration</h3>
+              <p class='text-muted' ng-show='session.collaborators == null'>loading...</p>
               <div ng-show="session.state=='connected'">
                 <div ng-show='session.me'>
                   <p>

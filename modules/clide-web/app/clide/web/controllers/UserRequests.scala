@@ -88,9 +88,11 @@ trait UserRequests { this: Controller =>
     } map (Unit => mediator ! EOF)    
 
     f.map { out =>
+      Logger.info("initialized")
       (in,out.map(serialize))
     }.recover {
       case e =>
+        Logger.info("failed")
         (Iteratee.ignore[JsValue], Enumerator[JsValue](Json.obj("t"->"e","c"->e.getMessage)).andThen(Enumerator.eof))
     }
   }

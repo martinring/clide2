@@ -34,6 +34,8 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
     projects: null
     otherProjects: null
 
+  initCycle = null
+
   apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f)
 
   get = (username, init) ->
@@ -51,6 +53,7 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
             getOpenFile(msg.f).$apply(Operation.fromJSON(msg.o))
           switch msg.t
             when 'projects'
+              clearInterval(initCycle)
               apply ->
                 session.projects = msg.c.own
                 session.otherProjects = msg.c.other
@@ -73,6 +76,7 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
       console.log 'socket open'
       apply -> session.state = 'connected'
       for msg in queue
+        console.log msg
         ws.send(msg)
       queue = []
     ws.onclose = (e) ->
@@ -84,7 +88,8 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
 
   send = (message) -> switch socket?.readyState
     when WebSocket.CONNECTING
-      queue.push(JSON.stringify(message))
+      queue.push
+        msg: JSON.stringify(message)
     when WebSocket.OPEN
       data = JSON.stringify(message)
       socket.send(data)
@@ -93,8 +98,8 @@ define ['routes'], (routes) -> ($q,$rootScope,$http,Toasts) ->
     info: session
     init: (username, init) ->
       socket or get(username, init)
-      send
-        t: 'init'
+      # some strange websocket bug in play???
+      initCycle = setInterval((-> send { t: 'init'}), 500)
     openFile: (id) -> send
       t: 'open'
       id: id

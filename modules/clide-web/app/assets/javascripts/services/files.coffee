@@ -36,9 +36,8 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
     currentDir: null
     state: 'closed'
 
-  get = (username, project, init) ->
+  get = (username, project) ->
     ws = new WebSocket(pc.fileBrowser(username,project).webSocketURL())
-    queue.push(JSON.stringify(init)) if init?
     socket= ws
     $timeout((-> files.state = 'connecting'),0)
     ws.onmessage = (e) ->
@@ -97,6 +96,8 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
     info: files
     init: (username, project, init) ->
       socket or get(username, project, init)
+      # some strange websocket bug in play???
+      initCycle = setInterval((() -> send { t: 'init' }),500)
     explore: (path) -> send
       t: 'explore'
       path: path

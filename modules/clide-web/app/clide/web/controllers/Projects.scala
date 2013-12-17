@@ -94,6 +94,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
               ForgetIt
             case Some(t) => t match {
               case "init" =>
+                Logger.info("got init")
                 RequestSessionInfo
               case "open" =>
                 OpenFile((json \ "id").as[Long])

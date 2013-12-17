@@ -9,6 +9,7 @@
             <a class='btn btn-default' ng-click='createProject()'><i class="fa fa-plus"></i></a>
           </div>
           </h2>
+          <p class='text-muted' ng-show='Projects.projects == null'>loading...</p>
           <p ng-show='Projects.projects.length==0' class='alert alert-info'>
             You don't have any projects associated with your account yet. Get started by <a class='alert-link' ng-click='createProject()'>creating a new project</a>.
           </p>
@@ -19,6 +20,7 @@
             </a>
           </div>
           <h4>Collaborating</h4>
+          <p class='text-muted' ng-show='Projects.otherProjects == null'>loading...</p>
           <p ng-show='Projects.otherProjects.length==0' class='alert alert-info'>
             You have not yet been invited to collaborate in any project.
           </p>
