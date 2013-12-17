@@ -48,12 +48,12 @@ trait AssistantControl {
   def chat(message: String, tpe: Option[String] = None): Unit
 
   /**
-   * Requests to open a file at the specified path. Will fulfill the future once the
-   * file is available. Creates the file if it doesn't exist already.
+   * Requests to open a file with the specified id. Will fulfill the future once the
+   * file is available.
    *
    * @param path relative (wrt the project) path to the file
    */
-  def openFile(path: Seq[String]): Future[OpenedFile]
+  def openFile(id: Long): Future[OpenedFile]
 
   /**
    * Annotate a file

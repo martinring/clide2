@@ -8,6 +8,8 @@
 .CodeMirror-scroll {
   /* Set scrolling behaviour here */
   overflow: auto;
+  -ms-scroll-chaining: none;
+  -ms-scroll-rails: none;
 }
 
 /* PADDING */
@@ -263,7 +265,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 }
 
 .CodeMirror-foldmarker {
-  color: @gray-light;  
+  color: @gray-light;
   cursor: pointer;
 }
 .CodeMirror-foldgutter {
