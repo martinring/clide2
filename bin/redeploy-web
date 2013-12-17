@@ -1,0 +1,16 @@
+#! /bin/sh
+#
+# Redeploy stages:
+# * git pull
+# * sbt clean stage/dist
+# * restart clide and isabelle services
+
+# Configurables
+CLIDE_HOME=/home/clide/clide2
+
+export CLIDE_HOME
+cd ${CLIDE_HOME}
+git pull
+sbt clean clide-web:stage clide-isabelle:dist
+echo "Restarting server."
+nohup ${CLIDE_HOME}/bin/clide-web restart > ${CLIDE_HOME}/logs/clide-web.log &

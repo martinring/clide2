@@ -18,6 +18,7 @@ RUNNING_PID
 .ensime
 .cache
 bin
+!/bin
 /data.trace.db
 /files
 /data.*
