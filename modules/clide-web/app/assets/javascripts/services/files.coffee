@@ -32,6 +32,8 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
 
   currentDirId = null
 
+  initCycle = null
+
   files =
     currentDir: null
     state: 'closed'
