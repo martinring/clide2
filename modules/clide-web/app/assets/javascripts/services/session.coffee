@@ -23,7 +23,7 @@
 ##                                                                            ##
 
 ### @service services:Session ###
-define ['routes','util/ActorSocket','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords','codemirror'], (routes,ActorSocket,Operation,CMAdapter,Client,Annotations,idw,CodeMirror) -> ($q,$rootScope,$http,Toasts) ->
+define ['routes','util/actorSocket','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords','codemirror'], (routes,ActorSocket,Operation,CMAdapter,Client,Annotations,idw,CodeMirror) -> ($q,$rootScope,$http,Toasts) ->
   (username, project, open) ->
     session =
       state: 'closed'
