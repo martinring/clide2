@@ -23,7 +23,7 @@
 ##                                                                            ##
 
 ### @service services:Files ###
-define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout) ->
+define ['routes','util/ActorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout) ->
   (username, project, open) ->
     dirs = []
     currentDirId = null

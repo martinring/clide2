@@ -23,7 +23,7 @@
 ##                                                                            ##
 
 ### @service services:BackstageSession ###
-define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$rootScope,$http,Toasts) ->
+define ['routes','util/ActorSocket'], (routes,ActorSocket) -> ($q,$rootScope,$http,Toasts) ->
   (username, open) ->
     url = routes.clide.web.controllers.Projects.backstageSession(username).webSocketURL()
 
