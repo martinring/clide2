@@ -36,23 +36,36 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
 
   $scope.user = Auth.user
 
-  Files.init($routeParams.user, $routeParams.project)
-  Files.explore($scope.path)
+  ## init fileBrowser ------------------------------------------------------- ##
 
-  Session.init($routeParams.user, $routeParams.project)
-
-  $scope.session = Session.info
-  $scope.files = Files.info
-
-  $scope.browseTo = Files.browseTo
-  $scope.currentDir = Files.current
+  fileService = null
 
   $scope.reconnect = ->
-    Files.init($routeParams.user, $routeParams.project)
-    Files.explore($scope.path)
+    Files $routeParams.user, $routeParams.project, (files) ->
+      files.explore($scope.path)
+      $scope.files    = files.info
+      $scope.browseTo = files.browseTo
+      fileService = files
+
+  $scope.reconnect()
+
+  ## init collab session ---------------------------------------------------- ##
+
+  session = null
 
   $scope.reconnectSession = ->
-    Session.init($routeParams.user, $routeParams.project)
+    Session $routeParams.user, $routeParams.project, (s) ->
+      s.init($routeParams.user, $routeParams.project)
+      $scope.session = s.info
+      s.info.talkback = (msg) ->
+        unless $scope.showChat
+          $scope.unreadChatMessages += 1
+          Toasts.push 'info', "#{msg.s.user}: #{msg.m}"
+      session = s
+
+  $scope.reconnectSession()
+
+  ## ------------------------------------------------------------------------ ##
 
   $scope.start = () ->
     $scope.state = 'ide'
@@ -67,7 +80,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   $scope.chat = (msg) ->
     console.log msg
     if msg? and msg isnt ''
-      Session.chat(msg)
+      session.chat(msg)
 
   $scope.sidebar = true
   $scope.root = null
@@ -84,23 +97,23 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
       queries: ['username']
       buttons: ['Ok','Cancel']
       done: (answer, result) -> if (answer is 'Ok')
-        Session.invite(result.username)
+        session.invite(result.username)
 
   $scope.openFile = (file) ->
     if file.isDirectory
       file.loading = true
       $scope.browseTo(file.path, file.id)
     else
-      Session.openFile(file.id or file)
+      session.openFile(file.id or file)
 
   $scope.setColor = (color) ->
-    Session.setColor(color)
+    session.setColor(color)
 
   $scope.setFont = (font, where) ->
     $scope.editorFont = font
 
   $scope.closeFile = (id) ->
-    Session.closeFile(id)
+    session.closeFile(id)
 
   $scope.deleteFile = (file) ->
     if file.isDirectory
@@ -109,14 +122,14 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
         text: "Do you really want to delete the folder '#{file.path[file.path.length - 1]}' and all of its content? This can not be undone!"
         buttons: ['Yes','No']
         done: (answer) -> if (answer is 'Yes')
-          Files.delete(file.path)
+          fileService.delete(file.path)
     else
       Dialog.push
         title: "delete '#{file.name}'"
         text: "Do you really want to delete '#{file.path[file.path.length - 1]}'? This can not be undone!"
         buttons: ['Yes','No']
         done: (answer) -> if (answer is 'Yes')
-          Files.delete(file.path)
+          fileService.delete(file.path)
 
   types = [
     { text: 'Isabelle Theory', ext: 'thy' }
@@ -132,7 +145,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
         if result.name? and result.name.length > 0
           p = folder.path?.slice() or []
           p.push(result.name)
-          Files.touchFile(p)
+          fileService.touchFile(p)
         else
           result.error = 'Please enter a name'
 
@@ -148,7 +161,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
         if result.name? and result.name.length > 0
           p = folder.path?.slice() or []
           p.push(result.name)
-          Files.touchFolder(p)
+          fileService.touchFolder(p)
         else
           result.error = 'Please enter a name'
 
@@ -213,11 +226,6 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
       $scope.unreadChatMessages = 0
       setOutputHeight(extendedHeight)
       $scope.showChat = true
-
-  Session.info.talkback = (msg) ->
-    unless $scope.showChat
-      $scope.unreadChatMessages += 1
-      Toasts.push 'info', "#{msg.s}: #{msg.m}"
 
   $scope.startSlidebar = ($event) ->
     slidebarActive = true

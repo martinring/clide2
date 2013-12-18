@@ -37,9 +37,10 @@ require ['app'], (app) ->
   app.run ($rootScope, Session, Files) ->
     $rootScope.$on '$routeChangeSuccess', (e,n,o) ->
       $rootScope.title = n.$$route.title
-      unless n.$$route.ide
-        Files.close()
-        Session.close()
+      #unless n.$$route.ide
+      #  # TODO !!!
+      #  #iles.close()
+      #  #ession.close()
 
   angular.element(document).ready ->
     angular.bootstrap document, ['clide-web']

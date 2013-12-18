@@ -23,278 +23,244 @@
 ##                                                                            ##
 
 ### @service services:Session ###
-define ['routes','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords','codemirror'], (routes,Operation,CMAdapter,Client,Annotations,idw,CodeMirror) -> ($q,$rootScope,$http,Toasts) ->
-  pc = routes.clide.web.controllers.Projects
+define ['routes','util/actorSocket','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords','codemirror'], (routes,ActorSocket,Operation,CMAdapter,Client,Annotations,idw,CodeMirror) -> ($q,$rootScope,$http,Toasts) ->
+  (username, project, open) ->
+    session =
+      state: 'closed'
+      collaborators: null
+      openFiles: null
+      talkback: null
+      fileStates: { }
+      chat: []
+      me: null
 
-  queue = []
-  socket  = undefined
+    session.activeDoc = ->
+      session.openFiles?[session.me.activeFile]?.doc
 
-  session =
-    state: 'closed'
-    collaborators: null
-    openFiles: null
-    talkback: null
-    fileStates: { }
-    chat: []
-    me: null
+    session.activeAnnotations = ->
+      session.openFiles?[session.me.activeFile]?.annotations
 
-  initCycle = null
+    session.syncState = ->
+      session.openFiles?[session.me.activeFile]?.$syncState()
 
-  session.activeDoc = ->
-    session.openFiles?[session.me.activeFile]?.doc
+    apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f) else f()
 
-  session.activeAnnotations = ->
-    session.openFiles?[session.me.activeFile]?.annotations
+    setActiveFile = (id,send) ->
+      if session.me.activeFile? then send
+        t: 'ignoring'
+        f: session.me.activeFile
+      session.me.activeFile = id
+      if id? then send
+        t: 'looking'
+        f: id
 
-  session.syncState = ->
-    session.openFiles?[session.me.activeFile]?.$syncState()
+    initFile = (file, send) ->
+      nfile = session.openFiles[file.info.id] or { }
 
-  apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f) else f()
+      nfile.id   = file.info.id
+      nfile.name = file.info.name
 
-  setActiveFile = (id) ->
-    if session.me.activeFile? then send
-      t: 'ignoring'
-      f: session.me.activeFile
-    session.me.activeFile = id
-    if id? then send
-      t: 'looking'
-      f: id
-
-  initFile = (file) ->
-    nfile = session.openFiles[file.info.id] or { }
-
-    nfile.id   = file.info.id
-    nfile.name = file.info.name
-
-    if nfile.doc?
-      nfile.doc.setValue(file.state)
-    else
-      if file.info.mimeType is 'text/isabelle'
-        nfile.doc  = CodeMirror.Doc file.state,
-          name: 'isabelle'
-          words: idw
+      if nfile.doc?
+        nfile.doc.setValue(file.state)
       else
-        nfile.doc = CodeMirror.Doc file.state, (file.info.mimeType or 'text/plain')
+        if file.info.mimeType is 'text/isabelle'
+          nfile.doc  = CodeMirror.Doc file.state,
+            name: 'isabelle'
+            words: idw
+        else
+          nfile.doc = CodeMirror.Doc file.state, (file.info.mimeType or 'text/plain')
 
-    client  = new Client(file.revision)
-    adapter = new CMAdapter(nfile.doc, session.me.color)
+      client  = new Client(file.revision)
+      adapter = new CMAdapter(nfile.doc, session.me.color)
 
-    client.applyOperation = adapter.applyOperation
-    reset = () ->
-      console.warning('warning', 'emergency resetting ' + nfile.name + ' due to server timeout')
-      nfile.$$emergencyResetMode = true
-      send
-        t: 'close'
-        id: file.info.id
-      send
-        t: 'open'
-        id: file.info.id
-    client.sendOperation = (rev,op) ->
-      nfile.$$emergencyReset = setTimeout(reset, 1000)
-      send
-        f: nfile.id
-        r: rev
-        o: op.actions
-    client.sendAnnotation = (rev,an,name) -> send
-        f: nfile.id
-        r: rev
-        a: an.annotations
-        n: name
+      client.applyOperation = adapter.applyOperation
+      reset = () ->
+        console.warning('warning', 'emergency resetting ' + nfile.name + ' due to server timeout')
+        nfile.$$emergencyResetMode = true
+        send
+          t: 'close'
+          id: file.info.id
+        send
+          t: 'open'
+          id: file.info.id
+      client.sendOperation = (rev,op) ->
+        nfile.$$emergencyReset = setTimeout(reset, 1000)
+        send
+          f: nfile.id
+          r: rev
+          o: op.actions
+      client.sendAnnotation = (rev,an,name) -> send
+          f: nfile.id
+          r: rev
+          a: an.annotations
+          n: name
 
-    adapter.registerCallbacks
-      change: (op) -> client.applyClient(op)
-      annotate: (a) -> client.annotate(a)
+      adapter.registerCallbacks
+        change: (op) -> client.applyClient(op)
+        annotate: (a) -> client.annotate(a)
 
-    nfile.$ackEdit = () ->
-      clearTimeout(nfile.$$emergencyReset)
-      client.serverAckEdit()
-    nfile.$ackAnnotation = () -> client.serverAckAnnotation()
-    nfile.$apply = (os) -> client.applyServer(os)
-    nfile.$syncState = -> client.syncState()
-    nfile.$setColor = (c) -> adapter.setColor(c)
-    nfile.$annotate = (a,u,n) -> # TODO: include user
-      adapter.applyAnnotation(a,u,n)
-      a                          = client.transformAnnotation(a)
-      nfile.annotations          = nfile.annotations or { }
-      nfile.annotations[u.id]    = nfile.annotations[u.id] or [ ]
-      for stream in nfile.annotations[u.id]
-        if stream.name is n
-          return
-      nfile.annotations[u.id].push
-        show: true
-        name: n
+      nfile.$ackEdit = () ->
+        clearTimeout(nfile.$$emergencyReset)
+        client.serverAckEdit()
+      nfile.$ackAnnotation = () -> client.serverAckAnnotation()
+      nfile.$apply = (os) -> client.applyServer(os)
+      nfile.$syncState = -> client.syncState()
+      nfile.$setColor = (c) -> adapter.setColor(c)
+      nfile.$annotate = (a,u,n) -> # TODO: include user
+        adapter.applyAnnotation(a,u,n)
+        a                          = client.transformAnnotation(a)
+        nfile.annotations          = nfile.annotations or { }
+        nfile.annotations[u.id]    = nfile.annotations[u.id] or [ ]
+        for stream in nfile.annotations[u.id]
+          if stream.name is n
+            return
+        nfile.annotations[u.id].push
+          show: true
+          name: n
 
-    if (nfile.$$emergencyResetMode)
-      nfile.$$emergencyResetMode = false
-      console.log 'resetted ' + nfile.name
+      if (nfile.$$emergencyResetMode)
+        nfile.$$emergencyResetMode = false
+        console.log 'resetted ' + nfile.name
 
-    session.openFiles[file.info.id] = (nfile)
+      session.openFiles[file.info.id] = (nfile)
 
-  getOpenFile = (id) -> session.openFiles[id] or false
+    getOpenFile = (id) -> session.openFiles[id] or false
 
-  remove = (id) ->
-    for s, i in session.collaborators
-      if s.id is id
-        return session.collaborators.splice(i,1)
+    remove = (id) ->
+      for s, i in session.collaborators
+        if s.id is id
+          return session.collaborators.splice(i,1)
 
-  update = (info) ->
-    for s, i in session.collaborators
-      if s.id is info.id
-        for k, v of info
-          session.collaborators[i][k] = v
-        session.collaborators[i].activeFile = info.activeFile
-        return true
-    session.collaborators.push(info)
+    update = (info) ->
+      for s, i in session.collaborators
+        if s.id is info.id
+          for k, v of info
+            session.collaborators[i][k] = v
+          session.collaborators[i].activeFile = info.activeFile
+          return true
+      session.collaborators.push(info)
 
-  getUser = (id) ->
-    for s in session.collaborators
-      if s.id is id
-        return s
-    return null
+    getUser = (id) ->
+      for s in session.collaborators
+        if s.id is id
+          return s
+      return null
 
-  get = (username, project) ->
-    ws = new WebSocket(pc.session(username,project).webSocketURL())
-    socket = ws
-    apply ->
-      session.state = 'connecting'
-    ws.onmessage = (e) ->
-      console.log "received: #{e.data}"
-      msg = JSON.parse(e.data)
-      silence = false
-      f = (msg) -> switch typeof msg
-        when 'number'
-          f = getOpenFile(msg)
-          if f
-            f.$ackEdit()
-          else
-            log.warning("acknowledge for unknown file " + msg)
-        when 'object'
-          if msg.f? and msg.o?
-            getOpenFile(msg.f).$apply(Operation.fromJSON(msg.o))
-          else if msg.f? and msg.a? and (user = getUser(msg.u))?
+    url = routes.clide.web.controllers.Projects.session(username, project).webSocketURL()
+    new ActorSocket url, "#{username}/#{project}/session", (context) ->
+      preStart: ->
+        session.state = 'connected'
+        CodeMirror.registerHelper "hint", (e...) ->
+          return (
+            showHint: () -> console.log 'hn'
+          )
+            getOpenFile: getOpenFile
+        open # interface
+          info: session
+          init: (username, project, init) ->
+            context.tell { t: 'init' }
+          openFile: (id) -> unless id is session.me.activeFile
+            existing = getOpenFile(id)
+            if existing
+              setActiveFile(id,context.tell)
+            else context.tell
+              t: 'open'
+              id: id
+          closeFile: (id) ->
             apply ->
-              getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),user,msg.n)
-          switch msg.t
-            when 'e'
-              Toasts.push 'danger', msg.c
-            when 'welcome'
-              clearInterval(initCycle)
-              session.openFiles = { }
-              #document.getElementById('theme').href = "/client/stylesheets/colors/#{msg.info.color}.css"
+              delete session.openFiles[id]
+              setActiveFile(null,context.tell)
+            context.tell
+              t: 'close'
+              id: id
+          chat: (msg) ->
+            context.tell
+              t:   'chat'
+              msg: msg
+          invite: (name) ->
+            context.tell
+              t: 'invite'
+              u: name
+          setColor: (color) ->
+            session.me.color = color
+            for key, file of session.openFiles
+              file.$setColor?(color)
+
+            #document.getElementById('theme').href = "/client/stylesheets/colors/#{color}.css"
+            context.tell
+              t: 'color'
+              c: color
+          hints: (cm, options) ->
+
+          close: ->
+            queue = []
+            context.tell
+              t: 'eof'
+            socket?.close()
+      receive: (msg) ->
+        silence = false
+        f = (msg) -> switch typeof msg
+          when 'number'
+            f = getOpenFile(msg)
+            if f
+              f.$ackEdit()
+            else
+              log.warning("acknowledge for unknown file " + msg)
+          when 'object'
+            if msg.f? and msg.o?
+              getOpenFile(msg.f).$apply(Operation.fromJSON(msg.o))
+            else if msg.f? and msg.a? and (user = getUser(msg.u))?
               apply ->
-                session.me = msg.info
-                session.collaborators = msg.others
-              silence = true
-              f(event) for event in msg.events.reverse()
-              silence = false
-            when 'opened'
-              apply ->
-                initFile(msg.c)
-                setActiveFile(msg.c.info.id)
-            when 'failed'
-              Toasts.push("danger","the initialization of the requested file failed on the server")
-            when 'talk'
-              if msg.c.s is session.me.id
-                msg.c.s = session.me
-              else
-                msg.c.s = getUser(msg.c.s)
-              session.chat.unshift(msg.c)
-              (apply -> session.talkback?(msg.c)) unless silence
-            when 'close'
-              console.log 'close file acknowledged'
-            when 'session_changed'
-              apply ->
-                update(msg.c)
-            when 'session_stopped'
-              apply ->
-                remove(msg.c.id)
-            when 'process'
-              f = ->
-                session.fileStates[msg.c.f] = session.fileStates[msg.c.f] or {}
-                session.fileStates[msg.c.f][msg.c.u] = session.fileStates[msg.c.f][msg.c.u] or {}
-                switch msg.c.t
-                  when 'w'
-                    session.fileStates[msg.c.f][msg.c.u].working = true
-                  when 'd'
-                    session.fileStates[msg.c.f][msg.c.u].working = false
-                  when 'l'
-                    session.fileStates[msg.c.f][msg.c.u].looking = true
-                  when 'i'
-                    session.fileStates[msg.c.f][msg.c.u].looking = false
-              if silence
-                f()
-              else
-                apply f
+                getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),user,msg.n)
+            switch msg.t
+              when 'e'
+                Toasts.push 'danger', msg.c
+              when 'welcome'
+                session.openFiles = { }
+                #document.getElementById('theme').href = "/client/stylesheets/colors/#{msg.info.color}.css"
+                apply ->
+                  session.me = msg.info
+                  session.collaborators = msg.others
+                silence = true
+                f(event) for event in msg.events.reverse()
+                silence = false
+              when 'opened'
+                apply ->
+                  initFile(msg.c, context.tell)
+                  setActiveFile(msg.c.info.id, context.tell)
+              when 'failed'
+                Toasts.push("danger","the initialization of the requested file failed on the server")
+              when 'talk'
+                if msg.c.s is session.me.id
+                  msg.c.s = session.me
+                else
+                  msg.c.s = getUser(msg.c.s)
+                session.chat.unshift(msg.c)
+                (apply -> session.talkback?(msg.c)) unless silence
+              when 'close'
+                console.log 'close file acknowledged'
+              when 'session_changed'
+                apply ->
+                  update(msg.c)
+              when 'session_stopped'
+                apply ->
+                  remove(msg.c.id)
+              when 'process'
+                f = ->
+                  session.fileStates[msg.c.f] = session.fileStates[msg.c.f] or {}
+                  session.fileStates[msg.c.f][msg.c.u] = session.fileStates[msg.c.f][msg.c.u] or {}
+                  switch msg.c.t
+                    when 'w'
+                      session.fileStates[msg.c.f][msg.c.u].working = true
+                    when 'd'
+                      session.fileStates[msg.c.f][msg.c.u].working = false
+                    when 'l'
+                      session.fileStates[msg.c.f][msg.c.u].looking = true
+                    when 'i'
+                      session.fileStates[msg.c.f][msg.c.u].looking = false
+                if silence
+                  f()
+                else
+                  apply f
 
-      f(msg)
-    ws.onopen = (e) ->
-      apply -> session.state = 'connected'
-      for msg in queue
-        ws.send(msg)
-      queue = []
-      CodeMirror.registerHelper "hint", (e...) ->
-        return (
-          showHint: () -> console.log 'hn'
-        )
-    ws.onclose = ws.onerror = (e) ->
-      socket = undefined
-      session.collaborators = null
-      session.openFiles = null
-      session.me.activeFile = null
-      session.me = null
-      session.chat = []
-      apply -> session.state = 'disconnected'
-
-  send = (message) -> switch socket?.readyState
-    when WebSocket.CONNECTING
-      queue.push(JSON.stringify(message))
-    when WebSocket.OPEN
-      data = JSON.stringify(message)
-      socket.send(data)
-
-  return (
-    getOpenFile: getOpenFile
-    info: session
-    init: (username, project, init) ->
-      socket or get(username, project, init)
-      # some strange websocket bug in play???
-      initCycle = setInterval((() -> send { t: 'init' }),500)
-    openFile: (id) -> unless id is session.me.activeFile
-      existing = getOpenFile(id)
-      if existing
-        setActiveFile(id)
-      else send
-        t: 'open'
-        id: id
-    closeFile: (id) ->
-      apply ->
-        delete session.openFiles[id]
-        setActiveFile(null)
-      send
-        t: 'close'
-        id: id
-    chat: (msg) ->
-      send
-        t:   'chat'
-        msg: msg
-    invite: (name) ->
-      send
-        t: 'invite'
-        u: name
-    setColor: (color) ->
-      session.me.color = color
-      for key, file of session.openFiles
-        file.$setColor?(color)
-
-      #document.getElementById('theme').href = "/client/stylesheets/colors/#{color}.css"
-      send
-        t: 'color'
-        c: color
-    hints: (cm, options) ->
-
-    close: ->
-      queue = []
-      send
-        t: 'eof'
-      socket?.close()
-  )
+        f(msg)

@@ -23,28 +23,26 @@
 ##                                                                            ##
 
 ### @service services:Files ###
-define ['routes'], (routes) -> ($q,$http,$timeout) ->
-  pc = routes.clide.web.controllers.Projects
+define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout) ->
+  (username, project, open) ->
+    dirs = []
+    currentDirId = null
 
-  socket  = undefined
-  dirs = []
-  queue = []
+    service =
+      info:
+        currentDir: null
+        state: 'closed'
 
-  currentDirId = null
-
-  initCycle = null
-
-  files =
-    currentDir: null
-    state: 'closed'
-
-  get = (username, project) ->
-    ws = new WebSocket(pc.fileBrowser(username,project).webSocketURL())
-    socket= ws
-    $timeout((-> files.state = 'connecting'),0)
-    ws.onmessage = (e) ->
-      msg = JSON.parse(e.data)
-      switch msg.t
+    url = routes.clide.web.controllers.Projects.fileBrowser(username,project).webSocketURL()
+    new ActorSocket url, "#{username}/#{project}/fileBrowser", (context) ->
+      preStart: ->
+        service.explore     = (path) -> context.tell { t: 'explore', path: path }
+        service.browseTo    = (path) -> context.tell { t: 'browse', path: path }
+        service.delete      = (path) -> context.tell { t: 'rm', path: path }
+        service.touchFile   = (path) -> context.tell { t: 'touchFile', path: path }
+        service.touchFolder = (path) -> context.tell { t: 'touchFolder', path: path }
+        open(service)
+      receive: (msg) -> switch msg.t
         when 'e'
           Toasts.push 'danger', msg.c
         when 'newfile'
@@ -76,54 +74,5 @@ define ['routes'], (routes) -> ($q,$http,$timeout) ->
               path: path
               files: msg.files
             currentDirId = msg.info.id
-            files.currentDir = dirs[currentDirId]),0)
-    ws.onopen = (e) ->
-      $timeout((-> files.state = 'connected'),0)
-      for msg in queue
-        ws.send(msg)
-      queue = []
-    ws.onclose = ws.onerror = (e) ->
-      listeners = undefined
-      socket = undefined
-      $timeout((-> files.state= 'disconnected'),0)
+            service.info.currentDir = dirs[currentDirId]),0)
 
-  send = (message) -> switch socket?.readyState
-    when WebSocket.CONNECTING
-      queue.push(JSON.stringify(message))
-    when WebSocket.OPEN
-      data = JSON.stringify(message)
-      socket.send(data)
-
-  return (
-    info: files
-    init: (username, project, init) ->
-      socket or get(username, project, init)
-      # some strange websocket bug in play???
-      initCycle = setInterval((() -> send { t: 'init' }),500)
-    explore: (path) -> send
-      t: 'explore'
-      path: path
-    browseTo: (path,id) -> send
-      t: 'browse'
-      path: path
-    touchFile: (path) -> send
-      t: 'touchFile'
-      path: path
-    touchFolder: (path) -> send
-      t: 'touchFolder'
-      path: path
-    open: (path) -> send
-      t: 'open'
-      path: path
-    select: (path) -> send
-      t: 'select'
-      path: path
-    delete: (path) -> send
-      t: 'rm'
-      path: path
-    create: (path) -> send
-      t: 'new'
-      path: path or dirs[currentDirId].info.path or []
-    close: ->
-      socket?.close()
-  )

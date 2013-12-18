@@ -24,60 +24,57 @@
 
 define ->
   class ActorSocket
-    constructor: (@url,@name) ->
-      @socket = new WebSocket(@url)
+    constructor: (@url,@name, @behavior) ->
+      @socket = socket = new WebSocket(@url)
+
+      ready = -> socket.readyState = WebSocket.OPEN
 
       inbox  = []
       outbox = []
 
-      @preStart()
-
       receiveTimeoutSpan = undefined
       receiveTimeout     = undefined
+
+      context = { }
+
+      behavior = @behavior(context)
+
       onTimeout = () ->
-        @receive
+        behavior.receive
           t: 'timeout'
-      @setReceiveTimeout = (ms) ->
-        receiveTimeoutSpan = ms
+
       resetTimeout = () ->
         clearTimeout(receiveTimeout)
         if receiveTimeoutSpan?
           setTimeout(onTimeout,receiveTimeoutSpan)
 
-      @socket.onmessage = (e) ->
-        resetTimeout()
-        console.log "actor '#{@name}' received: #{e.data}"
-        msg = JSON.parse(e.data)
-        try
-          @receive(msg)
-        catch error
-          console.error error
+      context.setReceiveTimeout = (ms) ->
+        receiveTimeoutSpan = ms
 
-      @socket.onerror = (e) ->
+      send = (msg) ->
+        console.debug "[#{name}] sending: ", msg
+        socket.send(JSON.stringify(msg))
+        resetTimeout()
+
+      socket.onmessage = (e) ->
+        resetTimeout()
+        msg = JSON.parse(e.data)
+        console.debug "[#{name}] received:", msg
+        behavior.receive(msg)
+
+      socket.onerror = (e) ->
         console.error error
 
-      @socket.onclose = () ->
-        @receive
+      socket.onclose = () ->
+        log.debug "[#{name}] closed"
+        behavior.receive
           t: 'terminated'
+        behavior.postStop?()
 
-      @socket.onopen = () ->
+      socket.onopen = () ->
+        behavior.preStart?()
         for msg in outbox
-          @socket.send(msg)
+          socket.send(msg)
 
-      @peer =
-        tell: (msg) ->
-          data = JSON.stringify(msg)
-          if @socket.readyState is WebSocket.OPEN
-            @socket.send(data)
-          else
-            outbox.push(data)
-          resetTimout()
-
-    preStart: () ->
-      # may be overridden
-
-    postStop: () ->
-      # may be overridden
-
-    receive: (msg) ->
-      throw new Error('receive must be defined in child class')
+      context.tell = (msg) ->
+        if ready() then send(msg) else outbox.push(msg)

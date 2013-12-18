@@ -83,7 +83,12 @@ trait UserRequests { this: Controller =>
     val f = (mediator ? WebsocketMediator.Init(server,req)).mapTo[Enumerator[Event]]
 
     val in = Iteratee.foreach[JsValue]{ j =>
-      println("incoming message: " + j.toString)
+      println("incomnjghing message: " + j.toString)
+      try {
+        Logger.info(deserialize(j).toString())
+      } catch {
+        case e => e.printStackTrace()
+      }
       mediator ! deserialize(j) 
     } map (Unit => mediator ! EOF)    
 

@@ -56,11 +56,13 @@ class WebsocketMediator extends Actor with ActorLogging {
       this.peer = peer
       context.watch(peer)
       client ! out    
-    case e: Event =>      
-      log.info(e.toString())
+    case e: Event =>
+      assert(client != context.system.deadLetters)
+      log.info("outgoing: " + e.toString)      
       channel.push(e)
     case msg: Message =>
-      log.info(msg.toString())
+      assert(peer != context.system.deadLetters)
+      log.info("incoming: " + msg.toString)
       peer ! msg
     case Terminated(ref) =>
       log.debug("terminated")

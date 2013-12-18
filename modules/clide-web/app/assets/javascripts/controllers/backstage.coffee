@@ -43,11 +43,16 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
       $location.path '/login'
       Toasts.push 'warning', 'Sorry, your login session has expired! Please enter your credentials once again.'
 
-  BackstageSession.init($scope.user)
+  session = null
+
+  $scope.reconnect = ->
+    BackstageSession $scope.user, (s) ->
+      $scope.Projects = s.info
+      session = s
+
+  $scope.reconnect()
 
   $scope.selectedProject = null
-
-  $scope.Projects = BackstageSession.info
 
   $scope.selectProject = (project) ->
     $scope.selectedProject = project

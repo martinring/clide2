@@ -23,7 +23,7 @@
           <ul id="sidebarSections">
             <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>
               <h3>Files
-              <div class='pull-right btn-group' ng-show='files.state=="connected"'>
+              <div class='pull-right btn-group' ng-show='files'>
                 <a class='btn btn-default' ng-click='browseTo(files.currentDir.info.path.slice(0,-1))' ng-disabled='files.currentDir.info.parent==null'>
                   <i class='fa fa-level-up'></i>
                 </a>
@@ -36,7 +36,7 @@
               </div>
               </h3>
               <p class='text-muted' ng-show='files.currentDir == null'>loading...</p>
-              <ul class="breadcrumb" ng-show='files.state=="connected"'>
+              <ul class="breadcrumb" ng-show='files'>
                 <li ng-repeat='segment in files.currentDir.path'>
                   <a ng-click='browseTo(segment.path)' ng-show='segment.name != "$home"'>
                     {{segment.name}}
@@ -46,7 +46,7 @@
                   </a>
                 </li>
               </ul>
-              <div class='list-group' ng-show='files.state=="connected"'>
+              <div class='list-group' ng-show='files'>
                 <a ng-repeat='file in files.currentDir.files | orderBy:["-isDirectory","+name"]'
                    ng-click='openFile(file)'
                    class='list-group-item bordercolor-{{session.me.color}}'
