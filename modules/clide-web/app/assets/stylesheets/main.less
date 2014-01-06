@@ -38,6 +38,10 @@
 @import 'statusbar.less';
 @import 'isabelle.less';
 
+@-ms-viewport {
+  width: device-width;
+  height: device-height;
+}
 
 body {
   .user-select(none);
@@ -48,6 +52,7 @@ body {
   /* Disable zooming and panning touch devices */
   touch-action: none;
   -ms-content-zooming: none;
+  overflow-y: auto;
 }
 
 a {
@@ -126,8 +131,8 @@ a {
   to { opacity: 0.0; }
 }
 
-#login {
-  background-color: #00AAE4;
+#login, #signup {
+  background-color: #07b;
 }
 
 .CodeMirror {

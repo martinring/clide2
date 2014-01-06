@@ -53,6 +53,7 @@ define ['routes','codemirror','modes/isabelle'], (routes) ->
         gutters: ['CodeMirror-foldgutter','CodeMirror-linenumbers']
         foldGutter: true
         fixedGutter: false
+        viewportMargin: 20 # for smoother scrolling on tablets
         extraKeys:
           'Shift-Ctrl-C': 'toggleComment'
 

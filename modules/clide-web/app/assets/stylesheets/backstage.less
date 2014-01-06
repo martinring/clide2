@@ -22,7 +22,7 @@
 **   If not, see <http://www.gnu.org/licenses/>.                              **
 \*                                                                            */
 
- #backstage {
+#backstage {
   position: fixed;
   top: 0;
   left: 0;
@@ -32,6 +32,7 @@
   cursor: default;
   overflow-y: auto;
   touch-action: pan-y;
+  @-ms-viewport { width: device-width; }
   -ms-overflow-style: -ms-autohide-scrollbar;
   -ms-scroll-chaining: none;
   h1.title {
