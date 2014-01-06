@@ -16,23 +16,23 @@ JAVA_OPTS="-server -Xms512M -Xmx1024M"
 
 # WWW_CPS_DIR set by init.d script
 STAGEDIR=${CLIDE_HOME:-/home/clide/clide2}/modules/clide-web/target/universal/stage
-RUNNING_PID=${STAGEDIR}/RUNNING_PID
+WEB_PID=${CLIDE_HOME:-/home/clide/clide2}/WEB_PID
 
 case $1 in
   start )
-    if [ -f $RUNNING_PID ]; then echo "clide-web is already running (remove $RUNNING_PID if dead).";
-    else $STAGEDIR/bin/clide-web; fi
+    if [ -f $WEB_PID ]; then echo "clide-web is already running (remove $WEB_PID if dead).";
+    else $STAGEDIR/bin/clide-web &; $! > $WEB_PID; fi
   ;;
   stop )
-    if [ -f $RUNNING_PID ]; then kill $(cat $RUNNING_PID)
+    if [ -f $WEB_PID ]; then kill $(cat $WEB_PID); rm $WEB_PID;
     else echo "clide-web is not running."; fi
   ;;
   restart )
-     if [ -f $RUNNING_PID ]; then kill $(cat $RUNNING_PID); sleep 5; fi
-     $STAGEDIR/bin/clide-web
+     if [ -f $WEB_PID ]; then kill $(cat $WEB_PID); rm $WEB_PID; sleep 5; fi
+     $STAGEDIR/bin/clide-web &; $! > $WEB_PID;
   ;;
   status )
-     if [ -f $RUNNING_PID ]; then PID=$(cat $RUNNING_PID);echo "clide-web is running (pid $PID)";
+     if [ -f $WEB_PID ]; then PID=$(cat $WEB_PID);echo "clide-web is running (pid $PID)";
      else echo "clide-web is not running."; fi
   ;;
 esac
