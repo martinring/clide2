@@ -23,7 +23,7 @@ case $1 in
     if [ -f $WEB_PID ]; then echo "clide-web is already running (remove $WEB_PID if dead).";
     else
       $STAGEDIR/bin/clide-web &
-      $! > $WEB_PID
+      echo $! > $WEB_PID
     fi
   ;;
   stop )
@@ -39,7 +39,7 @@ case $1 in
        sleep 5
      fi
      $STAGEDIR/bin/clide-web &
-     $! > $WEB_PID
+     echo $! > $WEB_PID
   ;;
   status )
      if [ -f $WEB_PID ]; then PID=$(cat $WEB_PID);echo "clide-web is running (pid $PID)";
