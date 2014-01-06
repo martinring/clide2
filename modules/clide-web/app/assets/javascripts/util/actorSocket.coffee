@@ -25,6 +25,8 @@
 define ->
   time = -> (new Date).toLocaleString()
   actors = { }
+  id = 0
+  nextId = -> id++
   (url, name, behaviorFactory) ->
     if actors[name]?
       throw new Exception "an actor with that name already exists"
@@ -89,7 +91,12 @@ define ->
       while outbox.length > 0
         msg = outbox.pop()
         send(msg)
-    context.tell = (msg) ->
-      if ready() then send(msg) else outbox.push(msg)
+    context.tell = (msg, timeout = 0, retries = 0) ->
+      if timeout > 0
+        msg.$ID = nextId()
+      if ready()
+        send(msg)
+      else
+        outbox.push(msg)
     actors[name] = service
     return service
