@@ -21,18 +21,26 @@ WEB_PID=${CLIDE_HOME:-/home/clide/clide2}/WEB_PID
 case $1 in
   start )
     if [ -f $WEB_PID ]; then echo "clide-web is already running (remove $WEB_PID if dead).";
-    else $STAGEDIR/bin/clide-web &; $! > $WEB_PID; fi
+    else
+      $STAGEDIR/bin/clide-web &;
+      $! > $WEB_PID;
+    fi
   ;;
   stop )
     if [ -f $WEB_PID ]; then kill $(cat $WEB_PID); rm $WEB_PID;
-    else echo "clide-web is not running."; fi
+    else
+      echo "clide-web is not running.";
+    fi
   ;;
   restart )
      if [ -f $WEB_PID ]; then kill $(cat $WEB_PID); rm $WEB_PID; sleep 5; fi
-     $STAGEDIR/bin/clide-web &; $! > $WEB_PID;
+     $STAGEDIR/bin/clide-web &;
+     $! > $WEB_PID;
   ;;
   status )
      if [ -f $WEB_PID ]; then PID=$(cat $WEB_PID);echo "clide-web is running (pid $PID)";
-     else echo "clide-web is not running."; fi
+     else
+      echo "clide-web is not running.";
+     fi
   ;;
 esac
