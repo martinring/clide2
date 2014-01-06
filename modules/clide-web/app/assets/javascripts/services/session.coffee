@@ -24,7 +24,7 @@
 
 ### @service services:Session ###
 define ['routes','util/actorSocket','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords','codemirror'], (routes,ActorSocket,Operation,CMAdapter,Client,Annotations,idw,CodeMirror) -> ($q,$rootScope,$http,Toasts) ->
-  (username, project, open) ->
+  (username, project) ->
     session =
       state: 'closed'
       collaborators: null
@@ -148,6 +148,46 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
 
     url = routes.clide.web.controllers.Projects.session(username, project).webSocketURL()
     new ActorSocket url, "#{username}/#{project}/session", (context) ->
+      data: session
+      interface:
+        init: (username, project, init) ->
+          context.tell { t: 'init' }
+        openFile: (id) -> unless id is session.me.activeFile
+          existing = getOpenFile(id)
+          if existing
+            setActiveFile(id,context.tell)
+          else context.tell
+            t: 'open'
+            id: id
+        closeFile: (id) ->
+          apply ->
+            delete session.openFiles[id]
+            setActiveFile(null,context.tell)
+          context.tell
+            t: 'close'
+            id: id
+        chat: (msg) ->
+          context.tell
+            t:   'chat'
+            msg: msg
+        invite: (name) ->
+          context.tell
+            t: 'invite'
+            u: name
+        setColor: (color) ->
+          session.me.color = color
+          for key, file of session.openFiles
+            file.$setColor?(color)
+          #document.getElementById('theme').href = "/client/stylesheets/colors/#{color}.css"
+          context.tell
+            t: 'color'
+            c: color
+        hints: (cm, options) -> undefined
+        close: ->
+          queue = []
+          context.tell
+            t: 'eof'
+          socket?.close()
       preStart: ->
         session.state = 'connected'
         CodeMirror.registerHelper "hint", (e...) ->
@@ -155,48 +195,6 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
             showHint: () -> console.log 'hn'
           )
             getOpenFile: getOpenFile
-        open # interface
-          info: session
-          init: (username, project, init) ->
-            context.tell { t: 'init' }
-          openFile: (id) -> unless id is session.me.activeFile
-            existing = getOpenFile(id)
-            if existing
-              setActiveFile(id,context.tell)
-            else context.tell
-              t: 'open'
-              id: id
-          closeFile: (id) ->
-            apply ->
-              delete session.openFiles[id]
-              setActiveFile(null,context.tell)
-            context.tell
-              t: 'close'
-              id: id
-          chat: (msg) ->
-            context.tell
-              t:   'chat'
-              msg: msg
-          invite: (name) ->
-            context.tell
-              t: 'invite'
-              u: name
-          setColor: (color) ->
-            session.me.color = color
-            for key, file of session.openFiles
-              file.$setColor?(color)
-
-            #document.getElementById('theme').href = "/client/stylesheets/colors/#{color}.css"
-            context.tell
-              t: 'color'
-              c: color
-          hints: (cm, options) ->
-
-          close: ->
-            queue = []
-            context.tell
-              t: 'eof'
-            socket?.close()
       receive: (msg) ->
         silence = false
         f = (msg) -> switch typeof msg

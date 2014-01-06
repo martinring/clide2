@@ -41,11 +41,12 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   fileService = null
 
   $scope.reconnect = ->
-    Files $routeParams.user, $routeParams.project, (files) ->
-      files.explore($scope.path)
-      $scope.files    = files.info
-      $scope.browseTo = files.browseTo
-      fileService = files
+    files = Files $routeParams.user, $routeParams.project#
+    fileService = files.interface
+    fileService.explore($scope.path)
+    $scope.files    = files.data
+    $scope.browseTo = fileService.browseTo
+
 
   $scope.reconnect()
 
@@ -54,14 +55,14 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   session = null
 
   $scope.reconnectSession = ->
-    Session $routeParams.user, $routeParams.project, (s) ->
-      s.init($routeParams.user, $routeParams.project)
-      $scope.session = s.info
-      s.info.talkback = (msg) ->
-        unless $scope.showChat
-          $scope.unreadChatMessages += 1
-          Toasts.push 'info', "#{msg.s.user}: #{msg.m}"
-      session = s
+    service = Session $routeParams.user, $routeParams.project
+    session = service.interface
+    session.init($routeParams.user, $routeParams.project)
+    $scope.session = service.data
+    service.data.talkback = (msg) ->
+      unless $scope.showChat
+        $scope.unreadChatMessages += 1
+        Toasts.push 'info', "#{msg.s.user}: #{msg.m}"
 
   $scope.reconnectSession()
 

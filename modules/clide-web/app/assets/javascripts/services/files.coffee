@@ -23,28 +23,27 @@
 ##                                                                            ##
 
 ### @service services:Files ###
-define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout) ->
-  (username, project, open) ->
-    dirs = []
-    currentDirId = null
-
-    service =
-      info:
-        currentDir: null
-        state: 'closed'
-
+define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout,Toasts) ->
+  dirs = []
+  currentDirId = null
+  (username, project) ->
     url = routes.clide.web.controllers.Projects.fileBrowser(username,project).webSocketURL()
     new ActorSocket url, "#{username}/#{project}/fileBrowser", (context) ->
-      preStart: ->
-        service.explore     = (path) -> context.tell { t: 'explore', path: path }
-        service.browseTo    = (path) -> context.tell { t: 'browse', path: path }
-        service.delete      = (path) -> context.tell { t: 'rm', path: path }
-        service.touchFile   = (path) -> context.tell { t: 'touchFile', path: path }
-        service.touchFolder = (path) -> context.tell { t: 'touchFolder', path: path }
-        open(service)
+      data:
+        currentDir: null
+      interface:
+        explore     : (path) ->
+          context.tell { t: 'explore', path: path }
+          context.setReceiveTimeout(2000)
+        browseTo    : (path) -> context.tell { t: 'browse', path: path }
+        delete      : (path) -> context.tell { t: 'rm', path: path }
+        touchFile   : (path) -> context.tell { t: 'touchFile', path: path }
+        touchFolder : (path) -> context.tell { t: 'touchFolder', path: path }
       receive: (msg) -> switch msg.t
         when 'e'
           Toasts.push 'danger', msg.c
+        when 'timeout'
+          Toasts.push 'danger', 'no answer from the server within 2 seconds...'
         when 'newfile'
           f = -> dirs[msg.c.parent]?.files.push msg.c
           if msg.c.parent is currentDirId
@@ -61,6 +60,7 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout
             $timeout f, 0
           else f()
         when 'folder'
+          context.setReceiveTimeout(null)
           path = [{name: '$home', path: []}]
           for segment, i in msg.info.path
             p = path[i].path.slice()
@@ -74,5 +74,4 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout
               path: path
               files: msg.files
             currentDirId = msg.info.id
-            service.info.currentDir = dirs[currentDirId]),0)
-
+            context.data.currentDir = dirs[currentDirId]),0)

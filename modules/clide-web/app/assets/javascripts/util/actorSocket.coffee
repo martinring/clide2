@@ -23,58 +23,73 @@
 ##                                                                            ##
 
 define ->
-  class ActorSocket
-    constructor: (@url,@name, @behavior) ->
-      @socket = socket = new WebSocket(@url)
-
-      ready = -> socket.readyState = WebSocket.OPEN
-
-      inbox  = []
-      outbox = []
-
-      receiveTimeoutSpan = undefined
-      receiveTimeout     = undefined
-
-      context = { }
-
-      behavior = @behavior(context)
-
-      onTimeout = () ->
-        behavior.receive
-          t: 'timeout'
-
-      resetTimeout = () ->
-        clearTimeout(receiveTimeout)
-        if receiveTimeoutSpan?
-          setTimeout(onTimeout,receiveTimeoutSpan)
-
-      context.setReceiveTimeout = (ms) ->
+  time = -> (new Date).toLocaleString()
+  actors = { }
+  (url, name, behaviorFactory) ->
+    if actors[name]?
+      throw new Exception "an actor with that name already exists"
+    inbox  = []
+    outbox = []
+    context =
+      log:
+        debug: (msg) -> console.debug "[#{time()}] [#{name}] #{msg}"
+        info:  (msg) -> console.info  "[#{time()}] [#{name}] #{msg}"
+        warn:  (msg) -> console.warn  "[#{time()}] [#{name}] #{msg}"
+        error: (msg) -> console.error "[#{time()}] [#{name}] #{msg}"
+    behavior = behaviorFactory(context)
+    context.data = behavior.data
+    service =
+      data:      behavior.data
+      interface: behavior.interface
+      state:     'init'
+      stop:      () -> socket.close()
+    socket = new WebSocket(url)
+    ready = -> socket.readyState is WebSocket.OPEN
+    service.state = 'connecting'
+    receiveTimeoutSpan = undefined
+    receiveTimeout     = undefined
+    onTimeout = () ->
+      behavior.receive
+        t: 'timeout'
+    resetTimeout = () ->
+      clearTimeout(receiveTimeout)
+      if receiveTimeoutSpan?
+        receiveTimeout = setTimeout(onTimeout,receiveTimeoutSpan)
+    context.setReceiveTimeout = (ms) ->
+      if ms? and ms > 10
         receiveTimeoutSpan = ms
-
-      send = (msg) ->
-        console.debug "[#{name}] sending: ", msg
-        socket.send(JSON.stringify(msg))
+      else
+        receiveTimeoutSpan = undefined
         resetTimeout()
-
-      socket.onmessage = (e) ->
-        resetTimeout()
-        msg = JSON.parse(e.data)
-        console.debug "[#{name}] received:", msg
+    send = (msg) ->
+      socket.send(JSON.stringify(msg))
+      console.debug "[#{time()}] [#{name}] sent", msg
+      resetTimeout()
+    socket.onmessage = (e) ->
+      resetTimeout()
+      msg = JSON.parse(e.data)
+      try
         behavior.receive(msg)
-
-      socket.onerror = (e) ->
-        console.error error
-
-      socket.onclose = () ->
-        log.debug "[#{name}] closed"
-        behavior.receive
-          t: 'terminated'
-        behavior.postStop?()
-
-      socket.onopen = () ->
-        behavior.preStart?()
-        for msg in outbox
-          socket.send(msg)
-
-      context.tell = (msg) ->
-        if ready() then send(msg) else outbox.push(msg)
+        console.debug "[#{time()}] [#{name}] received", msg
+      catch error
+        console.warn "[#{time()}] [#{name}] message failed", msg
+        console.error "[#{time()}] [#{name}]", error
+    socket.onerror = (e) ->
+      service.state = 'failed'
+      console.error "[#{time()}] [#{name}] failed", e
+    socket.onclose = () ->
+      service.state = 'closed'
+      console.debug "[#{time()}] [#{name}] closed"
+      behavior.receive
+        t: 'terminated'
+      behavior.postStop?()
+    socket.onopen = () ->
+      service.state = 'open'
+      behavior.preStart?()
+      while outbox.length > 0
+        msg = outbox.pop()
+        send(msg)
+    context.tell = (msg) ->
+      if ready() then send(msg) else outbox.push(msg)
+    actors[name] = service
+    return service
