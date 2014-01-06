@@ -1,6 +1,7 @@
 define ->
   system = {
-    actors: { }
+    actors: {  }
   }
 
-  (name,behaviorFactory)
+  (name,behaviorFactory) ->
+    throw new Error("Not implemented")
