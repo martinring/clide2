@@ -23,13 +23,14 @@
 ##                                                                            ##
 
 ### @service services:Session ###
-define ['routes','util/actorSocket','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords','codemirror'], (routes,ActorSocket,Operation,CMAdapter,Client,Annotations,idw,CodeMirror) -> ($q,$rootScope,$http,Toasts) ->
+define ['routes','util/actorSocket','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords','codemirror'], (routes,ActorSocket,Operation,CMAdapter,Client,Annotations,idw,CodeMirror) -> ($q,$rootScope,$http,Toasts,Dialog) ->
   (username, project) ->
     session =
       state: 'closed'
       collaborators: null
       openFiles: null
       talkback: null
+      kicked: null
       fileStates: { }
       chat: []
       me: null
@@ -174,6 +175,10 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           context.tell
             t: 'invite'
             u: name
+        kick: (id) ->
+          context.tell
+            t: 'kick'
+            s: id
         setColor: (color) ->
           session.me.color = color
           for key, file of session.openFiles
@@ -222,6 +227,8 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
                 silence = true
                 f(event) for event in msg.events.reverse()
                 silence = false
+              when 'kicked'
+                (apply -> session.kicked?())
               when 'opened'
                 apply ->
                   initFile(msg.c, context.tell)

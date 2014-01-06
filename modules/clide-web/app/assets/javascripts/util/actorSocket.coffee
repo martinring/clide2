@@ -29,7 +29,8 @@ define ->
   nextId = -> id++
   (url, name, behaviorFactory) ->
     if actors[name]?
-      throw new Exception "an actor with that name already exists"
+      actors[name].stop()
+      #throw new Error "an actor with that name already exists"
     inbox  = []
     outbox = []
     context =

@@ -84,7 +84,8 @@ object Events {
   case class Annotated(file: Long, user: Long, an: Annotations, name: String) extends SessionEvent
   // TODO case class AnnotationChanged(file: Long, user: Long, an: AnnotationDiff, name: String) extends SessionEvent
   case class AcknowledgeEdit(file: Long) extends SessionEvent
-  case class MetaInfo(file: Long, info: Map[String,String])
+  case class MetaInfo(file: Long, info: Map[String,String]) extends SessionEvent
+  case object Kicked extends SessionEvent
     
   /**
    * @param who the session id of the collaborator processing the file

@@ -225,8 +225,13 @@ private class SessionActor(
           receive(CloseFile(id))
         }
       }
+    case msg@Kick(id) =>
+      context.parent.forward(wrap(msg))
     case msg@ChangeProjectUserLevel(_,_) => // HACK: replace with invitation
       context.parent.forward(wrap(msg))
+    case Kicked =>
+      peer ! Kicked
+      receive(CloseSession)
   }
 
   override def postStop() = DB.withSession { implicit session: Session =>    
@@ -238,19 +243,14 @@ private class SessionActor(
   }
 
   override def preStart() = DB.withSession { implicit session: Session =>
-    this.session = id.flatMap { id =>
-      SessionInfos.get(id).map { i =>
-        val i_ = i.copy(active = true)
-        SessionInfos.update(i_)
-        i_
-      }
+    this.session = id.flatMap { id => SessionInfos.get(id)
     }.getOrElse {
       val res = SessionInfos.create(
         user = this.user.name,
         color = randomColor(),
         project = project.id,
         isHuman = this.isHuman,
-        active = true)
+        active = false)
       context.parent ! SessionChanged(res)
       res
     }

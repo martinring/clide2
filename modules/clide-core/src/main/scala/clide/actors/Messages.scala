@@ -88,6 +88,7 @@ object Messages {
   case class SetColor(value: String) extends SessionMessage
   case class OpenFile(id: Long) extends SessionMessage
   case class CloseFile(id: Long) extends SessionMessage
+  case class Kick(id: Long) extends SessionMessage with ProjectMessage
   case class Edit(id: Long, revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
   case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage  
   

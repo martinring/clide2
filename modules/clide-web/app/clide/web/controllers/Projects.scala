@@ -100,6 +100,8 @@ object Projects extends Controller with UserRequests with DefaultResults {
                 OpenFile((json \ "id").as[Long])
               case "close" =>
                 CloseFile((json \ "id").as[Long])
+              case "kick" =>
+                Kick((json \ "s").as[Long])
               case "color" =>
                 SetColor((json \ "c").as[String])
               case "looking" =>

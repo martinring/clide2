@@ -59,6 +59,9 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
     session = service.interface
     session.init($routeParams.user, $routeParams.project)
     $scope.session = service.data
+    service.data.kicked = () ->
+      Toasts.push 'warning', "You have been kicked from '#{$routeParams.user}/#{$routeParams.project}'"
+      $scope.backstage()
     service.data.talkback = (msg) ->
       unless $scope.showChat
         $scope.unreadChatMessages += 1
@@ -67,6 +70,9 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   $scope.reconnectSession()
 
   ## ------------------------------------------------------------------------ ##
+
+  $scope.backstage = () ->
+    $location.path "/#{Auth.user.username}/backstage"
 
   $scope.start = () ->
     $scope.state = 'ide'
@@ -165,6 +171,16 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
           fileService.touchFolder(p)
         else
           result.error = 'Please enter a name'
+
+  $scope.userContextMenu = (user) ->
+    [
+      icon: 'hand-o-right'
+      text: "Kick #{user.user}"
+      action: -> $scope.kickUser(user)
+    ]
+
+  $scope.kickUser = (user) ->
+    session.kick(user.id)
 
   $scope.fileContextMenu = (file) ->
     if (file.isDirectory)

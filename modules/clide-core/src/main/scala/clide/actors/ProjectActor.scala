@@ -109,8 +109,17 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
         case e: JdbcSQLException =>
           sender ! DoesntExist
       }
-  }
-
+    
+    case Kick(session) =>
+      sessions.find ( _.id == session ).map { session =>
+        sessionActors.get(session.id).getOrElse {
+          context.actorOf(SessionActor.props(Some(session.id),sessions,user,this.info,isHuman,eventHistory.toList))          
+        }
+      }.map {
+        _.forward(Kicked)
+      }      
+  }  
+  
   def write: Receive = {
     case StartFileBrowser =>
       val browser = context.actorOf(FileBrowser(true,root))

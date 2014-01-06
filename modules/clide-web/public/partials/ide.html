@@ -93,7 +93,7 @@
                     </ng-pluralize> in this project:
                   </p>
                 <ul class='list-group'>
-                  <li class='list-group-item' ng-repeat="user in session.collaborators | orderBy:['-isHuman','-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
+                  <li class='list-group-item' context-menu='userContextMenu(user)' ng-repeat="user in session.collaborators | orderBy:['-isHuman','-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
                     <i class='fa fa-fw color-{{user.color}}' ng-class="{'fa-user': user.isHuman, 'fa-cloud': !user.isHuman}"></i> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
                     <div class='form-group' ng-show='user.active && session.activeAnnotations()[user.id].length > 0'>
                       <div class='checkbox' ng-repeat='stream in session.activeAnnotations()[user.id]'>
