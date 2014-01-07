@@ -151,8 +151,6 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
     new ActorSocket url, "#{username}/#{project}/session", (context) ->
       data: session
       interface:
-        init: (username, project, init) ->
-          context.tell { t: 'init' }
         openFile: (id) -> unless id is session.me.activeFile
           existing = getOpenFile(id)
           if existing
@@ -195,6 +193,8 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           socket?.close()
       preStart: ->
         session.state = 'connected'
+        context.tell { t: 'init' }
+        context.setReceiveTimeout 1000
         CodeMirror.registerHelper "hint", (e...) ->
           return (
             showHint: () -> console.log 'hn'
@@ -216,9 +216,13 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
               apply ->
                 getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),user,msg.n)
             switch msg.t
+              when 'timeout'
+                context.log.warn 'retrying init'
+                context.tell { t: 'init' }
               when 'e'
                 Toasts.push 'danger', msg.c
               when 'welcome'
+                context.setReceiveTimeout null
                 session.openFiles = { }
                 #document.getElementById('theme').href = "/client/stylesheets/colors/#{msg.info.color}.css"
                 apply ->

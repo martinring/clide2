@@ -26,15 +26,17 @@
 define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout,Toasts) ->
   dirs = []
   currentDirId = null
-  (username, project) ->
+  (username, project, path) ->
     url = routes.clide.web.controllers.Projects.fileBrowser(username,project).webSocketURL()
     new ActorSocket url, "#{username}/#{project}/fileBrowser", (context) ->
       data:
         currentDir: null
+      preStart: -> if path?
+        context.tell { t: 'explore', path: path }
+        context.setReceiveTimeout(1000)
       interface:
         explore     : (path) ->
           context.tell { t: 'explore', path: path }
-          context.setReceiveTimeout(2000)
         browseTo    : (path) -> context.tell { t: 'browse', path: path }
         delete      : (path) -> context.tell { t: 'rm', path: path }
         touchFile   : (path) -> context.tell { t: 'touchFile', path: path }
@@ -43,7 +45,8 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout
         when 'e'
           Toasts.push 'danger', msg.c
         when 'timeout'
-          Toasts.push 'danger', 'no answer from the server within 2 seconds...'
+          context.log.warn 'retrying init'
+          context.tell { t: 'explore', path: path }
         when 'newfile'
           f = -> dirs[msg.c.parent]?.files.push msg.c
           if msg.c.parent is currentDirId
