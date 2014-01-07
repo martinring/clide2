@@ -33,65 +33,91 @@ define ->
       #throw new Error "an actor with that name already exists"
     inbox  = []
     outbox = []
+
     context =
       log:
         debug: (msg) -> console.debug "[#{time()}] [#{name}] #{msg}"
         info:  (msg) -> console.info  "[#{time()}] [#{name}] #{msg}"
         warn:  (msg) -> console.warn  "[#{time()}] [#{name}] #{msg}"
         error: (msg) -> console.error "[#{time()}] [#{name}] #{msg}"
+
     behavior = behaviorFactory(context)
+
     context.data = behavior.data
+
+    socket = undefined
+
+    addListeners = ->
+      socket.onmessage = (e) ->
+        resetTimeout()
+        msg = JSON.parse(e.data)
+        try
+          behavior.receive(msg)
+          console.debug "[#{time()}] [#{name}] received", msg
+        catch error
+          console.warn "[#{time()}] [#{name}] message failed", msg
+          console.error "[#{time()}] [#{name}]", error
+
+      socket.onerror = (e) ->
+        service.state = 'failed'
+        console.error "[#{time()}] [#{name}] failed", e
+
+      socket.onclose = () ->
+        service.state = 'closed'
+        console.debug "[#{time()}] [#{name}] closed"
+        behavior.receive
+          t: 'terminated'
+        behavior.postStop?()
+
+      socket.onopen = () ->
+        service.state = 'open'
+        console.debug "[#{time()}] [#{name}] opened"
+        behavior.preStart?()
+        while outbox.length > 0
+          msg = outbox.pop()
+          send(msg)
+
     service =
       data:      behavior.data
       interface: behavior.interface
       state:     'init'
-      stop:      () -> socket.close()
-    socket = new WebSocket(url)
-    ready = -> socket.readyState is WebSocket.OPEN
-    service.state = 'connecting'
+      stop:      -> socket.close()
+      restart:   ->
+        socket?.close()
+        socket = new WebSocket(url)
+        service.state = 'connecting'
+        addListeners()
+
+    ready = -> socket?.readyState is WebSocket.OPEN
+
     receiveTimeoutSpan = undefined
     receiveTimeout     = undefined
+
     onTimeout = () ->
       behavior.receive
         t: 'timeout'
+
     resetTimeout = () ->
       clearTimeout(receiveTimeout)
       if receiveTimeoutSpan?
         receiveTimeout = setTimeout(onTimeout,receiveTimeoutSpan)
+
     context.setReceiveTimeout = (ms) ->
       if ms? and ms > 10
         receiveTimeoutSpan = ms
       else
         receiveTimeoutSpan = undefined
         resetTimeout()
+
     send = (msg) ->
       socket.send(JSON.stringify(msg))
       console.debug "[#{time()}] [#{name}] sent", msg
       resetTimeout()
-    socket.onmessage = (e) ->
-      resetTimeout()
-      msg = JSON.parse(e.data)
-      try
-        behavior.receive(msg)
-        console.debug "[#{time()}] [#{name}] received", msg
-      catch error
-        console.warn "[#{time()}] [#{name}] message failed", msg
-        console.error "[#{time()}] [#{name}]", error
-    socket.onerror = (e) ->
-      service.state = 'failed'
-      console.error "[#{time()}] [#{name}] failed", e
-    socket.onclose = () ->
-      service.state = 'closed'
-      console.debug "[#{time()}] [#{name}] closed"
-      behavior.receive
-        t: 'terminated'
-      behavior.postStop?()
-    socket.onopen = () ->
-      service.state = 'open'
-      behavior.preStart?()
-      while outbox.length > 0
-        msg = outbox.pop()
-        send(msg)
+
+    context.restart = () ->
+      socket?.close()
+      socket = new WebSocket(url)
+
     context.tell = (msg, timeout = 0, retries = 0) ->
       if timeout > 0
         msg.$ID = nextId()
@@ -99,5 +125,10 @@ define ->
         send(msg)
       else
         outbox.push(msg)
+
+    context.tellSecure = (msg) -> context.tell(msg,500,20)
+
     actors[name] = service
+    service.restart()
+
     return service
