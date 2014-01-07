@@ -14,3 +14,4 @@ git pull
 sbt clean clide-web:stage clide-isabelle:dist
 echo "Restarting server."
 nohup ${CLIDE_HOME}/bin/clide-web restart > ${CLIDE_HOME}/logs/clide-web.log &
+nohup ${CLIDE_HOME}/bin/clide-isabelle restart > ${CLIDE_HOME}/logs/clide-isabelle.log &

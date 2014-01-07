@@ -1,0 +1,50 @@
+#! /bin/sh
+#
+# Start/stop play server.
+#
+# $Id: playctl 146 2013-10-30 17:09:14Z play $
+
+# JVM options
+JAVA_OPTS="-server -Xms512M -Xmx1024M"
+# The heap size limits the size of uploadable images.
+# With 256M, we can upload images up to 1M (roughly),
+# with 512M, 2M are no problem. But maybe 512M is too much for
+# the VM?
+
+# This does not really work-- trying to configure remote JMX. Out-of-the box support, bloody hell.
+# JAVA_OPTS="-Dcom.sun.management.jmxremote.port=9877 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+
+# WWW_CPS_DIR set by init.d script
+DISTDIR=${CLIDE_HOME:-/home/clide/clide2}/modules/clide-isabelle/target/dist
+ISABELLE_PID=${CLIDE_HOME:-/home/clide/clide2}/ISABELLE_PID
+
+case $1 in
+  start )
+    if [ -f $ISABELLE_PID ]; then echo "clide-isabelle is already running (remove $ISABELLE_PID if dead).";
+    else
+      $DISTDIR/bin/start clide.isabelle.Isabelle &
+      echo $! > $ISABELLE_PID
+    fi
+  ;;
+  stop )
+    if [ -f $ISABELLE_PID ]; then kill $(cat $ISABELLE_PID); rm $ISABELLE_PID;
+    else
+      echo "clide-isabelle is not running."
+    fi
+  ;;
+  restart )
+     if [ -f $ISABELLE_PID ]; then
+       kill $(cat $ISABELLE_PID)
+       rm $ISABELLE_PID
+       sleep 5
+     fi
+     $DISTDIR/bin/start clide.isabelle.Isabelle &
+     echo $! > $ISABELLE_PID
+  ;;
+  status )
+     if [ -f $ISABELLE_PID ]; then PID=$(cat $ISABELLE_PID);echo "clide-isabelle is running (pid $PID)";
+     else
+      echo "clide-isabelle is not running."
+     fi
+  ;;
+esac
