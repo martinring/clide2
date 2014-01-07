@@ -42,9 +42,8 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   fileService = null
 
   $scope.reconnect = ->
-    fileBrowserService = Files $routeParams.user, $routeParams.project
+    fileBrowserService = Files $routeParams.user, $routeParams.project, $scope.path
     fileService = fileBrowserService.interface
-    fileService.explore($scope.path)
     $scope.files = fileBrowserService.data
     $scope.browseTo = fileService.browseTo
 
@@ -58,7 +57,6 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   $scope.reconnectSession = ->
     sessionService = Session $routeParams.user, $routeParams.project
     session = sessionService.interface
-    session.init($routeParams.user, $routeParams.project)
     $scope.session = sessionService.data
     sessionService.data.kicked = () ->
       Toasts.push 'warning', "You have been kicked from '#{$routeParams.user}/#{$routeParams.project}'"
