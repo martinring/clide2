@@ -218,7 +218,7 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
             switch msg.t
               when 'timeout'
                 context.log.warn 'retrying init'
-                context.tellAck { t: 'init' }
+                context.restart()
               when 'e'
                 Toasts.push 'danger', msg.c
               when 'welcome'

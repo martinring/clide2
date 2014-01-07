@@ -114,9 +114,7 @@ define ->
       console.debug "[#{time()}] [#{name}] sent", msg
       resetTimeout()
 
-    context.restart = () ->
-      socket?.close()
-      socket = new WebSocket(url)
+    context.restart = service.restart
 
     context.tell = (msg, ack = false) ->
       if ack

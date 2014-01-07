@@ -46,7 +46,7 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout
           Toasts.push 'danger', msg.c
         when 'timeout'
           context.log.warn 'retrying init'
-          context.tellAck { t: 'explore', path: path }
+          context.restart()
         when 'newfile'
           f = -> dirs[msg.c.parent]?.files.push msg.c
           if msg.c.parent is currentDirId

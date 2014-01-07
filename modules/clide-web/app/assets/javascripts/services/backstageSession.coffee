@@ -42,7 +42,7 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$rootScope,$ht
       receive: (msg) -> switch msg.t
         when 'timeout'
           context.log.warn 'retrying init'
-          context.tellAck { t: 'init' }
+          context.restart()
         when 'projects'
           context.setReceiveTimeout null
           apply ->
