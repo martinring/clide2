@@ -47,6 +47,7 @@ import play.api.libs.iteratee.Enumerator
 import play.api.libs.concurrent.Akka
 import scala.language.implicitConversions
 import scala.language.postfixOps
+import scala.concurrent.Promise
 
 trait UserRequests { this: Controller =>
   implicit val timeout = Timeout(2.5 seconds)
@@ -68,6 +69,7 @@ trait UserRequests { this: Controller =>
       message: UserMessage,
       deserialize: JsValue => Message,
       serialize: Event => JsValue) = WebSocket.async[JsValue] { request =>
+        
     val auth = for {
       user <- request.session.get("user")
       key  <- request.session.get("key")
@@ -77,25 +79,30 @@ trait UserRequests { this: Controller =>
       case None             => AnonymousFor(user,message)
       case Some((user,key)) => IdentifiedFor(user,key,message)
     }
-
-    val mediator = system.actorOf(Props[WebsocketMediator])
-
-    val f = (mediator ? WebsocketMediator.Init(server,req)).mapTo[Enumerator[Event]]
-
-    val in = Iteratee.foreach[JsValue]{ j =>
-      println("incomnjghing message: " + j.toString)
-      try {
-        Logger.info(deserialize(j).toString())
-      } catch {
-        case e => e.printStackTrace()
+            
+    val promise = Promise[(Iteratee[JsValue,Unit], Enumerator[JsValue])]
+            
+    val mediator = actor(system)(new Act {
+      val (out,channel) = Concurrent.broadcast[JsValue]
+      server ! req
+      
+      become {
+        case EventSocket(peer,id) =>
+          val in = Iteratee.foreach[JsValue]{ j =>
+            println("incoming message: " + j.toString)
+            peer ! deserialize(j)
+          }
+          promise.success(in,out)
+          become {
+            case e: Event =>
+              channel.push(serialize(e))
+            case EOF =>
+              channel.eofAndEnd()
+          }
       }
-      mediator ! deserialize(j) 
-    } map (Unit => mediator ! EOF)    
+    })
 
-    f.map { out =>
-      Logger.info("initialized")
-      (in,out.map(serialize))
-    }.recover {
+    promise.future.recover {
       case e =>
         Logger.info("failed")
         (Iteratee.ignore[JsValue], Enumerator[JsValue](Json.obj("t"->"e","c"->e.getMessage)).andThen(Enumerator.eof))
