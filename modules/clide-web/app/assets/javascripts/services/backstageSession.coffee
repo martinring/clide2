@@ -24,7 +24,7 @@
 
 ### @service services:BackstageSession ###
 define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$rootScope,$http,Toasts) ->
-  (username, open) ->
+  (username) ->
     url = routes.clide.web.controllers.Projects.backstageSession(username).webSocketURL()
 
     session =
@@ -35,11 +35,10 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$rootScope,$ht
     apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f)
 
     new ActorSocket url, "#{username}/backstage", (context) ->
+      data: session
       preStart: ->
         context.setReceiveTimeout 1000
         context.tell { t: 'init' }
-        open
-          info: session
       receive: (msg) -> switch msg.t
         when 'timeout'
           apply ->

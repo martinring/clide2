@@ -38,31 +38,32 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
 
   ## init fileBrowser ------------------------------------------------------- ##
 
+  fileBrowserService = null
   fileService = null
 
   $scope.reconnect = ->
-    files = Files $routeParams.user, $routeParams.project#
-    fileService = files.interface
+    fileBrowserService = Files $routeParams.user, $routeParams.project
+    fileService = fileBrowserService.interface
     fileService.explore($scope.path)
-    $scope.files    = files.data
+    $scope.files = fileBrowserService.data
     $scope.browseTo = fileService.browseTo
-
 
   $scope.reconnect()
 
   ## init collab session ---------------------------------------------------- ##
 
+  sessionService = null
   session = null
 
   $scope.reconnectSession = ->
-    service = Session $routeParams.user, $routeParams.project
-    session = service.interface
+    sessionService = Session $routeParams.user, $routeParams.project
+    session = sessionService.interface
     session.init($routeParams.user, $routeParams.project)
-    $scope.session = service.data
-    service.data.kicked = () ->
+    $scope.session = sessionService.data
+    sessionService.data.kicked = () ->
       Toasts.push 'warning', "You have been kicked from '#{$routeParams.user}/#{$routeParams.project}'"
       $scope.backstage()
-    service.data.talkback = (msg) ->
+    sessionService.data.talkback = (msg) ->
       unless $scope.showChat
         $scope.unreadChatMessages += 1
         Toasts.push 'info', "#{msg.s.user}: #{msg.m}"
@@ -70,6 +71,10 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   $scope.reconnectSession()
 
   ## ------------------------------------------------------------------------ ##
+
+  $scope.$on '$destroy', ->
+    fileBrowserService?.stop()
+    sessionService?.stop()
 
   $scope.backstage = () ->
     $location.path "/#{Auth.user.username}/backstage"
