@@ -38,11 +38,11 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$rootScope,$ht
       data: session
       preStart: ->
         context.setReceiveTimeout 500
-        context.tell { t: 'init' }
+        context.tellAck { t: 'init' }
       receive: (msg) -> switch msg.t
         when 'timeout'
           context.log.warn 'retrying init'
-          context.tell { t: 'init' }
+          context.tellAck { t: 'init' }
         when 'projects'
           context.setReceiveTimeout null
           apply ->

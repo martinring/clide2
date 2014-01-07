@@ -118,15 +118,15 @@ define ->
       socket?.close()
       socket = new WebSocket(url)
 
-    context.tell = (msg, timeout = 0, retries = 0) ->
-      if timeout > 0
+    context.tell = (msg, ack = false) ->
+      if ack
         msg.$ID = nextId()
       if ready()
         send(msg)
       else
         outbox.push(msg)
 
-    context.tellSecure = (msg) -> context.tell(msg,500,20)
+    context.tellAck = (msg) -> context.tell(msg,true)
 
     actors[name] = service
     service.restart()

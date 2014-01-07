@@ -32,7 +32,7 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout
       data:
         currentDir: null
       preStart: -> if path?
-        context.tell { t: 'explore', path: path }
+        context.tellAck { t: 'explore', path: path }
         context.setReceiveTimeout(1000)
       interface:
         explore     : (path) ->
@@ -46,7 +46,7 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout
           Toasts.push 'danger', msg.c
         when 'timeout'
           context.log.warn 'retrying init'
-          context.tell { t: 'explore', path: path }
+          context.tellAck { t: 'explore', path: path }
         when 'newfile'
           f = -> dirs[msg.c.parent]?.files.push msg.c
           if msg.c.parent is currentDirId

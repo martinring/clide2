@@ -87,15 +87,17 @@ trait UserRequests { this: Controller =>
       server ! req
       
       become {
-        case EventSocket(peer,id) =>          
+        case EventSocket(peer,id) =>
           val in = Iteratee.foreach[JsValue]{ j =>
             println("incoming message: " + j.toString)
             peer ! deserialize(j)
+            (j \ "$ID").asOpt[Long].foreach { case id =>              
+              channel.push(Json.obj("t" -> "ack", "id" -> id))
+            }
           }
           
           promise.success(in,out)
           
-          channel.push(Json.obj("e" -> "test"))
           become {
             case e: Event =>
               channel.push(serialize(e))

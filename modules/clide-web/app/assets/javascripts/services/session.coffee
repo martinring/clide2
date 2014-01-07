@@ -193,7 +193,7 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           socket?.close()
       preStart: ->
         session.state = 'connected'
-        context.tell { t: 'init' }
+        context.tellAck { t: 'init' }
         context.setReceiveTimeout 1000
         CodeMirror.registerHelper "hint", (e...) ->
           return (
@@ -218,7 +218,7 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
             switch msg.t
               when 'timeout'
                 context.log.warn 'retrying init'
-                context.tell { t: 'init' }
+                context.tellAck { t: 'init' }
               when 'e'
                 Toasts.push 'danger', msg.c
               when 'welcome'
