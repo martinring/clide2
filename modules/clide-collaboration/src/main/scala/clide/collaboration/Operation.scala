@@ -151,8 +151,6 @@ object Operation {
           case GT => loop(Insert(i.drop(d))::as,bs,xs)
         }
       }
-      case (Delete(d)::as,Nil,xs) => loop(as,Nil,addDelete(d,xs))
-      case (Nil,Insert(i)::bs,xs) => loop(Nil,bs,addInsert(i,xs))
       case _ => Failure(new Exception("the operations couldn't be composed since their lengths don't match"))
     }
     loop(a.actions,b.actions,Nil).map(x => Operation(x.reverse))
