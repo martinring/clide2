@@ -83,7 +83,10 @@ fun composeRec :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> '
 definition compose :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where
   "compose a b = composeRec a b []"
 
-lemma composeEq: "(a, b) \<in> operations \<Longrightarrow> (a', b') \<in> operations \<Longrightarrow> SimpleOperation.compose a a' = Some a'' \<Longrightarrow> (a'', Operation.compose b b') \<in> operations"
+lemma composeEq: "(a, b) \<in> operations \<Longrightarrow> 
+                  (a', b') \<in> operations \<Longrightarrow> 
+                  SimpleOperation.compose a a' = Some a'' \<Longrightarrow> 
+                  (a'', Operation.compose b b') \<in> operations"
   sorry
 
 fun transformRec :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation \<times> 'char operation" where
@@ -109,5 +112,15 @@ fun transformRec :: "'char operation \<Rightarrow> 'char operation \<Rightarrow>
 
 definition transform :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> ('char operation \<times> 'char operation)" where
   "transform a b = transformRec a b [] []"
+
+lemma transformEq: "(a, a') \<in> operations \<Longrightarrow>
+                    (b, b') \<in> operations \<Longrightarrow>
+                    SimpleOperation.transform a b = Some (c,d) \<Longrightarrow> 
+                    (c, fst (Operation.transform a' b')) \<in> operations \<and>
+                    (d, snd (Operation.transform a' b')) \<in> operations"
+  sorry
+
+export_code applyOp compose transform in Scala
+  module_name Operation
 
 end
