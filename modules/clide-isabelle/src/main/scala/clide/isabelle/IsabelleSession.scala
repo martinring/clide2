@@ -120,7 +120,7 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
       control.chat(XML.content(msg.body))
     }
     session.commands_changed += { msg =>
-      
+      refreshAnnotations(msg.nodes.toList)
     }
     session.start(List("-S","HOL"))
     control.chat("i'm starting up, please wait a second")
