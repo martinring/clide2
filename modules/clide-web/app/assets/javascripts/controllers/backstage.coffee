@@ -72,6 +72,7 @@ define ['util/md5'], (md5) -> ($scope, $location, $routeParams, $timeout, Projec
     queries: [
       { text: 'Name:', name: 'name', value: name }
       { text: 'Short description:', name: 'description', type: 'textarea', value: description }
+      { text: 'Make public (Everybody has write access. Recommended only for testing)', name: 'public', type: 'checkbox', value: false }
     ]
     buttons: ['Ok','Cancel']
     done: (answer,result) -> if answer is 'Ok'

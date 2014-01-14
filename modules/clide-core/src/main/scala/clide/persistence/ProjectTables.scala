@@ -35,19 +35,20 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
     def name         = column[String]("name")
     def ownerName    = column[String]("owner")
     def description  = column[Option[String]]("description")
+    def public       = column[Boolean]("public")
     def owner        = foreignKey("fk_project_user", ownerName, UserInfos)(_.name,
         onUpdate = ForeignKeyAction.Cascade,
         onDelete = ForeignKeyAction.Cascade)
-    def *            = id ~ name ~ ownerName ~ description <> (ProjectInfo.apply _, ProjectInfo.unapply _)
+    def *            = id ~ name ~ ownerName ~ description ~ public <> (ProjectInfo.apply _, ProjectInfo.unapply _)
 
     // for every owner, the names of all his projects must be unique
     // which means, that project names alone don't have to be.
     def ownerProject = index("idx_owner_project", (ownerName, name), unique = true)
 
-    def create(name: String, owner: String, description: Option[String])(implicit session: Session) = {
-      val q = (this.id.? ~ this.name ~ this.ownerName ~ this.description returning this.id)
-      val id = q.insert((None,name,owner,description))
-      ProjectInfo(id,name,owner,description)
+    def create(name: String, owner: String, description: Option[String], public: Boolean)(implicit session: Session) = {
+      val q = (this.id.? ~ this.name ~ this.ownerName ~ this.description ~ this.public returning this.id)
+      val id = q.insert((None,name,owner,description,public))
+      ProjectInfo(id,name,owner,description,public)
     }
 
     def delete(id: Long)(implicit session: Session) =
@@ -68,6 +69,9 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
 
     def get(id: Long)(implicit session: Session) =
       Query(ProjectInfos).filter(_.id === id).firstOption
+      
+    def getPublic(implicit session: Session) = 
+      Query(ProjectInfos).filter(_.public === true).elements
   }
 
   object ProjectAccessLevels extends Table[(Long,String,ProjectAccessLevel.Value)]("rights") {

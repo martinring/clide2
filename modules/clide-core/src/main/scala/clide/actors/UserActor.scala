@@ -54,7 +54,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
 
   var logins = Map[String,LoginInfo]()
   var projects = Map[String,ProjectInfo]()
-  var otherProjects = Map[ProjectInfo,ProjectAccessLevel.Value]()
+  var otherProjects = Map[ProjectInfo,ProjectAccessLevel.Value]()  
   var backstagePeers: Map[ActorRef,LoginInfo] = Map()
   
   override def preStart() {
@@ -62,7 +62,9 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
     DB.withSession { implicit session: Session =>
       logins = LoginInfos.getByUser(user.name).map(l => l.key -> l).toMap
       projects = ProjectInfos.getByOwner(user.name).map(p => p.name -> p).toMap // TODO
-      otherProjects = ProjectAccessLevels.getUserProjects(user.name).toMap.filter(_._1.owner != user.name) // TODO
+      val public = ProjectInfos.getPublic      
+      otherProjects = public.filter(_.owner != user.name).map(p => p -> ProjectAccessLevel.Write).toMap
+      otherProjects ++= ProjectAccessLevels.getUserProjects(user.name).toMap.filter(_._1.owner != user.name) // TODO      
     }
     for (project <- otherProjects.keys)
       log.info(s"${user.name} collaborates in ${project.name} of ${project.owner}")
@@ -147,13 +149,13 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
       sender ! LoggedOut(user)
       context.system.eventStream.publish(LoggedOut(user))
 
-    case CreateProject(name,description) =>
+    case CreateProject(name,description,public) =>
       if (name.toSeq.exists(a => !a.isLetterOrDigit && !(a == '-'))) {
         sender ! ProjectCouldNotBeCreated("The name must only consist of letters, digits and dashes")
       } else if (projects.contains(name)) {
         sender ! ProjectCouldNotBeCreated("A project with this name already exists")
       } else {
-        val project = DB.withSession { implicit session: Session => ProjectInfos.create(name,user.name,description) }
+        val project = DB.withSession { implicit session: Session => ProjectInfos.create(name,user.name,description,public) }
         projects += name -> project
         context.actorOf(ProjectActor(project), project.name)
         sender ! CreatedProject(project)

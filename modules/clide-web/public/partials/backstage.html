@@ -26,7 +26,7 @@
           </p>
           <div class='list-group' ng-show='Projects.otherProjects.length > 0'>
             <a ng-repeat='project in Projects.otherProjects' class='list-group-item' ng-class='{ active: project==selectedProject }' ng-click='selectProject(project)' ng-dblclick='start()'>
-              <h4 class='list-group-item-heading'>{{project.owner}}/{{project.name}}</h4>
+              <h4 class='list-group-item-heading'>{{project.owner}}/{{project.name}}<span class='badge pull-right' title='everybody has write access to this project'>public</span></h4>
               <p class='list-group-item-text' ng-bind='project.description'></p>
             </a>
           </div>

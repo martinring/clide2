@@ -48,7 +48,7 @@ object Messages {
   case object Validate extends UserMessage
   case class Login(password: String, isHuman: Boolean = false) extends UserMessage
   case object Logout extends UserMessage
-  case class CreateProject(name: String, description: Option[String]) extends UserMessage
+  case class CreateProject(name: String, description: Option[String], public: Boolean) extends UserMessage
   case class WithUser(name: String, message: UserMessage) extends UserMessage with SessionMessage
   case class WithProject(name: String, message: ProjectMessage) extends UserMessage
   case object BrowseProjects extends UserMessage

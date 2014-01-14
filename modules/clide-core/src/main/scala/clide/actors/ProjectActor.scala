@@ -171,16 +171,14 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
       this.isHuman = isHuman
       this.user = user
       this.level = level
-      level match {
-        case ProjectAccessLevel.Admin =>
-          (admin orElse write orElse read orElse none)(msg)
-        case ProjectAccessLevel.Write =>
-          (write orElse read orElse none)(msg)
-        case ProjectAccessLevel.Read =>
-          (read orElse none)(msg)
-        case _ =>
-          none(msg)
-      }
+      if (level == ProjectAccessLevel.Admin)
+        (admin orElse write orElse read orElse none)(msg)
+      else if (info.public || level == ProjectAccessLevel.Write)        
+        (write orElse read orElse none)(msg)
+      else if (level == ProjectAccessLevel.Read)
+        (read orElse none)(msg)
+      else
+        none(msg)
   }
 
   override def preRestart(reason:Throwable, message:Option[Any]){

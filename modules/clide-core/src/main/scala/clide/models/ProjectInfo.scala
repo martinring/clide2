@@ -26,8 +26,9 @@ package clide.models
 
 case class ProjectInfo(
     id: Long,
-    name: String,
+    name: String,    
     owner: String,
-    description: Option[String] = None) {
+    description: Option[String] = None,
+    public: Boolean = false) {
   lazy val root = f"files/$owner/$name" // TODO: This should be configured in the future
 }
