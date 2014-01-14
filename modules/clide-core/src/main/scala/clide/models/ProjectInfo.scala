@@ -24,6 +24,7 @@
 
 package clide.models
 
+@SerialVersionUID(550000)
 case class ProjectInfo(
     id: Long,
     name: String,    

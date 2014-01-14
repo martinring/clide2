@@ -24,6 +24,7 @@
 
 package clide.models
 
+@SerialVersionUID(540000)
 case class OpenedFile(
     info: FileInfo,
     state: String,

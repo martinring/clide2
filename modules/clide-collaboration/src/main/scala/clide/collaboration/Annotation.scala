@@ -38,6 +38,7 @@ sealed trait Annotation {
   }
 }
 
+@SerialVersionUID(640000)
 case class Plain(length: Int) extends Annotation {
   override def toString = length.toString
 }
@@ -88,6 +89,7 @@ object AnnotationType extends Enumeration {
   val ReadOnly       = Value("r")
 }
 
+@SerialVersionUID(650000)
 case class Annotate(length: Int, content: Set[(AnnotationType.Value,String)]) extends Annotation {
   override def toString = length.toString + ":{" + content.map{case(k,v)=>k+": " +v}.mkString(",") + "}"
 }
