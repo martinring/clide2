@@ -38,6 +38,26 @@ import isabelle.Protocol
 import isabelle.Text
 
 object IsabelleMarkup {
+  val classes = Map(      
+      Markup.KEYWORD1 -> "keyword",
+      Markup.KEYWORD2 -> "keyword",
+      Markup.STRING -> "string",
+      Markup.ALTSTRING -> "string",
+      Markup.VERBATIM -> "verbatim",
+      Markup.LITERAL -> "keyword",
+      Markup.DELIMITER -> "delimiter",
+      Markup.TFREE -> "tfree",
+      Markup.TVAR -> "tvar",
+      Markup.FREE -> "free",
+      Markup.SKOLEM -> "skolem",
+      Markup.BOUND -> "bound",
+      Markup.VAR -> "var",
+      Markup.INNER_STRING -> "innerString",
+      Markup.INNER_COMMENT -> "innerComment",
+      Markup.DYNAMIC_FACT -> "dynamic_fact")  
+      
+  val classesElements = classes.keySet
+  
   def annotations(xml: XML.Tree, c: Set[(AnnotationType.Value,String)] = Set.empty): List[Annotation] = xml match {
     case XML.Wrapped_Elem(markup, body, body2) =>
       markup.name match {
@@ -61,30 +81,17 @@ object IsabelleMarkup {
       }
 
     case XML.Elem(markup, body) =>
-      val classes = Map(
-          Markup.RUNNING  -> "warning",
-          Markup.FINISHED -> "info",
-          Markup.COMMENT  -> "comment",
-          Markup.TFREE    -> "tfree",
-          Markup.BOUND    -> "bound",
-          Markup.FREE     -> "free",
-          Markup.TVAR     -> "tvar",
-          Markup.SKOLEM   -> "skolem",
-          Markup.BAD      -> "error",
-          //Markup.
-          Markup.ENTITY   -> "entity")
-
       val c2 = markup.name match {
-        case Markup.RUNNING | Markup.FINISHED | Markup.FAILED =>
-          Set(AnnotationType.Progress -> markup.name)
-        case Markup.ENTITY => 
+        //case Markup.RUNNING | Markup.FINISHED | Markup.FAILED =>
+        // Set(AnnotationType.Progress -> markup.name)
+        case Markup.ENTITY =>
           val as = markup.properties.collect {
             case ("def",id) => AnnotationType.Entity -> id
             case ("ref",id) => AnnotationType.Ref -> id
           }        
           as.toSet
         case m if classes.isDefinedAt(m) => Set(AnnotationType.Class -> classes(m))
-        case other          => Set.empty
+        case other                       => Set.empty
       }
 
       body.flatMap(annotations(_,c ++ c2))
@@ -96,10 +103,25 @@ object IsabelleMarkup {
   }
 
   def highlighting(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {
-    val xml = snapshot.state.markup_to_XML(snapshot.version, snapshot.node, _ => true)
-    xml.flatMap(annotations(_)).foldLeft(new Annotations) {
-      case (as, Plain(n))      => as.plain(n)
-      case (as, Annotate(n,c)) => as.annotate(n, c)
+    val cs: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(classesElements), _ =>
+      {
+        case (_, Text.Info(_,elem)) => Some(classes.get(elem.name))   
+      })    
+    cs.foldLeft(new Annotations) {
+      case (as, Text.Info(range,None))    => as.plain(range.length)
+      case (as, Text.Info(range,Some(c))) => as.annotate(range.length, Set(AnnotationType.Class -> c))
+    }    
+  }
+  
+  def errors(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {
+    val es: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.ERROR, Markup.ERROR_MESSAGE)), _ =>
+      {
+        case (_, Text.Info(_,elem)) => println("err: " + elem) 
+          Some(Some(elem.toString))
+      })
+    es.foldLeft(new Annotations) {
+      case (as, Text.Info(range,None))      => as.plain(range.length)
+      case (as, Text.Info(range,Some(msg))) => as.annotate(range.length, Set(AnnotationType.Class -> "error", AnnotationType.ErrorMessage -> msg))      
     }
   }
   

@@ -67,8 +67,9 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
       if v.value.flatMap(_.toOption) == Some(snapshot.version)
     } {        
       control.log.info("annotating snapshot {}", snapshot.node_name)
-      control.annotate(state, "semantic", IsabelleMarkup.highlighting(state, snapshot))
+      control.annotate(state, "inner syntax", IsabelleMarkup.highlighting(state, snapshot))
       control.annotate(state, "output",   IsabelleMarkup.output(snapshot, Set.empty))
+      control.annotate(state, "errors", IsabelleMarkup.errors(state, snapshot))
     }
   }
   
@@ -88,7 +89,7 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
         }
       }
       override def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A = {
-        //control.log.info("thy_load.with_thy_text({},{})", name, f)
+        control.log.info("thy_load.with_thy_text({},{})", name, f)
         //thys.get(name).map(file => f(file.state)).getOrElse {
           f("")
         //}
