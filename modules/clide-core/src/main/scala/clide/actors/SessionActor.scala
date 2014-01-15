@@ -33,7 +33,6 @@ import clide.actors.Messages._
 import clide.actors.Events._
 import clide.persistence.DBAccess
 import scala.concurrent.duration._
-
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
@@ -166,7 +165,9 @@ private class SessionActor(
     case Edited(f,op) =>
       peer ! Edited(f,op)      
     case Annotated(f,u,an,n) =>
-      peer ! Annotated(f,u,an,n)      
+      peer ! Annotated(f,u,an,n)
+    case msg@AnnotationsClosed(f,u,n) =>
+      peer ! msg
     case SetColor(value) =>
       session = session.copy(color = value)
       context.parent ! SessionChanged(session)
@@ -190,15 +191,25 @@ private class SessionActor(
     case msg @ Edit(id,_,_) =>
       fileServers.get(id).map{ ref =>
         ref ! msg
-      } getOrElse {
-        log.info("forwarding edit to path")
+      } getOrElse {        
         context.parent ! wrap(WithPath(openFiles(id).path, msg))
       }      
     case msg @ Annotate(id,_,_,_) =>
       fileServers.get(id).map{ ref =>
         ref ! msg
-      } getOrElse {
-        log.info("forwarding annotation to path")
+      } getOrElse {        
+        context.parent ! wrap(WithPath(openFiles(id).path, msg))
+      }
+    case msg @ SubscribeToAnnotations(id,_,_) =>
+      fileServers.get(id).map { ref =>
+        ref ! msg        
+      } getOrElse {        
+        context.parent ! wrap(WithPath(openFiles(id).path, msg))
+      }
+    case msg @ UnsubscribeFromAnnotations(id,_,_) =>
+      fileServers.get(id).map { ref =>
+        ref ! msg        
+      } getOrElse {        
         context.parent ! wrap(WithPath(openFiles(id).path, msg))
       }
     case msg @ FileInitFailed(f) =>

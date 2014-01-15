@@ -91,8 +91,8 @@ object Events {
   /**
    * @param who the session id of the collaborator processing the file
    */
-  @SerialVersionUID(135000) case class BroadcastEvent(who: Long, timestamp: Long, msg: BroadcastMessage) extends SessionEvent
-
+  @SerialVersionUID(135000) case class BroadcastEvent(who: Long, timestamp: Long, msg: BroadcastMessage) extends SessionEvent  
+  
   /**
    * Used to transmit all the projects of a user
    * @param userProject   the projects owned by the user

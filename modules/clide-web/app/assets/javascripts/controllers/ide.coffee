@@ -70,6 +70,9 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
 
   ## ------------------------------------------------------------------------ ##
 
+  $scope.subscribe = (file, user, name) -> session.subscribe(file,user,name)
+  $scope.unsubscribe = (file, user, name) -> session.unsubscribe(file,user,name)
+
   $scope.$on '$destroy', ->
     fileBrowserService?.stop()
     sessionService?.stop()
@@ -85,6 +88,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   $scope.showLineNumbers = true
   $scope.editorFontSizeDefault = 12
   $scope.editorFontSize = $scope.editorFontSizeDefault
+
 
   $scope.chatMessage = ''
   $scope.chat = (msg) ->

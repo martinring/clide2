@@ -160,19 +160,19 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
     @registerMouseEvents: (doc) =>
 
     resetAnnotations: (user, name) => if user?
-      unless @annotations[user.id]?
-        @annotations[user.id] = {}
-      existing = @annotations[user.id][name]
+      unless @annotations[user]?
+        @annotations[user] = {}
+      existing = @annotations[user][name]
       if existing?
         for marker in existing
           marker.clear()
-      @annotations[user.id][name] = []
+      @annotations[user][name] = []
 
     applyAnnotation: (annotation, user, name) =>
       cm       = @doc.getEditor()
 
       work = =>
-        @resetAnnotations(user, name)
+        @resetAnnotations(user.id, name) if user?
 
         index = 0 # TODO: Iterate Line/Column based with cm.eachLine
         for a in annotation.annotations

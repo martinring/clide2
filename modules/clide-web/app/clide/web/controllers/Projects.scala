@@ -25,7 +25,6 @@
 package clide.web.controllers
 
 import scala.concurrent.Future
-
 import clide.actors.Messages._
 import clide.collaboration.Annotations
 import clide.collaboration.Operation
@@ -108,6 +107,10 @@ object Projects extends Controller with UserRequests with DefaultResults {
                 LookingAtFile((json \ "f").as[Long])
               case "ignoring" =>
                 StoppedLookingAtFile((json \ "f").as[Long])
+              case "subscribe" =>
+                SubscribeToAnnotations((json \ "f").as[Long], (json \ "u").as[Long], (json \ "n").as[String])
+              case "unsubscribe" =>
+                UnsubscribeFromAnnotations((json \ "f").as[Long], (json \ "u").as[Long], (json \ "n").as[String])
               case "eof" =>
                 EOF
               case "invite" =>

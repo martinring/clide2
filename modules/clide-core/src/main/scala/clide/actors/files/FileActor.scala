@@ -57,6 +57,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
   var server: Server = null
 
   val annotations = Map[(Long,String),(Long,Annotations)]()
+  val subscriptions = Map[(Long,String),Set[ActorRef]]()
 
   def initOt() {
     log.info("initializing ot")
@@ -76,9 +77,11 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
     }
   }
 
-  def resendAnnotations(receiver: ActorRef) = {
+  def resendAnnotations(receiver: ActorRef) = {    
     annotations.foreach {
-      case ((u,n),(r,a)) =>
+      case ((u,n),(r,a)) => 
+        val before = subscriptions.get((u,n)).getOrElse(Set.empty)
+        subscriptions((u,n)) = before + receiver
         receiver ! Annotated(info.id, u, server.transformAnnotation(r.toInt, a).get, n)
     }
   }
@@ -113,6 +116,10 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
 
     case Annotate(_,rev,as,name) if clients.isDefinedAt(sender) =>
       if (!otActive) initOt()
+      val key = (clients(sender).id,name)
+      if (!subscriptions.contains(key))
+        subscriptions(key) = clients.keySet.toSet
+      if (!subscriptions(key).isEmpty) {
       server.transformAnnotation(rev.toInt, as) match { // TODO: Ugly: rev.toInt
         case Failure(e) =>
           // TODO
@@ -132,8 +139,12 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
                     //clients.keys.filter(_ != sender).foreach(_ ! AnnotationChanged(info.id,clients(sender).id,diff,name))
               }
           }
-          clients.keys.filter(_ != sender).foreach(_ ! Annotated(info.id,clients(sender).id,as,name))
-          annotations((clients(sender).id,name)) = (server.revision,as)
+
+          clients.keys.filter(ref => ref != sender && subscriptions.get(key).exists(_.contains(ref))).foreach(_ ! Annotated(info.id,clients(sender).id,as,name))          
+          annotations(key) = (server.revision,as)
+      }
+      } else {
+        annotations(key) = (rev,as)
       }
 
     case Edit(_,rev,ops) if clients.contains(sender) =>
@@ -147,6 +158,18 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
           clients.keys.filter(_ != sender).foreach(_ ! Edited(info.id, o))
           sender ! AcknowledgeEdit(info.id)
       }
+      
+    case SubscribeToAnnotations(_,user,name) =>
+      val before = subscriptions.get((user,name)).getOrElse(Set.empty)
+      subscriptions((user,name)) = before + sender
+      annotations.get((user,name)).foreach { case (rev,as) =>
+        server.transformAnnotation(rev.toInt, as).foreach(sender ! Annotated(info.id,user,_,name))
+      }
+      
+    case UnsubscribeFromAnnotations(_,user,name) =>
+      val before = subscriptions.get((user,name)).getOrElse(Set.empty)
+      subscriptions((user,name)) = before - sender
+      sender ! AnnotationsClosed(info.id,user,name)
 
     case EOF =>
       clients.remove(sender)

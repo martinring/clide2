@@ -90,8 +90,8 @@ object Messages {
   @SerialVersionUID(380000) case class Kick(id: Long) extends SessionMessage with ProjectMessage
   @SerialVersionUID(390000) case class Edit(id: Long, revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
   @SerialVersionUID(400000) case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage
-  @SerialVersionUID(700000) case class SubscribeToAnnotations(id: Long, user: String, name: String) extends SessionMessage
-  @SerialVersionUID(710000) case class UnsubscribeFromAnnotations(id: Long, user: String, name: String) extends SessionMessage
+  @SerialVersionUID(700000) case class SubscribeToAnnotations(id: Long, user: Long, name: String) extends SessionMessage with FileReadMessage
+  @SerialVersionUID(710000) case class UnsubscribeFromAnnotations(id: Long, user: Long, name: String) extends SessionMessage with FileReadMessage
   
   trait BroadcastMessage extends SessionMessage
   
