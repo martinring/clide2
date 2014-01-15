@@ -33,71 +33,72 @@ import clide.actors.Messages.BroadcastMessage
  */
 object Events {
   trait Event
-  case object TimeOut extends Event
-  case object UnexpectedTermination extends Event
+  @SerialVersionUID(100000) case object TimeOut extends Event
+  @SerialVersionUID(101000) case object UnexpectedTermination extends Event
 
-  case class ActionFailed(e: Map[String,String]) extends Event
+  @SerialVersionUID(102000) case class ActionFailed(e: Map[String,String]) extends Event
 
-  case class FileInitFailed(file: Long) extends Event
-
-  case class EventSocket(in: ActorRef, id: String) extends Event
-  case object Welcome extends Event
+  @SerialVersionUID(103000) case class FileInitFailed(file: Long) extends Event
+  
+  @SerialVersionUID(104000) case class EventSocket(in: ActorRef, id: String) extends Event
+  @SerialVersionUID(105000) case object Welcome extends Event
 
   trait FileEvent extends Event
-  case class FileCreated(file: FileInfo) extends FileEvent
-  case class FileDeleted(file: FileInfo) extends FileEvent
-  case class FileMoved(file: FileInfo, from: Seq[String]) extends FileEvent
+  @SerialVersionUID(106000) case class FileCreated(file: FileInfo) extends FileEvent
+  @SerialVersionUID(107000) case class FileDeleted(file: FileInfo) extends FileEvent
+  @SerialVersionUID(108000) case class FileMoved(file: FileInfo, from: Seq[String]) extends FileEvent
 
   trait FileBrowserEvent extends FileEvent
-  case class FolderContent(folder: FileInfo, files: Seq[FileInfo]) extends FileBrowserEvent
-  case class FileId(id: FileInfo) extends FileBrowserEvent
+  @SerialVersionUID(109000) case class FolderContent(folder: FileInfo, files: Seq[FileInfo]) extends FileBrowserEvent
+  @SerialVersionUID(110000) case class FileId(id: FileInfo) extends FileBrowserEvent
 
   trait UserEvent extends Event
-  case class SignedUp(user: UserInfo) extends UserEvent
-  case class LoggedIn(user: UserInfo, login: LoginInfo) extends UserEvent
-  case class LoggedOut(user: UserInfo) extends UserEvent
-
+  @SerialVersionUID(111000) case class SignedUp(user: UserInfo) extends UserEvent
+  @SerialVersionUID(112000) case class LoggedIn(user: UserInfo, login: LoginInfo) extends UserEvent
+  @SerialVersionUID(113000) case class LoggedOut(user: UserInfo) extends UserEvent
+ 
   trait AuthEvent extends Event
-  case object DoesntExist extends AuthEvent
-  case object WrongPassword extends AuthEvent
-  case object SessionTimedOut extends AuthEvent
-  case object NotLoggedIn extends AuthEvent
-  case object NotAllowed extends AuthEvent
-  case class Validated(user: UserInfo) extends AuthEvent
+  @SerialVersionUID(114000) case object DoesntExist extends AuthEvent
+  @SerialVersionUID(115000) case object WrongPassword extends AuthEvent
+  @SerialVersionUID(116000) case object SessionTimedOut extends AuthEvent
+  @SerialVersionUID(117000) case object NotLoggedIn extends AuthEvent
+  @SerialVersionUID(118000) case object NotAllowed extends AuthEvent
+  @SerialVersionUID(119000) case class Validated(user: UserInfo) extends AuthEvent
 
   trait ProjectEvent extends Event
-  case class CreatedProject(project: ProjectInfo) extends ProjectEvent
-  case class ProjectCouldNotBeCreated(reason: String) extends ProjectEvent
-  case class DeletedProject(project: ProjectInfo) extends ProjectEvent
-  case class ChangedProjectUserLevel(project: ProjectInfo, user: String, level: ProjectAccessLevel.Value) extends ProjectEvent
+  @SerialVersionUID(120000) case class CreatedProject(project: ProjectInfo) extends ProjectEvent
+  @SerialVersionUID(121000) case class ProjectCouldNotBeCreated(reason: String) extends ProjectEvent
+  @SerialVersionUID(122000) case class DeletedProject(project: ProjectInfo) extends ProjectEvent
+  @SerialVersionUID(123000) case class ChangedProjectUserLevel(project: ProjectInfo, user: String, level: ProjectAccessLevel.Value) extends ProjectEvent
 
   trait SessionEvent extends Event  
-  case class SessionInit(
+  @SerialVersionUID(124000) case class SessionInit(
       info: SessionInfo,
       collaborators: Set[SessionInfo],
       eventHistory: List[BroadcastEvent]) extends SessionEvent
-  case class SessionChanged(info: SessionInfo) extends SessionEvent
-  case class SessionStopped(info: SessionInfo) extends SessionEvent
-  case class FileClosed(id: Long) extends SessionEvent
-  case class FileOpened(file: OpenedFile) extends SessionEvent
-  case class Edited(file: Long, op: Operation) extends SessionEvent
-  case class Annotated(file: Long, user: Long, an: Annotations, name: String) extends SessionEvent
+  @SerialVersionUID(125000) case class SessionChanged(info: SessionInfo) extends SessionEvent
+  @SerialVersionUID(126000) case class SessionStopped(info: SessionInfo) extends SessionEvent
+  @SerialVersionUID(127000) case class FileClosed(id: Long) extends SessionEvent
+  @SerialVersionUID(128000) case class FileOpened(file: OpenedFile) extends SessionEvent
+  @SerialVersionUID(129000) case class Edited(file: Long, op: Operation) extends SessionEvent
+  @SerialVersionUID(130000) case class Annotated(file: Long, user: Long, an: Annotations, name: String) extends SessionEvent
+  @SerialVersionUID(131000) case class AnnotationsClosed(file: Long, user: Long, name: String) extends SessionEvent
   // TODO case class AnnotationChanged(file: Long, user: Long, an: AnnotationDiff, name: String) extends SessionEvent
-  case class AcknowledgeEdit(file: Long) extends SessionEvent
-  case class MetaInfo(file: Long, info: Map[String,String]) extends SessionEvent
-  case object Kicked extends SessionEvent
+  @SerialVersionUID(132000) case class AcknowledgeEdit(file: Long) extends SessionEvent
+  @SerialVersionUID(133000) case class MetaInfo(file: Long, info: Map[String,String]) extends SessionEvent
+  @SerialVersionUID(134000) case object Kicked extends SessionEvent
     
   /**
    * @param who the session id of the collaborator processing the file
    */
-  case class BroadcastEvent(who: Long, timestamp: Long, msg: BroadcastMessage) extends SessionEvent
+  @SerialVersionUID(135000) case class BroadcastEvent(who: Long, timestamp: Long, msg: BroadcastMessage) extends SessionEvent
 
   /**
    * Used to transmit all the projects of a user
    * @param userProject   the projects owned by the user
    * @param collaborating the projects the user collaborates in
    */
-  case class UserProjectInfos(
+  @SerialVersionUID(136000) case class UserProjectInfos(
       userProjects: Set[ProjectInfo],
       collaborating: Set[ProjectInfo]) extends Event
 
