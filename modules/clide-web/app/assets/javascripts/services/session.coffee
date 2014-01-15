@@ -107,18 +107,26 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
       nfile.$apply = (os) -> client.applyServer(os)
       nfile.$syncState = -> client.syncState()
       nfile.$setColor = (c) -> adapter.setColor(c)
-      nfile.$annotate = (a,u,n) -> # TODO: include user
-        adapter.applyAnnotation(a,u,n)
-        a                          = client.transformAnnotation(a)
+      nfile.$annotate = (a,u,n) ->
         nfile.annotations          = nfile.annotations or { }
         nfile.annotations[u.id]    = nfile.annotations[u.id] or [ ]
+        s = null
         for stream in nfile.annotations[u.id]
           if stream.name is n
-            return
-        nfile.annotations[u.id].push
-          show: true
-          name: n
-
+            s = stream
+            break
+        unless s?
+          s = { show: true, name: n }
+          nfile.annotations[u.id].push s
+        s.show = true
+        a = client.transformAnnotation(a)
+        adapter.applyAnnotation(a,u,n)
+      nfile.$removeAnnotations = (u,n) ->
+        for stream in nfile.annotations[u]
+          if stream.name is n
+            stream.show = false
+            break
+        adapter.resetAnnotations(u,n)
       if (nfile.$$emergencyResetMode)
         nfile.$$emergencyResetMode = false
         console.log 'resetted ' + nfile.name
@@ -177,6 +185,18 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           context.tell
             t: 'kick'
             s: id
+        subscribe: (file, user, name) ->
+          context.tell
+            t: 'subscribe'
+            f: file
+            u: user
+            n: name
+        unsubscribe: (file, user, name) ->
+          context.tell
+            t: 'unsubscribe'
+            f: file
+            u: user
+            n: name
         setColor: (color) ->
           session.me.color = color
           for key, file of session.openFiles
@@ -239,6 +259,9 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
                   setActiveFile(msg.c.info.id, context.tell)
               when 'failed'
                 Toasts.push("danger","the initialization of the requested file failed on the server")
+              when 'ac'
+                apply ->
+                  getOpenFile(msg.f).$removeAnnotations(msg.u,msg.n)
               when 'talk'
                 if msg.c.s is session.me.id
                   msg.c.s = session.me
