@@ -143,7 +143,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
       if classes?
         if to? and c.s?
           marker = @doc.markText from, to,
-            replacedWith:      widget('span','',c.s)
+            replacedWith:      widget('span',classes,c.s)
             handleMouseEvents: true
           @annotations[user.id][name].push marker
         else if to?
