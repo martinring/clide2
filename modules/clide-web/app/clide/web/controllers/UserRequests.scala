@@ -94,6 +94,9 @@ trait UserRequests { this: Controller =>
             (j \ "$ID").asOpt[Long].foreach { case id =>              
               channel.push(Json.obj("t" -> "ack", "id" -> id))
             }
+          }.mapDone{ Unit =>
+            peer ! EOF
+            context.stop(self)
           }
           
           promise.success(in,out)
