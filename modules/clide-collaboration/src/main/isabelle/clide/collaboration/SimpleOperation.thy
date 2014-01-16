@@ -52,7 +52,7 @@ text {* if an operation @{term a} has input lenght 0, a must be empty or is cons
         actions *}
 
 lemma emptyInputInsert [rule_format]: "inputLength a = 0 \<longrightarrow> a = [] \<or> (\<exists>as c. a = Insert c#as)"
-  apply (induct_tac a, auto) by (case_tac a, auto)+  
+  by (induct_tac a rule: inputLength.induct, auto)  
 
 fun outputLength :: "'char operation \<Rightarrow> nat" where
   "outputLength [] = 0"
@@ -64,92 +64,12 @@ text {* if an operation @{term a} has output lenght 0, a must be empty or is con
         actions *}
 
 lemma emptyOutputDelete [rule_format]: "outputLength a = 0 \<longrightarrow> a = [] \<or> (\<exists>as. a = Delete#as)"
-  apply (induct_tac a, auto) by (case_tac a, auto)+  
+  by (induct_tac a rule: outputLength.induct, auto)
 
 text {* if an operation @{term a} has output and input lenght of 0, the operation must be empty *}
 
 lemma emptyInOutOp [rule_format]: "inputLength a = 0 \<and> outputLength a = 0 \<longrightarrow> a = []"
-  apply (induct_tac a, auto) by (case_tac a, auto)+ 
-
-subsection {* Valid Operations *}
-           
-text {* We define an inductive set, describing the relation of all valid pairs of operations and 
-        documents and their resulting output document .*}
-
-inductive_set application :: "(('char operation \<times> 'char document) \<times> 'char document) set" where
-  empty[intro!]:  "(([],[]),[]) \<in> application"
-| retain[intro!]: "((a,d),d') \<in> application \<Longrightarrow> ((Retain#a,c#d),c#d')   \<in> application"
-| delete[intro!]: "((a,d),d') \<in> application \<Longrightarrow> ((Delete#a,c#d),d')     \<in> application"
-| insert[intro!]: "((a,d),d') \<in> application \<Longrightarrow> (((Insert c)#a,d),c#d') \<in> application"
-
-text {* iff an operation @{term a} is empty it can only be applied to the empty document and the
-        result is also the empty document *}
-
-lemma emptyInput: "(([],d),d') \<in> application \<longleftrightarrow> d = [] \<and> d' = []"
-  apply (auto) by (erule application.cases, auto)+
-
-lemma emptyInputDomain: "([],d) \<in> Domain application \<longleftrightarrow> d = []"
-  by (auto simp add: emptyInput)
-
-lemma emptyDocInsert: "(a#as,[]) \<in> Domain application \<Longrightarrow> \<exists>c. a = Insert c"
-  by (clarify, erule application.cases, auto)
-
-lemma remRetain: "((Retain#as,d) \<in> Domain application) = 
-                  (\<exists>c cs. d = c#cs \<and> (as,cs) \<in> Domain application)"  
-  apply (auto)
-  by (smt Domain.DomainI action.distinct(1) application.simps list.distinct(1) list.inject)
-  
-lemma remRetain2: "(((Retain#as,d),d') \<in> application) =
-                   (\<exists>c cs cs'. d = c#cs \<and> d'=c#cs' \<and> ((as,cs),cs') \<in> application)"
-  apply (auto)
-  by (smt action.distinct(3) application.cases inputLength.simps(2) inputLength.simps(4) list.distinct(1) list.inject)
-
-lemma remInsert: "((Insert c#list,d) \<in> Domain application) =
-                  ((list,d) \<in> Domain application)"
-  apply (auto)
-  by (smt Domain.simps action.distinct(1) action.distinct(5) application.simps list.distinct(1) list.inject)
-
-lemma remInsert2: "(((Insert c# as, d),d') \<in> application) =
-                   (\<exists>cs. d' = c#cs \<and> ((as,d),cs) \<in> application)"
-  apply (auto)
-  by (smt action.distinct(1) action.distinct(5) action.inject application.simps list.distinct(1) list.inject)
-
-lemma remDelete: "((Delete#as, d) \<in> Domain application) = 
-                  (\<exists>c cs. d = c#cs \<and> (as,cs) \<in> Domain application)"  
-  apply (auto)
-  by (smt Domain.DomainI action.distinct(5) application.simps list.distinct(1) list.inject)
-
-lemma remDelete2: "(((Delete # list, d),d') \<in> application) = 
-                  (\<exists>c cs. d = c#cs \<and> ((list,cs),d') \<in> application)"  
-  apply (auto)
-  by (smt action.distinct(3) application.cases inputLength.simps(3) inputLength.simps(4) list.distinct(1) list.inject)
-
-text {* every document can be produced by the application of an operation to a document *}
-
-lemma applicationRange: "d' \<in> Range application"  
-  apply (induct_tac d')
-  apply (auto)
-  done
-
-subsection {* In- and Output Lenghts of Valid Operations *}
-
-text {* All pairs of operations and documents are contained in the domain of the application
-        iff the inputLength of the operation matches the length of the document *}
-
-lemma applicationDomain [rule_format]: 
-  "\<forall>d. (a,d) \<in> Domain application \<longleftrightarrow> inputLength a = length d"
-  apply (induct_tac a)  
-  apply (simp, clarify, rule emptyInputDomain)
-  apply (clarify, case_tac a)
-  apply (simp_all add: remRetain remInsert remDelete)
-  apply (metis length_Suc_conv)+
-  done
-  
-text {* if an operation @{term a} is a valid operation on any document @{term d} the length of the 
-        resulting document @{term d'} is equal to the output lenght of @{term a} *}
-
-lemma validOutputLength: "((a,d),d') \<in> application \<Longrightarrow> outputLength a = length d'"
-  by (erule application.induct, auto)
+  by (induct_tac a rule: inputLength.induct, auto)
 
 subsection {* Application function *}
 
@@ -163,7 +83,16 @@ where
 | "applyOp (Retain#next)   (head#tail) = Option.map (\<lambda>d. head#d) (applyOp next tail)"
 | "applyOp (Insert c#next) (d)         = Option.map (\<lambda>d. c#d)    (applyOp next d)"
 | "applyOp (Delete#next)   (_#tail)    = applyOp next tail"
-| "applyOp _               _           = None"
+| "applyOp (_)             (_)         = None"
+           
+text {* We also define an inductive set, describing the relation of all valid pairs of operations and 
+        documents and their resulting output document .*}
+
+inductive_set application :: "(('char operation \<times> 'char document) \<times> 'char document) set" where
+  empty[intro!]:  "(([],[]),[]) \<in> application"
+| retain[intro!]: "((a,d),d') \<in> application \<Longrightarrow> ((Retain#a,c#d),c#d')   \<in> application"
+| delete[intro!]: "((a,d),d') \<in> application \<Longrightarrow> ((Delete#a,c#d),d')     \<in> application"
+| insert[intro!]: "((a,d),d') \<in> application \<Longrightarrow> (((Insert c)#a,d),c#d') \<in> application"
 
 text {* We need to show the equality of the inductively defined set @{term application} and the partial
         function @{term applyOp} in order to use the inductive set for further correctness proofs
@@ -182,6 +111,54 @@ lemma applyOpSet: "applyOp a d = Some d' \<longleftrightarrow> ((a,d),d') \<in> 
 
 text {* this also implicitly proves that the relation @{term application} is deterministic *}
 
+subsection {* Valid Operations *}
+
+text {* iff an operation @{term a} is empty it can only be applied to the empty document and the
+        result is also the empty document *}
+
+lemma emptyInput: "applyOp [] d = Some d' \<longleftrightarrow> d = [] \<and> d' = []"
+  by (induct_tac d, auto)
+
+lemma emptyDocInsert: "(\<exists>d'. applyOp (a#as) [] = Some d') \<longrightarrow> (\<exists>c. a = Insert c)"
+  by (case_tac a, auto)
+  
+lemma remRetain: "(((Retain#as,d),d') \<in> application) =
+                   (\<exists>c cs cs'. d = c#cs \<and> d'=c#cs' \<and> ((as,cs),cs') \<in> application)"
+  apply (auto)
+  by (smt action.distinct(3) application.cases inputLength.simps(2) inputLength.simps(4) list.distinct(1) list.inject)
+
+lemma remInsert: "(((Insert c# as, d),d') \<in> application) =
+                   (\<exists>cs. d' = c#cs \<and> ((as,d),cs) \<in> application)"
+  apply (auto)
+  by (smt action.distinct(1) action.distinct(5) action.inject application.simps list.distinct(1) list.inject)
+
+lemma remDelete: "(((Delete # list, d),d') \<in> application) = 
+                  (\<exists>c cs. d = c#cs \<and> ((list,cs),d') \<in> application)"  
+  apply (auto)
+  by (smt action.distinct(3) application.cases inputLength.simps(3) inputLength.simps(4) list.distinct(1) list.inject)
+
+text {* every document can be produced by the application of an operation to a document *}
+
+lemma applicationRange: "\<exists>a d. ((a,d),d') \<in> application"
+  by (induct_tac d', auto)
+
+lemma applyOpRange: "\<exists>a d. applyOp a d = Some d'"
+  by (simp add: applicationRange applyOpSet)
+
+subsection {* In- and Output Lenghts of Valid Operations *}
+
+text {* All pairs of operations and documents are contained in the domain of the application
+        iff the inputLength of the operation matches the length of the document *}
+
+lemma applicationDomain: "(\<exists>d'. applyOp a d = Some d') \<longleftrightarrow> (inputLength a = length d)"
+  by (induct_tac a d rule: applyOp.induct, auto)
+  
+text {* if an operation @{term a} is a valid operation on any document @{term d} the length of the 
+        resulting document @{term d'} is equal to the output lenght of @{term a} *}
+
+lemma validOutputLength: "((a,d),d') \<in> application \<Longrightarrow> outputLength a = length d'"
+  by (erule application.induct, auto)
+
 subsection {* Normalization *}
 
 fun addDeleteOp :: "'char operation \<Rightarrow> 'char operation"
@@ -194,6 +171,9 @@ lemma addDeleteOpValid11: "((a,d),d') \<in> application \<Longrightarrow> \<fora
 
 lemma addDeleteOpValid1: "((Delete#as,d),d') \<in> application \<Longrightarrow> ((addDeleteOp as,d),d') \<in> application"
   by (smt action.distinct(3) action.distinct(5) addDeleteOpValid11 application.cases list.distinct(1) list.inject)
+
+lemma addDeleteOpValid: "applyOp a d = Some d' \<Longrightarrow> \<forall>c. applyOp (addDeleteOp a) (c#d) = Some d'"
+  by (simp add: applyOpSet addDeleteOpValid11)
 
 lemma addDeleteOutputLenght[simp]: "outputLength (addDeleteOp as) = outputLength as"
   by (rule addDeleteOp.induct, auto)
@@ -306,7 +286,7 @@ lemma composeDomain21 [rule_format]: "compose a b = None \<longrightarrow> outpu
 
 lemma composeDomain2: "outputLength a = inputLength b \<Longrightarrow> (\<exists>ab. compose a b = Some ab)"
   apply (erule contrapos_pp)
-  by (auto simp add: composeDomain21)
+  by (simp add: composeDomain21)
 
 lemma composeDomain: "(\<exists>ab. compose a b = Some ab) \<longleftrightarrow> outputLength a = inputLength b"
   by (auto intro: composeDomain1 composeDomain2)
@@ -325,24 +305,11 @@ text {* Finally we show that the @{term compose} function does actually compose 
 
 lemma compositionInv [rule_format]: "((a,b),ab) \<in> composition \<Longrightarrow> \<forall>d d' d''. ((a,d),d') \<in> application \<longrightarrow> ((b,d'),d'') \<in> application \<longrightarrow> ((ab,d),d'') \<in> application"
   apply (erule composition.induct)
-  apply (auto simp add: emptyInput addDeleteOpValid1)
-  apply (metis addDeleteOpValid11 remDelete2)
-  apply (metis remInsert2)  
-  apply (metis (lifting, no_types) Domain.DomainI list.inject remRetain remRetain2)
-  apply (metis (lifting, no_types) addDeleteOpValid1 list.inject remDelete2 remRetain2)
-  apply (metis (hide_lams, no_types) list.inject remInsert2 remRetain2)  
-  apply (metis list.inject remDelete2 remInsert2)
-  done
+  apply (auto simp add: emptyInput addDeleteOpValid11 remDelete remInsert remRetain)
+  by (metis applyOpSet emptyInput)
   
 lemma composeInv: "compose a b = Some ab \<Longrightarrow> applyOp a d = Some d' \<Longrightarrow> applyOp b d' = Some d'' \<Longrightarrow> applyOp ab d = Some d''"
-  apply (drule composeSet2)
-  apply (drule applyOpSet1)+
-  apply (rule applyOpSet2)
-  apply (simp add: compositionInv)
-  done
-
-lemma composeInv2: "compose a b = Some ab \<Longrightarrow> Option.bind (applyOp a d) (applyOp b) = applyOp ab d"  
-  oops
+  by (simp add: composeSet applyOpSet compositionInv)
 
 section {* Operation Transformation *}
 
@@ -365,25 +332,8 @@ where
 
 text {* the transformation of two operations yields a result iff they have an equal input length *}
 
-lemma transformDomain1 [rule_format]: 
-  "(\<exists>ab. (transform a b) = Some ab) \<longrightarrow> inputLength a = inputLength b"
-  by (rule transform.induct, auto)
-
-lemma transformDomain21 [rule_format]: 
-  "(transform a b) = None \<longrightarrow> inputLength a \<noteq> inputLength b"
-  by (rule transform.induct, auto)
-
-lemma notSome: "\<not>(\<exists>b c. a = Some (b,c)) \<Longrightarrow> a = None"
-  by (metis option.exhaust surj_pair)
-
-lemma transformDomain2 [rule_format]:
-  "inputLength a = inputLength b \<Longrightarrow> \<exists>a' b'. transform a b = Some (a',b')"
-  apply (erule contrapos_pp)
-  apply (drule notSome)
-  by (rule transformDomain21, simp)  
-
 lemma transformDomain: "(\<exists>ab. transform a b = Some ab) \<longleftrightarrow> inputLength a = inputLength b"
-  by (force intro: transformDomain1 transformDomain2)
+  by (induct_tac a b rule: transform.induct, auto)  
 
 text {* Yet again we define an inductive set to describe the transform relation. Again we omit all
         applications of @{term addDeleteOp} and replace them by @{term Delete} *}
@@ -402,23 +352,22 @@ inductive_set transformation :: "(('c operation \<times> 'c operation) \<times> 
 text {* we need to show, that the above relation is a superset of the @{term transform} function *}
 
 lemma transformSubset[rule_format]: "\<forall>a' b'. transform a b = Some (a',b') \<longrightarrow> ((a,b),(a',b')) \<in> transformation"
-  apply (rule transform.induct, auto)
-  done 
+  by (rule transform.induct, auto)  
 
-text {* And finally the convergence property *}
+text {* And finally we show the convergence property for the set ... *}
 
 lemma transformationConvergence: "((a,b),(a',b')) \<in> transformation \<Longrightarrow>
                                    (\<exists>ab. ((a,b'),ab) \<in> composition \<and> ((b,a'),ab) \<in> composition)"
-  apply (erule transformation.induct, auto)
-  done
+  by (erule transformation.induct, auto)  
 
-lemma tp1: "transform a b = Some (a',b') \<Longrightarrow> compose a b' \<noteq> None \<and> compose a b' = compose b a'"
+text {* ... and this also for the @{term transform} function *}
+
+lemma tp1: "transform a b = Some (a',b') \<Longrightarrow> compose a b' \<noteq> None \<and> compose a b' = compose b a'"  
   apply (drule transformSubset)
   apply (drule transformationConvergence)
-  apply (auto simp add: composeSet)
-  done
+  by (auto simp add: composeSet)  
   
-export_code applyOp addDeleteOp compose transform in JavaScript
-  module_name Operation
+(*export_code applyOp addDeleteOp compose transform in Scala
+  module_name Operation*)
 
 end
