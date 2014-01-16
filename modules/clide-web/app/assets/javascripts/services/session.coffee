@@ -138,6 +138,7 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
     remove = (id) ->
       for s, i in session.collaborators
         if s.id is id
+          s.active = false
           return session.collaborators.splice(i,1)
 
     update = (info) ->
