@@ -37,27 +37,7 @@ import clide.collaboration.AnnotationType
 import isabelle.Protocol
 import isabelle.Text
 
-object IsabelleMarkup {
-  val classes = Map(      
-      Markup.KEYWORD1 -> "keyword",
-      Markup.KEYWORD2 -> "keyword",
-      Markup.STRING -> "string",
-      Markup.ALTSTRING -> "string",
-      Markup.VERBATIM -> "verbatim",
-      Markup.LITERAL -> "keyword",
-      Markup.DELIMITER -> "delimiter",
-      Markup.TFREE -> "tfree",
-      Markup.TVAR -> "tvar",
-      Markup.FREE -> "free",
-      Markup.SKOLEM -> "skolem",
-      Markup.BOUND -> "bound",
-      Markup.VAR -> "var",
-      Markup.INNER_STRING -> "innerString",
-      Markup.INNER_COMMENT -> "innerComment",
-      Markup.DYNAMIC_FACT -> "dynamic_fact")  
-      
-  val classesElements = classes.keySet
-  
+object IsabelleMarkup {  
   def annotations(xml: XML.Tree, c: Set[(AnnotationType.Value,String)] = Set.empty): List[Annotation] = xml match {
     case XML.Wrapped_Elem(markup, body, body2) =>
       markup.name match {
@@ -102,7 +82,28 @@ object IsabelleMarkup {
       }
   }
 
-  def highlighting(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {
+  val classes = Map(      
+      Markup.KEYWORD1 -> "keyword",
+      Markup.KEYWORD2 -> "keyword",
+      Markup.STRING -> "string",
+      Markup.ALTSTRING -> "string",
+      Markup.VERBATIM -> "verbatim",
+      Markup.LITERAL -> "keyword",
+      Markup.DELIMITER -> "delimiter",
+      Markup.TFREE -> "tfree",
+      Markup.TVAR -> "tvar",
+      Markup.FREE -> "free",
+      Markup.SKOLEM -> "skolem",
+      Markup.BOUND -> "bound",
+      Markup.VAR -> "var",
+      Markup.INNER_STRING -> "innerString",
+      Markup.INNER_COMMENT -> "innerComment",
+      Markup.DYNAMIC_FACT -> "dynamic_fact")  
+      
+  val classesElements = classes.keySet
+  
+  
+  def highlighting(snapshot: Document.Snapshot): Annotations = {
     val cs: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(classesElements), _ =>
       {
         case (_, Text.Info(_,elem)) => Some(classes.get(elem.name))   
@@ -113,7 +114,7 @@ object IsabelleMarkup {
     }    
   }
   
-  def errors(header: Document.Node.Header, snapshot: Document.Snapshot): Annotations = {
+  def errors(snapshot: Document.Snapshot): Annotations = {
     val es: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.ERROR, Markup.ERROR_MESSAGE)), _ =>
       {
         case (_, Text.Info(_,elem)) => println("err: " + elem) 
@@ -122,6 +123,18 @@ object IsabelleMarkup {
     es.foldLeft(new Annotations) {
       case (as, Text.Info(range,None))      => as.plain(range.length)
       case (as, Text.Info(range,Some(msg))) => as.annotate(range.length, Set(AnnotationType.Class -> "error", AnnotationType.ErrorMessage -> msg))      
+    }
+  }
+
+  def warnings(snapshot: Document.Snapshot): Annotations = {
+    val ws: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.WARNING, Markup.WARNING_MESSAGE)), _ =>
+      {
+        case (_, Text.Info(_,elem)) => println("err: " + elem) 
+          Some(Some(elem.toString))
+      })
+    ws.foldLeft(new Annotations) {
+      case (as, Text.Info(range,None))      => as.plain(range.length)
+      case (as, Text.Info(range,Some(msg))) => as.annotate(range.length, Set(AnnotationType.Class -> "warning", AnnotationType.WarningMessage -> msg))      
     }
   }
   
@@ -140,6 +153,18 @@ object IsabelleMarkup {
       }
     }
   }
+  
+  def typeInfo(snapshot: Document.Snapshot): Annotations = {
+    val ws: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.TYPING)), _ =>
+      {
+        case (_, Text.Info(_,elem)) => println("err: " + elem) 
+          Some(Some(elem.toString))
+      })
+    ws.foldLeft(new Annotations) {
+      case (as, Text.Info(range,None))      => as.plain(range.length)
+      case (as, Text.Info(range,Some(msg))) => as.annotate(range.length, Set(AnnotationType.Tooltip -> msg))      
+    }
+  }    
   
   def substitutions(state: String): Annotations =
     Symbol.iterator(state).foldLeft(new Annotations) {
