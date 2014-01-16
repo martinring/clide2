@@ -172,7 +172,17 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
       sender ! AnnotationsClosed(info.id,user,name)
 
     case EOF =>
-      clients.remove(sender)
+      clients.remove(sender) match {
+        case Some(c) =>
+          annotations.filterKeys(_._1 == c.id).toList.foreach {
+            case ((u,n),as) => 
+              annotations.remove((u,n))
+              subscriptions.remove((u,n)) match {
+                case Some(subscribers) => subscribers.foreach(_ ! AnnotationsClosed(info.id,u,n))
+              }
+          }
+      }
+      
       
     case TouchFile =>
       //

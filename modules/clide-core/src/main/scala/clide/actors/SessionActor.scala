@@ -147,7 +147,9 @@ private class SessionActor(
       peer ! EventSocket(self,"session")
     case LeaveSession | EOF =>
       setActive(false)
-      peer = context.system.deadLetters
+      fileServers.values.foreach { _ ! EOF }
+      fileServers.clear()
+      peer = context.system.deadLetters      
       context.unwatch(sender)
     case CloseSession =>
       context.unwatch(peer)
@@ -228,7 +230,7 @@ private class SessionActor(
       peer ! FileOpened(of)
     case Terminated(ref) =>
       if (ref == peer) {
-	    log.info("going idle due to termination")
+	    log.warning("going idle due to termination")
 	    receive(LeaveSession)
       } else {
         fileServers.find(_._2 == ref).map { case (id,_) =>
