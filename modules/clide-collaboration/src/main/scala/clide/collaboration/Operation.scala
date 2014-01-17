@@ -23,7 +23,7 @@
 \*                                                                            */
 
 /**
- * adapted from Tim Baumanns Haskell OT library (MIT-License)
+ * originally adapted from Tim Baumanns Haskell OT library (MIT-License)
  * @see https://github.com/Operational-Transformation/ot.hs
  * @author Martin Ring
  */
@@ -42,6 +42,7 @@ sealed trait Action {
     case Delete(n) => (-n).toString
   }
 }
+
 /** Skip the next `n` positions */
 case class Retain(n: Int) extends Action { require(n>=0) }
 /** Insert the given text at the current position */
@@ -117,7 +118,7 @@ object Operation {
       }
       case (Nil,Insert(i)::bs,xs,ys) => loop(Nil,bs,addRetain(i.length,xs),addInsert(i,ys))
       case (Insert(i)::as,Nil,xs,ys) => loop(as,Nil,addInsert(i,xs),addRetain(i.length,ys))
-      case _ => Failure(new Exception("the operations couldn't be transformed because they haven't been applied to the same document"))
+      case _ => Failure(new Exception("the operations cannot be transformed: input-lengths must match"))
     }
     loop(a.actions,b.actions,Nil,Nil).map { case (a,b) => (Operation(a.reverse), Operation(b.reverse)) }
   }
@@ -151,7 +152,7 @@ object Operation {
           case GT => loop(Insert(i.drop(d))::as,bs,xs)
         }
       }
-      case _ => Failure(new Exception("the operations couldn't be composed since their lengths don't match"))
+      case _ => Failure(new Exception("the operations cannot be composed: output-length of a must match input-length of a"))
     }
     loop(a.actions,b.actions,Nil).map(x => Operation(x.reverse))
   }
