@@ -46,18 +46,18 @@ case class HaskellBehavior(control: AssistantControl) extends AssistantBehavior 
   def start(project: ProjectInfo) {
     new java.io.File(project.root).mkdirs()
     this.project = project
-    control.chat("i'm ready to go!")
+    control.chat("i'm ready to go!")    
   }
 
   def stop {
     log.info("ghc stopped")
   }
 
-  def fileOpened(file: OpenedFile) {
-
+  def fileOpened(file: OpenedFile) {    
   }
 
   def fileActivated(file: OpenedFile) {
+    control.offerAnnotations(file,"test",Some("some interesting test stuff"))
     fileChanged(file,new Operation(List(Insert(file.state))),Seq.empty)
   }
 
@@ -146,7 +146,16 @@ case class HaskellBehavior(control: AssistantControl) extends AssistantBehavior 
       })
     }
   }
-    
+   
+  def annotationsRequested(file: OpenedFile, name: String) = {
+    log.info("annotations requested: " + name)
+    control.annotate(file, "test", (new Annotations).plain(file.state.length))
+  }
+  
+  def annotationsDisregarded(file: OpenedFile, name: String) = {
+    log.info("annotations disregarded: " + name)
+  }
+  
   def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) {
     control.log.info("{}: {}", from, msg)
   }

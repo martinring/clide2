@@ -42,12 +42,12 @@ class TestSetup {
   val (testProject1a, testProject2a,
        testProject2b, testProject3a,
        testProject3b, testProject3c) = db.withSession { implicit session: Session =>
-    (ProjectInfos.create("test-project-1a", testUser1.name, None),
-     ProjectInfos.create("test-project-2a", testUser2.name, None),
-     ProjectInfos.create("test-project-2b", testUser2.name, None),
-     ProjectInfos.create("test-project-3a", testUser3.name, None),
-     ProjectInfos.create("test-project-3b", testUser3.name, None),
-     ProjectInfos.create("test-project-3c", testUser3.name, None))
+    (ProjectInfos.create("test-project-1a", testUser1.name, None, false),
+     ProjectInfos.create("test-project-2a", testUser2.name, None, false),
+     ProjectInfos.create("test-project-2b", testUser2.name, None, false),
+     ProjectInfos.create("test-project-3a", testUser3.name, None, false),
+     ProjectInfos.create("test-project-3b", testUser3.name, None, false),
+     ProjectInfos.create("test-project-3c", testUser3.name, None, false))
   }
   
   /*val (testFolder: FileInfo, testSubfolder: FileInfo,

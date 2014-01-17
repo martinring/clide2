@@ -121,7 +121,17 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
         s.show = true
         a = client.transformAnnotation(a)
         adapter.applyAnnotation(a,u,n)
+      nfile.$addAnnotations = (u,n,d) ->
+        nfile.annotations    = nfile.annotations or { }
+        nfile.annotations[u] = nfile.annotations[u] or [ ]
+        for stream in nfile.annotations[u]
+          if stream.name is n
+            stream.description = d
+            return
+        nfile.annotations[u].push { show: false, name: n, description: d }
       nfile.$removeAnnotations = (u,n) ->
+        nfile.annotations    = nfile.annotations or { }
+        nfile.annotations[u] = nfile.annotations[u] or [ ]
         for stream in nfile.annotations[u]
           if stream.name is n
             stream.show = false
@@ -260,6 +270,9 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
                   setActiveFile(msg.c.info.id, context.tell)
               when 'failed'
                 Toasts.push("danger","the initialization of the requested file failed on the server")
+              when 'ao'
+                apply ->
+                  getOpenFile(msg.f).$addAnnotations(msg.u,msg.n,msg.d)
               when 'ac'
                 apply ->
                   getOpenFile(msg.f).$removeAnnotations(msg.u,msg.n)

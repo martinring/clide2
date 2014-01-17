@@ -83,6 +83,8 @@ class AssistantServer(behavior: AssistantControl => AssistBehavior)(implicit dum
 	  def collaboratorJoined(who: SessionInfo): Future[Unit] = Future(underlying.collaboratorJoined(who))
   	  def collaboratorLeft(who: SessionInfo): Future[Unit] = Future(underlying.collaboratorLeft(who))
 	  def cursorMoved(cursor: Cursor): Future[Unit] = Future(underlying.cursorMoved(cursor))
+      def annotationsRequested(file: OpenedFile, name: String): Future[Unit] = Future(underlying.annotationsRequested(file, name))
+      def annotationsDisregarded(file: OpenedFile, name: String): Future[Unit] = Future(underlying.annotationsDisregarded(file, name))
 	  def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long): Future[Unit] = Future(underlying.receiveChatMessage(from.user, msg, tpe, timestamp))
     }
   }

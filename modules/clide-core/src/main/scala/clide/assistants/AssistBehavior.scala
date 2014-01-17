@@ -112,6 +112,16 @@ trait AssistBehavior {
   def cursorMoved(cursor: Cursor): Future[Unit]
   
   /**
+   * at least one client is interested in seeing the specified annotation stream
+   */
+  def annotationsRequested(file: OpenedFile, name: String): Future[Unit]
+  
+  /**
+   * all clients dropped their interest in seeing the specified annotation stream
+   */
+  def annotationsDisregarded(file: OpenedFile, name: String): Future[Unit]
+  
+  /**
    * called when a chat message arrives
    * @param from username of the sender
    * @param msg the message content

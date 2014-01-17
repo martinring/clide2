@@ -142,10 +142,12 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       peer ! DoneWithFile(file)
     }
   }
-  
+      
   def failedInFile(file: OpenedFile, message: Option[String]): Unit = failedInFile(file.info.id, message)
   
   def failedInFile(file: Long, message: Option[String]): Unit = peer ! FailureInFile(file, message)
+  
+  def offerAnnotations(file: OpenedFile, name: String, description: Option[String]) = peer ! OfferAnnotations(file.info.id, name, description)
   
   def stop() = self ! PoisonPill
 
@@ -183,8 +185,6 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           annotations(file) += (user,name) -> as
 
       case Continue =>
-        unstashAll()
-
         context.become(initialized)
         for {
           (file, op) <- edits
@@ -193,6 +193,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           (file,as) <- annotations
           ((user,name),as) <- as
         } self ! Annotated(file,user,as,name)
+        unstashAll()
         
       case Terminated(_) =>
         log.warning("peer terminated")
@@ -290,6 +291,16 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         doWork(Some(file.info.id))(behavior.cursorMoved(Cursor(user,file,pos)))
       }
 
+    case AnnotationsRequested(file,name) if files.isDefinedAt(file) =>
+      for {
+        file <- files.get(file)
+      } doWork(Some(file.info.id))(behavior.annotationsRequested(file, name))
+      
+    case AnnotationsDisregarded(file,name) if files.isDefinedAt(file) =>
+      for {
+        file <- files.get(file)
+      } doWork(Some(file.info.id))(behavior.annotationsDisregarded(file, name))
+      
     case BroadcastEvent(who, when, LookingAtFile(file)) =>
       for (who <- collaborators.find(_.id == who) if who.isHuman) {
         log.debug("{} is looking at file {}", who.user, file)

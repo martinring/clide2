@@ -176,6 +176,7 @@ object Conversions {
     case FileOpened(i)     => "opened" of i
     case Edited(file,o)    => Json.obj("f"->file,"o"->o)
     case Kicked            => "kicked"
+    case AnnotationsOffered(file,user,name,descr) => Json.obj("t"->"ao","f"->file,"u"->user,"n"->name,"d"->descr)
     case Annotated(file,user,a,name)         => Json.obj("f"->file,"a"->a,"u"->user,"n"->name)
     case AnnotationsClosed(file,user,name)   => Json.obj("t"->"ac","f"->file,"u"->user,"n"->name)
     // TODO: case AnnotationChanged(file,user,a,name) => Json.obj("f"->file,"ac"->a,"u"->user,"n"->name)

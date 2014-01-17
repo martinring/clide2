@@ -56,6 +56,16 @@ trait AssistantControl {
   def openFile(id: Long): Future[OpenedFile]
 
   /**
+   * Offer an annotation stream for a file. Can be used to offer expensive or annoying annotations without them beeing
+   * enabled by default.
+   * 
+   * @param file the file for which annotations are offered
+   * @param name the name of the annotation stream (must be unique)
+   * @param description an optional description that will help clients to understand what the purpose of the annotation stream is
+   */
+  def offerAnnotations(file: OpenedFile, name: String, description: Option[String]): Unit
+  
+  /**
    * Annotate a file
    *
    * @param file the state of the file, which is being referenced
@@ -63,8 +73,8 @@ trait AssistantControl {
    * @param annotations the updated annotation stream
    * @param delay optional delay. can be used to delay error annotations, so that they will not be broadcasted if the error gets removed during the delay
    */
-  def annotate(file: OpenedFile, name: String, annotations: Annotations, delay: FiniteDuration = Duration.Zero): Unit
-
+  def annotate(file: OpenedFile, name: String, annotations: Annotations, delay: FiniteDuration = Duration.Zero): Unit  
+  
   /**
    * indicate activity on a file.
    * 

@@ -109,6 +109,17 @@ trait AssistantBehavior {
    */
   def cursorMoved(cursor: Cursor): Unit
   
+  
+  /**
+   * at least one client is interested in seeing the specified annotation stream
+   */
+  def annotationsRequested(file: OpenedFile, name: String): Unit
+  
+  /**
+   * all clients dropped their interest in seeing the specified annotation stream
+   */
+  def annotationsDisregarded(file: OpenedFile, name: String): Unit    
+  
   /**
    * called when a chat message arrives
    * @param from username of the sender

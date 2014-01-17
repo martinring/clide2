@@ -118,6 +118,14 @@ private class SessionActor(
       }
     }
   }
+  
+  def forwardToFile(id: Long, msg: FileMessage) = {
+    fileServers.get(id).map { ref =>
+      ref ! msg
+    } getOrElse {
+      context.parent ! wrap(WithPath(openFiles(id).path, msg))
+    }
+  }
 
   def receive = {
     // echoing
@@ -170,6 +178,12 @@ private class SessionActor(
       peer ! Annotated(f,u,an,n)
     case msg@AnnotationsClosed(f,u,n) =>
       peer ! msg
+    case msg@AnnotationsRequested(f,n) =>
+      peer ! msg
+    case msg@AnnotationsDisregarded(f,n) =>
+      peer ! msg
+    case msg@AnnotationsOffered(f,u,n,d) =>
+      peer ! msg
     case SetColor(value) =>
       session = session.copy(color = value)
       context.parent ! SessionChanged(session)
@@ -190,30 +204,16 @@ private class SessionActor(
       }
       openFiles.remove(id)
       fileServers.remove(id)
-    case msg @ Edit(id,_,_) =>
-      fileServers.get(id).map{ ref =>
-        ref ! msg
-      } getOrElse {        
-        context.parent ! wrap(WithPath(openFiles(id).path, msg))
-      }      
-    case msg @ Annotate(id,_,_,_) =>
-      fileServers.get(id).map{ ref =>
-        ref ! msg
-      } getOrElse {        
-        context.parent ! wrap(WithPath(openFiles(id).path, msg))
-      }
-    case msg @ SubscribeToAnnotations(id,_,_) =>
-      fileServers.get(id).map { ref =>
-        ref ! msg        
-      } getOrElse {        
-        context.parent ! wrap(WithPath(openFiles(id).path, msg))
-      }
-    case msg @ UnsubscribeFromAnnotations(id,_,_) =>
-      fileServers.get(id).map { ref =>
-        ref ! msg        
-      } getOrElse {        
-        context.parent ! wrap(WithPath(openFiles(id).path, msg))
-      }
+    case msg @ Edit(id,_,_) if openFiles.isDefinedAt(id) =>
+      forwardToFile(id, msg)
+    case msg @ Annotate(id,_,_,_) if openFiles.isDefinedAt(id) =>
+      forwardToFile(id, msg)
+    case msg @ SubscribeToAnnotations(id,_,_) if openFiles.isDefinedAt(id) =>
+      forwardToFile(id, msg)
+    case msg @ UnsubscribeFromAnnotations(id,_,_) if openFiles.isDefinedAt(id) =>
+      forwardToFile(id, msg)
+    case msg @ OfferAnnotations(id,_,_) if openFiles.isDefinedAt(id) =>
+      forwardToFile(id, msg)
     case msg @ FileInitFailed(f) =>
       peer ! msg
     case msg @ Events.internal.OTState(f,s,r) =>
