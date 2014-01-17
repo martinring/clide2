@@ -76,21 +76,26 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
     control.log.info("fileOpened({})", file.info.path)
     noop
   }
+  
   def fileActivated(file: OpenedFile) = {
     control.log.info("fileActivated({})", file.info.path)
     updateFile(file, file, initEdits(file, Nil))    
-  } 
+  }
+  
   def fileInactivated(file: OpenedFile) = {
-    updateFile(file, file, closeEdits(file))    
+    updateFile(file, file, closeEdits(file))
   }
   
   def fileClosed(file: OpenedFile) = {
     updateFile(file, file, removeEdits(file))    
   }
   
+
+  
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = {
     control.log.info("fileChanged({},{},...)", file.info.path, delta)
     val edits = opToDocumentEdits(file, cursors, delta)
+    this.cursors = cursors.toSet
     updateFile(file,file,edits)
   }
 
@@ -98,6 +103,8 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
   def collaboratorLeft(who: SessionInfo) = noop
   
   def cursorMoved(cursor: Cursor) = {
+    this.cursors += cursor
+    
     noop
   }
   

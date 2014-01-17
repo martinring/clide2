@@ -44,6 +44,7 @@ import scala.concurrent.Future
 trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversions =>
   var session: Session     = null
   var project: ProjectInfo = null
+  var cursors = Set.empty[Cursor]
   
   private var files = scala.collection.mutable.Map.empty[Document.Node.Name,(scala.concurrent.Future[Document.Version],OpenedFile)]                 
   
@@ -65,13 +66,13 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
     } for {
       (v,state) <- files.get(snapshot.node_name)
       if v.value.flatMap(_.toOption) == Some(snapshot.version)
-    } {        
+    } {
       control.log.info("annotating snapshot {}", snapshot.node_name)
       control.annotate(state, "inner syntax", IsabelleMarkup.highlighting(snapshot))
-      control.annotate(state, "output",   IsabelleMarkup.output(snapshot, Set.empty))
+      control.annotate(state, "output", IsabelleMarkup.output(snapshot, Set.empty))
       control.annotate(state, "errors", IsabelleMarkup.errors(snapshot))
       control.annotate(state, "warnings", IsabelleMarkup.warnings(snapshot))
-      control.annotate(state, "typing tooltips", IsabelleMarkup.typeInfo(snapshot))      
+      control.annotate(state, "typing tooltips", IsabelleMarkup.typeInfo(snapshot))
     }
   }
   

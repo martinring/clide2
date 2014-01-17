@@ -117,37 +117,42 @@ object IsabelleMarkup {
   def errors(snapshot: Document.Snapshot): Annotations = {
     val es: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.ERROR, Markup.ERROR_MESSAGE)), _ =>
       {
-        case (_, Text.Info(_,elem)) => println("err: " + elem) 
+        case (_, Text.Info(_,elem)) =>
           Some(Some(elem.toString))
       })
     es.foldLeft(new Annotations) {
-      case (as, Text.Info(range,None))      => as.plain(range.length)
-      case (as, Text.Info(range,Some(msg))) => as.annotate(range.length, Set(AnnotationType.Class -> "error", AnnotationType.ErrorMessage -> msg))      
+      case (as, Text.Info(range,None))    => as.plain(range.length)
+      case (as, Text.Info(range,_)) => as.annotate(range.length, Set(AnnotationType.Class -> "error"))      
     }
   }
 
   def warnings(snapshot: Document.Snapshot): Annotations = {
     val ws: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.WARNING, Markup.WARNING_MESSAGE)), _ =>
       {
-        case (_, Text.Info(_,elem)) => println("err: " + elem) 
+        case (_, Text.Info(_,elem)) =>
           Some(Some(elem.toString))
       })
-    ws.foldLeft(new Annotations) {
-      case (as, Text.Info(range,None))      => as.plain(range.length)
-      case (as, Text.Info(range,Some(msg))) => as.annotate(range.length, Set(AnnotationType.Class -> "warning", AnnotationType.WarningMessage -> msg))      
+    ws.foldLeft(new Annotations) {      
+      case (as, Text.Info(range,None))    => as.plain(range.length)
+      case (as, Text.Info(range,_)) => as.annotate(range.length, Set(AnnotationType.Class -> "warning"))      
     }
   }
   
   def output(snapshot: Document.Snapshot, positions: Set[Text.Offset]): Annotations = {    
     snapshot.node.commands.foldLeft (new Annotations) {
       case (as,cmd) => if (!cmd.is_ignored) {
-        val state = snapshot.state.command_state(snapshot.version, cmd)               
-        val output = state.results.entries.map(_._2)
+        val state = snapshot.state.command_state(snapshot.version, cmd)
+        val outputs = state.results.entries.map(_._2)
           .filterNot(Protocol.is_result(_))
-          .collect{ case XML.Elem(markup,body) if markup.name == Markup.WRITELN_MESSAGE =>            
-            isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n") }
-          .mkString("\n")
-        as.annotate(cmd.length, Set(AnnotationType.Output -> output))
+          .collect{ 
+            case XML.Elem(markup,body) if markup.name == Markup.WRITELN_MESSAGE =>
+              AnnotationType.Output -> XML.content(body) //isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n")
+            case XML.Elem(markup,body) if markup.name == Markup.ERROR_MESSAGE =>
+              AnnotationType.ErrorMessage -> XML.content(body) //isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n")
+            case XML.Elem(markup,body) if markup.name == Markup.WARNING_MESSAGE =>
+              AnnotationType.WarningMessage -> isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n")                       
+          }
+        as.annotate(cmd.length, outputs.toSet)
       } else {
         as.plain(cmd.length)
       }
@@ -157,7 +162,7 @@ object IsabelleMarkup {
   def typeInfo(snapshot: Document.Snapshot): Annotations = {
     val ws: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.TYPING)), _ =>
       {
-        case (_, Text.Info(_,elem)) => println("err: " + elem) 
+        case (_, Text.Info(_,elem)) =>
           Some(Some(elem.toString))
       })
     ws.foldLeft(new Annotations) {
