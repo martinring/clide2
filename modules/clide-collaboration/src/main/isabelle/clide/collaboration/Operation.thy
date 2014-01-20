@@ -1,199 +1,127 @@
-(* Formalisation of Operational Transformation *)
-(* author: Martin Ring, DFKI Bremen *) (*<*) 
-
 theory Operation
-imports Main List Option Set
-begin (*>*)
+imports Main List Option Set SimpleOperation 
+begin
 
-section {* Actions, Operations and Documents *}
+section {* Aggregated Actions *}
 
-text {* A @{term document} is a list of elements. *}
+lemma retainN: "((a,d),d') \<in> application \<longrightarrow> (((replicate (length init) Retain)@a,init@d),init@d') \<in> application"
+  by (induct_tac init, auto)
 
-type_synonym 'char document = "'char list"
+lemma insertN: "((a,d),d') \<in> application \<longrightarrow> (((map Insert init)@a,d),init@d') \<in> application"
+  by (induct_tac init, auto)
 
-text {* An @{term action} can either alter the document at the current position or move the virtual 
-        cursor on the document forward or do both. *}
+lemma deleteN: "((a,d),d') \<in> application \<longrightarrow> (((replicate (length init) Delete)@a,init@d),d') \<in> application"
+  by (induct_tac init, auto)
 
-datatype 'char action = Retain nat | Insert 'char "'char list" | Delete nat
-
-text {* An @{term operation} is a list of actions. *}
+datatype 'char action = Retain nat | Insert "'char list" | Delete nat
 
 type_synonym 'char operation = "'char action list"
 
-text {* There are three types of actions of which an operation is composed:
-        @{term Retain}, @{term "Insert c"} and @{term Delete}. An operation is
-        a list of actions.
+text {* We define an inductive set of all operations and their equivalent simple operations *}
 
-        \begin{itemize}
-          \item @{term "Retain n"} moves the cursor @{term "n + 1"} positions forward, not altering 
-                                   the text.
-          \item @{term "Insert c cs"} inserts elements in @{term "c#cs"} at the position of the cursor 
-                                      and moves the cursor behind these elements.
-          \item @{term "Delete n"} deletes the next @{term "n + 1"} elements of the document, not 
-                                   moving the cursor.
-        \end{itemize} *}
+inductive_set operations :: "('char SimpleOperation.operation \<times> 'char operation) set" where
+  empty[intro!]:  "([],[]) \<in> operations"
+| retain[intro!]: "(a,b) \<in> operations \<Longrightarrow> ((List.replicate n SimpleOperation.Retain) @ a, Retain n#b) \<in> operations"
+| insert[intro!]: "(a,b) \<in> operations \<Longrightarrow> ((List.map SimpleOperation.Insert s) @ a,       Insert s#b) \<in> operations"
+| delete[intro!]: "(a,b) \<in> operations \<Longrightarrow> ((List.replicate n SimpleOperation.Delete) @ a, Delete n#b) \<in> operations"
 
-subsection {* In- and Output Lengths of Operations *}
+lemma retain1: "SimpleOperation.Retain#a   = append (List.replicate 1 SimpleOperation.Retain) a" by (auto)
+lemma insert1: "SimpleOperation.Insert c#a = append (List.map SimpleOperation.Insert [c]) a" by (auto)
+lemma delete1: "SimpleOperation.Delete#a   = append (List.replicate 1 SimpleOperation.Delete) a" by (auto)
 
-text {* An operation has an input length and an output length:
-
-        \begin{itemize}
-          \item The input length is the length of a document on which the operation can
-                be applied.
-          \item The output length is the length of the result of the application on a
-                document on which the operation is defined.
-        \end{itemize} *}
-
-fun inputLength :: "'char operation \<Rightarrow> nat" where
-  "inputLength [] = 0"
-| "inputLength (Retain n#xs) = (1 + n) + inputLength xs"
-| "inputLength (Insert c cs#xs) = inputLength xs"
-| "inputLength (Delete n#xs) = (1 + n) + inputLength xs"
-
-text {* if an operation @{term a} has input lenght 0, a must be empty or it consists only of insert 
-        actions *}
-
-lemma emptyInputInsert [rule_format]: "inputLength a = 0 \<longrightarrow> a = [] \<or> (\<exists>as c cs. a = Insert c cs#as)"
-  apply (induct_tac a, safe)
-  apply (case_tac a, auto)+
+lemma operationsComplete1: "\<exists>b. (a,b) \<in> operations"
+  apply (induct_tac a, force)
+  apply (case_tac a, auto)
+  apply (subst retain1, metis operations.retain)
+  apply (subst insert1, metis operations.insert)
+  apply (subst delete1, metis operations.delete)
   done
 
-fun outputLength :: "'char operation \<Rightarrow> nat" where
-  "outputLength [] = 0"
-| "outputLength (Retain n#xs) = (1 + n) + outputLength xs"
-| "outputLength (Insert s ss#xs) = (1 + length ss) + outputLength xs"
-| "outputLength (Delete _#xs) = outputLength xs"
-
-text {* if an operation @{term a} has output lenght 0, @{term a} must be empty or is consists only 
-        of delete actions *}
-
-lemma emptyOutputDelete [rule_format]: "outputLength a = 0 \<longrightarrow> a = [] \<or> (\<exists>as n. a = Delete n#as)"
-  apply (induct_tac a, auto)
-  apply (case_tac a, auto)+
-  done  
-
-text {* if an operation @{term a} has output and input lenght of @{term 0}, the operation must be empty *}
-
-lemma emptyInOutOp [rule_format]: "inputLength a = 0 \<and> outputLength a = 0 \<longrightarrow> a = []"
-  apply (induct_tac a, auto)
-  apply (case_tac a, auto)+
+lemma operationsComplete2: "\<exists>a. (a,b) \<in> operations"
+  apply (induct_tac b, force)
+  apply (case_tac a, auto)
   done
 
-section {* Application function *}
-
-text {* The @{term applyOp} function applies an operation @{term a} to document @{term d} and yields 
-        either @{term None} if the input length of @{term a} does not match the length of @{term d} 
-        or @{term "Some d'"} where @{term d'} is the result of a valid application *}
-
-fun splitRec :: "nat \<Rightarrow> 'char document \<Rightarrow> 'char document \<Rightarrow> ('char document \<times> 'char document) option" where
-  "splitRec 0 (y#ys) xs = Some (append xs [y],ys)"
-| "splitRec n (y#ys) xs = splitRec (n - 1) ys (append xs [y])"
-| "splitRec _ _ _ = None"
-
-definition split :: "nat \<Rightarrow> 'char document \<Rightarrow> ('char document \<times> 'char document) option" where
-  "split n ys = splitRec n ys []"
-
-fun applyOp :: "'char operation \<Rightarrow> 'char document \<Rightarrow> 'char document option"
-where
-  empty[intro!]:  "applyOp ([])               ([])  = Some []"
-| retain[intro!]: "applyOp (Retain n#next)    (doc) = Option.bind (split n doc) (\<lambda>(l,r). Option.map (append l) (applyOp next r))"
-| insert[intro!]: "applyOp (Insert c cs#next) (doc) = Option.map (append (c#cs)) (applyOp next doc)"
-| delete[intro!]: "applyOp (Delete n#next)    (doc) = Option.bind (split n doc) (\<lambda>(_,r). applyOp next r)"
-| "applyOp _                  _     = None"
-
-subsection {* Valid Operations *}
-
-text {* iff an operation @{term a} is empty it can only be applied to the empty document and the
-        result is also the empty document *}
-
-lemma emptyInput: "applyOp [] d = Some d' \<longleftrightarrow> d = [] \<and> d' = []"  
-  by (case_tac d, auto)
-
-lemma emptyInputDomain[rule_format]: "(\<exists> d'. applyOp [] d = Some d') \<longleftrightarrow> d = []"
-  by (auto simp add: emptyInput)
-
-lemma emptyDocInsert: "\<exists>d'. applyOp (a#as) [] = Some d' \<Longrightarrow> \<exists>c cs. a = Insert c cs"
+lemma emptyOperations: "(a,[]) \<in> operations \<Longrightarrow> a = []"
   sorry
 
-text {* every document can be produced by the application of an operation to a document *}
+fun applyOp :: "'char operation \<Rightarrow> 'char document \<Rightarrow> 'char document"
+where
+  "applyOp ([])            ([])  = []"
+| "applyOp (Retain n#next) (doc) = append (take n doc) (applyOp next (drop n doc))"
+| "applyOp (Insert s#next) (doc) = append s (applyOp next doc)"
+| "applyOp (Delete n#next) (doc) = applyOp next (drop n doc)"
 
-lemma applicationRange: "\<exists>a d. applyOp a d = Some d'"  
-  apply (induct_tac d')
-  apply (auto)
-  by (metis Operation.empty Operation.insert append_Nil2 option_map_Some)
+inductive_set application :: "(('char SimpleOperation.operation \<times> 'char operation \<times> 'char document) \<times> 'char document) set" where
+  empty[intro!]:  "(([],[],[]),[]) \<in> application"
+| retain[intro!]: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.replicate (length init) SimpleOperation.Retain) @ a,Retain (length init)#b,init@d),init@d') \<in> application"
+| insert[intro!]: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.map SimpleOperation.Insert init) @ a,Insert init#b,d),init@d') \<in> application"
+| delete[intro!]: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.replicate (length init) SimpleOperation.Delete) @ a,Delete (length init)#b,init@d),d') \<in> application"
 
-subsection {* In- and Output Lenghts of Valid Operations *}
+lemma applicationEq1: "((a,b,d),d') \<in> application \<Longrightarrow> ((a,d),d') \<in> SimpleOperation.application"
+  by (erule application.induct, auto simp add: retainN insertN deleteN)
 
-text {* All pairs of operations and documents are contained in the domain of the application
-        iff the inputLength of the operation matches the length of the document *}
+lemma applyOpSet1: "((a,b,d),d') \<in> application \<Longrightarrow> applyOp b d = d'"
+  by (erule application.induct, auto)
 
-lemma applicationDomain[rule_format]: 
-  "(\<exists> d'. applyOp a d = Some d') \<longleftrightarrow> inputLength a = length d"
-  apply (induct_tac a)
-  apply (simp add: emptyInputDomain)
-  apply (case_tac a) 
-  apply (simp_all)
-  oops
+lemma applyOpCompl: "(a,b) \<in> operations \<Longrightarrow> \<exists>d d'. ((a,b,d),d') \<in> application"
+  apply (erule operations.induct, auto)  
+  apply (metis Ex_list_of_length application.retain)
+  apply (metis Ex_list_of_length application.delete)
+  done
 
-lemma validOutputLength: "applyOp a d = Some d' \<Longrightarrow> outputLength a = length d'"
-  oops
+lemma applaOpCompl': "((a,b,d),d') \<in> application \<Longrightarrow> (a,b) \<in> operations"
+  by (erule application.induct, auto)
 
-section {* Composition of Operations *}
+text {* something missing here... *}
 
-fun addRetain :: "nat \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where  
+fun addRetain :: "nat \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where
   "addRetain n (Retain m#xs) = (Retain (n + m))#xs"
 | "addRetain n xs            = (Retain n)#xs"
 
-fun addInsert :: "'char \<Rightarrow> 'char list \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where 
-  "addInsert s ss (Delete d#xs)    = (Delete d)#addInsert s ss xs"
-| "addInsert s ss (Insert c cs#xs) = (Insert c (append cs (s#ss)))#xs"
-| "addInsert s ss xs               = (Insert s ss)#xs"
+fun addInsert :: "'char list \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where
+  "addInsert s (Delete d#xs) = (Delete d)#addInsert s xs"
+| "addInsert s (Insert t#xs) = (Insert (append t s))#xs"
+| "addInsert s xs            = (Insert s)#xs"
 
-fun addDelete :: "nat \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where  
+fun addDelete :: "nat \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where
   "addDelete n (Delete m#xs) = (Delete (n + m))#xs"
 | "addDelete n xs            = (Delete n)#xs"
-
-text {* The @{term compose} function composes two operations @{term a} and @{term b}, in such a way
-        that the composed operation @{term ab} has the same effect upon application as operations
-        @{term a} and @{term b} executed sequentially. *}
 
 fun composeRec :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where
   "composeRec [] [] xs  = xs" 
 | "composeRec ((Delete n)#as) (bb) xs = composeRec as bb (addDelete n xs)"
-| "composeRec (aa) ((Insert c cs)#bs) xs = composeRec aa bs (addInsert c cs xs)"
-| "composeRec ((Retain n)#as) ((Retain m)#bs) xs = 
-   (if      (n < m) then composeRec as (Retain (m - n)#bs) (addRetain n xs)
+| "composeRec (aa) ((Insert s)#bs) xs = composeRec aa bs (addInsert s xs)"
+| "composeRec ((Retain n)#as) ((Retain m)#bs) xs =
+   (if      (n < m) then composeRec as (Retain(m - n)#bs) (addRetain n xs)
     else if (n = m) then composeRec as bs (addRetain n xs)
-    else                 composeRec (Retain (n - m)#as) bs (addRetain n xs))"
+    else                 composeRec (Retain(n - m)#as) bs (addRetain n xs))"
 | "composeRec ((Retain n)#as) ((Delete m)#bs) xs =
    (if      (n < m) then composeRec as (Delete(m - n)#bs) (addDelete n xs)
     else if (n = m) then composeRec as bs (addDelete n xs)
     else                 composeRec (Retain(n - m)#as) bs (addDelete n xs))"
-| "composeRec ((Insert c cs)#as) ((Retain m)#bs) xs =
-   (if      (length cs < m) then composeRec as (Delete(m - length cs)#bs) (addInsert c cs xs)
-    else if (length cs = m) then composeRec as bs (addInsert c cs xs)
-    else                         composeRec (Insert c (drop m cs)#as) bs (addInsert c (take m cs) xs))"
-| "composeRec ((Insert c cs)#as) ((Delete m)#bs) xs =
-   (if      (length cs < m) then composeRec as (Delete(m - length cs)#bs) xs
-    else if (length cs = m) then composeRec as bs xs
-    else                         composeRec (Insert c (drop m cs)#as) bs xs)"
-| "composeRec _ _ _ = undefined"
+| "composeRec ((Insert s)#as) ((Retain m)#bs) xs =
+   (if      (length s < m) then composeRec as (Delete(m - length s)#bs) (addInsert s xs)
+    else if (length s = m) then composeRec as bs (addInsert s xs)
+    else                        composeRec (Insert(drop m s)#as) bs (addInsert (take m s) xs))"
+| "composeRec ((Insert s)#as) ((Delete m)#bs) xs =
+   (if      (length s < m) then composeRec as (Delete(m - length s)#bs) xs
+    else if (length s = m) then composeRec as bs xs
+    else                        composeRec (Insert(drop m s)#as) bs xs)"
 
 definition compose :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where
   "compose a b = composeRec a b []"
 
-section {* Operation Transformation *}
-
-text {* The transformation function is the basis of operational transformation. For a pair of 
-        operations @{term "(a,b)"} it computes an output pair of transformed operations 
-        @{term "(a',b')"}. The convergence property @{term "compose a b' = compose b a'"} enables
-        the OT system to execute operations in different order at different sites while the 
-        documents do not diverge *}
+lemma composeEq: "(a, b) \<in> operations \<Longrightarrow> 
+                  (a', b') \<in> operations \<Longrightarrow> 
+                  SimpleOperation.compose a a' = Some a'' \<Longrightarrow> 
+                  (a'', Operation.compose b b') \<in> operations"
+  sorry
 
 fun transformRec :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation \<times> 'char operation" where
   "transformRec [] [] xs ys = (xs,ys)"
-| "transformRec (Insert c cs#as) bs xs ys = transformRec as bs (addInsert c cs xs) (addRetain (length cs) ys)"
-| "transformRec as (Insert c cs#bs) xs ys = transformRec as bs (addRetain (length cs) xs) (addInsert c cs ys)"
+| "transformRec (Insert s#as) bs xs ys = transformRec as bs (addInsert s xs) (addRetain (length s) ys)"
+| "transformRec as (Insert s#bs) xs ys = transformRec as bs (addRetain (length s) xs) (addInsert s ys)"
 | "transformRec (Retain n#as) (Retain m#bs) xs ys = 
    (if      (n < m) then transformRec as ((Retain (m - n))#bs) (addRetain n xs) (addRetain n ys)
     else if (n = m) then transformRec as bs (addRetain n xs) (addRetain n ys)
@@ -210,10 +138,17 @@ fun transformRec :: "'char operation \<Rightarrow> 'char operation \<Rightarrow>
    (if      (n < m) then transformRec as ((Retain (m - n))#bs) (addDelete n xs) ys
     else if (n = m) then transformRec as bs (addDelete n xs) ys
     else                 transformRec ((Delete (n - m))#as) bs (addDelete m xs) ys)"
-| "transformRec _ _ _ _ = undefined"
 
 definition transform :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> ('char operation \<times> 'char operation)" where
   "transform a b = transformRec a b [] []"
+
+lemma transformEq: "(a, a') \<in> operations \<Longrightarrow>
+                    (b, b') \<in> operations \<Longrightarrow>
+                    SimpleOperation.transform a b = Some (c,d) \<Longrightarrow> 
+                    (c, fst (Operation.transform a' b')) \<in> operations \<and>
+                    (d, snd (Operation.transform a' b')) \<in> operations"
+  apply (auto)
+  sorry
 
 export_code applyOp compose transform in Scala
   module_name Operation
