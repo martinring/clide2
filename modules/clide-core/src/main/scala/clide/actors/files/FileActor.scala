@@ -233,6 +233,8 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
 
     case Terminated(ref) =>
       receive(EOF)
+    
+    case other => log.warning("unhandeled message: {}", other)
   }
 
   def receive = receiveMessages orElse receiveFileEvents
