@@ -58,20 +58,51 @@ inductive_set application :: "(('char SimpleOperation.operation \<times> 'char o
 | insert[intro!]: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.map SimpleOperation.Insert init) @ a,Insert init#b,d),init@d') \<in> application"
 | delete[intro!]: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.replicate (length init) SimpleOperation.Delete) @ a,Delete (length init)#b,init@d),d') \<in> application"
 
+lemma singleRetain1: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.replicate (length [c]) SimpleOperation.Retain) @ a,Retain (length [c])#b,[c]@d),[c]@d') \<in> application"  
+  by (metis application.retain)
+
+lemma singleRetain: "((a,b,d),d') \<in> application \<Longrightarrow> ((SimpleOperation.Retain#a, Retain 1#b,c#d),c#d') \<in> application"
+  by (drule singleRetain1, auto)
+
+lemma singleInsert1: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.map SimpleOperation.Insert [c]) @ a,Insert [c]#b,d),[c]@d') \<in> application"
+  by (metis application.insert)
+
+lemma singleInsert: "((a,b,d),d') \<in> application \<Longrightarrow> ((SimpleOperation.Insert c#a, Insert [c]#b,d),c#d') \<in> application"
+  by (drule singleInsert1, auto)
+
+lemma singleDelete1: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.replicate (length [c]) SimpleOperation.Delete) @ a,Delete (length [c])#b,[c]@d),d') \<in> application"  
+  by (metis application.delete)
+
+lemma singleDelete: "((a,b,d),d') \<in> application \<Longrightarrow> ((SimpleOperation.Delete#a, Delete 1#b,c#d),d') \<in> application"
+  by (drule singleDelete1, auto)
+
 lemma applicationEq1: "((a,b,d),d') \<in> application \<Longrightarrow> ((a,d),d') \<in> SimpleOperation.application"
   by (erule application.induct, auto simp add: retainN insertN deleteN)
+
+lemma applicationEq2: "((a,d),d') \<in> SimpleOperation.application \<Longrightarrow> \<exists>b. ((a,b,d),d') \<in> application"
+  apply (erule SimpleOperation.application.induct, auto)  
+  apply (drule singleRetain, auto)
+  apply (drule singleDelete, auto)
+  apply (drule singleInsert, auto)
+  done
 
 lemma applyOpSet1: "((a,b,d),d') \<in> application \<Longrightarrow> applyOp b d = d'"
   by (erule application.induct, auto)
 
-lemma applyOpCompl: "(a,b) \<in> operations \<Longrightarrow> \<exists>d d'. ((a,b,d),d') \<in> application"
+lemma applyOpComp': "((a,b,d),d') \<in> application \<Longrightarrow> (a,b) \<in> operations"
+  by (erule application.induct, auto)
+
+lemma applyOpCompl1: "(a,b) \<in> operations \<Longrightarrow> \<exists>d d'. ((a,b,d),d') \<in> application"
   apply (erule operations.induct, auto)  
   apply (metis Ex_list_of_length application.retain)
   apply (metis Ex_list_of_length application.delete)
   done
 
-lemma applaOpCompl': "((a,b,d),d') \<in> application \<Longrightarrow> (a,b) \<in> operations"
+lemma applyOpCompl2: "((a,b,d),d') \<in> application \<Longrightarrow> (a,b) \<in> operations"
   by (erule application.induct, auto)
+
+lemma applyOpEq: "(a,b) \<in> operations \<Longrightarrow> SimpleOperation.applyOp a d = Some d' \<Longrightarrow> applyOp b d = d'"
+  
 
 text {* something missing here... *}
 
