@@ -32,7 +32,7 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$http,$timeout
       data:
         currentDir: null
       preStart: -> if path?
-        context.setReceiveTimeout 500
+        context.setReceiveTimeout 2000
         context.tellAck { t: 'explore', path: path }
       interface:
         explore     : (path) ->

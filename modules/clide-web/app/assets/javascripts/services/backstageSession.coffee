@@ -37,7 +37,7 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$rootScope,$ht
     new ActorSocket url, "#{username}/backstage", (context) ->
       data: session
       preStart: ->
-        context.setReceiveTimeout 500
+        context.setReceiveTimeout 2000
         context.tellAck { t: 'init' }
       receive: (msg) -> switch msg.t
         when 'timeout'

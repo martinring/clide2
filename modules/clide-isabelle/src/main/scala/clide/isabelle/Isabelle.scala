@@ -108,6 +108,9 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
     noop
   }
   
+  def annotationsDisregarded(file: OpenedFile, name: String) = noop
+  def annotationsRequested(file: OpenedFile, name: String) = noop
+  
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long) = noop
 }
 

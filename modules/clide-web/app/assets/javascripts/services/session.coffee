@@ -224,7 +224,7 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           socket?.close()
       preStart: ->
         session.state = 'connected'
-        context.setReceiveTimeout 500
+        context.setReceiveTimeout 2000
         context.tellAck { t: 'init' }
         CodeMirror.registerHelper "hint", (e...) ->
           return (
