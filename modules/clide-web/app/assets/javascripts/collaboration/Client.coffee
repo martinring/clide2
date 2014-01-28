@@ -21,6 +21,9 @@
 ##   along with Clide.  If not, see <http://www.gnu.org/licenses/>.           ##
 ##                                                                            ##
 
+## Loosely Based on the javascript ot implementation 'ot.js' by Tim Baumann (MIT
+## License) see https://github.com/Operational-Transformation/ot.js
+
 define ->
   class Client
     constructor: (revision) ->
@@ -76,7 +79,7 @@ define ->
     class Synchronized
       applyClient: (client, operation) ->
         client.sendOperation client.revision, operation
-        new AwaitingConfirm(operation)
+        new Pending(operation)
 
       applyServer: (client, operation) ->
         client.applyOperation operation
@@ -98,17 +101,17 @@ define ->
       transformAnnotation: (annotation) ->
         annotation
 
-    class AwaitingConfirm
+    class Pending
       constructor: (outstanding) ->
         @outstanding = outstanding
 
       applyClient: (client, operation) ->
-        new AwaitingWithBuffer(@outstanding, operation)
+        new Buffering(@outstanding, operation)
 
       applyServer: (client, operation) ->
         pair = operation.constructor.transform(@outstanding, operation)
         client.applyOperation pair[1]
-        new AwaitingConfirm(pair[0])
+        new Pending(pair[0])
 
       syncState: 1
 
@@ -128,7 +131,7 @@ define ->
       resend: (client) ->
         client.sendOperation client.revision, @outstanding
 
-    class AwaitingWithBuffer
+    class Buffering
       constructor: (outstanding, buffer) ->
         @outstanding = outstanding
         @buffer = buffer
@@ -136,14 +139,14 @@ define ->
       applyClient: (client, operation) ->
         # Compose the user's changes onto the buffer
         newBuffer = @buffer.compose(operation)
-        new AwaitingWithBuffer(@outstanding, newBuffer)
+        new Buffering(@outstanding, newBuffer)
 
       applyServer: (client, operation) ->
         transform = operation.constructor.transform
         pair1 = transform(@outstanding, operation)
         pair2 = transform(@buffer, pair1[1])
         client.applyOperation pair2[1]
-        new AwaitingWithBuffer(pair1[0], pair2[0])
+        new Buffering(pair1[0], pair2[0])
 
       syncState: 2
 
@@ -153,7 +156,7 @@ define ->
           client.sendAnnotation client.revision, client.annotation, 'selection'
           client.annotation = null
           client.setAnnotationTimeout()
-        new AwaitingConfirm(@buffer)
+        new Pending(@buffer)
 
       annotate: (client, annotation) ->
         client.annotation = annotation
