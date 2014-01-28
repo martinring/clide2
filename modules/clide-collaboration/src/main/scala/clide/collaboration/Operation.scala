@@ -71,7 +71,7 @@ object Operation {
     case xs            => Delete(n)::xs
   }
 
-  private def canonicalize(ops: List[Action]): List[Action] = {
+  private def normalize(ops: List[Action]): List[Action] = {
     @tailrec
 	def loop(as: List[Action], bs: List[Action]): List[Action] = (as,bs) match {
 	  case (as,Nil) => as
