@@ -129,7 +129,7 @@ object ApplicationBuild extends Build {
   // Web - Server
   // ===========================================================================
 
-  val webDependencies = Seq("org.scalajs" %% "scalajs-pickling-play-json" % "0.1-SNAPSHOT")
+  val webDependencies = Seq()//"org.scalajs" %% "scalajs-pickling-play-json" % "0.1-SNAPSHOT")
 
   val webSettings = Angular.defaultSettings ++ commonSettings ++ Seq(
     resolvers += Resolver.sonatypeRepo("snapshots"),
