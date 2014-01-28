@@ -1,19 +1,31 @@
 package clide.client
 
 import scala.scalajs.js
-import clide.client.libs._
+import scala.language.implicitConversions
+import org.scalajs.dom._
 
-object App {    
-  import DomGlobals._
+trait ViewModel {
+  trait Property[T]
+  def Property[T] = new Property[T] { }
+  def Property[T](initial: T) = new Property[T] { }
+  def update[T](ref: Property[T], value: T)
+  def apply[T](ref: Property[T]): T
+}
+
+object LoginViewModel extends ViewModel {
+  val username = Property[String](localStorage.getItem("username").asInstanceOf[String])
+  val login    = Property[String]
+}
+
+trait View[M <: ViewModel] {
   
-  def init() {
-    val clide = angular.module("clide", js.Array[js.String]())
-    clide.controller("AppController", js.Array[js.Any]("$scope", { ($scope: js.Dynamic with IScope) =>      
-	  $scope.name = "It works"
-	}))
-	angular.element(document.asInstanceOf[Element]).ready { () =>
-	  console.log("ready")
-	  angular.bootstrap(document, js.Array[js.Any]("clide"))
-	}
+}
+
+object App {
+  lazy val root = document.getElementById("root")  
+  
+  def startup() {
+    LoginViewModel(LoginViewModel.username) = "Hallo"
+    val x = LoginViewModel(LoginViewModel.login)    
   }
 }
