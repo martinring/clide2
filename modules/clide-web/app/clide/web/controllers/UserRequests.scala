@@ -64,6 +64,7 @@ trait UserRequests { this: Controller =>
                           request: Request[A])
     extends WrappedRequest[A](request)
 
+    
   def ActorSocket(
       user: String,
       message: UserMessage,
@@ -82,31 +83,45 @@ trait UserRequests { this: Controller =>
             
     val promise = Promise[(Iteratee[JsValue,Unit], Enumerator[JsValue])]
             
-    val mediator = actor(system)(new Act {
+    val mediator = actor(system)(new Act with ActorLogging {
       val (out,channel) = Concurrent.broadcast[JsValue]
+      log.debug("sending request to server: " + req.toString)
       server ! req
       
       become {
         case EventSocket(peer,id) =>
+          log.debug("received event socket from server")
+          context.watch(peer)
+          
           val in = Iteratee.foreach[JsValue]{ j =>
-            println("incoming message: " + j.toString)
+            log.debug("incoming message: " + j.toString)            
             peer ! deserialize(j)
             (j \ "$ID").asOpt[Long].foreach { case id =>              
               channel.push(Json.obj("t" -> "ack", "id" -> id))
             }
-          }.mapDone{ Unit =>
-            peer ! EOF
+          }.map { Unit =>
+            peer ! EOF            
             context.stop(self)
           }
           
-          promise.success(in,out)
-          
           become {
             case e: Event =>
+              log.debug("forwarding serialized event: " + e.toString)
               channel.push(serialize(e))
             case EOF =>
-              channel.eofAndEnd()
+              log.debug("EOF")
+              context.stop(self)              
+            case Terminated(_) =>
+              log.info("peer terminated")
+              context.stop(self)
           }
+          
+          promise.success(in,out)
+      }
+      
+      override def postStop {
+        super.postStop
+        channel.end()
       }
     })
 
