@@ -66,6 +66,8 @@ object Projects extends Controller with UserRequests with DefaultResults {
           case Some("init") =>
             Logger.info("init message for backstage")
             BrowseProjects
+          case Some("flush") =>
+            ForgetIt
           case _ =>
             Logger.warn("didn't understand: " + json.toString)
             ForgetIt
@@ -81,7 +83,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
           case (Some(file),Some(rev)) => (json\"o").asOpt[Operation] match {
             case Some(operation) => Edit(file,rev,operation)
             case None => (json\"a").asOpt[Annotations] match {
-              case Some(annotation) => Annotate(file,rev,annotation,(json\"n").as[String])
+              case Some(annotation) => Annotate(file,rev,annotation,(json\"n").as[String])              
               case None =>
                 Logger.warn("didn't understand: " + json.toString)
                 ForgetIt
@@ -117,6 +119,8 @@ object Projects extends Controller with UserRequests with DefaultResults {
                 ChangeProjectUserLevel((json \ "u").as[String], ProjectAccessLevel.Write)
               case "chat" =>
                 Talk((json \ "to").asOpt[Long], (json \ "msg").as[String], (json \ "tp").asOpt[String])
+              case "flush" =>
+                ForgetIt
               case _ =>
                 Logger.warn("didn't understand: " + json.toString)
                 ForgetIt
@@ -147,6 +151,11 @@ object Projects extends Controller with UserRequests with DefaultResults {
               WithPath((json \ "path").as[Seq[String]], TouchFolder)
             case "rm" =>
               WithPath((json \ "path").as[Seq[String]], Delete)
+            case "flush" =>
+              ForgetIt
+            case _ =>
+              Logger.warn("didn't understand: " + json.toString)
+              ForgetIt
           }
         }
       })

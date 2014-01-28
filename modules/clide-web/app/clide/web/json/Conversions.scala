@@ -184,7 +184,7 @@ object Conversions {
     case NotAllowed    => "e" of "internal error: forbidden action"
     case DoesntExist   => "e" of "internal error: the referenced resource doesn't exist on the server"
     case UserProjectInfos(own, other)                  => "projects" of Json.obj("own"->own, "other"->other)
-    case ChangedProjectUserLevel(project, user, level) => "access" of Json.obj("p"->project,"u"->user,"l"->level.id)      
-    case _ => error("couldnt translate")
+    case ChangedProjectUserLevel(project, user, level) => "access" of Json.obj("p"->project,"u"->user,"l"->level.id)
+    case e => "lit" of e.toString
   }
 }
