@@ -49,11 +49,7 @@ object Global extends GlobalSettings with Core {
   } else serverRef
   
   override def beforeStart(app: Application) {
-    try {
-      startup()
-    } catch {
-      case e => e.printStackTrace()
-    }
+    startup()
   }
   
   override def onStop(app: Application) {
