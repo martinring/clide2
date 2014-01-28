@@ -224,8 +224,8 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           socket?.close()
       preStart: ->
         session.state = 'connected'
-        context.setReceiveTimeout 2000
-        context.tellAck { t: 'init' }
+        context.setReceiveTimeout 100
+        context.tell { t: 'init' }
         CodeMirror.registerHelper "hint", (e...) ->
           return (
             showHint: () -> console.log 'hn'
@@ -248,8 +248,7 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
                 getOpenFile(msg.f).$annotate(Annotations.fromJSON(msg.a),user,msg.n)
             switch msg.t
               when 'timeout'
-                context.log.warn 'retrying init'
-                context.restart()
+                context.tell { t: 'flush', blowup: [1..1000] }
               when 'e'
                 Toasts.push 'danger', msg.c
               when 'welcome'

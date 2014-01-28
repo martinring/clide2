@@ -77,6 +77,12 @@ define ->
           msg = outbox.pop()
           send(msg)
 
+    removeListeners = ->
+      socket.onmessage = null
+      socket.onerror = null
+      socket.onclose = null
+      socket.onopen = null
+
     service =
       data:      behavior.data
       interface: behavior.interface
@@ -114,7 +120,7 @@ define ->
       console.debug "[#{time()}] [#{name}] sent", msg
       resetTimeout()
 
-    context.restart = service.restart
+    #context.restart = service.restart
 
     context.tell = (msg, ack = false) ->
       if ack
