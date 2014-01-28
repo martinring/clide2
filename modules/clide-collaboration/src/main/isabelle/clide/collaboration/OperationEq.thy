@@ -1,17 +1,6 @@
-theory Operation
+theory OperationEq
 imports Main List Option Set SimpleOperation 
 begin
-
-section {* Aggregated Actions *}
-
-lemma retainN: "((a,d),d') \<in> application \<longrightarrow> (((replicate (length init) Retain)@a,init@d),init@d') \<in> application"
-  by (induct_tac init, auto)
-
-lemma insertN: "((a,d),d') \<in> application \<longrightarrow> (((map Insert init)@a,d),init@d') \<in> application"
-  by (induct_tac init, auto)
-
-lemma deleteN: "((a,d),d') \<in> application \<longrightarrow> (((replicate (length init) Delete)@a,init@d),d') \<in> application"
-  by (induct_tac init, auto)
 
 datatype 'char action = Retain nat | Insert "'char list" | Delete nat
 
@@ -21,70 +10,29 @@ text {* We define an inductive set of all operations and their equivalent simple
 
 inductive_set operations :: "('char SimpleOperation.operation \<times> 'char operation) set" where
   empty[intro!]:  "([],[]) \<in> operations"
-| retain[intro!]: "(a,b) \<in> operations \<Longrightarrow> ((List.replicate n SimpleOperation.Retain) @ a, Retain n#b) \<in> operations"
-| insert[intro!]: "(a,b) \<in> operations \<Longrightarrow> ((List.map SimpleOperation.Insert s) @ a,       Insert s#b) \<in> operations"
-| delete[intro!]: "(a,b) \<in> operations \<Longrightarrow> ((List.replicate n SimpleOperation.Delete) @ a, Delete n#b) \<in> operations"
+| retain1[intro!]: "(a,b) \<in> operations \<Longrightarrow> (SimpleOperation.Retain#a, Retain 1#b) \<in> operations"
+| insert1[intro!]: "(a,b) \<in> operations \<Longrightarrow> (SimpleOperation.Insert c#a, Insert [c]#b) \<in> operations"
+| delete1[intro!]: "(a,b) \<in> operations \<Longrightarrow> (SimpleOperation.Delete#a, Delete 1#b) \<in> operations"
+| retainN[intro!]: "(a,Retain n#b) \<in> operations \<Longrightarrow> (SimpleOperation.Retain#a, Retain (n+1)#b) \<in> operations"
+| insertN[intro!]: "(a,Insert s#b) \<in> operations \<Longrightarrow> (SimpleOperation.Insert c#a, Insert (c#s)#b) \<in> operations"
+| deleteN[intro!]: "(a,Delete n#b) \<in> operations \<Longrightarrow> (SimpleOperation.Delete#a, Delete (n+1)#b) \<in> operations"
 
-lemma retain1: "SimpleOperation.Retain#a   = append (List.replicate 1 SimpleOperation.Retain) a" by (auto)
-lemma insert1: "SimpleOperation.Insert c#a = append (List.map SimpleOperation.Insert [c]) a" by (auto)
-lemma delete1: "SimpleOperation.Delete#a   = append (List.replicate 1 SimpleOperation.Delete) a" by (auto)
-
-lemma operationsComplete1: "\<exists>b. (a,b) \<in> operations"
-  apply (induct_tac a, force)
-  apply (case_tac a, auto)
-  apply (subst retain1, metis operations.retain)
-  apply (subst insert1, metis operations.insert)
-  apply (subst delete1, metis operations.delete)
-  done
-
-lemma operationsComplete2: "\<exists>a. (a,b) \<in> operations"
-  apply (induct_tac b, force)
-  apply (case_tac a, auto)
-  done
-
-lemma emptyOperations: "(a,[]) \<in> operations \<Longrightarrow> a = []"
-  sorry
+lemma operationsComplete: "a \<in> Domain operations"
+  by (induct_tac a, auto, case_tac a, auto)
 
 fun applyOp :: "'char operation \<Rightarrow> 'char document \<Rightarrow> 'char document"
 where
-  "applyOp ([])            ([])  = []"
-| "applyOp (Retain n#next) (doc) = append (take n doc) (applyOp next (drop n doc))"
-| "applyOp (Insert s#next) (doc) = append s (applyOp next doc)"
-| "applyOp (Delete n#next) (doc) = applyOp next (drop n doc)"
+  "applyOp ([])                  ([])   = []"
+| "applyOp (Retain 0#next)       (d)    = applyOp next d"
+| "applyOp (Insert s#next)       (d)    = append s (applyOp next d)"
+| "applyOp (Delete 0#next)       (d)    = applyOp next d"
+| "applyOp (Retain (Suc n)#next) (c#cs) = c#(applyOp (Retain n#next) cs)"
+| "applyOp (Delete (Suc n)#next) (c#cs) =    applyOp (Delete n#next) cs"
+| "applyOp (_)                   (_)    = undefined"
 
-inductive_set application :: "(('char SimpleOperation.operation \<times> 'char operation \<times> 'char document) \<times> 'char document) set" where
-  empty[intro!]:  "(([],[],[]),[]) \<in> application"
-| retain[intro!]: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.replicate (length init) SimpleOperation.Retain) @ a,Retain (length init)#b,init@d),init@d') \<in> application"
-| insert[intro!]: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.map SimpleOperation.Insert init) @ a,Insert init#b,d),init@d') \<in> application"
-| delete[intro!]: "((a,b,d),d') \<in> application \<Longrightarrow> (((List.replicate (length init) SimpleOperation.Delete) @ a,Delete (length init)#b,init@d),d') \<in> application"
-
-lemma applicationEq1: "((a,b,d),d') \<in> application \<Longrightarrow> ((a,d),d') \<in> SimpleOperation.application"
-  by (erule application.induct, auto simp add: retainN insertN deleteN)
-
-lemma applicationEq2: "((a,d),d') \<in> SimpleOperation.application \<Longrightarrow> \<exists>b. ((a,b,d),d') \<in> application"
-  apply (erule SimpleOperation.application.induct, auto)
-
-lemma applyOpSet1: "((a,b,d),d') \<in> application \<Longrightarrow> applyOp b d = d'"
-  by (erule application.induct, auto)
-
-lemma applyOpComp': "((a,b,d),d') \<in> application \<Longrightarrow> (a,b) \<in> operations"
-  by (erule application.induct, auto)
-
-lemma applyOpCompl: "(a,b) \<in> operations \<Longrightarrow> \<exists>d d'. ((a,b,d),d') \<in> application"
-  apply (erule operations.induct, auto)  
-  apply (metis Ex_list_of_length application.retain)
-  apply (metis Ex_list_of_length application.delete)
-  done
-
-lemma applaOpCompl': "((a,b,d),d') \<in> application \<Longrightarrow> (a,b) \<in> operations"
-  by (erule application.induct, auto)
-
-lemma applyOpEq: "(a,b) \<in> operations \<Longrightarrow> SimpleOperation.applyOp a d = Some d' \<Longrightarrow> applyOp b d = d'"
+lemma applyOpEq: "(a,b) \<in> operations \<Longrightarrow> SimpleOperation.applyOp a d = Some d' \<Longrightarrow> applyOp b d = d'" 
   apply (drule SimpleOperation.applyOpSet1)
-  apply (rule applyOpSet1)
-
-
-text {* something missing here... *}
+  apply (induct a b rule: operations.induct, auto)
 
 fun addRetain :: "nat \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where
   "addRetain n (Retain m#xs) = (Retain (n + m))#xs"
@@ -158,7 +106,6 @@ lemma transformEq: "(a, a') \<in> operations \<Longrightarrow>
                     SimpleOperation.transform a b = Some (c,d) \<Longrightarrow> 
                     (c, fst (Operation.transform a' b')) \<in> operations \<and>
                     (d, snd (Operation.transform a' b')) \<in> operations"
-  apply (auto)
   sorry
 
 export_code applyOp compose transform in Scala

@@ -17,33 +17,9 @@ datatype 'char action = Retain nat | Insert "'char list" | Delete nat
 
 type_synonym 'char operation = "'char action list"
 
-text {* We define an inductive set of all operations and their equivalent simple operations *}
-
-inductive_set operations :: "('char SimpleOperation.operation \<times> 'char operation) set" where
-  empty[intro!]:  "([],[]) \<in> operations"
-| retain[intro!]: "(a,b) \<in> operations \<Longrightarrow> ((List.replicate n SimpleOperation.Retain) @ a, Retain n#b) \<in> operations"
-| insert[intro!]: "(a,b) \<in> operations \<Longrightarrow> ((List.map SimpleOperation.Insert s) @ a,       Insert s#b) \<in> operations"
-| delete[intro!]: "(a,b) \<in> operations \<Longrightarrow> ((List.replicate n SimpleOperation.Delete) @ a, Delete n#b) \<in> operations"
-
 lemma retain1: "SimpleOperation.Retain#a   = append (List.replicate 1 SimpleOperation.Retain) a" by (auto)
 lemma insert1: "SimpleOperation.Insert c#a = append (List.map SimpleOperation.Insert [c]) a" by (auto)
 lemma delete1: "SimpleOperation.Delete#a   = append (List.replicate 1 SimpleOperation.Delete) a" by (auto)
-
-lemma operationsComplete1: "\<exists>b. (a,b) \<in> operations"
-  apply (induct_tac a, force)
-  apply (case_tac a, auto)
-  apply (subst retain1, metis operations.retain)
-  apply (subst insert1, metis operations.insert)
-  apply (subst delete1, metis operations.delete)
-  done
-
-lemma operationsComplete2: "\<exists>a. (a,b) \<in> operations"
-  apply (induct_tac b, force)
-  apply (case_tac a, auto)
-  done
-
-lemma emptyOperations: "(a,[]) \<in> operations \<Longrightarrow> a = []"
-  sorry
 
 fun applyOp :: "'char operation \<Rightarrow> 'char document \<Rightarrow> 'char document"
 where
@@ -51,6 +27,18 @@ where
 | "applyOp (Retain n#next) (doc) = append (take n doc) (applyOp next (drop n doc))"
 | "applyOp (Insert s#next) (doc) = append s (applyOp next doc)"
 | "applyOp (Delete n#next) (doc) = applyOp next (drop n doc)"
+
+inductive_set eqOps :: "('char operation \<times> 'char operation) set" where
+  empty[intro!]:  "([],[]) \<in> eqOps"
+| retain[intro!]: "(a,b) \<in> eqOps \<Longrightarrow> n + m = l \<Longrightarrow> (Retain l#a,Retain n#Retain m#a) \<in> eqOps"
+| insert[intro!]: "(a,b) \<in> eqOps \<Longrightarrow> l @ r = s \<Longrightarrow> (Insert s#a,Insert l#Insert r#a) \<in> eqOps"
+| delete[intro!]: "(a,b) \<in> eqOps \<Longrightarrow> n + m = l \<Longrightarrow> (Delete l#a,Delete n#Delete m#a) \<in> eqOps"
+
+inductive_set applyDomain :: "('char operation \<times> 'char document) set" where
+  empty[intro!]:  "([],[]) \<in> applyDomain"
+| retain[intro!]: "(a,d) \<in> applyDomain \<Longrightarrow> (Retain (length init)#a, init@d) \<in> applyDomain"
+| insert[intro!]: "(a,d) \<in> applyDomain \<Longrightarrow> (Insert s#a,d) \<in> applyDomain"
+| delete[intro!]: "(a,d) \<in> applyDomain \<Longrightarrow> (Delete (length init)#a, init@d) \<in> applyDomain"
 
 inductive_set application :: "(('char SimpleOperation.operation \<times> 'char operation \<times> 'char document) \<times> 'char document) set" where
   empty[intro!]:  "(([],[],[]),[]) \<in> application"
@@ -86,24 +74,23 @@ lemma applicationEq2: "((a,d),d') \<in> SimpleOperation.application \<Longrighta
   apply (drule singleInsert, auto)
   done
 
-lemma applyOpSet1: "((a,b,d),d') \<in> application \<Longrightarrow> applyOp b d = d'"
+lemma applyOpSet: "((a,b,d),d') \<in> application \<Longrightarrow> applyOp b d = d'"
   by (erule application.induct, auto)
 
-lemma applyOpComp': "((a,b,d),d') \<in> application \<Longrightarrow> (a,b) \<in> operations"
-  by (erule application.induct, auto)
-
-lemma applyOpCompl1: "(a,b) \<in> operations \<Longrightarrow> \<exists>d d'. ((a,b,d),d') \<in> application"
-  apply (erule operations.induct, auto)  
-  apply (metis Ex_list_of_length application.retain)
-  apply (metis Ex_list_of_length application.delete)
+lemma operationsComplete1: "\<exists>b d d'. ((a,b,d),d') \<in> application"
+  apply (induct_tac a, force)
+  apply (case_tac a, auto)
+  apply (drule singleRetain, auto)
+  apply (drule singleInsert, auto)
+  apply (drule singleDelete, auto)
   done
 
-lemma applyOpCompl2: "((a,b,d),d') \<in> application \<Longrightarrow> (a,b) \<in> operations"
-  by (erule application.induct, auto)
+lemma operationsComplete2: "\<exists>a d d'. ((a,b,d),d') \<in> application"
+  sorry
 
-lemma applyOpEq: "(a,b) \<in> operations \<Longrightarrow> SimpleOperation.applyOp a d = Some d' \<Longrightarrow> applyOp b d = d'"
+lemma applyOpEq: "((a,b,d),d') \<in> application \<Longrightarrow> SimpleOperation.applyOp a d = applyOp b d"
+  by (auto simp add: Operation.applyOpSet SimpleOperation.applyOpSet applicationEq1)
   
-
 text {* something missing here... *}
 
 fun addRetain :: "nat \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where
@@ -142,6 +129,10 @@ fun composeRec :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> '
 
 definition compose :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation" where
   "compose a b = composeRec a b []"
+
+inductive_set composition :: "(('char operation \<times> 'char operation) \<times> 'char operation) set"
+  "(([],[]),[]) \<in> composition"
+
 
 lemma composeEq: "(a, b) \<in> operations \<Longrightarrow> 
                   (a', b') \<in> operations \<Longrightarrow> 
