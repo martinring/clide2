@@ -108,28 +108,10 @@ object ApplicationBuild extends Build {
     .settings(coreSettings:_*)
     .configs(Atmos)
 
-  // Client
-  // ===========================================================================
-
-  val clientDependencies = Seq(
-    "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.1-SNAPSHOT",
-    "com.scalatags" % "scalatags_2.10" % "0.2.2-JS")
-
-  val clientSettings = commonSettings ++ scalaJSSettings ++ Seq(
-    libraryDependencies ++= clientDependencies,
-    unmanagedSourceDirectories in Compile += (sourceDirectory in collaboration).value,
-    unmanagedSources in (Compile, ScalaJSKeys.packageExportedProductsJS) +=
-      sourceDirectory.value / "main" / "javascript" / "client.js")
-
-  val client = Project(
-    id   = "clide-client",
-    base = file("modules/clide-client"))
-    .settings(clientSettings:_*)
-
   // Web - Server
   // ===========================================================================
 
-  val webDependencies = Seq()//"org.scalajs" %% "scalajs-pickling-play-json" % "0.1-SNAPSHOT")
+  val webDependencies = Seq()
 
   val webSettings = Angular.defaultSettings ++ commonSettings ++ Seq(
     resolvers += Resolver.sonatypeRepo("snapshots"),
