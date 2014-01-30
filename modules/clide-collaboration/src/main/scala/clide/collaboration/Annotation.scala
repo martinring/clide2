@@ -89,57 +89,12 @@ object AnnotationType extends Enumeration {
   val ReadOnly       = Value("r")
 }
 
-@SerialVersionUID(650000)
-case class Annotate(length: Int, content: Set[(AnnotationType.Value,String)]) extends Annotation {
+@SerialVersionUID(1L)
+case class Annotate(length: Int, content: List[(AnnotationType.Value,String)]) extends Annotation {
   override def toString = length.toString + ":{" + content.map{case(k,v)=>k+": " +v}.mkString(",") + "}"
 }
 
-object AnnotationDiff {
-  trait AnnotationDiffItem
-  case class Leave(n: Int) extends AnnotationDiffItem
-  case class Replace(n: Int, a: Annotations) extends AnnotationDiffItem
-
-  case class AnnotationDiff(items: List[AnnotationDiffItem] = Nil) extends AnyVal {
-    def leave(n: Int = 1) = items.lastOption match {
-      case Some(Leave(m)) => AnnotationDiff(items.init :+ Leave(n+m))
-      case _              => AnnotationDiff(items :+ Leave(n))
-    }
-
-    def insert(a: Annotation) = items.lastOption match {
-      case Some(Replace(n,b)) => AnnotationDiff(items.init :+ Replace(n,b :+ a))
-      case _                  => AnnotationDiff(items :+ Replace(0,Annotations(List(a))))
-    }
-
-    def insert(a: Annotations) = items.lastOption match {
-      case Some(Replace(n,b)) => AnnotationDiff(items.init :+ Replace(n,Annotations(a.annotations ++ b.annotations)))
-      case _                  => AnnotationDiff(items :+ Replace(0,a))
-    }
-
-    def delete(n: Int = 1) = items.lastOption match {
-      case Some(Replace(m,a)) => AnnotationDiff(items.init :+ Replace(n+m,a))
-      case _                  => AnnotationDiff(items :+ Replace(n,new Annotations()))
-    }
-
-    def weight = items.map({case Replace(_,a) => a.length; case _ => 0}).sum
-
-    def isEmpty = items.length == 0 || items.length == 1 && items.head.isInstanceOf[Leave]
-  }
-
-  def diff(a: List[Annotation], b: List[Annotation], c: AnnotationDiff = new AnnotationDiff()): AnnotationDiff = (a,b) match {
-    case (Nil,Nil)        => c
-    case (aa@(a::as),Nil) => c.delete(aa.length)
-    case (Nil,bb@(b::bs)) => c.insert(Annotations(bb))
-    case (a::as,b::bs) if a == b => diff(as,bs,c.leave(1))
-    case (a::as,b::bs)           =>
-      val insertStrategy = diff(a::as,bs,c.insert(b))
-      val deleteStrategy = diff(as,b::bs,c.delete(1))
-      if (insertStrategy.weight <= deleteStrategy.weight)
-        insertStrategy
-      else
-        deleteStrategy
-  }
-}
-
+@SerialVersionUID(1L)
 case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
   override def toString = annotations.mkString(";")
 
@@ -153,10 +108,18 @@ case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
     result
   }
 
-  def annotate(n: Int, c: Set[(AnnotationType.Value,String)]): Annotations = if (n >= 0) {
+  def annotate(n: Int, c: List[(AnnotationType.Value,String)]): Annotations = if (n >= 0) {
     annotations.lastOption match {
       case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c))
-      case _ => Annotations(annotations :+ Annotate(n,c))
+      case _ => Annotations(annotations :+ Annotate(n,c.toList))
+    }
+  } else this
+  
+  @deprecated("use overloaded annotate with list instead", "2014-01-30")
+  def annotate(n: Int, c: Set[(AnnotationType.Value,String)]): Annotations = if (n >= 0) {
+    annotations.lastOption match {
+      case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c.toList))
+      case _ => Annotations(annotations :+ Annotate(n,c.toList))
     }
   } else this
 
@@ -196,7 +159,7 @@ object Annotations {
     case _ => as
   }
 
-  private def addAnnotate(n: Int, c: Set[(AnnotationType.Value,String)], as: List[Annotation]): List[Annotation] = as match {
+  private def addAnnotate(n: Int, c: List[(AnnotationType.Value,String)], as: List[Annotation]): List[Annotation] = as match {
     case Annotate(m,c2)::xs if c2 == c => Annotate(n+m,c)::xs
     case xs => Annotate(n,c)::xs
   }

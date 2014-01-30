@@ -38,50 +38,6 @@ import isabelle.Protocol
 import isabelle.Text
 
 object IsabelleMarkup {  
-  def annotations(xml: XML.Tree, c: Set[(AnnotationType.Value,String)] = Set.empty): List[Annotation] = xml match {
-    case XML.Wrapped_Elem(markup, body, body2) =>
-      markup.name match {
-        case Markup.ERROR | Markup.BAD =>
-          body2.flatMap(annotations(_,Set(
-              AnnotationType.Class -> "error",
-              AnnotationType.ErrorMessage -> XML.content(body))))
-        case Markup.WARNING =>
-          body2.flatMap(annotations(_,Set(
-              AnnotationType.Class -> "warning",
-              AnnotationType.WarningMessage -> XML.content(body))))        
-        case Markup.INFORMATION =>
-          body2.flatMap(annotations(_,Set(
-              AnnotationType.Class -> "info",
-              AnnotationType.InfoMessage -> XML.content(body))))
-        case Markup.TYPING =>
-          body2.flatMap(annotations(_,Set(              
-              AnnotationType.Tooltip -> ("type: " + XML.content(body)))))
-        case other =>
-          body2.flatMap(annotations(_))
-      }
-
-    case XML.Elem(markup, body) =>
-      val c2 = markup.name match {
-        //case Markup.RUNNING | Markup.FINISHED | Markup.FAILED =>
-        // Set(AnnotationType.Progress -> markup.name)
-        case Markup.ENTITY =>
-          val as = markup.properties.collect {
-            case ("def",id) => AnnotationType.Entity -> id
-            case ("ref",id) => AnnotationType.Ref -> id
-          }        
-          as.toSet
-        case m if classes.isDefinedAt(m) => Set(AnnotationType.Class -> classes(m))
-        case other                       => Set.empty
-      }
-
-      body.flatMap(annotations(_,c ++ c2))
-
-    case XML.Text(content) => c.size match {
-        case 0 => List(Plain(content.length))
-        case _ => List(Annotate(content.length,c))
-      }
-  }
-
   val classes = Map(      
       Markup.KEYWORD1 -> "keyword",
       Markup.KEYWORD2 -> "keyword",
@@ -110,7 +66,7 @@ object IsabelleMarkup {
       })    
     cs.foldLeft(new Annotations) {
       case (as, Text.Info(range,None))    => as.plain(range.length)
-      case (as, Text.Info(range,Some(c))) => as.annotate(range.length, Set(AnnotationType.Class -> c))
+      case (as, Text.Info(range,Some(c))) => as.annotate(range.length, List(AnnotationType.Class -> c))
     }    
   }
   
@@ -122,7 +78,7 @@ object IsabelleMarkup {
       })
     es.foldLeft(new Annotations) {
       case (as, Text.Info(range,None))    => as.plain(range.length)
-      case (as, Text.Info(range,_)) => as.annotate(range.length, Set(AnnotationType.Class -> "error"))      
+      case (as, Text.Info(range,_)) => as.annotate(range.length, List(AnnotationType.Class -> "error"))      
     }
   }
 
@@ -134,7 +90,7 @@ object IsabelleMarkup {
       })
     ws.foldLeft(new Annotations) {      
       case (as, Text.Info(range,None))    => as.plain(range.length)
-      case (as, Text.Info(range,_)) => as.annotate(range.length, Set(AnnotationType.Class -> "warning"))      
+      case (as, Text.Info(range,_)) => as.annotate(range.length, List(AnnotationType.Class -> "warning"))      
     }
   }
   
@@ -152,7 +108,7 @@ object IsabelleMarkup {
             case XML.Elem(markup,body) if markup.name == Markup.WARNING_MESSAGE =>
               AnnotationType.WarningMessage -> isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n")                       
           }
-        as.annotate(cmd.length, outputs.toSet)
+        as.annotate(cmd.length, outputs.toList)
       } else {
         as.plain(cmd.length)
       }
@@ -167,7 +123,7 @@ object IsabelleMarkup {
       })
     ws.foldLeft(new Annotations) {
       case (as, Text.Info(range,None))      => as.plain(range.length)
-      case (as, Text.Info(range,Some(msg))) => as.annotate(range.length, Set(AnnotationType.Tooltip -> msg))      
+      case (as, Text.Info(range,Some(msg))) => as.annotate(range.length, List(AnnotationType.Tooltip -> msg))      
     }
   }    
   
@@ -176,6 +132,6 @@ object IsabelleMarkup {
       case (as, sym) if sym.length == 1 || Symbol.decode(sym) == sym =>
         as.plain(sym.length)
       case (as, sym) =>
-        as.annotate(sym.length, Set(AnnotationType.Class -> "symbol",AnnotationType.Substitution -> Symbol.decode(sym)))
+        as.annotate(sym.length, List(AnnotationType.Class -> "symbol",AnnotationType.Substitution -> Symbol.decode(sym)))
     }
 }

@@ -21,6 +21,9 @@
 ##   along with Clide.  If not, see <http://www.gnu.org/licenses/>.           ##
 ##                                                                            ##
 
+## Loosely Based on the javascript ot implementation 'ot.js' by Tim Baumann (MIT
+## License) see https://github.com/Operational-Transformation/ot.js
+
 define ->
   actionType = (action) ->
     switch typeof action

@@ -29,7 +29,6 @@ import clide.models._
 import clide.collaboration._
 import clide.actors.Events._
 import clide.actors.Messages.{CreateProject}
-import clide.collaboration.AnnotationDiff._
 import play.api.data.validation.ValidationError
 import scala.language.implicitConversions
 import scala.language.reflectiveCalls
@@ -62,7 +61,7 @@ object Conversions {
         "email" -> u.email)
   }
 
-  def packAnnotations(as: Set[(AnnotationType.Value,String)]): Map[String,Seq[String]] = {
+  def packAnnotations(as: List[(AnnotationType.Value,String)]): Map[String,Seq[String]] = {
     val packed = for {
       key <- as.map(_._1)
     } yield key -> as.filter(_._1 == key).map(_._2)
@@ -72,7 +71,7 @@ object Conversions {
     }
   }
 
-  def unpackAnnotations(as: Map[String,Seq[String]]): Set[(AnnotationType.Value,String)] = {
+  def unpackAnnotations(as: Map[String,Seq[String]]): List[(AnnotationType.Value,String)] = {
     val unpacked = as.toSeq.flatMap {
       case (k,v) =>
         val a = AnnotationType.withName(k)
@@ -80,7 +79,7 @@ object Conversions {
           a -> v
         }
     }
-    unpacked.toSet
+    unpacked.toList
   }
 
   implicit object AnnotationFormat extends Format[Annotation] {
@@ -96,18 +95,6 @@ object Conversions {
       case Plain(n) => JsNumber(n)
       case Annotate(n,c) => Json.obj("l" -> n, "c" -> packAnnotations(c))
     }
-  }
-
-  implicit object AnnotationDiffItemWrites extends Writes[AnnotationDiffItem] {
-    def writes(a: AnnotationDiffItem): JsValue = a match {
-      case Leave(n) => JsNumber(n)
-      case Replace(n,c) => Json.obj("l"->n,"c"->c)
-    }
-  }
-
-  implicit object AnnotationDiffWrites extends Writes[AnnotationDiff] {
-    def writes(a: AnnotationDiff): JsValue =
-      Json.toJson(a.items)
   }
 
   implicit object AnnotationsFormat extends Format[Annotations] {

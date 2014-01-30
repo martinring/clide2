@@ -22,6 +22,9 @@
 ##   If not, see <http://www.gnu.org/licenses/>.                              ##
 ##                                                                            ##
 
+## Loosely Based on the javascript ot implementation 'ot.js' by Tim Baumann (MIT
+## License) see https://github.com/Operational-Transformation/ot.js
+
 define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Operation,Annotations,CodeMirror) ->
   CodeMirror.commands.getHelp = (cm) ->
     doc = cm.getDoc()
@@ -156,6 +159,10 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
             widget:     widget('span','','')
             insertLeft: true
           @annotations[user.id][name].push bookmark
+      else if c.if
+        tooltip = @doc.markText from, to,
+          title: c.t
+        @annotations[user.id][name].push tooltip
 
     @registerMouseEvents: (doc) =>
 
