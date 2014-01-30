@@ -41,6 +41,13 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
     session.activeAnnotations = ->
       session.openFiles?[session.me.activeFile]?.annotations
 
+    session.activeOutput = ->
+      session.openFiles?[session.me.activeFile]?.$output.filter (out) ->
+        cursor = session.cursor
+        console.log cursor
+        (out.from.line < cursor.line or out.from.line is cursor.line and out.from.ch <= cursor.ch) and
+        (out.to.line > cursor.line or out.to.line is cursor.line and out.to.ch >= cursor.ch)
+
     session.syncState = ->
       session.openFiles?[session.me.activeFile]?.$syncState()
 
@@ -70,7 +77,8 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
             words: idw
         else
           nfile.doc = CodeMirror.Doc file.state, (file.info.mimeType or 'text/plain')
-
+        nfile.doc.on "cursorActivity", (doc) ->
+          apply -> session.cursor = doc.getCursor()
       client  = new Client(file.revision)
       adapter = new CMAdapter(nfile.doc, session.me.color)
 
@@ -107,7 +115,9 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
       nfile.$apply = (os) -> client.applyServer(os)
       nfile.$syncState = -> client.syncState()
       nfile.$setColor = (c) -> adapter.setColor(c)
+      nfile.$output = []
       nfile.$annotate = (a,u,n) ->
+        nfile.$output.splice(0) if n is 'output' #todo: this is ugly!!
         nfile.annotations          = nfile.annotations or { }
         nfile.annotations[u.id]    = nfile.annotations[u.id] or [ ]
         s = null
@@ -120,7 +130,8 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           nfile.annotations[u.id].push s
         s.show = true
         a = client.transformAnnotation(a)
-        adapter.applyAnnotation(a,u,n)
+        adapter.applyAnnotation(a,u,n,nfile.$output)
+      nfile.inlineOutput = false
       nfile.$addAnnotations = (u,n,d) ->
         nfile.annotations    = nfile.annotations or { }
         nfile.annotations[u] = nfile.annotations[u] or [ ]

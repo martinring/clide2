@@ -191,9 +191,9 @@
                 Chat <span class='badge' ng-show='unreadChatMessages > 0'>{{unreadChatMessages}}</span>
             </li>
             <li id='outputButton'
-                ng-clikc='toggleChat()'
+                ng-click='toggleOutput()'
                 ng-class='{active:showOutput}'>
-                Output
+                Output <span class='badge' ng-show='output.length > 0'>{{output.length}}</span>
             </li>
           </ul>
           <ul class="statusMessages" ng-mousedown='startSlidebar($event)'>
@@ -224,6 +224,15 @@
                 </li>
               </ul>
             </div>
+          </div>
+          <div ng-if='showOutput'>
+            <ul style='margin: 0; list-style: none; padding: 0'>
+              <div ng-repeat='output in session.activeOutput()'>
+                <li style='font-family: {{editorFont}}; whitespace: pre' ng-repeat='item in output.content'>
+                  {{item}}
+                </li>
+              </div>
+            </ul>
           </div>
         </div>
       </div>

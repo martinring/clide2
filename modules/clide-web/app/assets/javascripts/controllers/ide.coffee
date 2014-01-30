@@ -223,6 +223,7 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   extendedHeight = 300
 
   $scope.showChat = false
+  $scope.showOutput = false
   $scope.unreadChatMessages = 0
 
   setOutputResizing = (t) ->
@@ -246,10 +247,25 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
     if $scope.showChat
       setOutputHeight(minheight)
       $scope.showChat = false
+    else if $scope.showOutput
+      $scope.showOutput = false
+      $scope.showChat = true
     else
       $scope.unreadChatMessages = 0
       setOutputHeight(extendedHeight)
       $scope.showChat = true
+
+  $scope.toggleOutput = () ->
+    if $scope.showOutput
+      setOutputHeight(minheight)
+      $scope.showOutput = false
+    else if $scope.showChat
+      $scope.showOutput = true
+      $scope.showChat = false
+    else
+      $scope.unreadChatMessages = 0
+      setOutputHeight(extendedHeight)
+      $scope.showOutput = true
 
   $scope.startSlidebar = ($event) ->
     slidebarActive = true
@@ -259,9 +275,11 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
       height += previous - (previous = e.clientY)
       if height <= minheight
         height = minheight
-        if $scope.showChat
-          $timeout -> $scope.showChat = false
-      else unless $scope.showChat
+        if $scope.showChat or $scope.showOutput
+          $timeout ->
+            $scope.showChat = false
+            $scope.showOutput = false
+      else unless $scope.showChat or $scope.showOutput
         $timeout ->
           $scope.unreadChatMessages = 0
           $scope.showChat = true
@@ -270,7 +288,9 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
       setOutputResizing(false)
       slidebarActive = false
       if e.clientY > previous
-        $timeout -> $scope.showChat = false
+        $timeout ->
+          $scope.showChat = false
+          $scope.showOutput = false
         setOutputHeight(minheight)
       else
         extendedHeight = height
