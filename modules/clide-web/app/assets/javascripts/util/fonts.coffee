@@ -39,12 +39,16 @@ define ['util/checkFont'], (checkFont) ->
   ]
 
   math = [
-    'Computer Modern'
     'Cambria Math'
     'serif'
   ]
 
+  monospace = monospace.filter(checkFont)
+
+  math = math.filter(checkFont)
+  math.push 'Computer Modern'
+
   return (
-    monospace: monospace.filter(checkFont)
-    math:      math.filter(checkFont)
+    monospace: monospace
+    math:      math
   )
