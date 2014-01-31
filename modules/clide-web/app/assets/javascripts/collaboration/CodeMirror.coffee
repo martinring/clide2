@@ -35,7 +35,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
   class CodeMirrorAdapter
     constructor: (@doc,@color) ->
       @doc.on "beforeChange", @onChange
-      @doc.on "beforeSelectionChange", @onSelectionChange
+      @doc.on "cursorActivity", @onSelectionChange
       @doc.on "getHelp", @onGetHelp
       @annotations = {}
 
@@ -72,9 +72,9 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
             to = doc.posFromIndex(index - a)
             doc.replaceRange "", from, to
 
-    @annotationFromCodeMirrorSelection: (doc,selection,color) ->
-      anchor = doc.indexFromPos(selection.anchor)
-      head   = doc.indexFromPos(selection.head)
+    @annotationFromCodeMirrorSelection: (doc,color) ->
+      anchor = doc.indexFromPos(doc.getCursor('anchor'))
+      head   = doc.indexFromPos(doc.getCursor('head'))
 
       length = doc.getValue().length # TODO: see above
 
@@ -100,9 +100,9 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
       unless @silent
         @trigger "change", CodeMirrorAdapter.operationFromCodeMirrorChange(change, doc)
 
-    onSelectionChange: (doc, change) =>
+    onSelectionChange: (cm) =>
       unless @silent
-        @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(doc, change, @color)
+        @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(@doc, @color)
 
     onGetHelp: (doc, index) =>
       key = Math.random().toString(36).substr(2)
