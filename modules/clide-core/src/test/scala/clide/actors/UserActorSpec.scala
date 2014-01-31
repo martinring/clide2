@@ -84,7 +84,7 @@ class UserActorSpec extends TestKit(ActorSystem("test")) with ActorSpec {
     }
     
     "indicate when projects are created and deleted" in {
-      socket ! Messages.CreateProject("test-project-222",None)
+      socket ! Messages.CreateProject("test-project-222",None,false)
       val p = expectMsgPF(250 millis) {
         case e: Events.CreatedProject if e.project.name == "test-project-222" && e.project.owner == testUser3.name => e.project
       }      
