@@ -305,3 +305,11 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
     top = $("#section-#{section}").position().top - 16
     api = $('#sidebarContent').data('jsp')
     api.scrollTo(0,top)
+
+  $scope.detachOutput = () ->
+    popup = window.open('about:blank','_blank','height=400, width=600, resizable=no, toolbar=no, scrollbars=no, menubar=no, status=no, directories=no')
+    popup.document.write('<html><head><title>Output</title>')
+    popup.document.write(document.getElementById('theme').outerHTML)
+    popup.document.write('</head><body>')
+    popup.document.write($('#output-content').html())
+    popup.document.write('</body></html>')

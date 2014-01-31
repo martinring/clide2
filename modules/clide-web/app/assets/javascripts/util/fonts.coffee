@@ -46,7 +46,7 @@ define ['util/checkFont'], (checkFont) ->
   monospace = monospace.filter(checkFont)
 
   math = math.filter(checkFont)
-  math.push 'Computer Modern'
+  math.unshift 'Computer Modern'
 
   return (
     monospace: monospace

@@ -124,27 +124,29 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         CodeMirrorAdapter.applyOperationToCodeMirror operation, @doc
       @silent = false
 
-    annotate: (c,user,name,output,from,to) =>
+    annotate: (c,user,name,output,inline,from,to) =>
       classes = c.c?.join(' ')
       widget = (type,cs,content) ->
         w = angular.element("<#{type} class='#{classes} #{cs}'>#{content}</#{type}>")[0]
         w.title = c.t if c.t
         return w
       line = if to? then to.line else from.line
-      if c.e? and cm = @doc.getEditor()
-        for e in c.e
+      if c.e?
+        output.push { from: from, to: to, type: 'error', content: c.e }
+        if inline.errors and cm = @doc.getEditor() for e in c.e
           @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget error',e)
-      if c.w? and cm = @doc.getEditor()
-        for w in c.w
+      if c.w?
+        output.push { from: from, to: to, type: 'warning', content: c.w }
+        if inline.warnings and cm = @doc.getEditor() then for w in c.w
           @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget warning',w)
-      if c.i? and cm = @doc.getEditor()
-        for i in c.i
+      if c.i?
+        output.push { from: from, to: to, type: 'info', content: c.i }
+        if inline.output and cm = @doc.getEditor() then for i in c.i
           @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget info',i)
       if c.o?
-        output.push { from: from, to: to, content: c.o }
-        #if cm = @doc.getEditor()
-        #  for i in c.o
-        #    @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget info',i)
+        output.push { from: from, to: to, type: 'info', content: c.o }
+        if inline.output and cm = @doc.getEditor() then for i in c.o
+          @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget info',i)
       if classes?
         if to? and c.s?
           marker = @doc.markText from, to,
@@ -177,7 +179,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
           marker.clear()
       @annotations[user][name] = []
 
-    applyAnnotation: (annotation, user, name, output) =>
+    applyAnnotation: (annotation, user, name, output, inline) =>
       cm       = @doc.getEditor()
 
       work = =>
@@ -192,9 +194,9 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
             if a.l > 0
               index += a.l
               to = @doc.posFromIndex(index)
-              @annotate(a.c,user,name,output,from,to)
+              @annotate(a.c,user,name,output,inline,from,to)
             else
-               @annotate(a.c,user,name,output,from)
+               @annotate(a.c,user,name,output,inline,from)
 
       if cm? then cm.operation => work()
       else work()

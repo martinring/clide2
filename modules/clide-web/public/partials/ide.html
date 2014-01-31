@@ -4,9 +4,9 @@
       <ul class="nav menu" ng-init='sidebarSection="files"'>
         <li title='Files' ng-click='select("files")' ng-class='{active: sidebarSection=="files"}'><i class='fa fa-list'></i></li>
         <li title='Collaboration' ng-click='select("collab")' ng-class='{active: sidebarSection=="collab"}'><i class='fa fa-group'></i></li>
-        <li title='Edit' ng-click='select("edit")' ng-class='{active: sidebarSection=="edit"}'><i class='fa fa-pencil'></i></li>
+        <!--<li title='Edit' ng-click='select("edit")' ng-class='{active: sidebarSection=="edit"}'><i class='fa fa-pencil'></i></li>-->
         <li title='View' ng-click='select("view")' ng-class='{active: sidebarSection=="view"}'><i class='fa fa-eye'></i></li>
-        <li title='Settings' ng-click='select("settings")' ng-class='{active: sidebarSection=="settings"}'><i class='fa fa-gear'></i></li>
+        <!--<li title='Settings' ng-click='select("settings")' ng-class='{active: sidebarSection=="settings"}'><i class='fa fa-gear'></i></li>-->
         <li title='Help' ng-click='select("help")' ng-class='{active: sidebarSection=="help"}'><i class='fa fa-question-circle'></i></li
       </ul>
       <div id="sidebarButton" ng-click='sidebar=!sidebar'><i class='fa fa-arrow-circle-right'></i></div>
@@ -115,7 +115,7 @@
                 The connection to the collaboration system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a class='alert-link' ng-click='reconnectSession()'>reconnect</a>.
               </div>
             </li>
-            <li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
+            <!--<li class="section" id='section-edit' ng-class='{active: sidebarSection=="edit"}' ng-click='sidebarSection="edit"'>
               <h3>Edit</h3>
               <div class='list-group'>
                 <a class='list-group-item'>
@@ -128,13 +128,28 @@
                   <i class='fa fa-fw fa-paste'></i> Paste
                 </a>
               </div>
-            </li>
+            </li>-->
             <li class="section" id='section-view' ng-class='{active: sidebarSection=="view"}' ng-click='sidebarSection="view"'>
               <h3>View</h3>
               <div class='form-group'>
                 <div class='checkbox'>
                   <label>
                     <input type='checkbox' ng-model='showLineNumbers'> Show Line Numbers
+                  </label>
+                </div>
+                <div class='checkbox'>
+                  <label>
+                    <input type='checkbox' ng-model='session.inline.errors'> Inline Error Messages
+                  </label>
+                </div>
+                <div class='checkbox'>
+                  <label>
+                    <input type='checkbox' ng-model='session.inline.warnings'> Inline Warning Messages
+                  </label>
+                </div>
+                <div class='checkbox'>
+                  <label>
+                    <input type='checkbox' ng-model='session.inline.output'> Inline Output Messages
                   </label>
                 </div>
               </div>
@@ -156,10 +171,9 @@
                 <input type='range' min='6' max='32' ng-model='editorFontSize' class='form-control'/>
               </div>
             </li>
-            <li class="section" id='section-settings' ng-class='{active: sidebarSection=="settings"}' ng-click='sidebarSection="settings"'>
+            <!--<li class="section" id='section-settings' ng-class='{active: sidebarSection=="settings"}' ng-click='sidebarSection="settings"'>
               <h3>Settings</h3>
-
-            </li>
+            </li>-->
             <li class="section" id='section-help' ng-class='{active: sidebarSection=="help"}' ng-click='sidebarSection="help"'>
               <h3>Help</h3>
               &copy; 2012-2013 Martin Ring<br/>
@@ -193,7 +207,7 @@
             <li id='outputButton'
                 ng-click='toggleOutput()'
                 ng-class='{active:showOutput}'>
-                Output <span class='badge' ng-show='output.length > 0'>{{output.length}}</span>
+                Output <span class='badge' ng-show='!showOutput && session.activeOutput().length > 0'><i class='fa fa-info'></i></span>
             </li>
           </ul>
           <ul class="statusMessages" ng-mousedown='startSlidebar($event)'>
@@ -225,12 +239,11 @@
               </ul>
             </div>
           </div>
-          <div ng-if='showOutput'>
+          <div ng-if='showOutput' id='output-content'>
+            <a class='pull-right' ng-click='detachOutput()'><i class='fa fa-external-link'></i></a>
             <ul style='margin: 0; list-style: none; padding: 0'>
               <div ng-repeat='output in session.activeOutput()'>
-                <li style='font-family: {{editorFont}}; whitespace: pre' ng-repeat='item in output.content'>
-                  {{item}}
-                </li>
+                <li ng-repeat='item in output.content track by $index' class='outputWidget {{output.type}}'>{{item}}</li>
               </div>
             </ul>
           </div>

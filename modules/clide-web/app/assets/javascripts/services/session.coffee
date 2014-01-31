@@ -31,6 +31,10 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
       openFiles: null
       talkback: null
       kicked: null
+      inline:
+        output: false
+        errors: true
+        warnings: true
       fileStates: { }
       chat: []
       me: null
@@ -41,12 +45,16 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
     session.activeAnnotations = ->
       session.openFiles?[session.me.activeFile]?.annotations
 
-    session.activeOutput = ->
-      session.openFiles?[session.me.activeFile]?.$output.filter (out) ->
-        cursor = session.cursor
-        console.log cursor
-        (out.from.line < cursor.line or out.from.line is cursor.line and out.from.ch <= cursor.ch) and
-        (out.to.line > cursor.line or out.to.line is cursor.line and out.to.ch >= cursor.ch)
+    session.activeOutput = -> if session.me.activeFile? and session.cursor?
+      result = []
+      for u, v of session.openFiles[session.me.activeFile].$output
+        for n, k of v
+          filtered = k.filter (out) ->
+            cursor = session.cursor
+            (out.from.line < cursor.line or out.from.line is cursor.line and out.from.ch <= cursor.ch) and
+            (out.to.line > cursor.line or out.to.line is cursor.line and out.to.ch >= cursor.ch)
+          result.push.apply(result,filtered)
+      return result
 
     session.syncState = ->
       session.openFiles?[session.me.activeFile]?.$syncState()
@@ -115,9 +123,10 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
       nfile.$apply = (os) -> client.applyServer(os)
       nfile.$syncState = -> client.syncState()
       nfile.$setColor = (c) -> adapter.setColor(c)
-      nfile.$output = []
+      nfile.$output = {}
       nfile.$annotate = (a,u,n) ->
-        nfile.$output.splice(0) if n is 'output' #todo: this is ugly!!
+        nfile.$output[u] = nfile.$output[u] or {}
+        nfile.$output[u][n] = []
         nfile.annotations          = nfile.annotations or { }
         nfile.annotations[u.id]    = nfile.annotations[u.id] or [ ]
         s = null
@@ -130,8 +139,7 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           nfile.annotations[u.id].push s
         s.show = true
         a = client.transformAnnotation(a)
-        adapter.applyAnnotation(a,u,n,nfile.$output)
-      nfile.inlineOutput = false
+        adapter.applyAnnotation(a,u,n,nfile.$output[u][n],session.inline)
       nfile.$addAnnotations = (u,n,d) ->
         nfile.annotations    = nfile.annotations or { }
         nfile.annotations[u] = nfile.annotations[u] or [ ]
