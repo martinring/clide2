@@ -172,17 +172,17 @@ private class SessionActor(
     case AcknowledgeEdit(f) =>
       indicateActivity(f)
       peer ! AcknowledgeEdit(f)
-    case Edited(f,op) =>
-      peer ! Edited(f,op)      
-    case Annotated(f,u,an,n) =>
-      peer ! Annotated(f,u,an,n)
-    case msg@AnnotationsClosed(f,u,n) =>
+    case msg: Edited =>
       peer ! msg
-    case msg@AnnotationsRequested(f,n) =>
+    case msg: Annotated =>
       peer ! msg
-    case msg@AnnotationsDisregarded(f,n) =>
+    case msg: AnnotationsClosed =>
       peer ! msg
-    case msg@AnnotationsOffered(f,u,n,d) =>
+    case msg: AnnotationsRequested =>
+      peer ! msg
+    case msg: AnnotationsDisregarded =>
+      peer ! msg
+    case msg: AnnotationsOffered =>
       peer ! msg
     case SetColor(value) =>
       session = session.copy(color = value)
@@ -238,9 +238,9 @@ private class SessionActor(
           receive(CloseFile(id))
         }
       }
-    case msg@Kick(id) =>
+    case msg: Kick =>
       context.parent.forward(wrap(msg))
-    case msg@ChangeProjectUserLevel(_,_) => // HACK: replace with invitation
+    case msg: ChangeProjectUserLevel => // HACK: replace with invitation
       context.parent.forward(wrap(msg))
     case Kicked =>
       peer ! Kicked
