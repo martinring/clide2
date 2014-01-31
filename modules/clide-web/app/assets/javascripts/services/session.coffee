@@ -45,12 +45,13 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
     session.activeAnnotations = ->
       session.openFiles?[session.me.activeFile]?.annotations
 
-    session.activeOutput = -> if session.me.activeFile? and session.cursor?
+    session.activeOutput = -> if session.cursor? and session.me.activeFile?
       result = []
       for u, v of session.openFiles[session.me.activeFile].$output
         for n, k of v
           filtered = k.filter (out) ->
             cursor = session.cursor
+            (out.type != 'progress') and
             (out.from.line < cursor.line or out.from.line is cursor.line and out.from.ch <= cursor.ch) and
             (out.to.line > cursor.line or out.to.line is cursor.line and out.to.ch >= cursor.ch)
           result.push.apply(result,filtered)
@@ -124,9 +125,12 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
       nfile.$syncState = -> client.syncState()
       nfile.$setColor = (c) -> adapter.setColor(c)
       nfile.$output = {}
+      nfile.$gutter = {}
       nfile.$annotate = (a,u,n) ->
         nfile.$output[u] = nfile.$output[u] or {}
         nfile.$output[u][n] = []
+        nfile.$gutter[u] = nfile.$gutter[u] or {}
+        nfile.$gutter[u][n] = []
         nfile.annotations          = nfile.annotations or { }
         nfile.annotations[u.id]    = nfile.annotations[u.id] or [ ]
         s = null
@@ -139,7 +143,8 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           nfile.annotations[u.id].push s
         s.show = true
         a = client.transformAnnotation(a)
-        adapter.applyAnnotation(a,u,n,nfile.$output[u][n],session.inline)
+        adapter.applyAnnotation(a,u,n,nfile.$gutter[u][n],nfile.$output[u][n],session.inline)
+        adapter.updateGutter(nfile.$gutter)
       nfile.$addAnnotations = (u,n,d) ->
         nfile.annotations    = nfile.annotations or { }
         nfile.annotations[u] = nfile.annotations[u] or [ ]

@@ -44,6 +44,7 @@ define ['util/checkFont'], (checkFont) ->
   ]
 
   monospace = monospace.filter(checkFont)
+  monospace.unshift 'IsabelleText'
 
   math = math.filter(checkFont)
   math.unshift 'Computer Modern'

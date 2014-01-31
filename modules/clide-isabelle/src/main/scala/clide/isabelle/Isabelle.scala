@@ -112,6 +112,10 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
   def annotationsRequested(file: OpenedFile, name: String) = noop
   
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long) = noop
+  
+  override def refreshInterval() {
+    refreshAnnotations()
+  }
 }
 
 object IsabelleApp extends App {

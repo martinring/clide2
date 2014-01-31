@@ -124,7 +124,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         CodeMirrorAdapter.applyOperationToCodeMirror operation, @doc
       @silent = false
 
-    annotate: (c,user,name,output,inline,from,to) =>
+    annotate: (c,user,name,gutter,output,inline,from,to) =>
       classes = c.c?.join(' ')
       widget = (type,cs,content) ->
         w = angular.element("<#{type} class='#{classes} #{cs}'>#{content}</#{type}>")[0]
@@ -132,21 +132,23 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         return w
       line = if to? then to.line else from.line
       if c.e?
-        output.push { from: from, to: to, type: 'error', content: c.e }
-        if inline.errors and cm = @doc.getEditor() for e in c.e
+        output.push { from: from, to: to or from, type: 'error', content: c.e }
+        if inline.errors and cm = @doc.getEditor() then for e in c.e
           @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget error',e)
       if c.w?
-        output.push { from: from, to: to, type: 'warning', content: c.w }
+        output.push { from: from, to: to or from, type: 'warning', content: c.w }
         if inline.warnings and cm = @doc.getEditor() then for w in c.w
           @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget warning',w)
       if c.i?
-        output.push { from: from, to: to, type: 'info', content: c.i }
+        output.push { from: from, to: to or from, type: 'info', content: c.i }
         if inline.output and cm = @doc.getEditor() then for i in c.i
           @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget info',i)
       if c.o?
-        output.push { from: from, to: to, type: 'info', content: c.o }
+        output.push { from: from, to: to or from, type: 'info', content: c.o }
         if inline.output and cm = @doc.getEditor() then for i in c.o
           @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget info',i)
+      if c.ls?
+        gutter.push { line: from.line, type: 'progress', state: c.ls }
       if classes?
         if to? and c.s?
           marker = @doc.markText from, to,
@@ -179,7 +181,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
           marker.clear()
       @annotations[user][name] = []
 
-    applyAnnotation: (annotation, user, name, output, inline) =>
+    applyAnnotation: (annotation, user, name, gutter, output, inline) =>
       cm       = @doc.getEditor()
 
       work = =>
@@ -194,9 +196,21 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
             if a.l > 0
               index += a.l
               to = @doc.posFromIndex(index)
-              @annotate(a.c,user,name,output,inline,from,to)
+              @annotate(a.c,user,name,gutter,output,inline,from,to)
             else
-               @annotate(a.c,user,name,output,inline,from)
+               @annotate(a.c,user,name,gutter,output,inline,from)
 
       if cm? then cm.operation => work()
       else work()
+
+    updateGutter: (output) => if cm = @doc.getEditor() then cm.operation =>
+      cm.clearGutter('progress-gutter')
+      for u, c of output
+        for n, vs of c
+          for v in vs
+            if v.type is 'progress'
+              span = document.createElement 'div'
+              for s in v.state
+                span.classList.add("gutter-state-"+s)
+              cm.setGutterMarker v.line, 'progress-gutter', span
+

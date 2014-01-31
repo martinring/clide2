@@ -183,6 +183,8 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       case Annotated(file,user,as,name) if files.isDefinedAt(file) =>
         if (annotations.isDefinedAt(file))
           annotations(file) += (user,name) -> as
+          
+      case RefreshInterval => 
 
       case Continue =>
         context.become(initialized)
@@ -309,6 +311,9 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         }
       }
       
+    case RefreshInterval => 
+      behavior.refreshInterval()
+      
     case Terminated(_) => context.stop(self)
   }
 
@@ -339,6 +344,14 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       context.become(initialized)
     
     case Terminated(_) => context.stop(self)
+    
+    case RefreshInterval => 
+  }
+  
+  private object RefreshInterval
+  
+  override def preStart() {
+    context.system.scheduler.schedule(1 second, 1 second)(self ! RefreshInterval)
   }
 
   override def postStop() {

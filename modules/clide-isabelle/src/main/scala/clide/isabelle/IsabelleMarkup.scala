@@ -39,7 +39,7 @@ import isabelle.Text
 
 object IsabelleMarkup {  
   val classes = Map(      
-      Markup.KEYWORD1 -> "keyword",
+      Markup.KEYWORD1 -> "command",
       Markup.KEYWORD2 -> "keyword",
       Markup.STRING -> "string",
       Markup.ALTSTRING -> "string",
@@ -54,10 +54,24 @@ object IsabelleMarkup {
       Markup.VAR -> "var",
       Markup.INNER_STRING -> "innerString",
       Markup.INNER_COMMENT -> "innerComment",
-      Markup.DYNAMIC_FACT -> "dynamic_fact")  
+      Markup.DYNAMIC_FACT -> "dynamic_fact")      
       
   val classesElements = classes.keySet
   
+    /* message priorities */
+
+  private val writeln_pri = 1
+  private val information_pri = 2
+  private val tracing_pri = 3
+  private val warning_pri = 4
+  private val legacy_pri = 5
+  private val error_pri = 6
+
+  private val message_pri = Map(
+    Markup.WRITELN -> writeln_pri, Markup.WRITELN_MESSAGE -> writeln_pri,
+    Markup.TRACING -> tracing_pri, Markup.TRACING_MESSAGE -> tracing_pri,
+    Markup.WARNING -> warning_pri, Markup.WARNING_MESSAGE -> warning_pri,
+    Markup.ERROR -> error_pri, Markup.ERROR_MESSAGE -> error_pri)  
   
   def highlighting(snapshot: Document.Snapshot): Annotations = {
     val cs: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(classesElements), _ =>
@@ -106,7 +120,7 @@ object IsabelleMarkup {
             case XML.Elem(markup,body) if markup.name == Markup.ERROR_MESSAGE =>
               AnnotationType.ErrorMessage -> XML.content(body) //isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n")
             case XML.Elem(markup,body) if markup.name == Markup.WARNING_MESSAGE =>
-              AnnotationType.WarningMessage -> isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n")                       
+              AnnotationType.WarningMessage -> XML.content(body)
           }
         as.annotate(cmd.length, outputs.toList)
       } else {
@@ -125,7 +139,7 @@ object IsabelleMarkup {
       case (as, Text.Info(range,None))      => as.plain(range.length)
       case (as, Text.Info(range,Some(msg))) => as.annotate(range.length, List(AnnotationType.Tooltip -> msg))      
     }
-  }    
+  }
   
   def substitutions(state: String): Annotations =
     Symbol.iterator(state).foldLeft(new Annotations) {
@@ -134,4 +148,54 @@ object IsabelleMarkup {
       case (as, sym) =>
         as.annotate(sym.length, List(AnnotationType.Class -> "symbol",AnnotationType.Substitution -> Symbol.decode(sym)))
     }
+  
+  
+  def progress(state: String, snapshot: Document.Snapshot): Annotations = {
+    var offset = 0
+    val it = state.linesWithSeparators
+    var result = new Annotations
+    while (it.hasNext) {
+      val line = it.next()
+      overview_class(snapshot, Text.Range(offset, offset + line.length())) match {
+        case None => result = result.plain(line.length())
+        case Some(c) => result = result.annotate(line.length, List(AnnotationType.Progress -> c))
+      }
+      offset += line.length()
+    }
+    result
+  } 
+  
+  private val overview_include = Protocol.command_status_markup + Markup.WARNING + Markup.ERROR
+
+  def overview_class(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
+  {
+    if (snapshot.is_outdated) None
+    else {
+      val results =
+        snapshot.cumulate_markup[(Protocol.Status, Int)](
+          range, (Protocol.Status.init, 0), Some(overview_include), _ =>
+          {
+            case ((status, pri), Text.Info(_, elem)) =>
+              if (elem.name == Markup.WARNING || elem.name == Markup.ERROR)
+                Some((status, pri max message_pri(elem.name)))
+              else if (overview_include(elem.name))
+                Some((Protocol.command_status(status, elem.markup), pri))
+              else None
+          })
+      if (results.isEmpty) None
+      else {
+        val (status, pri) =
+          ((Protocol.Status.init, 0) /: results) {
+            case ((s1, p1), Text.Info(_, (s2, p2))) => (s1 + s2, p1 max p2) }
+
+        if (status.is_running) Some("running")
+        else if (pri == warning_pri) Some("warning")
+        else if (pri == error_pri) Some("error")
+        else if (status.is_unprocessed) Some("pending")
+        else if (status.is_failed) Some("failed")
+        else None
+      }
+    }
+  }
+  
 }

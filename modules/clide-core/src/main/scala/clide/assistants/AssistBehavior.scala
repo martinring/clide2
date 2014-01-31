@@ -132,4 +132,6 @@ trait AssistBehavior {
    *         e.g. only one `fileChanged` notification afterwards with a combined delta. 
    */
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long): Future[Unit]
+  
+  def refreshInterval(): Unit = {}
 }

@@ -280,6 +280,7 @@ define ->
   'typedef' :  'command'
   'types' :  'command'
   'types_code' : 'command'
+  'type_synonym': 'command'
   'ultimately' : 'command'
   'undo' : 'command'
   'undos_proof' :  'command'

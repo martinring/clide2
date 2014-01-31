@@ -50,7 +50,7 @@ define ['routes','codemirror','modes/isabelle'], (routes) ->
         undoDepth:   0 # disable
         indentWithTabs: false
         tabSize: 2
-        gutters: ['CodeMirror-foldgutter','CodeMirror-linenumbers']
+        gutters: ['CodeMirror-foldgutter','CodeMirror-linenumbers','progress-gutter']
         foldGutter: true
         fixedGutter: false
         viewportMargin: 20 # for smoother scrolling on tablets

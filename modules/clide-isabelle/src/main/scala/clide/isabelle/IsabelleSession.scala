@@ -46,7 +46,9 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
   var project: ProjectInfo = null
   var cursors = Set.empty[Cursor]
   
-  private var files = scala.collection.mutable.Map.empty[Document.Node.Name,(scala.concurrent.Future[Document.Version],OpenedFile)]                 
+  var outdated = Set.empty[Document.Node.Name]
+  
+  private var files = scala.collection.mutable.Map.empty[Document.Node.Name,(scala.concurrent.Future[Document.Version],OpenedFile)]
   
   def updateFile(name: Document.Node.Name, file: OpenedFile, update: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])]): scala.concurrent.Future[Unit] = {    
     session.update(update)
@@ -58,9 +60,9 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
     p.future.map(_ => ())(control.executionContext)
   }
   
-  def refreshAnnotations(nodes: List[Document.Node.Name]) = {
+  def refreshAnnotations() = {
     for {
-      node    <- nodes
+      node    <- outdated
       snapshot = session.snapshot(node,Nil)
       version  = snapshot.version        
     } for {
@@ -73,7 +75,9 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
       control.annotate(state, "errors", IsabelleMarkup.errors(snapshot))
       control.annotate(state, "warnings", IsabelleMarkup.warnings(snapshot))
       control.annotate(state, "typing tooltips", IsabelleMarkup.typeInfo(snapshot))
+      control.annotate(state, "progress", IsabelleMarkup.progress(state.state, snapshot))
     }
+    outdated = Set.empty
   }
   
   def start(project: ProjectInfo) = {
@@ -124,7 +128,7 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
       control.chat(XML.content(msg.body))
     }
     session.commands_changed += { msg =>
-      refreshAnnotations(msg.nodes.toList)
+      outdated ++= msg.nodes
     }
     session.start(List("-S","HOL"))
     initialized.future

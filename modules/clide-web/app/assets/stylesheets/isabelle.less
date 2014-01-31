@@ -31,20 +31,32 @@
 
 @font-face {
   font-family: 'Computer Modern';
-  src: url('/assets/fonts/MathJax_Main-Regular.otf');
+  src: url('/client/fonts/MathJax_Main-Regular.otf');
 }
 
 @font-face {
   font-family: 'Computer Modern';
   font-style: italic;
-  src: url('/assets/fonts/MathJax_Main-Italic.otf');
+  src: url('/client/fonts/MathJax_Main-Italic.otf');
 }
 
 @font-face {
   font-family: 'Computer Modern';
   font-weight: bold;
-  src: url('/assets/fonts/MathJax_Main-Bold.otf');
+  src: url('/client/fonts/MathJax_Main-Bold.ttf');
 }
+
+@font-face {
+  font-family: 'IsabelleText';
+  src: url('/client/fonts/IsabelleText.ttf');
+}
+
+@font-face {
+  font-family: 'IsabelleText';
+  font-weight: bold;
+  src: url('/client/fonts/IsabelleTextBold.ttf');
+}
+
 
 @font-face {
   font-family: 'AMS';
@@ -53,20 +65,20 @@
 
 @font-face {
   font-family: 'Math';
-  src: url('/assets/fonts/MathJax_Math-Regular.otf');
+  src: url('/client/fonts/MathJax_Math-Regular.otf');
 }
 
 @font-face {
   font-family: 'Math';
   font-style: italic;
-  src: url('/assets/fonts/MathJax_Math-Italic.otf');
+  src: url('/client/fonts/MathJax_Math-Italic.otf');
 }
 
 @font-face {
   font-family: 'Math';
   font-weight: bold;
   font-style: italic;
-  src: url('/assets/fonts/MathJax_Math-BoldItalic.otf');
+  src: url('/client/fonts/MathJax_Math-BoldItalic.otf');
 }
 
  /* outer syntax */
@@ -85,7 +97,7 @@
     font-weight: bold;
   }
   .symbol {
-    font-family: 'Computer Modern', 'Math', 'AMS';
+    /*font-family: 'AMS', 'Math';*/
   }
   span.cm-keyword {
     color: @keyword;
@@ -258,23 +270,28 @@
 
 div.gutter-state-running {
   background: @brand-warning;
-  height: 26px;
+  display: inline;
+  height: 100%;
   border-left: 3px solid @brand-warning;
 }
-div.gutter-state-unprocessed {
-  height: 26px;
+div.gutter-state-pending {
+  display: inline;
+  height: 100%;
   border-left: 3px solid @gray;
 }
 div.gutter-state-error {
-  height: 26px;
+  display: inline;
+  height: 100%;
   border-left: 3px solid @brand-danger;
 }
 div.gutter-state-failed {
-  height: 26px;
+  display: inline;
+  height: 100%;
   border-left: 3px solid @brand-danger;
 }
 div.gutter-state-warning {
-  height: 26px;
+  display: inline;
+  height: 100%;
   border-left: 3px solid @brand-warning;
 }
 .current_line.cm-control {
@@ -304,7 +321,6 @@ div.gutter-state-warning {
   background: rgba(0,0,0,0.05);
   border-left: 8px solid @brand-primary;
   white-space: pre;
-  font-family: 'Math';
   overflow: hidden;
   &.error {
     border-left-color: @brand-danger;
