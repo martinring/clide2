@@ -53,7 +53,11 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
   def updateFile(name: Document.Node.Name, file: OpenedFile, update: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])]): scala.concurrent.Future[Unit] = {    
     session.update(update)
     val p = Promise[Document.Version]()
-    val s = scala.concurrent.Future(control.annotate(file, "substitutions", IsabelleMarkup.substitutions(file.state)))(control.executionContext)
+    val s = scala.concurrent.Future{
+      control.annotate(file, "substitutions", IsabelleMarkup.substitutions(file.state))
+      control.annotate(file, "sub/superscript", IsabelleMarkup.scripts(file.state))
+    }(control.executionContext)
+    
     val version = session.current_state.history.tip.version
     version.map(p.success)
     files(name) = (p.future, file)
@@ -75,7 +79,7 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
       control.annotate(state, "errors", IsabelleMarkup.errors(snapshot))
       control.annotate(state, "warnings", IsabelleMarkup.warnings(snapshot))
       control.annotate(state, "typing tooltips", IsabelleMarkup.typeInfo(snapshot))
-      control.annotate(state, "progress", IsabelleMarkup.progress(state.state, snapshot))
+      control.annotate(state, "progress", IsabelleMarkup.progress(state.state, snapshot))      
     }
     outdated = Set.empty
   }

@@ -141,6 +141,32 @@ object IsabelleMarkup {
     }
   }
   
+  def scripts(state: String): Annotations =
+    Symbol.iterator(state).foldLeft((new Annotations, false, false, false, false)){
+      case ((as,sub,sup,bsub,bsup),sym) if sym.length() > 1 && Symbol.decode(sym) == Symbol.sub_decoded =>
+        (as.annotate(sym.length, List(AnnotationType.Substitution -> "")),true,false,bsub,bsup)
+      case ((as,sub,sup,bsub,bsup),sym) if sym.length() > 1 && Symbol.decode(sym) == Symbol.sup_decoded =>
+        (as.annotate(sym.length, List(AnnotationType.Substitution -> "")),false,true,bsub,bsup)
+      case ((as,sub,sup,bsub,bsup),sym) if sym.length() > 1 && Symbol.decode(sym) == Symbol.bsub_decoded =>
+        (as.annotate(sym.length, List(AnnotationType.Substitution -> "")),false,false,true,bsup)
+      case ((as,sub,sup,bsub,bsup),sym) if sym.length() > 1 && Symbol.decode(sym) == Symbol.bsup_decoded =>
+        (as.annotate(sym.length, List(AnnotationType.Substitution -> "")),false,false,bsub,true)
+      case ((as,sub,sup,bsub,bsup),sym) if sym.length() > 1 && Symbol.decode(sym) == Symbol.esub_decoded =>
+        (as.annotate(sym.length, List(AnnotationType.Substitution -> "")),false,false,false,bsup)
+      case ((as,sub,sup,bsub,bsup),sym) if sym.length() > 1 && Symbol.decode(sym) == Symbol.esup_decoded =>
+        (as.annotate(sym.length, List(AnnotationType.Substitution -> "")),false,false,bsub,false)      
+      case ((as,true,sup,bsub,bsup),sym) =>
+        (as.annotate(sym.length(), List(AnnotationType.Class -> "sub")),false,false,bsub,bsup)
+      case ((as,sub,true,bsub,bsup),sym) =>
+        (as.annotate(sym.length(), List(AnnotationType.Class -> "sup")),false,false,bsub,bsup)
+      case ((as,sub,sup,true,bsup),sym) =>
+        (as.annotate(sym.length(), List(AnnotationType.Class -> "sub")),false,false,true,bsup)
+      case ((as,sub,sup,bsub,true),sym) =>
+        (as.annotate(sym.length(), List(AnnotationType.Class -> "sup")),false,false,bsub,true)
+      case ((as,sub,sup,bsub,bsup),sym) =>
+        (as.plain(sym.length),sub,sup,bsub,bsup)
+    }._1
+  
   def substitutions(state: String): Annotations =
     Symbol.iterator(state).foldLeft(new Annotations) {
       case (as, sym) if sym.length == 1 || Symbol.decode(sym) == sym =>
@@ -165,7 +191,7 @@ object IsabelleMarkup {
     result
   } 
   
-  private val overview_include = Protocol.command_status_markup + Markup.WARNING + Markup.ERROR
+  private val overview_include = Protocol.command_status_markup + Markup.WARNING + Markup.ERROR    
 
   def overview_class(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
