@@ -54,6 +54,8 @@ case class Insert(s: String) extends Action
 /** Delete the next `n` characters */
 case class Delete(n: Int) extends Action { require(n>=0) }
 
+trait SimpleAction
+
 case class Operation(actions: List[Action]) {
   override def toString = "[" + actions.mkString(",") + "]"
       

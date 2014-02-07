@@ -81,6 +81,20 @@ object ApplicationBuild extends Build {
     base = file("modules/clide-collaboration"))
     .settings(collaborationSettings:_*)
 
+  // Messages
+  // ===========================================================================
+
+  val messagesDependencies = Seq(
+    "org.scalajs" %% "scalajs-pickling-play-json" % "0.1-SNAPSHOT")
+
+  val messagesSettings = commonSettings ++ Seq (
+    libraryDependencies ++= messagesDependencies)
+
+  val messages = Project(
+    id = "clide-messages",
+    base = file("modules/clide-messages"))
+    .settings(messagesSettings:_*)
+
   // Core
   // ===========================================================================
 
@@ -95,7 +109,6 @@ object ApplicationBuild extends Build {
     commonSettings ++
     AkkaKernelPlugin.distSettings ++
     atmosSettings ++ Seq(
-      unmanagedSourceDirectories in Compile += (sourceDirectory in collaboration).value,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       resolvers += spray.resolver,
       libraryDependencies ++= coreDependencies
@@ -107,11 +120,34 @@ object ApplicationBuild extends Build {
     base = file("modules/clide-core"))
     .settings(coreSettings:_*)
     .configs(Atmos)
+    .dependsOn(collaboration,messages)
+
+  // Web - Client
+  // ===========================================================================
+
+  val clientDependencies = Seq(
+    "org.scalajs" %% "scalajs-pickling" % "0.1-SNAPSHOT",
+    "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.1-SNAPSHOT")
+
+  val clientSettings =
+    commonSettings ++
+    scalaJSSettings ++ Seq(
+      libraryDependencies ++= clientDependencies,
+      unmanagedSourceDirectories in Compile += (sourceDirectory in collaboration).value,
+      unmanagedSourceDirectories in Compile += (sourceDirectory in messages).value,
+      unmanagedSources in (Compile, ScalaJSKeys.packageJS) +=
+        baseDirectory.value / "js" / "client.js")
+
+  val client = Project(
+    id = "clide-client",
+    base = file("modules/clide-client"))
+    .settings(clientSettings:_*)
 
   // Web - Server
   // ===========================================================================
 
-  val webDependencies = Seq()
+  val webDependencies = Seq(
+    "org.scalajs" %% "scalajs-pickling-play-json" % "0.1-SNAPSHOT")
 
   val webSettings = Angular.defaultSettings ++ commonSettings ++ Seq(
     resolvers += Resolver.sonatypeRepo("snapshots"),

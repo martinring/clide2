@@ -1,7 +1,7 @@
 (* Formalisation of Operational Transformation *)
 (* author: Martin Ring, DFKI Bremen *) (*<*) 
 
-theory SimpleOperation
+theory Operation
 imports Main List Option Set
 begin (*>*)
 
@@ -159,49 +159,46 @@ lemma remDelete: "(((Delete # list, d),d') \<in> application) =
   
 section{* Composition *}
 
-subsection{* The Function @{term delete} *}
+subsection{* The Function @{term addDeleteOp} *}
 
 text{*
-  The function @{term delete} is an optimisation. It starts from the observation that 
+  The function @{term addDeleteOp} is an optimisation. It starts from the observation that 
   @{term Delete} and @{term "Insert c"} actions commute, i.e. we can exchange them and still get
   the same operation:
   \[ @{lemma "applyOp [Delete, Insert c] [x] = applyOp [Insert c, Delete] [x]" by simp } \]
   Hence, it makes sense to sort sequences of @{term Delete} and @{term Insert} actions in such
   a way that we get sequences contiguous @{term Delete} and @{term Insert} actions; we can then
   compress into one parameterised delelte action, or an insert action which takes a string as 
-  argument.The @{term delete} fuction adds a delete action, but commutes it as far back 
+  argument.The @{term addDeleteOp} fuction adds a delete action, but commutes it as far back 
   into the argument as possible.
   *}  
 
-fun delete :: "'char operation \<Rightarrow> 'char operation"
+fun addDeleteOp :: "'char operation \<Rightarrow> 'char operation"
 where
-  "delete (Insert c# next) = Insert c# delete next"
-| "delete as = Delete# as"
+  "addDeleteOp (Insert c# next) = Insert c# addDeleteOp next"
+| "addDeleteOp as = Delete# as"
 
-fun insert :: "'char \<Rightarrow> 'char operation \<Rightarrow> 'char operation"
-where
-  "insert c as = Insert c#as"
 
 text{* 
-  After two auxiliary lemmas  we will show that @{term delete} really adds a delete action,
+  After two auxiliary lemmas  we will show that @{term addDeleteOp} really adds a delete action,
   in the sense that if we apply it then it removes the first element of the document.
   *}
  
-lemma deleteValid11[rule_format]: "((a,d),d') \<in> application \<Longrightarrow> \<forall>c. ((delete a,c#d),d') \<in> application"
+lemma addDeleteOpValid11[rule_format]: "((a,d),d') \<in> application \<Longrightarrow> \<forall>c. ((addDeleteOp a,c#d),d') \<in> application"
   by (rule application.induct, auto)
 
-lemma deleteValid1: "((Delete#as,d),d') \<in> application \<Longrightarrow> ((delete as,d),d') \<in> application"
-  by (smt action.distinct(3) action.distinct(5) deleteValid11 application.cases list.distinct(1) list.inject)
+lemma addDeleteOpValid1: "((Delete#as,d),d') \<in> application \<Longrightarrow> ((addDeleteOp as,d),d') \<in> application"
+  by (smt action.distinct(3) action.distinct(5) addDeleteOpValid11 application.cases list.distinct(1) list.inject)
 
-lemma deleteValid: "applyOp (delete a) (c#d) = applyOp a d"
-  by (rule delete.induct, auto)
+lemma addDeleteOpValid: "applyOp (addDeleteOp a) (c#d) = applyOp a d"
+  by (rule addDeleteOp.induct, auto)
 
 text{* 
-  As can be expected, @{term delete} does not change the @{term outputLength}. 
+  As can be expected, @{term addDeleteOp} does not change the @{term outputLength}. 
   This lemma is actually not needed in the following.
   *}
-lemma deleteOutputLength: "outputLength (delete as) = outputLength as"
-  by (rule delete.induct, auto)
+lemma addDeleteOutputLength: "outputLength (addDeleteOp as) = outputLength as"
+  by (rule addDeleteOp.induct, auto)
 
 subsection {* Composition of Operations *}
 
@@ -214,10 +211,10 @@ text {*
 fun compose :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation option"
 where
   "compose [] []                              = Some []"
-| "compose (Delete# as) bs               = Option.map delete (compose as bs)"
+| "compose (Delete# as) bs               = Option.map addDeleteOp (compose as bs)"
 | "compose as (Insert c# bs)             = Option.map (Cons (Insert c)) (compose as bs)"
 | "compose (Retain# as) (Retain# bs) = Option.map (Cons Retain) (compose as bs)"
-| "compose (Retain# as) (Delete# bs)  = Option.map delete (compose as bs)"
+| "compose (Retain# as) (Delete# bs)  = Option.map addDeleteOp (compose as bs)"
 | "compose (Insert c# as) (Retain# bs) = Option.map (Cons (Insert c)) (compose as bs)"
 | "compose (Insert _# as) (Delete# bs) = compose as bs"
 | "compose _ _                                = None"
@@ -233,10 +230,10 @@ text{*
 
 inductive_set composition :: "(('char operation \<times> 'char operation) \<times> 'char operation) set" where
   empty[intro!]:  "(([],[]),[]) \<in> composition"
-| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Delete# a,b), delete ab) \<in> composition"
+| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Delete# a,b), addDeleteOp ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((a, Insert c#b), Insert c# ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Retain# a, Retain#b), Retain# ab) \<in> composition"
-| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Retain# a, Delete#b), delete ab) \<in> composition"
+| [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Retain# a, Delete#b), addDeleteOp ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Insert c# a, Retain# b),Insert c# ab) \<in> composition"
 | [intro!]: "((a,b),ab) \<in> composition \<Longrightarrow> ((Insert _# a, Delete# b),ab) \<in> composition"
 
@@ -291,7 +288,7 @@ text {*
 
 lemma compositionInv [rule_format]: "((a,b),ab) \<in> composition \<Longrightarrow> \<forall>d d' d''. ((a,d),d') \<in> application \<longrightarrow> ((b,d'),d'') \<in> application \<longrightarrow> ((ab,d),d'') \<in> application"
   apply (erule composition.induct)
-  apply (auto simp add: emptyInput deleteValid11 remDelete remInsert remRetain)
+  apply (auto simp add: emptyInput addDeleteOpValid11 remDelete remInsert remRetain)
   by (metis applyOpSet emptyInput)
   
 theorem composeCorrect: 
@@ -400,7 +397,7 @@ fun normalize :: "'char operation \<Rightarrow> 'char operation" where
   "normalize [] = []"
 | "normalize (Retain#a) = Retain#(normalize a)"
 | "normalize (Insert c#a) = Insert c#(normalize a)"
-| "normalize (Delete#a) = delete (normalize a)"
+| "normalize (Delete#a) = addDeleteOp (normalize a)"
 
 text{*
   Here is an example of how normalize works:
@@ -410,11 +407,11 @@ text{*
   normalisation. 
   *}
 
-lemma deleteNormalized[rule_format]: "normalized a \<longrightarrow> normalized (delete a)"
-  by (induct a rule: delete.induct, simp_all)
+lemma addDeleteOpNormalized[rule_format]: "normalized a \<longrightarrow> normalized (addDeleteOp a)"
+  by (induct a rule: addDeleteOp.induct, simp_all)
 
 lemma normalizes: "normalized (normalize a)"
-  by (induct a rule: normalize.induct, simp_all add: deleteNormalized)
+  by (induct a rule: normalize.induct, simp_all add: addDeleteOpNormalized)
 
 text{*
   We also show that normalized operations are fixpoints of the @{term normalize} function,
@@ -440,7 +437,7 @@ text {*
 
 lemma normalizeValid1: "((a,d),d') \<in> application \<Longrightarrow> ((normalize a,d),d') \<in> application"
   apply (erule application.induct)
-  apply (auto intro: deleteValid1)
+  apply (auto intro: addDeleteOpValid1)
   done
 
 lemma normalizeValid: "applyOp a d = Some d' \<Longrightarrow> applyOp(normalize a) d= Some d'"
@@ -451,7 +448,7 @@ lemma normalizeValid: "applyOp a d = Some d' \<Longrightarrow> applyOp(normalize
 text{* The result of @{term compose} is always normalized. *}
 
 lemma composeNormalized[rule_format]: "\<forall>ab. compose a b = Some ab \<longrightarrow> normalized ab"
-  by (rule compose.induct, auto intro:  deleteNormalized)
+  by (rule compose.induct, auto intro:  addDeleteOpNormalized)
 
 section{* Identities *}
 
@@ -510,14 +507,8 @@ lemma transformIdR:
   apply (case_tac "inputLength list")
   apply (case_tac a, simp_all)
   by (case_tac a, simp_all)
-
-code_printing
-  code_module "" \<rightharpoonup> (Scala) {*package clide.collaboration*}
-(*| type_constructor "list" \<rightharpoonup> (Scala) "Seq[(_)]"
-| constant "Nil" \<rightharpoonup> (Scala) "!Seq()"
-| constant "Cons" \<rightharpoonup> (Scala) "Seq(_,_)"*)
-
-export_code compose transform in Scala
-  module_name SimpleOperation file "../../../scala/clide/collaboration/SimpleOperation.scala"
+  
+export_code applyOp compose transform in Scala
+  module_name Operation
 
 end
