@@ -7,20 +7,23 @@ import scala.util.Try
 import scala.util.Success
 import scala.util.Failure
 import scala.concurrent.duration.Duration
+import org.scalajs.dom._
+import clide.client.util.Cancellable
+import clide.client.util.Buffer
 
 trait Observable[+T] {  
-  def subscribe(observer: Observer[T]): Subscription
+  def observe(observer: Observer[T]): Cancellable
   
-  def +=(f: T => Unit): Subscription = subscribe(Observer(f,(e) => (), () => println("onComplete")))
+  def +=(f: T => Unit): Cancellable = observe(Observer(f,(e) => (), () => println("onComplete")))
   
   def foreach(f: T => Unit) {
-    subscribe(Observer(f))
+    observe(Observer(f))
   }
   
   def filter(p: T => Boolean) = {
-    val s = subscribe _
+    val s = observe _
     new Observable[T] {
-      def subscribe(obs: Observer[T]) = s(Observer(
+      def observe(obs: Observer[T]) = s(Observer(
           onNext = { (t: T) =>
             Try(p(t)) match {
               case Success(b) => if (b) obs.onNext(t)
@@ -59,9 +62,9 @@ trait Observable[+T] {
   }*/
   
   def map[U](f: T => U) = {
-    val s = subscribe _
+    val s = observe _
     new Observable[U] {
-      def subscribe(obs: Observer[U]) = s(Observer(
+      def observe(obs: Observer[U]) = s(Observer(
           onNext = { (t: T) =>
             Try(f(t)) match {
               case Success(v) => obs.onNext(v)
@@ -75,37 +78,37 @@ trait Observable[+T] {
   }
     
   def flatMap[U](f: T => Observable[U]) = {
-    val s = subscribe _
+    val s = observe _
     new Observable[U] {
       def subscribe(obs: Observer[U]) = {
-        var subscriptions = List.empty[Subscription]
+        var subscriptions = Buffer.empty[Cancellable]
         val subscr = s(Observer(
           onNext = { (t: T) =>
             Try(f(t)) match {
               case Success(o) => 
-                subscriptions ::= o.subscribe(obs)
+                subscriptions += o.observe(obs)
               case Failure(e) => obs.onError(e)
             }
           },
           onError = obs.onError,
           onCompleted = obs.onCompleted
         ))
-        Subscription{
+        Cancellable{
           subscriptions.foreach(_.unsubscribe)
-          subscr.unsubscribe()
+          subscr.cancel()
         }
       }
     }
   }
   
   def zip[U](other: Observable[U]) = {
-    val s = subscribe _
+    val s = observe _
     new Observable[(T,U)] {
       def subscribe(obs: Observer[(T,U)]) = {
         var latestT: Option[T] = None
         var latestU: Option[U] = None
 
-        val s1: Subscription = s(Observer(onNext = { t =>
+        val s1: Cancellable = s(Observer(onNext = { t =>
           latestT = Some(t)
           (latestT,latestU) match {
             case (Some(t),Some(u)) => (t,u)
@@ -113,7 +116,7 @@ trait Observable[+T] {
           } 
         },obs.onError, obs.onCompleted))
         
-        val s2: Subscription = other.subscribe(Observer(onNext = { u =>
+        val s2: Cancellable = other.observe(Observer(onNext = { u =>
           latestU = Some(u)
           (latestT,latestU) match {
             case (Some(t),Some(u)) => (t,u)
@@ -121,7 +124,7 @@ trait Observable[+T] {
           }
         },obs.onError, obs.onCompleted))
 
-        Subscription{s1.unsubscribe; s2.unsubscribe}
+        Cancellable{s1.cancel(); s2.cancel()}
       }
     }
   }
@@ -156,7 +159,7 @@ trait Observable[+T] {
           onError = obs.onError, 
           onCompleted = obs.onCompleted))
           
-        Subscription{
+        Cancellable{
           timeout.foreach(window.clearTimeout)
           underlying.unsubscribe
         }
@@ -167,27 +170,26 @@ trait Observable[+T] {
 }
 
 object Observable {
-  /*def interval(delay: Int): Observable[Long] = new Observable[Long] {
-    def subscribe(observer: Observer[Long]) = {
+  def interval(delay: Int): Observable[Long] = new Observable[Long] {
+    def observe(observer: Observer[Long]) = {
       var counter = 0L
       var interval = window.setInterval(() => {
         observer.onNext(counter)
         counter += 1;
       }, delay)
-      Subscription(window.clearInterval(interval))
+      Cancellable(window.clearInterval(interval))
     }
   }
   
   def fromEvent[T](obj: EventTarget, event: String) = {    
     new Observable[T] {
-      def subscribe(observer: Observer[T]) = {
+      def observe(observer: Observer[T]) = {
         val listener: scala.scalajs.js.Function1[Event,Unit] = {(e: Event) =>
           observer.onNext(e.asInstanceOf[T])
         }
         obj.addEventListener(event, listener)
-        Subscription.apply(obj.removeEventListener(event, listener))
+        Cancellable(obj.removeEventListener(event, listener))
       }
     }
   }
-  */
 }
