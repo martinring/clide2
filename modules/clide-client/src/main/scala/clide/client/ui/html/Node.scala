@@ -4,6 +4,7 @@ import org.scalajs.dom._
 
 trait Node {
   private [html] val elem: HTMLElement
+  def clear() = elem.innerHTML = ""
   def dispose()
 }
 
@@ -12,9 +13,6 @@ object Node {
     private [html] val elem = e
     def dispose() = d
   }
-}
-
-object BodyNode extends Node {
-  private [html] val elem: HTMLElement = document.body 
-  def dispose() = { }
+  
+  def apply(id: String): Node = apply(document.getElementById(id))()
 }

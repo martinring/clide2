@@ -1,10 +1,12 @@
 package clide.client.util
 
 import scalajs.js
+import scala.collection.script._
 
 class Buffer[A] private[util] (private val underlying: js.Array[A]) {
   def +=(elem: A): Buffer.this.type = { 
-    underlying.push(elem); 
+    underlying.push(elem);
+    
     this 
   }
   

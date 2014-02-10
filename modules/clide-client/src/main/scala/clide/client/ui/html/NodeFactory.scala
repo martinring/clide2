@@ -29,10 +29,17 @@ object NodeFactory {
       Node(e.asInstanceOf[HTMLElement])(subscription.cancel())
     }
   }
+  
+  implicit def nodeFactorySeq(value: Seq[NodeFactory]) = new NodeFactory {
+    def create()(implicit parent: Node) = {
+      value.foreach(_.create()(parent))
+      Node(null.asInstanceOf[HTMLElement])()
+    }
+  }
 }
 
 class Tag[E <: Control](name: String, preset: BoundAttribute[_,E]*) {
-  def apply(attributes: BoundAttribute[_,E]*)(children: NodeFactory*) = NodeFactory { parent =>
+  def apply(attributes: BoundAttribute[_,E]*)(children: NodeFactory*): NodeFactory = NodeFactory { parent =>
     val e = document.createElement(name)
     val p = preset.foreach(_.attach(e))
     val a = attributes.foreach(_.attach(e))

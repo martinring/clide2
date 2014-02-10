@@ -1,21 +1,18 @@
 package clide.client.util
 
-import org.scalajs.dom._
 import scala.scalajs.js
 import clide.client.ui.html._
+import org.scalajs.dom.document
 
 abstract class JsApp(rootId: String) extends DelayedInit {   
   val template: NodeFactory
       
   def delayedInit(body: => Unit) {
-    def start() {      
-      val rootNode = document.getElementById(rootId)
-        if (rootNode == null) {
-          console.error("root node is missing")
-        } else {
-          body
-          template.create()(BodyNode)
-        }
+    def start() {            
+      body
+      val node = Node(rootId)
+      node.clear()
+      template.create()(node)        
     }
     
     val readyEventHandler: js.Function1[org.scalajs.dom.Event,Unit] = (e: org.scalajs.dom.Event) => {
@@ -30,6 +27,6 @@ abstract class JsApp(rootId: String) extends DelayedInit {
      || document.readyState == "complete".asInstanceOf[js.String])
       start()
     else
-      window.document.onreadystatechange = readyEventHandler    
+      document.onreadystatechange = readyEventHandler    
   }
 }

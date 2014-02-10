@@ -13,6 +13,14 @@ trait Readable[T,-E <: Control] {
       Cancellable(es.map(_.cancel()))
     }
   }
+  
+  def map[U](f: T => U) = Readable[U,E](t => f(read(t)))
+}
+
+object Readable {
+  def apply[T,E <: Control](r: Any => T) = new Readable[T,E] {
+    def read(target: Any): T = r(target)
+  } 
 }
 
 trait EventReadable[T,-E <: Control] {

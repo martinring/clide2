@@ -111,6 +111,11 @@ object Observable {
     Cancellable()
   }
   
+  def from[T](t: T): Observable[T] = Observable { obs =>
+    obs.onNext(t)
+    Cancellable()
+  }
+  
   def interval(delay: Int): Observable[Long] = new Observable[Long] {
     def observe(observer: Observer[Long]) = {
       var counter = 0L
