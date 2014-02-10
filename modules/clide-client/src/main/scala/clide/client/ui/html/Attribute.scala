@@ -1,32 +1,58 @@
 package clide.client.ui.html
 
 import scalajs.js
+import clide.client.rx._
+import clide.client.util.Cancellable
 
-trait AttributeOwner
-
-trait AttributeValueMapper[T] {
-  def read(value: js.Dynamic): T
-  def write(value: T): js.Dynamic
-}
-
-object AttributeValueMapper {
-  implicit val stringMapper = new AttributeValueMapper[String] {
-    def read(value: js.Dynamic): String = value.asInstanceOf[String]
-    def write(value: String): js.Dynamic = value.asInstanceOf[js.Dynamic]
+trait Readable[T,-E <: Control] { 
+  def read(target: Any): T
+  
+  def --[E2 <: E](events: Event[_,E2]*) = new EventReadable[T,E] {
+    def --> (obs: Observer[T]) = BoundAttribute[T,E] { t =>      
+      val es = events.map(_.attach(t, Observer(_ => obs.onNext(read(t)))))
+      Cancellable(es.map(_.cancel()))
+    }
   }
 }
 
-abstract class Attribute[T,-E <: AttributeOwner](val name: String)(implicit mapper: AttributeValueMapper[T]) {
-  private[html] def read(target: js.Dynamic): T = mapper.read(target.selectDynamic(name))
-  private[html] def write(target: js.Dynamic, value: T): Unit = target.updateDynamic(name)(mapper.write(value))
+trait EventReadable[T,-E <: Control] {
+  def --> (obs: Observer[T]): BoundAttribute[T,E]
 }
 
-trait Readable[T] { self: Attribute[T,_] => 
-  def read(target: js.Dynamic): T = self.read(target)
+trait Writable[T,-E <: Control] { 
+  def write(target: Any, value: T): Unit
+  
+  def := (value: T) = BoundAttribute[T,E]{ t => 
+    write(t,value)
+    Cancellable() 
+  }
+  
+  def <-- (obs: Observable[T]) = BoundAttribute[T,E]{ t => 
+    obs.observe(write(t,_)) 
+  }
 }
 
-trait Writable[T] { self: Attribute[T,_] => 
-  def write(target: js.Dynamic, value: T): Unit = self.write(target, value)
+object Attribute {
+  def apply[T,E <: Control](name: String) = new Readable[T,E] with Writable[T,E] {
+    def read(target: Any): T = target.asInstanceOf[js.Dynamic].selectDynamic(name).asInstanceOf[T]
+    def write(target: Any, value: T): Unit = target.asInstanceOf[js.Dynamic].updateDynamic(name)(value.asInstanceOf[js.Dynamic])
+  }
+  
+  def writeable[T,E <: Control](name: String) = new Writable[T,E] {
+    def write(target: Any, value: T): Unit = target.asInstanceOf[js.Dynamic].updateDynamic(name)(value.asInstanceOf[js.Dynamic])
+  }
+  
+  def readable[T,E <: Control](name: String) = new Readable[T,E] { 
+    def read(target: Any): T = target.asInstanceOf[js.Dynamic].selectDynamic(name).asInstanceOf[T]
+  }
 }
 
-object id extends Attribute[String]("id") with Readable[String] with Writable[String]
+trait BoundAttribute[T, -E <: Control] {
+  def attach(target: Any): Cancellable  
+}
+
+object BoundAttribute {
+  def apply[T,E <: Control](a: Any => Cancellable) = new BoundAttribute[T,E] {
+    def attach(target: Any) = a(target)
+  }
+}

@@ -1,29 +1,23 @@
 package clide.client
 
 import clide.client.util._
-import clide.client.ui._
-import clide.client.rx.ObservableCollection
-import org.scalajs.dom._
-import clide.client.rx.Observable
-import scala.concurrent.duration._
-import scala.language.postfixOps
+import clide.client.ui.html._
+import clide.client.rx._
 
 object App extends JsApp("clide") {
   val counter = Observable.interval(10)
+     
+  val text = Subject("Hallo")
   
-   
-  val text = TemplateVar("Hallo")
-  
-  val template = Div(className := "test")(
-    Div(id := "hallo")(
+  val template = Div(Control.className := "test")(
+    Div(Control.id := "hallo")(
       "Gib was ein: ", 
-      TextBox(value --> text)()),
-    Div(id := "hallo2", title <-- counter.map(_ * 2).map(_.toString))(
-      "Ich zähle: ", 
-      counter.map(x => x * x).map(_.toString)),
+      TextBox(TextBox.value := text.get, TextBox.value --(TextBox.onInput)--> text)()),
+    Div(Control.id := "hallo2", Control.title := "Hallo")(
+      "Ich zähle: ",
     "Noch ein Text",
-    Button(title := "hallo")(
-      "klick mich ", 
-      text.map(_.reverse)), Toasts
+    Button(Control.title := "hallo")(
+      "klick mich")
+    ), text
   )
 }

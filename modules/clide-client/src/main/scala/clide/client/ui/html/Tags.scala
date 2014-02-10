@@ -1,5 +1,5 @@
 package clide.client.ui.html
 
-trait Binding {
+object Tags {
 
 }

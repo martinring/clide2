@@ -2,19 +2,19 @@ package clide.client.util
 
 import org.scalajs.dom._
 import scala.scalajs.js
-import clide.client.ui._
+import clide.client.ui.html._
 
 abstract class JsApp(rootId: String) extends DelayedInit {   
   val template: NodeFactory
       
   def delayedInit(body: => Unit) {
-    def start() {
+    def start() {      
       val rootNode = document.getElementById(rootId)
         if (rootNode == null) {
           console.error("root node is missing")
         } else {
           body
-          rootNode.appendChild(template.create().asInstanceOf[HTMLElement])
+          template.create()(BodyNode)
         }
     }
     

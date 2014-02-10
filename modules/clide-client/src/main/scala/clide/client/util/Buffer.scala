@@ -95,7 +95,7 @@ class Buffer[A] private[util] (private val underlying: js.Array[A]) {
     underlying.indexOf(elem).asInstanceOf[Int]
   
   def isEmpty: Boolean = 
-    underlying.length == 0
+    underlying.length.asInstanceOf[Int] == 0
     
   def init: Buffer[A] = 
     new Buffer(underlying.slice(0,underlying.length - 1))
