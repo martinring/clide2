@@ -5,19 +5,29 @@ import clide.client.util.Cancellable
 import org.scalajs.dom.EventTarget
 
 trait Event[T,-E <: Control] {
-  def attach(target: Any, observer: Observer[T]): Cancellable
+  def attach(target: Any): Observable[T]
   
-  def --> (f: => Unit) = BoundAttribute(a => attach(a,Observer(_ => f))) 
+  def triggers(action: Action) = BoundAttribute[E]{ x => attach(x).observe(_ => action.trigger()) }
+  def updates[T](v: Var[T]) = BoundAttribute[E]{ x => attach(x).observe(_ => v.update() ) }
+  
+  def map[U](f: T => U) = Event[U,E]{ x => attach(x).map(f) }
+  def flatMap[U](f: T => Observable[U]) = Event[U,E]{ x => attach(x).flatMap(f) }
+  def filter(f: T => Boolean) = Event[T,E]{ x => attach(x).filter(f) }
+  def foreach(f: T => Unit) = BoundAttribute{ x => attach(x).foreach(f) }
 }
 
 object Event {
-  def apply[T,E <: Control](name: String) = new Event[T,E] {
-    def attach(target: Any, observer: Observer[T]): Cancellable =
-      Observable.fromEvent(target.asInstanceOf[EventTarget], name).observe(observer)
+  def apply[T,E <: Control](a: Any => Observable[T]) = new Event[T,E] {
+    def attach(target: Any) = a(target)
+  }
+  
+  def named[T,E <: Control](name: String) = new Event[T,E] {
+    def attach(target: Any): Observable[T] =
+      Observable.fromEvent(target.asInstanceOf[EventTarget], name)
   }
   
   def once = new Event[Unit,Control] {
-    def attach(target: Any, observer: Observer[Unit]): Cancellable =
-      Observable.from(()).observe(observer)
+    def attach(target: Any): Observable[Unit] =
+      Observable.from[Unit](())
   }
 }

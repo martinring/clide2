@@ -38,8 +38,8 @@ object NodeFactory {
   }
 }
 
-class Tag[E <: Control](name: String, preset: BoundAttribute[_,E]*) {
-  def apply(attributes: BoundAttribute[_,E]*)(children: NodeFactory*): NodeFactory = NodeFactory { parent =>
+class Tag[E <: Control](name: String, preset: BoundAttribute[E]*) {
+  def apply(attributes: BoundAttribute[E]*)(children: NodeFactory*): NodeFactory = NodeFactory { parent =>
     val e = document.createElement(name)
     val p = preset.foreach(_.attach(e))
     val a = attributes.foreach(_.attach(e))

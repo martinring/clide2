@@ -8,6 +8,11 @@ trait Node {
   def dispose()
 }
 
+object Body extends Node {
+  private [html] val elem: HTMLElement = document.body
+  def dispose() = {}
+}
+
 object Node {
   private [html] def apply(e: HTMLElement)(d: => Unit): Node = new Node {
     private [html] val elem = e

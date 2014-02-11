@@ -24,7 +24,31 @@ trait Observable[+T] {
       },
       obs.onError, obs.onCompleted
     )
-  }      
+  }
+  
+  def startWith[U >: T](getter: => U) = Observable {    
+    (obs: Observer[U]) =>
+      Try(getter) match {
+        case Success(v) => 
+          obs.onNext(v)
+          observe(obs)
+        case Failure(e) => 
+          obs.onError(e)
+          Cancellable()
+      }
+  }
+  
+  def varying = Observable {    
+    (obs: Observer[T]) => 
+      var cache: Option[T] = None
+      observe(
+        (t: T) => if (!cache.exists(_ == t)) {
+          cache = Some(t)
+          obs.onNext(t)
+        },
+        obs.onError, obs.onCompleted
+      )
+  }
   
   def map[U](f: T => U) = Observable { (obs: Observer[U]) =>
     observe(
@@ -38,12 +62,12 @@ trait Observable[+T] {
     
   def flatMap[U](f: T => Observable[U]) = Observable { (obs: Observer[U]) =>
     val subscriptions = Buffer.empty[Cancellable]
-    val main = observe(Observer(
+    val main = observe(
       (t: T) => Try(f(t)) match {
         case Success(o) => subscriptions += o.observe(obs)
         case Failure(e) => obs.onError(e)
       }, obs.onError, obs.onCompleted
-    ))
+    )
     Cancellable{
       main.cancel(); 
       subscriptions.foreach(_.cancel())
@@ -70,6 +94,11 @@ trait Observable[+T] {
     }
   }
   
+  def zipWithIndex: Observable[(T, Int)] = {
+    var n = 0;
+    this.map(x => { val result = (x,n); n += 1; result })
+  }
+  
   def take(n: Int) = Observable { (obs: Observer[T]) =>
     var c = 0
     lazy val s1: Cancellable = observe(
@@ -94,8 +123,8 @@ trait Observable[+T] {
       },
       obs.onError, obs.onCompleted
     )
-  }
-
+  }  
+  
   def head: Observable[T] = take(1)
   
   def tail: Observable[T] = drop(1)

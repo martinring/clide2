@@ -1,18 +1,19 @@
-package clide.client.util
+package clide.client.ui.html
 
 import scala.scalajs.js
 import clide.client.ui.html._
+import scala.scalajs.js.Any.fromFunction1
 import org.scalajs.dom.document
+import org.scalajs.dom.HTMLElement
 
-abstract class JsApp(rootId: String) extends DelayedInit {   
-  val template: NodeFactory
-      
+abstract class JsApp extends DelayedInit {   
+  val template: NodeFactory   
+  
   def delayedInit(body: => Unit) {
     def start() {            
-      body
-      val node = Node(rootId)
-      node.clear()
-      template.create()(node)        
+      body      
+      Body.clear()      
+      template.create()(Body)
     }
     
     val readyEventHandler: js.Function1[org.scalajs.dom.Event,Unit] = (e: org.scalajs.dom.Event) => {

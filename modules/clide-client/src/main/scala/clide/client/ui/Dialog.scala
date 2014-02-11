@@ -4,19 +4,23 @@ import clide.client.ui.html._
 import clide.client.rx.Subject
 
 case class Query[T](name: String, default: T) {
-  val value = Subject(default)
+  val value = Var(default)
 }
 
-class Dialog(title: String, queries: Query[String]*) extends UserControl {
+class Dialog(title: String, submit: Action, queries: Query[String]*) extends UserControl {
+  val reset = Action {
+    queries.foreach(q => q.value := q.default)
+  }
   
-  
-  val template = Div(Control.className := "dialog")(
+  val template = Div(className := "dialog")(
     H1()(title),
     queries.map { q =>
-      Div(Control.className := "form-group")(
+      Div(className := "form-group")(
         Span()(q.name + ":"),
-        TextBox(TextBox.value := q.default, TextBox.value --(TextBox.onInput)--> q.value)()
+        TextBox(value <-> q.value, input updates q.value)()
       )
-    }
+    },
+    Button(click triggers reset)("reset"),
+    Button(submit)("ok")
   )
 }
