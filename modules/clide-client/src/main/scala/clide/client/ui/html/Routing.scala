@@ -4,7 +4,7 @@ import org.scalajs.dom._
 import clide.client.rx._
 import scala.scalajs.js
 
-trait Routing extends JsApp { 
+trait Routing extends JsApp {
   override def delayedInit(body: => Unit): Unit = super.delayedInit{
     body
     Location.init()
@@ -30,8 +30,9 @@ trait Routing extends JsApp {
          && !me.metaKey 
          && me.button != 2.asInstanceOf[js.Number] 
          && me.srcElement.nodeName.toLowerCase() == "a".asInstanceOf[js.String]) {
+          val href = me.srcElement.getAttribute("href")
           e.preventDefault()
-          path = "/test/bla/" + (new js.Date).getTime          
+          path = href
         }
       })
     }

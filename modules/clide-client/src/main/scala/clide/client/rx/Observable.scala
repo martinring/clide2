@@ -59,6 +59,16 @@ trait Observable[+T] {
       obs.onError, obs.onCompleted
     )
   }
+  
+  def collect[U](f: PartialFunction[T,U]) = Observable { (obs: Observer[U]) =>
+    observe(
+      (t: T) => Try(f.lift(t)) match {
+        case Success(Some(v)) => obs.onNext(v)
+        case Success(None) => // skip value
+        case Failure(e) => obs.onError(e)
+      }
+    )
+  }
     
   def flatMap[U](f: T => Observable[U]) = Observable { (obs: Observer[U]) =>
     val subscriptions = Buffer.empty[Cancellable]

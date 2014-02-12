@@ -1,9 +1,9 @@
 package clide.client.util
 
 import scalajs.js
-import scala.collection.script._
+import scala.language.implicitConversions
 
-class Buffer[A] private[util] (private val underlying: js.Array[A]) {
+class Buffer[A] private[util] (private val underlying: js.Array[A]) extends Seq[A] {
   def +=(elem: A): Buffer.this.type = { 
     underlying.push(elem);
     
@@ -26,11 +26,11 @@ class Buffer[A] private[util] (private val underlying: js.Array[A]) {
     
   def collect[B](pf: PartialFunction[A,B]): Buffer[B] = {
     val result = js.Array[B]()
-    foreach { a => if (pf.isDefinedAt(a)) result.push(pf(a)) }
+    foreach { a: A => if (pf.isDefinedAt(a)) result.push(pf(a)) }
     new Buffer(result)
   }
   
-  def contains(elem: Any): Boolean =
+  override def contains(elem: Any): Boolean =
     underlying.indexOf(elem.asInstanceOf[A]) >= 0
       
     
@@ -75,7 +75,7 @@ class Buffer[A] private[util] (private val underlying: js.Array[A]) {
     this 
   }
   
-  def distinct: Buffer[A] = {
+  override def distinct: Buffer[A] = {
     var u = js.Object()
     var a = js.Array[A]()
     for (i <- 0 to underlying.length.asInstanceOf[Int]) {
@@ -87,25 +87,25 @@ class Buffer[A] private[util] (private val underlying: js.Array[A]) {
     new Buffer(a)
   }
   
-  def head: A = 
+  override def head: A = 
     underlying.apply(0)
     
-  def headOption: Option[A] = 
+  override def headOption: Option[A] = 
     if (underlying.length > 0) Some(underlying.apply(0)) else None
     
-  def indexOf(elem: A): Int = 
-    underlying.indexOf(elem).asInstanceOf[Int]
+  override def indexOf[B >: A](elem: B): Int = 
+    underlying.indexOf(elem.asInstanceOf[A]).asInstanceOf[Int]
   
-  def isEmpty: Boolean = 
+  override def isEmpty: Boolean = 
     underlying.length.asInstanceOf[Int] == 0
     
-  def init: Buffer[A] = 
+  override def init: Buffer[A] = 
     new Buffer(underlying.slice(0,underlying.length - 1))
   
-  def tail: Buffer[A] = 
+  override def tail: Buffer[A] = 
     new Buffer(underlying.slice(1))
   
-  def foreach(f: A => Unit) = {
+  override def foreach[U](f: A => U): Unit = {
     def jsf(a: A, i: js.Number, o: js.Array[A]) = f(a)
     underlying.forEach(jsf _)
   }         
@@ -114,7 +114,8 @@ class Buffer[A] private[util] (private val underlying: js.Array[A]) {
     def jsf(a: A, i: js.Number, o: js.Array[A]) = f(a)
     new Buffer(underlying.map(jsf _))
   }       
-  def nonEmpty: Boolean =
+  
+  override def nonEmpty: Boolean =
     underlying.length > 0
     
   def flatMap[B](f: A => Buffer[B]): Buffer[B] = {
@@ -128,4 +129,6 @@ class Buffer[A] private[util] (private val underlying: js.Array[A]) {
 object Buffer {
   def empty[A]: Buffer[A] = new Buffer(js.Array())
   def apply[A](elems: A*): Buffer[A] = new Buffer(js.Array(elems: _*))
+  
+  implicit def fromJsArray[T](arr: js.Array[T]) = new Buffer(arr)
 }
