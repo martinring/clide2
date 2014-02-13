@@ -11,9 +11,8 @@ abstract class JsApp extends DelayedInit {
   
   def delayedInit(body: => Unit) {
     def start() {            
-      body      
-      Body.clear()      
-      template.create()(Body)
+      body                 
+      template.create(document.body.appendChild(_))
     }
     
     val readyEventHandler: js.Function1[org.scalajs.dom.Event,Unit] = (e: org.scalajs.dom.Event) => {

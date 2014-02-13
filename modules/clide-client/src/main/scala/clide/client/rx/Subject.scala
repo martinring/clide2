@@ -4,7 +4,7 @@ import clide.client.util.Buffer
 import clide.client.util.Cancellable
 
 trait Subject[T] extends Observable[T] with Observer[T] {
-  def get: T
+  def get: Option[T]
   def set(v: T) = onNext(v)
 }
 
@@ -12,7 +12,7 @@ object Subject {
   def apply[T](initial: T) = new Subject[T] {
     private val subscribers = Buffer.empty[Observer[T]]
     private var cache = initial
-    def get = cache    
+    def get = Some(cache)
     
     def observe(observer: Observer[T]): Cancellable = {
       subscribers += observer
@@ -32,4 +32,16 @@ object Subject {
       subscribers.clear()
     }
   }
+  
+  /*def empty[T] = new Subject[T] {
+    private val subscribers = Buffer.empty[Observer[T]]
+    private var cache = Option.empty[T]
+    def observe(observer: Observer[T]): Cancellable = {
+      subscribers += observer
+      cache.foreach(observer.onNext)
+      Cancellable(subscribers -= observer)
+    }
+    
+    def onNext()
+  }*/
 }

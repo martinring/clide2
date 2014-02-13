@@ -3,6 +3,7 @@ package clide.client.util
 trait Cancellable {
   def cancel()
   def isCancelled: Boolean
+  def and(other: Cancellable) = Cancellable{ this.cancel; other.cancel }
 }
 
 object Cancellable {

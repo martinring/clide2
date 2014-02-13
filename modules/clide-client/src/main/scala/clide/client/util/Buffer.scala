@@ -3,7 +3,7 @@ package clide.client.util
 import scalajs.js
 import scala.language.implicitConversions
 
-class Buffer[A] private[util] (private val underlying: js.Array[A]) extends Seq[A] {
+case class Buffer[A] private[util] (private val underlying: js.Array[A]) extends collection.mutable.Buffer[A] {
   def +=(elem: A): Buffer.this.type = { 
     underlying.push(elem);
     
@@ -11,7 +11,7 @@ class Buffer[A] private[util] (private val underlying: js.Array[A]) extends Seq[
   }
   
   def +=:(elem: A): Buffer.this.type = { 
-    underlying.unshift(elem);
+    underlying.unshift(elem);   
     this 
   }
   
@@ -34,9 +34,17 @@ class Buffer[A] private[util] (private val underlying: js.Array[A]) extends Seq[
     underlying.indexOf(elem.asInstanceOf[A]) >= 0
       
     
-  def insertAll(n: Int, elems: Buffer[A]): Unit = 
-    underlying.asInstanceOf[js.Dynamic].splice.apply(n, 0, elems.underlying)
-    
+  def insertAll(n: Int, elems: Traversable[A]): Unit = elems match {
+    case Buffer(other) =>
+      underlying.asInstanceOf[js.Dynamic].splice.apply(n, 0, other)
+    case xs =>
+      var i = 0
+      xs.foreach{ e => 
+        underlying.splice(n+i,0,e) 
+        i += 1
+      }
+  }     
+        
   def iterator: Iterator[A] = new Iterator[A] {
     var index = 0
     def hasNext: Boolean = underlying.length > index
@@ -48,57 +56,29 @@ class Buffer[A] private[util] (private val underlying: js.Array[A]) extends Seq[
   } 
   
   def length: Int = 
-    underlying.length.asInstanceOf[Int]
+    underlying.length.toInt
   
   def remove(n: Int): A = 
     underlying.splice(n,1).apply(0)
     
-  def removeHead: A =
-    underlying.shift()
-    
-  def removeLast: A =
-    underlying.pop()
-    
   def update(n: Int, newelem: A): Unit = 
     underlying.update(n, newelem)
-  
-  def ++(that: Buffer[A]): Buffer[A] = 
-    new Buffer(underlying.concat(that.underlying))
-  
-  def ++=(that: Buffer[A]): Buffer.this.type = { 
-    underlying.asInstanceOf[js.Dynamic].push.apply(that.underlying); 
-    this 
-  }
-  
-  def -=(elem: A): Buffer[A] = { 
-    underlying.splice(underlying.indexOf(elem),1); 
-    this 
-  }
   
   override def distinct: Buffer[A] = {
     var u = js.Object()
     var a = js.Array[A]()
-    for (i <- 0 to underlying.length.asInstanceOf[Int]) {
+    for (i <- 0 to underlying.length.toInt) {
       if (!u.hasOwnProperty(this.apply(i).asInstanceOf[String])) {
         a.push(this.apply(i))
         u.asInstanceOf[js.Array[Boolean]].update(this.apply(i).asInstanceOf[js.Number],true)
       }
     }
     new Buffer(a)
-  }
-  
-  override def head: A = 
-    underlying.apply(0)
-    
-  override def headOption: Option[A] = 
-    if (underlying.length > 0) Some(underlying.apply(0)) else None
+  } 
     
   override def indexOf[B >: A](elem: B): Int = 
-    underlying.indexOf(elem.asInstanceOf[A]).asInstanceOf[Int]
-  
-  override def isEmpty: Boolean = 
-    underlying.length.asInstanceOf[Int] == 0
-    
+    underlying.indexOf(elem.asInstanceOf[A]).toInt
+
   override def init: Buffer[A] = 
     new Buffer(underlying.slice(0,underlying.length - 1))
   
@@ -130,5 +110,5 @@ object Buffer {
   def empty[A]: Buffer[A] = new Buffer(js.Array())
   def apply[A](elems: A*): Buffer[A] = new Buffer(js.Array(elems: _*))
   
-  implicit def fromJsArray[T](arr: js.Array[T]) = new Buffer(arr)
+  implicit def fromJsArray[T](arr: js.Array[T]) = new Buffer(arr) 
 }

@@ -83,17 +83,35 @@ trait Observable[+T] {
       subscriptions.foreach(_.cancel())
     }
   }
+ 
+  /*def fold(init: T)(f: (T,T) => T) = Observable { (obs: Observer[T]) =>
+    var v = init
+    var e = false
+    observe(
+      (t: T) => if(!e) Try(f(v,t)) match {
+        case Success(n) => v = n          
+        case Failure(er) => 
+          obs.onError(er)
+          e = true
+      }, 
+      (er) => if (!e) obs.onError(er), 
+      () => if (!e) {  
+        obs.onNext(v)
+        obs.onCompleted()
+      }
+    )
+  }*/
   
   def zip[U](other: Observable[U]) = Observable { (obs: Observer[(T,U)]) =>
     val left: Buffer[T] = Buffer.empty
     val right: Buffer[U] = Buffer.empty    
     lazy val s1: Cancellable = observe(
-      (t: T) => if (right.nonEmpty && left.isEmpty) obs.onNext (t, right.removeHead)
+      (t: T) => if (right.nonEmpty && left.isEmpty) obs.onNext (t, right.remove(0))
               else left += t,
       obs.onError, () => { obs.onCompleted(); s2.cancel() } // TODO: Cancel other      
     )
     lazy val s2: Cancellable = other.observe(
-      (u: U) => if (left.nonEmpty && right.isEmpty) obs.onNext (left.removeHead, u)
+      (u: U) => if (left.nonEmpty && right.isEmpty) obs.onNext (left.remove(0), u)
               else right += u,
       obs.onError, () => { obs.onCompleted(); s1.cancel() }
     )
@@ -103,6 +121,12 @@ trait Observable[+T] {
       s2.cancel()
     }
   }
+  
+  /*  
+  def window[S,E](starts: Observable[S], ends: Observable[E]) = Observable[Observable[T]] { obs =>
+    Subject[T]()
+    Cancellable()
+  }*/
   
   def zipWithIndex: Observable[(T, Int)] = {
     var n = 0;
@@ -153,7 +177,7 @@ object Observable {
   def from[T](t: T): Observable[T] = Observable { obs =>
     obs.onNext(t)
     Cancellable()
-  }
+  }  
   
   def interval(delay: Int): Observable[Long] = new Observable[Long] {
     def observe(observer: Observer[Long]) = {

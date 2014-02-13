@@ -14,7 +14,7 @@ trait Routing extends JsApp {
     def back() = window.history.back()
     def forward() = window.history.forward()
     def path: Observable[String] = loc.startWith(window.location.pathname.asInstanceOf[String]).varying
-    def path_=(path: String) = {
+    def path_=(path: String) = {             
       loc.onNext(path)
       window.history.pushState(null, path, path)
     } 
@@ -30,9 +30,11 @@ trait Routing extends JsApp {
          && !me.metaKey 
          && me.button != 2.asInstanceOf[js.Number] 
          && me.srcElement.nodeName.toLowerCase() == "a".asInstanceOf[js.String]) {
-          val href = me.srcElement.getAttribute("href")
-          e.preventDefault()
-          path = href
+          val href = me.srcElement.getAttribute("href")                    
+          if (href.startsWith("/")) {
+            e.preventDefault()
+            path = href
+          }
         }
       })
     }

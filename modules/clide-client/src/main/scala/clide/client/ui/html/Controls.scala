@@ -37,7 +37,8 @@ package object html {
   }
   
   object Link extends Tag[Link]("a")
-  val href = Attribute[String,Link]("href")
+  val href = Attribute[String,Link]("href")  
+  val noref = href := "#"
     
   object TextBox extends Tag[TextBox]("input")
   val value = Attribute[String,TextBox]("value")

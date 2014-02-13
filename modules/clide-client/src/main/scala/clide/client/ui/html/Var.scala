@@ -9,12 +9,17 @@ trait Var[T] extends Observable[T] {
   def :=(value: T)
   def get: T
   def update()
+  def reset()
 }
 
 object Var {
   def apply[T](value: T) = new Var[T] {
     private val subscribers = Buffer.empty[Observer[T]]
     private var cache = value
+        
+    def reset() {
+      cache = value
+    }
     
     def get = cache
 
