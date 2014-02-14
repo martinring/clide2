@@ -13,6 +13,14 @@ trait Observable[+T] {
   
   def observe(onNext: T => Unit = _ => (), onError: Throwable => Unit = _ => (), onCompleted: () => Unit = () => ()): Cancellable =
     observe(Observer(onNext,onError,onCompleted))
+  
+  def materialize = Observable[Step[T]] { obs =>
+    observe(
+      (t: T) => obs.onNext(Next(t)),
+      (e: Throwable) => obs.onNext(Error(e)),
+      () => obs.onNext(Completed)
+    )
+  }
     
   def foreach(f: T => Unit): Cancellable = observe(Observer(f))  
   
@@ -79,29 +87,58 @@ trait Observable[+T] {
       }, obs.onError, obs.onCompleted
     )
     Cancellable{
-      main.cancel(); 
+      main.cancel();
       subscriptions.foreach(_.cancel())
     }
   }
   
-  def zip[U](other: Observable[U]) = Observable { (obs: Observer[(T,U)]) =>
+  def until[U](that: Observable[U]) = Observable[T] { obs =>
+    val s = this.observe(obs)
+    lazy val s2: Cancellable = that.observe(
+        _ => { obs.onCompleted(); s.cancel(); s2.cancel() }, 
+        e => { obs.onError(e); s.cancel(); s2.cancel() }, 
+        () => { obs.onCompleted(); s.cancel(); s2.cancel() })
+    s and s2
+  }
+  
+  def ended = Observable[Unit] { obs =>    
+    observe(_ => (), obs.onError, () => { obs.onNext(()); obs.onCompleted() })
+  }
+  
+  def merge[U >: T](that: Observable[U]) = Observable[U] { obs => 
+    this.until(that.ended).observe(obs) and
+    that.until(this.ended).observe(obs)
+  }
+  
+  def when(that: Observable[Boolean]) = Observable[T] { obs =>
+    var s = Option.empty[Cancellable]    
+    that.until(that.ended).observe({b => 
+      if (b && s.isEmpty) s = Some(observe(obs)) 
+      else if (!b) { 
+        s.foreach(_.cancel()); 
+        s = None 
+    }}, { e =>
+      s.foreach(_.cancel())
+      obs.onError(e)
+    } , { () =>
+      s.foreach(_.cancel())
+      obs.onCompleted()
+    })
+  }
+  
+  def zip[U](that: Observable[U]) = Observable { (obs: Observer[(T,U)]) =>
     val left: Buffer[T] = Buffer.empty
     val right: Buffer[U] = Buffer.empty    
-    lazy val s1: Cancellable = observe(
+    this.until(that.ended).observe(
       (t: T) => if (right.nonEmpty && left.isEmpty) obs.onNext (t, right.remove(0))
-              else left += t,
-      obs.onError, () => { obs.onCompleted(); s2.cancel() } // TODO: Cancel other      
-    )
-    lazy val s2: Cancellable = other.observe(
+                else left += t,
+      obs.onError, obs.onCompleted      
+    ) and
+    that.until(this.ended).observe(
       (u: U) => if (left.nonEmpty && right.isEmpty) obs.onNext (left.remove(0), u)
-              else right += u,
-      obs.onError, () => { obs.onCompleted(); s1.cancel() }
+                else right += u,
+      obs.onError, obs.onCompleted
     )
-    (s1,s2)
-    Cancellable {
-      s1.cancel()
-      s2.cancel()
-    }
   }
   
   def zipWithIndex: Observable[(T, Int)] = {
@@ -149,6 +186,13 @@ object Observable {
     buf.foreach(obs.onNext(_))
     Cancellable()
   }
+  
+  /**
+   * Flip-flopping observable. Turns true whenever an event in flip occurs and false whenever 
+   * an event in flop occurs. Ends when either flip or flop ends
+   */
+  def flipFlop[T,U](flip: Observable[T], flop: Observable[U]) =
+    (flip.map(_ => true) merge flop.map(_ => false)).varying
   
   def from[T](t: T): Observable[T] = Observable { obs =>
     obs.onNext(t)
