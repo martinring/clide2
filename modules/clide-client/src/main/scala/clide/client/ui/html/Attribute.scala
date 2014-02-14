@@ -100,7 +100,12 @@ object Attribute {
   def flag[E <: Control](name: String) = new ReadAndWritable[Boolean,E] {
     def read(target: HTMLElement): Boolean = target.getAttribute(name) == name.asInstanceOf[js.String]
     def write(target: HTMLElement, value: Boolean) = if (!value) target.removeAttribute(name) else target.setAttribute(name,name)
-  }  
+  }
+  
+  def bool[E <: Control](name: String) = new ReadAndWritable[Boolean,E] {
+    def read(target: HTMLElement): Boolean = target.asInstanceOf[js.Dynamic].selectDynamic(name).asInstanceOf[js.Boolean]
+    def write(target: HTMLElement, value: Boolean) = target.asInstanceOf[js.Dynamic].updateDynamic(name)(value)   
+  }
 }
 
 trait BoundAttribute[-E <: Control] {

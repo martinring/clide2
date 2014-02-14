@@ -11,7 +11,7 @@ import clide.client.util.Buffer
 trait Observable[+T] {  
   def observe(observer: Observer[T]): Cancellable
   
-  def observe(onNext: T => Unit = _ => (), onError: Throwable => Unit = _ => (), onCompleted: () => Unit = () => ()): Cancellable =
+  def observe(onNext: T => Unit = _ => (), onError: Throwable => Unit = e => throw e, onCompleted: () => Unit = () => ()): Cancellable =
     observe(Observer(onNext,onError,onCompleted))
   
   def materialize = Observable[Step[T]] { obs =>
@@ -24,7 +24,7 @@ trait Observable[+T] {
     
   def foreach(f: T => Unit): Cancellable = observe(Observer(f))  
   
-  def filter(p: T => Boolean) = Observable { (obs: Observer[T]) =>
+  def filter(p: T => Boolean) = Observable[T] { obs =>
     observe(
       (t: T) => Try(p(t)) match { 
         case Success(b) => if (b) obs.onNext(t) 
@@ -32,7 +32,7 @@ trait Observable[+T] {
       },
       obs.onError, obs.onCompleted
     )
-  }
+  }    
   
   def startWith[U >: T](getter: => U) = Observable {    
     (obs: Observer[U]) =>
@@ -214,6 +214,7 @@ object Observable {
     new Observable[T] {
       def observe(observer: Observer[T]) = {
         val listener: scala.scalajs.js.Function1[Event,Unit] = {(e: Event) =>
+          //e.preventDefault()
           observer.onNext(e.asInstanceOf[T])
         }
         obj.addEventListener(event, listener)

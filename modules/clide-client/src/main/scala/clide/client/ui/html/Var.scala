@@ -8,7 +8,7 @@ trait Var[T] extends Observable[T] {
   private [html] var setter: Option[T => Unit] = None
   def :=(value: T)
   def get: T
-  def update()
+  private [html] def update()
   def reset()
   
   /*def validate (f: T => Boolean, msg: => String) = new Var[T] {
@@ -23,6 +23,7 @@ object Var {
         
     def reset() {
       cache = value
+      subscribers.foreach(_.onNext(value))
     }
     
     def get = cache
