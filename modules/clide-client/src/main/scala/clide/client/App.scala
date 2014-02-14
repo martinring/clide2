@@ -48,6 +48,21 @@ object App extends JsApp with History {
     n += 1
   }
   
+  def obsBufView(name: String): NodeFactory = {
+    var n = 1    
+    val buf = ObservableBuffer.fromBuffer(clide.client.util.Buffer.empty[Int])    
+    val add = Action {
+      buf += n
+      n += 1
+    }
+    Span(className := "obs")(
+      Span()(name), Button(click triggers add)("+"),
+      OrderedList()(
+        buf.observable.mapChanges { i => ListItem()(Button(click triggers Action(buf -= i))("x"), obsBufView(name + "." + i)) }
+      )
+    )             
+  }
+  
   val template = Div(className := "clideApp")(
     "Wir befinden uns hier: ", Location.path, text,
     Div(id := "hallo")("Gib was ein: ", TextBox(value <-> text, input updates text)()),
@@ -60,9 +75,20 @@ object App extends JsApp with History {
       case _ => Login
     }).varying,
     H1()("Eine Liste:"),
-    Button(click triggers addItem)("hinzufügen"),
-    elems.observable.mapChanges { str => 
-      Div(click triggers Action(elems -= str))(str)  
-    }
+    PreFormated()("""def obsBufView(name: String): NodeFactory = {
+  var n = 1    
+  val buf = ObservableBuffer.fromBuffer(clide.client.util.Buffer.empty[Int])    
+  val add = Action {
+    buf += n
+    n += 1
+  }
+  Span(className := "obs")(
+    Span()(name), Button(click triggers add)("+"),
+    OrderedList()(
+      buf.observable.mapChanges { i => ListItem()(Button(click triggers Action(buf -= i))("x"), obsBufView(name + "." + i)) }
+    )
+  )
+}"""),  
+    obsBufView("0")
   )
 }

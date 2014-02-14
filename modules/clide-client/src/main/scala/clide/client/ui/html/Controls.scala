@@ -11,6 +11,8 @@ package object html {
   trait LinkLike extends Control
   trait Button extends LinkLike
   trait Link extends LinkLike
+  trait List extends Control
+  trait ListItem extends Control
   
   val id        = Attribute[String,Control]("id")
   val className = Attribute[String,Control]("className")
@@ -46,4 +48,11 @@ package object html {
   
   object Select extends Tag[Select]("select")
   val select = Event.named[Unit,Select]("select")
+  
+  object UnorderedList extends Tag[List]("ul")
+  object OrderedList extends Tag[List]("ol")  
+    
+  object ListItem extends Tag[ListItem]("li")
+  
+  object PreFormated extends Tag[Span]("pre") 
 }
