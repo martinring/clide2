@@ -6,116 +6,94 @@ import clide.client.rx._
 import clide.client.util.Cancellable
 import clide.client.util.Buffer
 
+trait InsertedNode {
+  def detach()
+  def remove()
+  def insertBefore(t: Node)
+  def replace(t: Node) = { insertBefore(t); remove() }
+}
+
+object InsertedNode {
+  def apply(f: => (Node => Unit),c: => Unit, g: => Unit = ()) = new InsertedNode {
+    def remove() = { g; c }
+    def detach() = g
+    def insertBefore(t: Node) = { f(t) }
+  }
+}
+
 trait NodeFactory {
-  def create(insert: Node => Unit): Cancellable
+  def create(insert: Node => Unit): InsertedNode
 }
 
 object NodeFactory {
-  def apply(c: (Node => Unit) => Cancellable) = new NodeFactory {
+  def apply(c: (Node => Unit) => InsertedNode) = new NodeFactory {
     def create(insert: Node => Unit) = c(insert)
   }
   
-  implicit def textNodeFactory(value: String) = NodeFactory { insert =>
-    insert(document.createTextNode(value))
-    Cancellable()
-  }
-  
-  implicit def observableStringFactory(value: Observable[String]) = NodeFactory { insert =>
-    val e = document.createTextNode("")
-    insert(e)
-    value.observe(e.textContent = _)
-  }
-  
-  implicit def observableFactoryFactory(value: Observable[NodeFactory]) = NodeFactory { insert =>
-    var node: Node = document.createComment("placeholder")    
+  implicit def text(value: String) = NodeFactory { insert =>
+    val node = document.createTextNode(value)
     insert(node)
-    
-    var s = Cancellable()
-    
-    value.observe({ factory =>
-      s.cancel()
-      s = factory.create { newNode => 
-        node.parentNode.replaceChild(newNode, node)
-        node = newNode
-      }
-    }) and s
+    InsertedNode(newChild => node.parentNode.insertBefore(newChild, node), node.parentNode.removeChild(node))
   }
   
-  implicit def observableSeqFactory(value: Observable[CollectionChange[NodeFactory]]) = NodeFactory { insert =>    
-    val last: Node = document.createComment("repeat-end")    
-    insert(last)
-    val nodes = Buffer.empty[Node]
-    val cs = Buffer.empty[Cancellable]
-    value.observe({ msg => msg match {
-      case Insert(Head,factory) =>
-        val n = nodes.headOption.getOrElse(last)                  
-        cs.+=:(factory.create { node =>
-          n.parentNode.insertBefore(node, n)
-          nodes.+=:(node)         
-        })       
+  implicit def observableText(value: Observable[String]) = NodeFactory { insert =>
+    val node = document.createTextNode("")
+    insert(node)
+    val sub = value.observe(node.textContent = _)
+    InsertedNode(newChild => node.parentNode.insertBefore(newChild,node), node.parentNode.removeChild(node), sub.cancel())    
+  }
+  
+  implicit def observable(value: Observable[NodeFactory]) = NodeFactory { insert =>
+    val node: Node = document.createComment("observableFactoryFactory")    
+    insert(node)    
+    var s = InsertedNode(newChild => node.parentNode.insertBefore(newChild, node), node.parentNode.removeChild(node))    
+    val sub = value.observe(factory => s = factory.create(s.replace))   
+    InsertedNode(s.replace(_), s.remove(), { s.detach(); sub.cancel() })
+  }
+    
+  implicit def sequence(value: Seq[NodeFactory]) = NodeFactory { insert =>
+    val node = document.createComment("emptyNodeSeq")
+    insert(node)
+    val last = InsertedNode(newChild => node.parentNode.insertBefore(newChild, node), node.parentNode.removeChild(node))
+    if (value.length > 0) {      
+      val all = value.map(_.create(last.insertBefore(_))) :+ last
+      InsertedNode(all(0).insertBefore, all.map(_.remove()), all.map(_.detach()))
+    } else {
+      last
+    }      
+  }
+  
+  implicit def observableSequence(value: Observable[CollectionChange[NodeFactory]]) = NodeFactory { insert =>    
+    val node: Node = document.createComment("observableSeqFactory-end")    
+    insert(node)
+    val last = InsertedNode(newChild => node.parentNode.insertBefore(newChild, node), node.parentNode.removeChild(node))
+    val nodes = Buffer.apply[InsertedNode](last)
+    val sub = value.observe({ msg => msg match {
+      case Insert(Head,factory) =>                         
+        nodes.+=:(factory.create(nodes.head.insertBefore(_)))       
       case Insert(Last,factory) =>
-        cs += factory.create { node =>
-          last.parentNode.insertBefore(node, last)
-          nodes += node
-        }
-      case Insert(Index(i), factory) =>
-        val n = nodes.lift(i).getOrElse(last)
-        cs.insert(i,factory.create { node =>
-          n.parentNode.insertBefore(node, n)
-          nodes.insert(i, node)
-        })
+        nodes.insert(nodes.length - 1, factory.create(last.insertBefore(_)))        
+      case Insert(Index(i), factory) =>        
+        nodes.insert(i, factory.create(nodes(i).insertBefore(_)))
       case Remove(Head) =>
-        val n = nodes.remove(0)
-        val c = cs.remove(0)
-        c.cancel()
-        n.parentNode.removeChild(n)
+        nodes.remove(0).remove()
       case Remove(Last) =>
-        val n = nodes.remove(nodes.length - 1)
-        val c = cs.remove(nodes.length - 1)
-        c.cancel()
-        n.parentNode.removeChild(n)
+        nodes.remove(nodes.length - 2).remove()
       case Remove(Index(i)) =>
-        val n = nodes.remove(i)
-        val c = cs.remove(i)
-        c.cancel()
-        n.parentNode.removeChild(n)        
+        nodes.remove(i).remove()        
       case Update(Head,factory) =>
-        val n = nodes(0)
-        val c = cs(0)
-        c.cancel()
-        cs(0) = factory.create{ node => 
-          nodes(0) = node
-          n.parentNode.replaceChild(node, n)          
-        }
+        nodes(0) = factory.create(nodes(0).replace(_))
       case Update(Last,factory) =>
-        val i = nodes.length - 1
-        val n = nodes.remove(i)
-        val c = cs.remove(i)
-        c.cancel()
-        cs(i) = factory.create{ node => 
-          nodes(i) = node
-          n.parentNode.replaceChild(node, n)          
-        }
+        nodes(nodes.length - 2) = factory.create(nodes(nodes.length - 2).replace(_))
       case Update(Index(i),factory) =>
-        val n = nodes.remove(i)
-        val c = cs.remove(i)
-        c.cancel()
-        cs(i) = factory.create{ node => 
-          nodes(i) = node
-          n.parentNode.replaceChild(node, n)          
-        }        
+        nodes(i) = factory.create(nodes(i).replace(_))        
       case Clear =>
-        cs.foreach(_.cancel())
-        nodes.foreach(n => n.parentNode.removeChild(n))
-        cs.clear()
-        nodes.clear()
-    }})         
-  }
-  
-  implicit def nodeFactorySeq(value: Seq[NodeFactory]) = NodeFactory { insert =>    
-    val all = value.map(_.create(insert)) // FIXME: only one call to insert
-    Cancellable(all.foreach(_.cancel()))
-  }
+        nodes.init.foreach(_.remove())
+        nodes.remove(0, nodes.length - 1)
+    }})
+    
+    InsertedNode(nodes(0).insertBefore(_), nodes.map((x: InsertedNode) => x.remove()), { sub.cancel(); nodes.map((x: InsertedNode) => x.detach()) })
+  }  
 }
 
 class Tag[E <: Control](name: String, preset: BoundAttribute[E]*) {
@@ -124,11 +102,12 @@ class Tag[E <: Control](name: String, preset: BoundAttribute[E]*) {
     val p = preset.map(_.attach(e))
     val a = attributes.map(_.attach(e))
     insert(e)
-    val all = children.map(_.create(e.appendChild(_)))    
-    Cancellable {
+    val all = children.map(_.create(e.appendChild(_)))
+    InsertedNode(newChild => e.parentNode.insertBefore(newChild, e), e.parentNode.removeChild(e),
+    {
       p.foreach(_.cancel())
       a.foreach(_.cancel())
-      all.foreach(_.cancel())
-    }
+      all.foreach(_.detach())
+    })
   }
 }

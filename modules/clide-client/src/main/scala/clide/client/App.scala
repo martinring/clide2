@@ -6,49 +6,39 @@ import clide.client.ui._
 import clide.client.ui.html.JsApp
 import scala.collection.mutable.Buffer
 
-object App extends JsApp with Routing {
-  val a = Buffer.empty[Int]
-  a.insert(0, 0)
-  a.remove(0)
-  for (i <- 0 to 10)
-    a.insert(i, i)
-  println(a.mkString(", "))
-  
-  
-  val counter = Observable.interval(500)
-     
-  val text = Var("Test")
-  
-  counter.foreach(_ => text.update())
-  
-  val reset = Action (text := "Hallo") when text.map(_ != "Hallo")
-  
+object Auth {
   val username = Var("martinring")
-  
-  val view1 = {
-    val password = Var("")
-    val password2 = Var("")
-    
-    val valid = for {
-      username <- username
-      password <- password
-      password2 <- password2
-    } yield password.length >= 8 &&
-            password == password2 &&
-            username.length >= 8
+} 
 
-    new Dialog("Welcome to Clide", Action(Location.path = "/"+username.get+"/"+password.get) when valid, 
-        Query("username", username), 
+object Login extends View {
+  val password  = Var("") 
+  val password2 = Var("")
+    
+  val valid = for {
+    username <- Auth.username
+    password <- password
+    password2 <- password2
+  } yield password.length >= 8 &&
+          password == password2 &&
+          username.length >= 8
+            
+  val template = new Dialog("Welcome to Clide", Action(App.Location.path = "/"+Auth.username.get+"/"+password.get) when valid, 
+        Query("username", Auth.username), 
         Query("password", password), 
         Query("repeat password", password2))
-  }
-  
+}
+
+object App extends JsApp with History {
+  val counter = Observable.interval(500)
+  val text = Var("Test")
+  val reset = Action (text := "Hallo") when text.map(_ != "Hallo")
+  val username = Var("martinring")
+     
   val view2 = 
     new Dialog("Hello, I am Google", Action(), 
         Query("search for", username))
     
-  val elems = ObservableBuffer.fromBuffer(clide.client.util.Buffer("das war schon da"))
-    
+  val elems = ObservableBuffer.fromBuffer(clide.client.util.Buffer.apply("Das","war","schon","da"))    
   
   var n = 0
   val addItem = Action {
@@ -67,7 +57,7 @@ object App extends JsApp with Routing {
     Link(href := "http://www.google.com")("Externer Link"),
     Location.path.map({
       case "/google.com" => view2
-      case _ => view1
+      case _ => Login
     }).varying,
     H1()("Eine Liste:"),
     Button(click triggers addItem)("hinzufügen"),

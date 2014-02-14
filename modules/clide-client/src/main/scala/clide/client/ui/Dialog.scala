@@ -5,7 +5,7 @@ import clide.client.rx.Subject
 
 case class Query[T](name: String, value: Var[T])
 
-class Dialog(title: String, submit: Action, queries: Query[String]*) extends UserControl {
+class Dialog(title: String, submit: Action, queries: Query[String]*) extends View {
   val reset = Action {
     queries.foreach(q => q.value.reset())
   }

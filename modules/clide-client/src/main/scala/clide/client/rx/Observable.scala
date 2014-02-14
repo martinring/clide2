@@ -83,24 +83,6 @@ trait Observable[+T] {
       subscriptions.foreach(_.cancel())
     }
   }
- 
-  /*def fold(init: T)(f: (T,T) => T) = Observable { (obs: Observer[T]) =>
-    var v = init
-    var e = false
-    observe(
-      (t: T) => if(!e) Try(f(v,t)) match {
-        case Success(n) => v = n          
-        case Failure(er) => 
-          obs.onError(er)
-          e = true
-      }, 
-      (er) => if (!e) obs.onError(er), 
-      () => if (!e) {  
-        obs.onNext(v)
-        obs.onCompleted()
-      }
-    )
-  }*/
   
   def zip[U](other: Observable[U]) = Observable { (obs: Observer[(T,U)]) =>
     val left: Buffer[T] = Buffer.empty
@@ -121,12 +103,6 @@ trait Observable[+T] {
       s2.cancel()
     }
   }
-  
-  /*  
-  def window[S,E](starts: Observable[S], ends: Observable[E]) = Observable[Observable[T]] { obs =>
-    Subject[T]()
-    Cancellable()
-  }*/
   
   def zipWithIndex: Observable[(T, Int)] = {
     var n = 0;

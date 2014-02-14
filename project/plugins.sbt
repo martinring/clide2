@@ -16,4 +16,4 @@ addSbtPlugin("com.typesafe.sbt"  % "sbt-atmos-play"  % "0.3.1")
 
 addSbtPlugin("com.typesafe.sbt"  % "sbt-pgp"         % "0.8.1")
 
-addSbtPlugin("org.scala-lang.modules.scalajs" % "scalajs-sbt-plugin" % "0.2.1")
+addSbtPlugin("org.scala-lang.modules.scalajs" % "scalajs-sbt-plugin" % "0.3")

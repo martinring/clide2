@@ -10,6 +10,10 @@ trait Var[T] extends Observable[T] {
   def get: T
   def update()
   def reset()
+  
+  /*def validate (f: T => Boolean, msg: => String) = new Var[T] {
+    
+  }*/
 }
 
 object Var {
