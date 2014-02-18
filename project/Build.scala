@@ -122,6 +122,25 @@ object ApplicationBuild extends Build {
     .configs(Atmos)
     .dependsOn(collaboration,messages)
 
+  // Reactive UI
+  // ===========================================================================
+
+  val reactiveDependencies = Seq(
+    "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.1-SNAPSHOT")
+
+  val reactiveSettings =
+    commonSettings ++
+    scalaJSSettings ++ Seq(
+      libraryDependencies ++= reactiveDependencies,
+      unmanagedSources in (Compile, ScalaJSKeys.packageJS) +=
+        baseDirectory.value / "js" / "main.js")
+
+  val reactive = Project(
+    id = "clide-reactive",
+    base = file("modules/clide-reactive"))
+    .settings(reactiveSettings:_*)
+
+
   // Web - Client
   // ===========================================================================
 
