@@ -19,7 +19,7 @@ class Dialog(title: String, submit: Action, queries: Query[String]*) extends Vie
         TextBox(value := q.value.get, value <-> q.value, input updates q.value)()
       )
     },
-    Button(click triggers reset)("reset"),
+    Button(reset)("reset"),
     Button(submit)("ok")
   )
 }

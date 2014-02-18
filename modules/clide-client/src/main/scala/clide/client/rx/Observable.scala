@@ -101,6 +101,17 @@ trait Observable[+T] {
     s and s2
   }
   
+  def switch[U](implicit evidence: Observable[T] <:< Observable[Observable[U]]) = Observable[U] { obs =>    
+    var latest = Option.empty[Cancellable]
+    def replace(next: Option[Cancellable]) =
+      latest.map(_.cancel).map(_ => next)    
+    (this: Observable[Observable[U]]).observe(
+      next => replace(Some(next.observe(obs.onNext, obs.onError)))
+      , { e => replace(None)
+               obs.onError(e) }
+    ) and Cancellable(replace(None))    
+  }
+  
   def ended = Observable[Unit] { obs =>    
     observe(_ => (), obs.onError, () => { obs.onNext(()); obs.onCompleted() })
   }
