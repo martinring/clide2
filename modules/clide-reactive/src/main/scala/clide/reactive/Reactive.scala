@@ -1,17 +1,17 @@
 package clide.reactive
 
 import scala.util.control.NonFatal
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
 
-sealed trait Reactive[A] {  
-  def step(value: A): Reactive[A]
+sealed trait Reactive[-A] {
+  
 }
 
+case object Ignoring extends Reactive[Any]
+case class Accepting[A](next: Try[Option[A]] => Reactive[A]) extends Reactive[A]
+
 object Reactive {
-  def scanner[A,B](start: => B)(f: (B,A) => B): Reactive[A] = new Reactive[A] {
-    def step(value: A) = scanner(f(start,value))(f)
-  }
-  
-  def apply[A](f: A => Reactive[A]) = new Reactive[A] {
-    def step(value: A) = f(value)
-  }
+  def unfold[A,B](f: B => Option[(A,B)])(b: B): List[A] = ???
 }

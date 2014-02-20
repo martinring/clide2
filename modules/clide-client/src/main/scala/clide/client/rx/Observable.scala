@@ -12,15 +12,7 @@ trait Observable[+T] {
   def observe(observer: Observer[T]): Cancellable
   
   def observe(onNext: T => Unit = _ => (), onError: Throwable => Unit = e => throw e, onCompleted: () => Unit = () => ()): Cancellable =
-    observe(Observer(onNext,onError,onCompleted))
-  
-  def materialize = Observable[Step[T]] { obs =>
-    observe(
-      (t: T) => obs.onNext(Next(t)),
-      (e: Throwable) => obs.onNext(Error(e)),
-      () => obs.onNext(Completed)
-    )
-  }
+    observe(Observer(onNext,onError,onCompleted))  
     
   def foreach(f: T => Unit): Cancellable = observe(Observer(f))  
   
@@ -117,8 +109,7 @@ trait Observable[+T] {
   }
   
   def merge[U >: T](that: Observable[U]) = Observable[U] { obs => 
-    this.until(that.ended).observe(obs) and
-    that.until(this.ended).observe(obs)
+    this.until(that.ended).observe(obs) and that.until(this.ended).observe(obs)
   }
   
   def when(that: Observable[Boolean]) = Observable[T] { obs =>

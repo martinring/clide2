@@ -14,4 +14,3 @@ object Input {
     
   def button: (Observable[Unit], NodeFactory) = 
 }
-
