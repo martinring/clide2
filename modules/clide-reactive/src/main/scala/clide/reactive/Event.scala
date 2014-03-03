@@ -1,43 +1,344 @@
 package clide.reactive
 
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Promise
 import scala.util.Try
 import scala.util.Success
 import scala.util.Failure
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
+import scala.math.Numeric
+import scala.concurrent.duration.FiniteDuration
 
-case class Evt[A](next: Future[Option[(A,Evt[A])]]) {  
-  def map[B](f: A => B)(implicit executionContext: ExecutionContext): Evt[B] = 
-    Evt(next.map(_.map(x => (f(x._1),x._2.map(f)))))
-  def merge(that: Evt[A]) = Future.firstCompletedOf(Seq(this.next,that.next))
-}
-
-trait Event[+A] {  
-  def fold[B](start: B)(f: (B,A) => B): Future[B]
+trait Event[+A] {
+  protected def next: Future[Option[(A,Event[A])]]
+  protected def stop(): Unit
+  protected def isCompleted: Boolean = next.isCompleted
+   
+  def map[B](f: A => B)(implicit ec: ExecutionContext): Event[B] =  
+    Event(next.map {  
+      case None => None
+      case Some((a,e)) => Some((f(a),e.map(f)))
+    })(stop())
     
-  def map[B](f: A => B) = Event[B] { r =>
-    feed(Reactive.stateful(r)((r, a) => r.react(a.map(_.map(f)))))
+  def mapF[B](f: A => Future[B])(implicit ec: ExecutionContext): Event[B] =
+    Event(next.flatMap {
+      case None => Future.successful(None)
+      case Some((a,e)) => f(a).map(b => Some(b,e.mapF(f)))
+    })(stop())
+       
+  def flatMap[B](f: A => Event[B])(implicit ec: ExecutionContext): Event[B] =
+    Event(next.flatMap {
+      case None => Future.successful(None)
+      case Some((a,e)) =>         
+        (f(a) merge e.flatMap(f)).next
+    })(stop())
+  
+  def filter(f: A => Boolean)(implicit ec: ExecutionContext): Event[A] = 
+    Event(next.flatMap {
+      case None => Future.successful(None)
+      case Some((a,e)) if f(a) => Future.successful(Some(a,e))
+      case Some((a,e))         => e.next
+    })(stop())
+        
+  def withFilter(f: A => Boolean)(implicit ec: ExecutionContext): Event[A] =
+    filter(f)
+    
+  def partition(f: A => Boolean)(implicit ec: ExecutionContext): (Event[A],Event[A]) =
+    (filter(f),filter(!f(_))) // FIXME: Can this be done nicer?
+    
+  def timeSpan(f: Future[_])(implicit ec: ExecutionContext): (Event[A],Event[A]) =
+    (until(f),dropUntil(f)) // FIXME: Is this correct? Nice?
+    
+  def collect[B](f: PartialFunction[A,B])(implicit ec: ExecutionContext): Event[B] =
+    this.filter(f.isDefinedAt).map(f)
+  
+  def take(n: Int)(implicit ec: ExecutionContext): Event[A] =     
+    Event(
+      if (n <= 0) { this.stop(); Future.successful(None) }
+      else next.map {
+        case None => None
+        case Some((a,e)) => Some(a,e.take(n-1))
+      })(stop())
+  
+  def takeWhile(p: A => Boolean)(implicit ec: ExecutionContext): Event[A] = 
+    Event(next.map {
+      case None => None
+      case Some((a,e)) => if (p(a)) Some((a,e)) else { e.stop; None }
+    })(stop())
+        
+  def drop(n: Int)(implicit ec: ExecutionContext): Event[A] = 
+    if (n <= 0) this
+    else Event(next.flatMap {
+      case None => Future.successful(None)
+      case Some((_,e)) => e.drop(n - 1).next
+    })(stop())
+  
+  def dropWhile(p: A => Boolean)(implicit ec: ExecutionContext): Event[A] =
+    Event(next.flatMap {
+      case None => Future.successful(None)
+      case Some((a,e)) => if (p(a)) e.dropWhile(p).next else Future.successful(Some((a,e)))
+    })(stop())
+  
+  def headOption(implicit ec: ExecutionContext): Future[Option[A]] = 
+    next.map(_.map(_._1))
+    
+  def head(implicit ec: ExecutionContext): Future[A] =
+    headOption.map(_.getOrElse(throw new NoSuchElementException("Event.head on empty event")))  
+  
+  def lastOption(implicit ec: ExecutionContext): Future[Option[A]] =
+    foldLeft(Option.empty[A])((_,a) => Some(a))
+
+  def last(implicit ec: ExecutionContext): Future[A] =
+    lastOption.map(_.getOrElse(throw new NoSuchElementException("Event.last on empty event")))
+    
+  def tail(implicit ec: ExecutionContext): Future[Event[A]] = next.map {
+    case None => throw new UnsupportedOperationException("Event.tail on empty event")
+    case Some((_,tail)) => tail
   }
 
-  def scan[B](start: B)(f: (B,A) => B) = Event[B] { r =>
-    feed(Reactive.stateful((Success(Some(start)): Try[Option[B]],r)) {
-      case ((b,state), a) =>
-        val r = for { b <- b; a <- a } yield 
-                for { b <- b; a <- a } yield f (b,a)
-        (r,state.react(r))        
-    })
+  def apply(index: Int)(implicit ec: ExecutionContext): Future[A] = 
+    if (index < 0) Future.failed(new IndexOutOfBoundsException)
+    else if (index == 0) head
+    else next.flatMap {
+      case None => throw new IndexOutOfBoundsException
+      case Some((_,e)) => e(index - 1)
+    }
+  
+  def zipWith[B, AB](that: Event[B], f: (A,B) => AB)(implicit ec: ExecutionContext): Event[AB] = Event {
+    for {
+      x <- this.next
+      y <- that.next
+    } yield (x,y) match {
+      case (Some((a,ae)),Some((b,be))) => Some((f(a,b),ae.zipWith(be, f)))
+      case (Some((_,e)),None) => e.stop(); None
+      case (None,Some((_,e))) => e.stop(); None
+      case (None,None) => None
+    }
+  } { this.stop(); that.stop() }
+  
+  def zip[B](that: Event[B])(implicit ec: ExecutionContext): Event[(A,B)] =
+    zipWith(that, (a: A, b: B) => (a,b))
+  
+  def merge[B >: A](that: Event[B])(implicit ec: ExecutionContext): Event[B] = Event {
+    Future.firstCompletedOf(Traversable(this.next, that.next)).flatMap { _ =>
+      if (this.next.isCompleted) this.next.flatMap {
+        case None => that.next
+        case Some((a,e)) => Future.successful(Some((a,e merge that)))
+      } else that.next.flatMap {
+        case None => this.next
+        case Some((b,e)) => Future.successful(Some((b,this merge e)))
+      }
+    }
+  } { this.stop(); that.stop() }   
+
+  def ++[B >: A](that: Event[B])(implicit ec: ExecutionContext): Event[B] = Event {
+    next.flatMap {
+      case None => that.next
+      case Some((a,e)) => Future.successful(Some(a,e ++ that))
+    }
+  } { this.stop(); that.stop() }
+
+  def :+[B >: A](elem: B)(implicit ec: ExecutionContext): Event[B] = Event {
+    next.map[Option[(B,Event[B])]] {
+      case None => Some((elem,Event.empty))
+      case Some((a,e)) => Some(a,e:+elem)
+    }
+  }(this.stop())
+
+  def +[B >: A](elem: Future[B])(implicit ec: ExecutionContext): Event[B] = 
+    merge(Event.single(elem))
+  
+  def +:[B >: A](elem: B)(implicit ec: ExecutionContext): Event[B] = 
+    Event(Future.successful(Some(elem,this)))(this.stop())  
+  
+  def find(f: A => Boolean)(implicit ec: ExecutionContext): Future[Option[A]] =
+    next.flatMap {
+      case None => Future.successful(None)
+      case Some((a,e)) => if (f(a)) { e.stop(); Future.successful(Some(a)) } else e.find(f)
+    }
+  
+  def completedSpan: (List[A],Event[A]) =
+    next.value match {
+      case None => (Nil, this)
+      case Some(result) =>
+        result.get match {
+          case None => (Nil, this)
+          case Some((head,e)) => 
+            val (tail,rest) = e.completedSpan
+            (head :: tail, rest)
+        }
+    }    
+  
+  def dropUntil(resume: Future[_])(implicit ec: ExecutionContext): Event[A] = 
+    Event(resume.flatMap(_ => this.completedSpan._2.next))(stop) 
+  
+  def exists(f: A => Boolean)(implicit ec: ExecutionContext): Future[Boolean] =
+    find(f).map(_.isDefined)
+    
+  def forall(f: A => Boolean)(implicit ec: ExecutionContext): Future[Boolean] =
+    find(!f(_)).map(_.isEmpty)
+    
+  def contains(elem: Any)(implicit ec: ExecutionContext): Future[Boolean] = 
+    exists(_ == elem)    
+  
+  def count(p: A => Boolean)(implicit ec: ExecutionContext): Future[Int] = 
+    foldLeft(0)((n,e) => if (p(e)) n + 1 else n)
+          
+  def indices(implicit ec: ExecutionContext): Event[Int] =
+    scan(-1)((n,_) => n+1)
+    
+  def length(implicit ec: ExecutionContext): Future[Int] =
+    foldLeft(0)((n,_) => n+1)
+    
+  def length_>=(n: Int)(implicit ec: ExecutionContext): Future[Boolean] =
+    indices.exists(_ >= n)
+    
+  def length_>(n: Int)(implicit ec: ExecutionContext): Future[Boolean] =
+    indices.exists(_ > n)
+    
+  def foldLeft[B](start: B)(f: (B,A) => B)(implicit ec: ExecutionContext): Future[B] =
+    next.flatMap {
+      case None => Future.successful(start)
+      case Some((a,e)) => e.foldLeft(f(start,a))(f)
+    }   
+    
+  def scan[B](start: B)(f: (B,A) => B)(implicit ec: ExecutionContext): Event[B] = 
+    Event(next.map {
+      case None => None
+      case Some((a,e)) =>
+        val b = f(start,a)
+        Some(b,e.scan(b)(f))
+    })(stop())
+  
+  def scanF[B](start: B)(f: (B,A) => Future[B])(implicit ec: ExecutionContext): Event[B] =
+    Event(next.flatMap {
+      case None => Future.successful(None)
+      case Some((a,e)) =>
+        f(start,a).map(b => Some(b,e.scanF(b)(f)))
+    })(stop())
+
+  def switch[B](implicit ec: ExecutionContext, evidence: Event[A] <:< Event[Event[B]]): Event[B] =    
+    Event(evidence(this).next.flatMap {
+      case None => Future.successful(None)
+      case Some((a,e)) => (a.until(e.next) ++ e.switch).next
+    })(stop())
+  
+  def until[B](done: Future[B])(implicit ec: ExecutionContext): Event[A] =
+    Event(Future.firstCompletedOf(Seq(done,next)).map { _ =>
+      if (done.isCompleted) { stop(); None }
+      else next.value.get.get match {
+        case None => None
+        case Some((a,e)) => Some((a,e.until(done)))          
+      }})(stop())
+      
+  def splitBy[B](that: Event[B])(implicit ec: ExecutionContext): Event[Event[A]] = {
+    val (head,tail) = timeSpan(that.head)
+    head +: tail.splitBy(that)
   }
   
-  def merge(that: Event[A]) = Event[A] { r =>
-    this.feed(Reactive.stateful(r)((r,a) => r.react(a))) andThen
-    that.feed(Reactive.stateful(r)((r,a) => r.react(a)))    
-  }
+  /*def window(duration: FiniteDuration)(implicit ec: ExecutionContext, scheduler: Scheduler): Event[Event[A]] =
+    splitBy(Event.interval(duration))
+        
+  def throttle(duration: FiniteDuration)(implicit ec: ExecutionContext, scheduler: Scheduler): Event[A] =
+    window(duration).mapF(_.last)*/
+    
+  def product[B >: A](implicit ec: ExecutionContext, num: Numeric[B]): Future[B] = 
+    foldLeft(num.one)(num.times)
   
-  def sample[B](target: Continuous[B]): Event[B] = map(_ => target.now)
+  def sum[B >: A](implicit ec: ExecutionContext, num: Numeric[B]): Future[B] =
+    foldLeft(num.zero)(num.plus)
+    
+  //def compress(duration: FiniteDuration)(f: (A,A) => A)(implicit ec: ExecutionContext, scheduler: Scheduler): Event[A] =
+  //window(duration).mapF(_.foldLeft(Option.empty[A])((r,a) => r.map(f(_,a)).getOrElse(Some(a))))
+   
+  def sample[B](f: => B)(implicit ec: ExecutionContext): Event[B] = map(_ => f)
+  
+  def foreach[U](f: A => U)(implicit ec: ExecutionContext): Future[Unit] =
+    foldLeft(())((b,a) => f(a))
+
+  def varying(implicit ec: ExecutionContext): Event[A] =
+    this.take(1) ++ (this zip this.drop(1)).collect { case (a,b) if a != b => b }
 }
+
+
 
 object Event {
-  def apply[A](f: Reactive[A] => Disposable): Event[A] = new Event[A] {
-    def feed(r: Reactive[A]): Disposable = f(r)
+  def apply[A](f: => Future[Option[(A,Event[A])]])(c: => Unit) = new Event[A] {
+    def next = f 
+    def stop = {
+      c
+    }
+  }
+  
+  object Completed {
+    def unapply[A](event: Event[A]): Option[Option[(A,Event[A])]] = event.next.value.collect {
+      case Success(x) => x
+    }
+  }
+  
+  object Failed {
+    def unapply[A](event: Event[A]): Option[Throwable] = event.next.value.collect {
+      case Failure(e) => e
+    }
+  }
+  
+  def empty[A] = Event[A] { Future.successful(None) } ()
+  
+  /*def interval(duration: FiniteDuration)(implicit ec: ExecutionContext, scheduler: Scheduler): Event[Long] = {
+    var counter = 0L
+    lazy val (event,channel) = broadcast[Long](task.cancel())
+    lazy val task: Cancellable = scheduler.schedule(duration,duration){      
+      channel.push(counter)
+      counter += 1
+    }
+    task; event
+  }*/
+  
+  def single[A](value: A): Event[A] = 
+    Event(Future.successful(Some(value,empty[A])))()
+    
+  def single[A](future: Future[A])(implicit ec: ExecutionContext): Event[A] =
+    Event(future.map(value => Some(value,empty[A])))()
+          
+  def fromIterable[A](iterable: Iterable[A]): Event[A] = 
+    iterable.foldRight(Event.empty[A])((a,b) => Event(Future.successful(Some((a,b))))())    
+    
+  def merge[A](es: Iterable[Event[A]])(implicit ec: ExecutionContext): Event[A] = es.size match {
+    case 0 => Event.empty[A]
+    case 1 => es.head
+    case n => Event[A] {    
+      Future.firstCompletedOf(es.map(_.next)).flatMap { _ =>
+        val (completed,pending) = es.partition(_.isCompleted)
+        completed.find(_.next.value.get.isFailure).map(_.next).getOrElse {
+          val (values,nexts) = completed.collect {
+            case Event.Completed(Some((v,n))) => (v,n)
+          }.unzip
+          val init = fromIterable(values)
+          (init ++ merge(pending ++ nexts)).next
+        }
+      }
+    } (es.foreach(_.stop()))
+  }
+  
+  def flipFlop(flips: Event[_], flops: Event[_])(implicit ec: ExecutionContext): Event[Boolean] = 
+    (flips.sample(true) merge flops.sample(false)).varying
+  
+  def broadcast[A](unsubscribe: => Unit = ())(implicit ec: ExecutionContext): (Event[A], Channel[A]) = {
+    var current = Promise[Option[(A,Event[A])]]    
+    val head = current.future
+    val channel = Channel[A](a => synchronized {
+      val next = Promise[Option[(A,Event[A])]]
+      if (current.isCompleted) sys.error("pushing into closed channel")
+      current.completeWith(Future(Some(a,Event(next.future)(unsubscribe))))
+      current = next
+    })(current.failure)(current.success(None))
+    (Event(head)(unsubscribe),channel)
+  }
+  
+  def fromCallback[A](register: (A => Unit) => (() => Unit))(implicit ec: ExecutionContext): Event[A] = {
+    lazy val (e,c) = broadcast[A](remove())
+    lazy val remove: () => Unit = register(c.push(_))
+    remove; c; return e
   }
 }

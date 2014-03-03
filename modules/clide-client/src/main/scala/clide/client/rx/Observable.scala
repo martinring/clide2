@@ -85,11 +85,11 @@ trait Observable[+T] {
   }
   
   def until[U](that: Observable[U]) = Observable[T] { obs =>
-    val s = this.observe(obs)
-    lazy val s2: Cancellable = that.observe(
-        _ => { obs.onCompleted(); s.cancel(); s2.cancel() }, 
-        e => { obs.onError(e); s.cancel(); s2.cancel() }, 
-        () => { obs.onCompleted(); s.cancel(); s2.cancel() })
+    val s  = this.observe(obs)
+    val s2 = that.head.observe(
+      _  => { obs.onCompleted(); s.cancel() }, 
+      e  => { obs.onError(e); s.cancel() }, 
+      () => { obs.onCompleted(); s.cancel() })
     s and s2
   }
   
@@ -114,8 +114,8 @@ trait Observable[+T] {
   
   def when(that: Observable[Boolean]) = Observable[T] { obs =>
     var s = Option.empty[Cancellable]    
-    that.until(that.ended).observe({b => 
-      if (b && s.isEmpty) s = Some(observe(obs)) 
+    that.until(this.ended).observe({b => 
+      if (b && s.isEmpty) s = Some(observe(obs))
       else if (!b) { 
         s.foreach(_.cancel()); 
         s = None 

@@ -122,18 +122,17 @@ object ApplicationBuild extends Build {
     .configs(Atmos)
     .dependsOn(collaboration,messages)
 
-  // Reactive UI
+  // Reactive
   // ===========================================================================
 
   val reactiveDependencies = Seq(
+    "org.scalajs" %% "scalajs-actors" % "0.1-SNAPSHOT",
     "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.1-SNAPSHOT")
 
   val reactiveSettings =
     commonSettings ++
     scalaJSSettings ++ Seq(
-      libraryDependencies ++= reactiveDependencies,
-      unmanagedSources in (Compile, ScalaJSKeys.packageJS) +=
-        baseDirectory.value / "js" / "main.js")
+      libraryDependencies ++= reactiveDependencies)
 
   val reactive = Project(
     id = "clide-reactive",
@@ -153,14 +152,14 @@ object ApplicationBuild extends Build {
     scalaJSSettings ++ Seq(
       libraryDependencies ++= clientDependencies,
       unmanagedSourceDirectories in Compile += (sourceDirectory in collaboration).value,
-      unmanagedSourceDirectories in Compile += (sourceDirectory in messages).value,
-      unmanagedSources in (Compile, ScalaJSKeys.packageJS) +=
-        baseDirectory.value / "js" / "client.js")
+      //unmanagedSourceDirectories in Compile += (sourceDirectory in reactive).value,
+      unmanagedSourceDirectories in Compile += (sourceDirectory in messages).value)
 
   val client = Project(
     id = "clide-client",
     base = file("modules/clide-client"))
     .settings(clientSettings:_*)
+    .dependsOn(reactive)
 
   // Web - Server
   // ===========================================================================
