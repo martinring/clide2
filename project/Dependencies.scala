@@ -23,8 +23,9 @@
 \*                                                                            */
 
 import sbt._
+import Keys._
 
-object Dependencies {
+trait Dependencies {
   val slick = "com.typesafe.slick" %% "slick" % "1.0.1"
   val h2    = "com.h2database" % "h2" % "1.3.166"
   val slf4j = "org.slf4j" % "slf4j-nop" % "1.6.4"
@@ -58,5 +59,20 @@ object Dependencies {
   object playplugins {
     val slick   = "com.typesafe.play" %% "play-slick"          % "0.5.0.2"
     val mailer  = "com.typesafe"      %% "play-plugins-mailer" % "2.1.0"
+  }
+
+  object scalajs {
+    val dom = "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.3-SNAPSHOT"
+    val playPickling = "org.scalajs" %% "scalajs-pickling-play-json" % "0.1"
+  }
+
+  implicit class DependenciesProject(project: Project) {
+    def dependsOn(deps: ModuleID*) = 
+      project.settings(libraryDependencies ++= deps)    
+
+    def dependsOnSrc(deps: Project*) = 
+      deps.foldLeft(project) { case (p,d) => p.settings(
+        unmanagedSourceDirectories in Compile += (sourceDirectory in d).value
+      )}
   }
 }

@@ -27,7 +27,7 @@ object App extends JsApp with History {
     new Dialog("Hello, I am Google", Action(),
          Query("search for", username))
     
-  val elems = ObservableBuffer.fromBuffer(clide.client.util.Buffer.apply("Das","war","schon","da"))    
+  val elems = ObservableBuffer.fromBuffer(Buffer.apply("Das","war","schon","da"))    
   
   var n = 0
   
@@ -36,18 +36,19 @@ object App extends JsApp with History {
   def domEvent[E](target: EventTarget, name: String): Event[E] = Event.fromCallback[E] { handler =>
     val listener: org.scalajs.dom.Event => Unit = ( event => handler(event.asInstanceOf[E]) )
     val jsListener: scalajs.js.Function1[org.scalajs.dom.Event,Unit] = listener
-    println("register " + name)
+    println("gerister " + name)
     target.addEventListener(name, jsListener)
-    () => {
-      println("remove " + name)
+    () => {  
+      println("remove " + name)      
       target.removeEventListener(name, jsListener)
     }
-  }  
-  
+  }      
+    
   def mousedown: Event[(Int,Int)] = domEvent[MouseEvent](window,"mousedown").map(e => (e.clientX.toInt, e.clientY.toInt))
   def mouseup:   Event[(Int,Int)] = domEvent[MouseEvent](window,"mouseup").map(e => (e.clientX.toInt, e.clientY.toInt))
   def mousemove: Event[(Int,Int)] = domEvent[MouseEvent](window,"mousemove").map(e => (e.clientX.toInt, e.clientY.toInt))
   def mouseout:  Event[Unit]      = domEvent[MouseEvent](window,"mouseout").map(e => ())
+  
   
   def keypress: Event[Char] = domEvent[KeyboardEvent](window, "keypress").map(e => scalajs.js.String.fromCharCode(e.keyCode).head)
   
@@ -70,7 +71,7 @@ object App extends JsApp with History {
   
   def obsBufView(name: String): NodeFactory = {
     var n = 1    
-    val buf = ObservableBuffer.fromBuffer(clide.client.util.Buffer.empty[Int])    
+    val buf = ObservableBuffer.fromBuffer(Buffer.empty[Int])    
     val add = Action { buf += n; n += 1 }
     Span(className := "obs")(
       Span()(name), Button(click triggers add)("+"),

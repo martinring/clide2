@@ -1,6 +1,6 @@
 package clide.messages
 
-object Auth {    
+object Auth {
   case class SignUp(username: String, email: String, password: String)      
   case class Login(username: String, password: String)  
   

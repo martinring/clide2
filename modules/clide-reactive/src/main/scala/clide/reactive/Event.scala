@@ -48,7 +48,7 @@ trait Event[+A] {
     (filter(f),filter(!f(_))) // FIXME: Can this be done nicer?
     
   def timeSpan(f: Future[_])(implicit ec: ExecutionContext): (Event[A],Event[A]) =
-    (until(f),dropUntil(f)) // FIXME: Is this correct? Nice?
+    (until(f),dropUntil(f)) // FIXME: Is this even correct?
     
   def collect[B](f: PartialFunction[A,B])(implicit ec: ExecutionContext): Event[B] =
     this.filter(f.isDefinedAt).map(f)
@@ -119,6 +119,9 @@ trait Event[+A] {
   
   def zip[B](that: Event[B])(implicit ec: ExecutionContext): Event[(A,B)] =
     zipWith(that, (a: A, b: B) => (a,b))
+    
+  def zipWithIndex(implicit ec: ExecutionContext): Event[(A,Long)] =
+    zip(indices)
   
   def merge[B >: A](that: Event[B])(implicit ec: ExecutionContext): Event[B] = Event {
     Future.firstCompletedOf(Traversable(this.next, that.next)).flatMap { _ =>
@@ -139,18 +142,14 @@ trait Event[+A] {
     }
   } { this.stop(); that.stop() }
 
-  def :+[B >: A](elem: B)(implicit ec: ExecutionContext): Event[B] = Event {
-    next.map[Option[(B,Event[B])]] {
-      case None => Some((elem,Event.empty))
-      case Some((a,e)) => Some(a,e:+elem)
-    }
-  }(this.stop())
-
-  def +[B >: A](elem: Future[B])(implicit ec: ExecutionContext): Event[B] = 
-    merge(Event.single(elem))
+  def :+[B >: A](elem: B)(implicit ec: ExecutionContext): Event[B] = 
+    this ++ Event.single(elem)
   
   def +:[B >: A](elem: B)(implicit ec: ExecutionContext): Event[B] = 
-    Event(Future.successful(Some(elem,this)))(this.stop())  
+    Event(Future.successful(Some(elem,this)))(this.stop())
+    
+  def +[B >: A](elem: Future[B])(implicit ec: ExecutionContext): Event[B] = 
+    merge(Event.single(elem))    
   
   def find(f: A => Boolean)(implicit ec: ExecutionContext): Future[Option[A]] =
     next.flatMap {
@@ -182,14 +181,14 @@ trait Event[+A] {
   def contains(elem: Any)(implicit ec: ExecutionContext): Future[Boolean] = 
     exists(_ == elem)    
   
-  def count(p: A => Boolean)(implicit ec: ExecutionContext): Future[Int] = 
-    foldLeft(0)((n,e) => if (p(e)) n + 1 else n)
+  def count(p: A => Boolean)(implicit ec: ExecutionContext): Future[Long] = 
+    foldLeft(0L)((n,e) => if (p(e)) n + 1 else n)
           
-  def indices(implicit ec: ExecutionContext): Event[Int] =
-    scan(-1)((n,_) => n+1)
+  def indices(implicit ec: ExecutionContext): Event[Long] =
+    scan(-1L)((n,_) => n+1)
     
-  def length(implicit ec: ExecutionContext): Future[Int] =
-    foldLeft(0)((n,_) => n+1)
+  def length(implicit ec: ExecutionContext): Future[Long] =
+    foldLeft(0L)((n,_) => n+1)
     
   def length_>=(n: Int)(implicit ec: ExecutionContext): Future[Boolean] =
     indices.exists(_ >= n)
@@ -231,11 +230,23 @@ trait Event[+A] {
         case None => None
         case Some((a,e)) => Some((a,e.until(done)))          
       }})(stop())
+
+  def span(f: A => Boolean)(implicit ec: ExecutionContext): (Event[A],Event[A]) =
+    (takeWhile(f),dropWhile(f))
+          
+  def spanF(f: Future[_])(implicit ec: ExecutionContext): (Event[A],Event[A]) =
+    span(_ => !f.isCompleted)
+    
+  def spanT(duration: FiniteDuration)(implicit ec: ExecutionContext, scheduler: Scheduler): (Event[A],Event[A]) =
+    spanF(scheduler.timeout(duration))
       
   def splitBy[B](that: Event[B])(implicit ec: ExecutionContext): Event[Event[A]] = {
     val (head,tail) = timeSpan(that.head)
     head +: tail.splitBy(that)
   }
+  
+  def timestamped(implicit ec: ExecutionContext, scheduler: Scheduler): Event[(A,Long)] =
+    zip(sample(scheduler.now))
   
   /*def window(duration: FiniteDuration)(implicit ec: ExecutionContext, scheduler: Scheduler): Event[Event[A]] =
     splitBy(Event.interval(duration))
@@ -260,8 +271,6 @@ trait Event[+A] {
   def varying(implicit ec: ExecutionContext): Event[A] =
     this.take(1) ++ (this zip this.drop(1)).collect { case (a,b) if a != b => b }
 }
-
-
 
 object Event {
   def apply[A](f: => Future[Option[(A,Event[A])]])(c: => Unit) = new Event[A] {

@@ -2,6 +2,7 @@ package clide.client.ui.html
 
 import clide.client.rx._
 import clide.client.util._
+import scala.collection.mutable.Buffer
 
 trait Var[T] extends Observable[T] {
   private [html] var getter: Option[() => T] = None

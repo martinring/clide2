@@ -1,6 +1,6 @@
 package clide.client.rx
 
-import clide.client.util.Buffer
+import scala.collection.mutable.Buffer
 import clide.client.util.Cancellable
 
 trait Subject[T] extends Observable[T] with Observer[T] { self =>

@@ -31,7 +31,7 @@ trait ObservableCollection[A] extends Observable[CollectionChange[A]] {
 
 object ObservableBuffer {
   def fromBuffer[A](buffer: Buffer[A]) = new ObservableBuffer[A] {
-    private var subscribers = clide.client.util.Buffer.empty[Observer[CollectionChange[A]]]
+    private var subscribers = Buffer.empty[Observer[CollectionChange[A]]]
     val observable = new ObservableCollection[A] {
       def observe(observer: Observer[CollectionChange[A]]): Cancellable = {
         subscribers += observer

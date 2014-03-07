@@ -1,5 +1,5 @@
 package clide.messages
-
+/*
 import org.scalajs.spickling._
 
 object Pickling {
@@ -32,4 +32,4 @@ object Pickling {
     PicklerRegistry.register(User.GetProjectInfos)
     PicklerRegistry.register[User.ProjectInfos]
   }
-}
+}*/

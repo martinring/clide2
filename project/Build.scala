@@ -24,42 +24,17 @@
 
 import sbt._
 import Keys._
-import play.Project._
-import com.typesafe.sbt.SbtAtmos.{Atmos,atmosSettings}
 import akka.sbt.AkkaKernelPlugin
 import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions, distMainClass }
-import Dependencies._
-import Util._
-import scalajs.sbtplugin.ScalaJSPlugin._
 
-
-object ApplicationBuild extends Build {
-  val v = "2.0-SNAPSHOT"
-
+object ClideBuild extends Build with BuildUtils with Publishing with Dependencies {  
   override def rootProject = Some(web)
 
-  val sonatypeSettings = Seq(
-    publishMavenStyle := true,
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (v.trim.endsWith("SNAPSHOT"))
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    },
-    // To publish on maven-central, all required artifacts must also be hosted on maven central.
-    // So we remove special repos from the pom
-    //pomIncludeRepository := { _ => false },
-    pomExtra := Developers(
-      Developer("martinring", "Martin Ring", url("http://github.com/martinring"))),
-    publishArtifact in Test := false)
-
-  val commonSettings = sonatypeSettings ++ Seq(
-    version := v,
+  commonSettings_=(sonatypeSettings ++ Seq(
+    version := "2.0-SNAPSHOT",
     organization := "net.flatmap",
     organizationName := "flatmap",
     organizationHomepage := Some(url("http://www.flatmap.net")),
-    parallelExecution in Test := false,
     startYear := Some(2012),
     licenses := Seq("GNU Lesser General Public License" -> url("http://www.gnu.org/licenses/lgpl.html")),
     homepage := Some(url("http://clide.flatmap.net")),
@@ -67,172 +42,72 @@ object ApplicationBuild extends Build {
       browseUrl = url("https://github.com/martinring/clide2"),
       connection = "scm:git:git@github.com:martinring/clide2.git")),
     scalaVersion := scala.version,
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"))
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"),
+    pomExtra := Developers(
+    Developer("martinring", "Martin Ring", url("http://github.com/martinring")))
+  ))
 
-  // Collaboration
-  // ===========================================================================
+  val (collaboration,collaborationJs) = sharedModule("collaboration")
 
-  val collaborationDependencies = Seq.empty
+  val (messages,messagesJs) = sharedModule("messages")
 
-  val collaborationSettings = commonSettings
-
-  val collaboration = Project(
-    id   = "clide-collaboration",
-    base = file("modules/clide-collaboration"))
-    .settings(collaborationSettings:_*)
-
-  // Messages
-  // ===========================================================================
-
-  val messagesDependencies = Seq(
-    "org.scalajs" %% "scalajs-pickling-play-json" % "0.1-SNAPSHOT")
-
-  val messagesSettings = commonSettings ++ Seq (
-    libraryDependencies ++= messagesDependencies)
-
-  val messages = Project(
-    id = "clide-messages",
-    base = file("modules/clide-messages"))
-    .settings(messagesSettings:_*)
-
-  // Core
-  // ===========================================================================
-
-  val coreDependencies = Seq(
-    "ch.qos.logback" % "logback-classic" % "1.0.13",
-
-    akka.actor, akka.remote, akka.kernel, akka.testkit,
-    spray.json, scala.reflect,
-    slick,h2,slf4j,scalatest,scalacheck)
-
-  val coreSettings =
-    commonSettings ++
-    AkkaKernelPlugin.distSettings ++
-    atmosSettings ++ Seq(
-      resolvers += Resolver.sonatypeRepo("snapshots"),
-      resolvers += spray.resolver,
-      libraryDependencies ++= coreDependencies
-    )
-
-
-  val core = Project(
-    id   = "clide-core",
-    base = file("modules/clide-core"))
-    .settings(coreSettings:_*)
-    .configs(Atmos)
+  val core = module("core")    
+    .settings(AkkaKernelPlugin.distSettings:_*)
     .dependsOn(collaboration,messages)
+    .dependsOn(
+      "ch.qos.logback" % "logback-classic" % "1.0.13", spray.json,
+      akka.actor, akka.remote, akka.kernel, akka.testkit,
+      scala.reflect, slick,h2,slf4j,scalatest,scalacheck)
 
-  // Reactive
-  // ===========================================================================
+  val reactive = jsModule("reactive")
+    .dependsOn(scalajs.dom)
 
-  val reactiveDependencies = Seq(
-    "org.scalajs" %% "scalajs-actors" % "0.1-SNAPSHOT",
-    "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.1-SNAPSHOT")
-
-  val reactiveSettings =
-    commonSettings ++
-    scalaJSSettings ++ Seq(
-      libraryDependencies ++= reactiveDependencies)
-
-  val reactive = Project(
-    id = "clide-reactive",
-    base = file("modules/clide-reactive"))
-    .settings(reactiveSettings:_*)
-
-
-  // Web - Client
-  // ===========================================================================
-
-  val clientDependencies = Seq(
-    "org.scalajs" %% "scalajs-pickling" % "0.1-SNAPSHOT",
-    "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.1-SNAPSHOT")
-
-  val clientSettings =
-    commonSettings ++
-    scalaJSSettings ++ Seq(
-      libraryDependencies ++= clientDependencies,
-      unmanagedSourceDirectories in Compile += (sourceDirectory in collaboration).value,
-      //unmanagedSourceDirectories in Compile += (sourceDirectory in reactive).value,
-      unmanagedSourceDirectories in Compile += (sourceDirectory in messages).value)
-
-  val client = Project(
-    id = "clide-client",
-    base = file("modules/clide-client"))
-    .settings(clientSettings:_*)
+  val client = jsModule("client")
     .dependsOn(reactive)
+    .dependsOn(scalajs.dom)
+    .dependsOn(collaborationJs, messagesJs)
 
-  // Web - Server
-  // ===========================================================================
-
-  val webDependencies = Seq(
-    "org.scalajs" %% "scalajs-pickling-play-json" % "0.1-SNAPSHOT")
-
-  val webSettings = Angular.defaultSettings ++ commonSettings ++ Seq(
-    resolvers += Resolver.sonatypeRepo("snapshots"),
-    //requireJs += "main.js",  TODO: This needs to be fixed to work again!
-    //requireJsShim += "main.js",
-    Angular.otherModules ++= Map(
+  val web = playModule("web")    
+    .dependsOn(core,messages)
+    .settings(Angular.defaultSettings :_*)    
+    .dependsOnJs(client -> "client.js")
+    .settings(
+      Angular.otherModules ++= Map(
         "angular-animate"  -> "ngAnimate",
         "angular-cookies"  -> "ngCookies",
         "angular-route"    -> "ngRoute",
         "angular-resource" -> "ngResource",
         "ui-bootstrap"     -> "ui.bootstrap"),
-    Angular.moduleDirs ++= Map(
-        "controllers" -> ("controller", "Controller", true),
-        "directives"  -> ("directive","",false),
-        "filters"     -> ("filter","",false),
-        "services"    -> ("service","",true)),
-    resourceGenerators in Compile <+= LessCompiler,
-    resourceGenerators in Compile <+= JavascriptCompiler(fullCompilerOptions = None),
-    resourceGenerators in Compile <+= Angular.ModuleCompiler,
-    resourceGenerators in Compile <+= Angular.BoilerplateGenerator,
-    lessEntryPoints <<= (sourceDirectory in Compile){ base =>
-      base / "assets" / "stylesheets" * "main.less" }
-  )
-
-  val web = play.Project(
-    name = "clide-web",
-    applicationVersion = v,
-    dependencies = webDependencies,
-    path = file("modules/clide-web"))
-  .settings(webSettings:_*)
-  .dependsOn(core)
+      Angular.moduleDirs ++= Map(
+          "controllers" -> ("controller", "Controller", true),
+          "directives"  -> ("directive","",false),
+          "filters"     -> ("filter","",false),
+          "services"    -> ("service","",true)),
+      resourceGenerators in Compile <+= play.Project.LessCompiler,
+      resourceGenerators in Compile <+= play.Project.JavascriptCompiler(fullCompilerOptions = None),
+      resourceGenerators in Compile <+= Angular.ModuleCompiler,
+      resourceGenerators in Compile <+= Angular.BoilerplateGenerator,
+      play.Project.lessEntryPoints <<= (sourceDirectory in Compile){ base =>
+        base / "assets" / "stylesheets" * "main.less" }    
+    )
 
   // ASSISTANTS
   // ===========================================================================
 
-  val assistantDependencies = Seq(
-    akka.actor, akka.remote, akka.kernel)
+  val isabelle = module("isabelle")
+    .dependsOn(core)
+    .dependsOn(akka.actor, akka.remote, akka.kernel, scala.swing, scala.actors)
+    .settings(AkkaKernelPlugin.distSettings:_*)
+    .settings(
+      distJvmOptions in Dist := "-Xms512M -Xmx1024M",
+      distMainClass := "clide.isabelle.Isabelle"
+    )
 
-  // Isabelle Assistant
-  // ---------------------------------------------------------------------------
-
-  val isabelleDependencies = assistantDependencies ++ Seq(
-    scala.swing,
-    scala.actors)
-
-  val isabelleSettings = commonSettings ++ AkkaKernelPlugin.distSettings ++ Seq(
-    distJvmOptions in Dist := "-Xms512M -Xmx1024M",
-    distMainClass := "clide.isabelle.Isabelle",
-    libraryDependencies ++= isabelleDependencies)
-
-  val isabelle = Project(
-    id           = "clide-isabelle",
-    base         = file("modules/clide-isabelle"),
-    dependencies = Seq(core))
-  .settings(isabelleSettings:_*)
-
-  // Haskell Assistant
-  // ---------------------------------------------------------------------------
-
-  val haskellDependencies = assistantDependencies
-
-  val haskellSettings = commonSettings ++ AkkaKernelPlugin.distSettings ++ Seq(
-    libraryDependencies ++= haskellDependencies)
-
-  val haskell = Project(
-    id           = "clide-haskell",
-    base         = file("modules/clide-haskell"),
-    dependencies = Seq(core))
-  .settings(haskellSettings:_*)
+  val haskell = module("haskell")          
+    .dependsOn(core)
+    .dependsOn(akka.actor, akka.remote, akka.kernel)
+    .settings(AkkaKernelPlugin.distSettings:_*)
+    .settings(
+      distMainClass := "clide.haskell.Haskell"
+    )
 }

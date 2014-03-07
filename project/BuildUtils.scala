@@ -24,9 +24,11 @@
 
 import sbt._
 import Keys._
+import scalajs.sbtplugin.ScalaJSPlugin._
+import ScalaJSKeys._
+import play.Project._
 
-
-object Util {
+trait BuildUtils {
   case class Developer(id: String, name: String, url: URL)
 
   def Developers(devs: Developer*) =
@@ -38,5 +40,47 @@ object Util {
           <url>{dev.url}</url>
         </developer>
       }
-    </developers>
+    </developers>  
+
+  private var commonSettings_ : Option[Seq[Setting[_]]] = None
+  def commonSettings_=(settings: Seq[Setting[_]]) = 
+    commonSettings_ = Some(settings)
+
+  def module(suffix: String, name_suffix: String = "") = {
+    val proj = Project(
+      base = file(s"modules/clide-$suffix"),
+      id = s"clide-$suffix$name_suffix"  
+    ).settings(      
+      name := s"clide-$suffix"
+    )
+    commonSettings_.foldLeft(proj)(_.settings(_ :_*))    
+  }
+
+  def playModule(suffix: String) = 
+    module(suffix).settings(playScalaSettings:_*)
+
+  def jsModule(suffix: String) =
+    module(suffix,"-js").settings(scalaJSSettings:_*)
+      .settings(target ~= (_ / "javascript"))
+
+  def sharedModule(suffix: String) = 
+    (module(suffix),jsModule(suffix))
+
+  implicit class ScalaJSPlayProject(val project: Project) {
+    def dependsOnJs(references: (Project,String)*): Project =
+      references.foldLeft(project){ case (project,(ref,name)) =>
+        project.settings (
+          resourceGenerators in Compile <+= (preoptimizeJS in (ref,Compile), resourceManaged in Compile).map { (opt,outDir) =>
+            val path = outDir / "public" / "javascripts" / name
+            if (!path.exists || (path olderThan opt))
+              IO.copyFile(opt, path, true)          
+            Seq[java.io.File](path)
+          },
+          watchSources <++= watchSources in ref,
+          playMonitoredFiles <<= (playMonitoredFiles, watchSources in ref).map { (files,refSources) =>
+            (files ++ refSources.map(_.getCanonicalPath)).distinct
+          }
+        )
+      }
+  }
 }

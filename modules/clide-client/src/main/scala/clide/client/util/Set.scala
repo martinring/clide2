@@ -1,5 +1,6 @@
 package clide.client.util
 
+/*
 class Set[A] private[util] (private var buf: Buffer[A]) {
   def += (elem: A): Set.this.type = {
     if (!buf.contains(elem))
@@ -24,4 +25,4 @@ class Set[A] private[util] (private var buf: Buffer[A]) {
 
 object Set {
   def empty[A] = new Set(Buffer.empty)
-}
+}*/

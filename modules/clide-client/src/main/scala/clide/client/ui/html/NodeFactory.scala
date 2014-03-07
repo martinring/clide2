@@ -4,7 +4,7 @@ import org.scalajs.dom._
 import scala.language.implicitConversions
 import clide.client.rx._
 import clide.client.util.Cancellable
-import clide.client.util.Buffer
+import scala.collection.mutable.Buffer
 
 trait InsertedNode {
   def detach()

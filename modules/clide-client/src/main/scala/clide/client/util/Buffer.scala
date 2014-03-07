@@ -2,7 +2,7 @@ package clide.client.util
 
 import scalajs.js
 import scala.language.implicitConversions
-
+/*
 case class Buffer[A] private[util] (private val underlying: js.Array[A]) extends collection.mutable.Buffer[A] {
   def +=(elem: A): Buffer.this.type = { 
     underlying.push(elem);
@@ -111,4 +111,4 @@ object Buffer {
   def apply[A](elems: A*): Buffer[A] = new Buffer(js.Array(elems: _*))
   
   implicit def fromJsArray[T](arr: js.Array[T]) = new Buffer(arr) 
-}
+}*/

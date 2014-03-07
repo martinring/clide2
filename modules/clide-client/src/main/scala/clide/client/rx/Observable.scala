@@ -6,7 +6,7 @@ import scala.util.Success
 import scala.util.Failure
 import org.scalajs.dom._
 import clide.client.util.Cancellable
-import clide.client.util.Buffer
+import scala.collection.mutable.Buffer
 
 trait Observable[+T] {  
   def observe(observer: Observer[T]): Cancellable
