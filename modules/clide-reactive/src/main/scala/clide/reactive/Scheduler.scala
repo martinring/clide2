@@ -1,6 +1,5 @@
 package clide.reactive
 
-import org.scalajs.dom
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Promise
@@ -18,18 +17,29 @@ trait Scheduler {
   }
 }
 
-object Scheduler {
-  implicit val jsScheduler = new Scheduler {
-    def now = (new scalajs.js.Date).valueOf().toLong
-    
-    def schedule[A](duration: FiniteDuration)(task: => A) = {      
-      val interval = dom.setInterval(() => task, duration.toMillis)
-      Cancellable(dom.clearInterval(interval))
+object BlockingScheduler extends Scheduler {
+  import scala.concurrent.ExecutionContext.Implicits.global
+  
+  def now: Long = System.currentTimeMillis()
+  def schedule[A](duration: FiniteDuration)(task: => A): Cancellable = {
+    var cancelled = false
+    Future {
+      Thread.sleep(duration.toMillis)
+      while (!cancelled) {
+        Future(task)
+        Thread.sleep(duration.toMillis)
+      }
     }
-    
-    def scheduleOnce[A](duration: FiniteDuration)(task: => A) = {
-      val timeout = dom.setTimeout(() => task, duration.toMillis)
-      Cancellable(dom.clearTimeout(timeout))
-    }
+    Cancellable(cancelled = true)
   }
+  
+  def scheduleOnce[A](duration: FiniteDuration)(task: => A): Cancellable = {
+    var cancelled = false
+    Future {
+      Thread.sleep(duration.toMillis)
+      if (!cancelled) task      
+    }
+    Cancellable(cancelled = true)
+  }
+  
 }

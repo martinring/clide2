@@ -14,12 +14,25 @@ trait Event[+A] {
   protected def next: Future[Option[(A,Event[A])]]
   protected def stop(): Unit
   protected def isCompleted: Boolean = next.isCompleted
-   
+  
+  protected def stopWith(f: => Unit)(implicit ec: ExecutionContext): Event[A] = 
+    Event(next.map {
+      case None => None
+      case Some((a,e)) => Some((a,e.stopWith(f)))
+    })(f)
+    
+  def duplicate(implicit ec: ExecutionContext): (Event[A], Event[A]) = {
+    val leftC = Promise[Unit]
+    val rightC = Promise[Unit]
+    leftC.future.onComplete(_ => rightC.future.onComplete(_ => stop()))
+    (this.stopWith(leftC.success()),this.stopWith(rightC.success()))
+  }
+      
   def map[B](f: A => B)(implicit ec: ExecutionContext): Event[B] =  
     Event(next.map {  
       case None => None
       case Some((a,e)) => Some((f(a),e.map(f)))
-    })(stop())
+    })(stop())        
     
   def mapF[B](f: A => Future[B])(implicit ec: ExecutionContext): Event[B] =
     Event(next.flatMap {
@@ -37,18 +50,18 @@ trait Event[+A] {
   def filter(f: A => Boolean)(implicit ec: ExecutionContext): Event[A] = 
     Event(next.flatMap {
       case None => Future.successful(None)
-      case Some((a,e)) if f(a) => Future.successful(Some(a,e))
-      case Some((a,e))         => e.next
+      case Some((a,e)) if f(a) => Future.successful(Some(a,e.filter(f)))
+      case Some((a,e))         => Event(e.next)(e.stop()).filter(f).next
     })(stop())
         
   def withFilter(f: A => Boolean)(implicit ec: ExecutionContext): Event[A] =
     filter(f)
     
   def partition(f: A => Boolean)(implicit ec: ExecutionContext): (Event[A],Event[A]) =
-    (filter(f),filter(!f(_))) // FIXME: Can this be done nicer?
+    duplicate match { case (l,r) => (l filter f, r filter (!f(_))) }
     
   def timeSpan(f: Future[_])(implicit ec: ExecutionContext): (Event[A],Event[A]) =
-    (until(f),dropUntil(f)) // FIXME: Is this even correct?
+    duplicate match { case (l,r) => (l until f, r dropUntil f) }
     
   def collect[B](f: PartialFunction[A,B])(implicit ec: ExecutionContext): Event[B] =
     this.filter(f.isDefinedAt).map(f)
@@ -64,7 +77,7 @@ trait Event[+A] {
   def takeWhile(p: A => Boolean)(implicit ec: ExecutionContext): Event[A] = 
     Event(next.map {
       case None => None
-      case Some((a,e)) => if (p(a)) Some((a,e)) else { e.stop; None }
+      case Some((a,e)) => if (p(a)) Some((a,e.takeWhile(p))) else { e.stop; None }
     })(stop())
         
   def drop(n: Int)(implicit ec: ExecutionContext): Event[A] = 
@@ -81,10 +94,10 @@ trait Event[+A] {
     })(stop())
   
   def headOption(implicit ec: ExecutionContext): Future[Option[A]] = 
-    next.map(_.map(_._1))
+    next.map{x => stop(); x.map(_._1)}
     
   def head(implicit ec: ExecutionContext): Future[A] =
-    headOption.map(_.getOrElse(throw new NoSuchElementException("Event.head on empty event")))  
+    headOption.map(_.getOrElse(throw new NoSuchElementException("Event.head on empty event")))     
   
   def lastOption(implicit ec: ExecutionContext): Future[Option[A]] =
     foldLeft(Option.empty[A])((_,a) => Some(a))
@@ -121,7 +134,7 @@ trait Event[+A] {
     zipWith(that, (a: A, b: B) => (a,b))
     
   def zipWithIndex(implicit ec: ExecutionContext): Event[(A,Long)] =
-    zip(indices)
+    duplicate match { case (l,r) => l zip r.indices }
   
   def merge[B >: A](that: Event[B])(implicit ec: ExecutionContext): Event[B] = Event {
     Future.firstCompletedOf(Traversable(this.next, that.next)).flatMap { _ =>
@@ -170,7 +183,7 @@ trait Event[+A] {
     }    
   
   def dropUntil(resume: Future[_])(implicit ec: ExecutionContext): Event[A] = 
-    Event(resume.flatMap(_ => this.completedSpan._2.next))(stop) 
+    Event(resume.flatMap(_ => this.completedSpan._2.next))(stop)
   
   def exists(f: A => Boolean)(implicit ec: ExecutionContext): Future[Boolean] =
     find(f).map(_.isDefined)
@@ -179,7 +192,7 @@ trait Event[+A] {
     find(!f(_)).map(_.isEmpty)
     
   def contains(elem: Any)(implicit ec: ExecutionContext): Future[Boolean] = 
-    exists(_ == elem)    
+    exists(_ == elem)
   
   def count(p: A => Boolean)(implicit ec: ExecutionContext): Future[Long] = 
     foldLeft(0L)((n,e) => if (p(e)) n + 1 else n)
@@ -228,11 +241,11 @@ trait Event[+A] {
       if (done.isCompleted) { stop(); None }
       else next.value.get.get match {
         case None => None
-        case Some((a,e)) => Some((a,e.until(done)))          
+        case Some((a,e)) => Some((a,e.until(done)))
       }})(stop())
 
   def span(f: A => Boolean)(implicit ec: ExecutionContext): (Event[A],Event[A]) =
-    (takeWhile(f),dropWhile(f))
+    duplicate match { case (l,r) => (takeWhile(f),dropWhile(f)) }
           
   def spanF(f: Future[_])(implicit ec: ExecutionContext): (Event[A],Event[A]) =
     span(_ => !f.isCompleted)
@@ -269,12 +282,17 @@ trait Event[+A] {
     foldLeft(())((b,a) => f(a))
 
   def varying(implicit ec: ExecutionContext): Event[A] =
-    this.take(1) ++ (this zip this.drop(1)).collect { case (a,b) if a != b => b }
+    duplicate match { case (h,t) => t.duplicate match { case (l,r) =>
+      h.take(1) ++ ( l.zip(r.drop(1)).collect { case (prev,a) if a != prev => a } )
+    } }
+  
+  def toSeq(implicit ec: ExecutionContext): Future[Seq[A]] =
+    foldLeft(Seq.empty[A])((seq,a) => seq :+ a)
 }
 
 object Event {
   def apply[A](f: => Future[Option[(A,Event[A])]])(c: => Unit) = new Event[A] {
-    def next = f 
+    def next = f
     def stop = {
       c
     }
@@ -294,15 +312,15 @@ object Event {
   
   def empty[A] = Event[A] { Future.successful(None) } ()
   
-  /*def interval(duration: FiniteDuration)(implicit ec: ExecutionContext, scheduler: Scheduler): Event[Long] = {
+  def interval(duration: FiniteDuration)(implicit ec: ExecutionContext, scheduler: Scheduler): Event[Long] = {
     var counter = 0L
     lazy val (event,channel) = broadcast[Long](task.cancel())
-    lazy val task: Cancellable = scheduler.schedule(duration,duration){      
+    lazy val task: Cancellable = scheduler.schedule(duration){      
       channel.push(counter)
       counter += 1
     }
     task; event
-  }*/
+  }
   
   def single[A](value: A): Event[A] = 
     Event(Future.successful(Some(value,empty[A])))()
@@ -334,7 +352,7 @@ object Event {
     (flips.sample(true) merge flops.sample(false)).varying
   
   def broadcast[A](unsubscribe: => Unit = ())(implicit ec: ExecutionContext): (Event[A], Channel[A]) = {
-    var current = Promise[Option[(A,Event[A])]]    
+    var current = Promise[Option[(A,Event[A])]]
     val head = current.future
     val channel = Channel[A](a => synchronized {
       val next = Promise[Option[(A,Event[A])]]

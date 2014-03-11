@@ -39,7 +39,7 @@ object App extends JsApp with History {
     println("gerister " + name)
     target.addEventListener(name, jsListener)
     () => {  
-      println("remove " + name)      
+      println("remove " + name)
       target.removeEventListener(name, jsListener)
     }
   }      

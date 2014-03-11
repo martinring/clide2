@@ -40,21 +40,20 @@ trait BuildUtils {
           <url>{dev.url}</url>
         </developer>
       }
-    </developers>  
+    </developers>
 
-  private var commonSettings_ : Option[Seq[Setting[_]]] = None
-  def commonSettings_=(settings: Seq[Setting[_]]) = 
-    commonSettings_ = Some(settings)
+  def baseName: String
 
-  def module(suffix: String, name_suffix: String = "") = {
-    val proj = Project(
-      base = file(s"modules/clide-$suffix"),
-      id = s"clide-$suffix$name_suffix"  
-    ).settings(      
-      name := s"clide-$suffix"
-    )
-    commonSettings_.foldLeft(proj)(_.settings(_ :_*))    
-  }
+  def commonSettings: Seq[Setting[_]]
+
+  def module(suffix: String, idsuffix: String = "") = Project(
+    base = file(s"modules/$baseName-$suffix"),
+    id = s"$baseName-$suffix$idsuffix"
+  ).settings(      
+    name := s"$baseName-$suffix"
+  ).settings(
+    commonSettings :_*
+  )      
 
   def playModule(suffix: String) = 
     module(suffix).settings(playScalaSettings:_*)
@@ -65,6 +64,15 @@ trait BuildUtils {
 
   def sharedModule(suffix: String) = 
     (module(suffix),jsModule(suffix))
+
+  implicit class SharedProject(val projects: (Project,Project)) {
+    private val (jvmp,jsp) = projects
+    def settings(ss: Def.Setting[_]*) = {
+      (jvmp.settings(ss :_*),jsp.settings(ss :_*))
+    }    
+    def jvm(f: Project => Project) = (f(jvmp),jsp)
+    def js(f: Project => Project) = (jvmp,f(jsp))
+  }
 
   implicit class ScalaJSPlayProject(val project: Project) {
     def dependsOnJs(references: (Project,String)*): Project =

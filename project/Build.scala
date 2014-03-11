@@ -24,13 +24,13 @@
 
 import sbt._
 import Keys._
-import akka.sbt.AkkaKernelPlugin
-import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions, distMainClass }
 
 object ClideBuild extends Build with BuildUtils with Publishing with Dependencies {  
   override def rootProject = Some(web)
 
-  commonSettings_=(sonatypeSettings ++ Seq(
+  val baseName = "clide"
+
+  val commonSettings = sonatypeSettings ++ Seq(    
     version := "2.0-SNAPSHOT",
     organization := "net.flatmap",
     organizationName := "flatmap",
@@ -45,27 +45,29 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
     scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"),
     pomExtra := Developers(
     Developer("martinring", "Martin Ring", url("http://github.com/martinring")))
-  ))
+  )
 
   val (collaboration,collaborationJs) = sharedModule("collaboration")
 
   val (messages,messagesJs) = sharedModule("messages")
 
   val core = module("core")    
-    .settings(AkkaKernelPlugin.distSettings:_*)
     .dependsOn(collaboration,messages)
     .dependsOn(
       "ch.qos.logback" % "logback-classic" % "1.0.13", spray.json,
       akka.actor, akka.remote, akka.kernel, akka.testkit,
       scala.reflect, slick,h2,slf4j,scalatest,scalacheck)
 
-  val reactive = jsModule("reactive")
-    .dependsOn(scalajs.dom)
+  val (reactive,reactiveJs) = sharedModule("reactive")
+    .jvm(DependenciesProject(_).dependsOn(scalatest,scalacheck,junit,akka.actor,scala.reflect))
+    .js(_.dependsOn(scalajs.dom,scala.reflect))
+
+  val reactiveUi = jsModule("reactive-ui")
+    .dependsOn(reactiveJs)
 
   val client = jsModule("client")
-    .dependsOn(reactive)
     .dependsOn(scalajs.dom)
-    .dependsOn(collaborationJs, messagesJs)
+    .dependsOn(reactiveUi, collaborationJs, messagesJs)
 
   val web = playModule("web")    
     .dependsOn(core,messages)
@@ -97,17 +99,8 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
   val isabelle = module("isabelle")
     .dependsOn(core)
     .dependsOn(akka.actor, akka.remote, akka.kernel, scala.swing, scala.actors)
-    .settings(AkkaKernelPlugin.distSettings:_*)
-    .settings(
-      distJvmOptions in Dist := "-Xms512M -Xmx1024M",
-      distMainClass := "clide.isabelle.Isabelle"
-    )
 
   val haskell = module("haskell")          
     .dependsOn(core)
     .dependsOn(akka.actor, akka.remote, akka.kernel)
-    .settings(AkkaKernelPlugin.distSettings:_*)
-    .settings(
-      distMainClass := "clide.haskell.Haskell"
-    )
 }

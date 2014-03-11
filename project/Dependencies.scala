@@ -26,17 +26,18 @@ import sbt._
 import Keys._
 
 trait Dependencies {
-  val slick = "com.typesafe.slick" %% "slick" % "1.0.1"
+  val slick = "com.typesafe.slick" % "slick_2.10" % "1.0.1"
   val h2    = "com.h2database" % "h2" % "1.3.166"
   val slf4j = "org.slf4j" % "slf4j-nop" % "1.6.4"
 
   val jscala = "org.jscala" %% "jscala-macros" % "0.3-SNAPSHOT"
 
-  val scalatest  = "org.scalatest" % "scalatest_2.10" % "2.0" % "test"
-  val scalacheck = "org.scalacheck" %% "scalacheck" % "1.10.1" % "test"
+  val scalatest  = "org.scalatest" %% "scalatest" % "2.1.0" % "test"
+  val scalacheck = "org.scalacheck" %% "scalacheck" % "1.11.3" % "test"
+  val junit = "com.novocode" % "junit-interface" % "0.9" % "test"
 
   object akka {
-    val version = "2.2.3"
+    val version = "2.2.4"
     val actor   = "com.typesafe.akka" %% "akka-actor"   % version
     val remote  = "com.typesafe.akka" %% "akka-remote"  % version
     val kernel  = "com.typesafe.akka" %% "akka-kernel"  % version
@@ -53,7 +54,6 @@ trait Dependencies {
     val swing    = "org.scala-lang" % "scala-swing"   % version
     val actors   = "org.scala-lang" % "scala-actors"  % version
     val reflect  = "org.scala-lang" % "scala-reflect" % version
-    val pickling = "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT"
   }
 
   object playplugins {
@@ -62,8 +62,11 @@ trait Dependencies {
   }
 
   object scalajs {
-    val dom = "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.3-SNAPSHOT"
+    val dom = "org.scala-lang.modules.scalajs" % "scalajs-dom_2.10" % "0.3-SNAPSHOT"
     val playPickling = "org.scalajs" %% "scalajs-pickling-play-json" % "0.1"
+    val pickling = "org.scalajs" %% "scalajs-pickling" % "0.1"
+    val resolver = Resolver.url("scala-js-releases",
+      url("http://dl.bintray.com/content/scala-js/scala-js-releases"))(Resolver.ivyStylePatterns)  
   }
 
   implicit class DependenciesProject(project: Project) {

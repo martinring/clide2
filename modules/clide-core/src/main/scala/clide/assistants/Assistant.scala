@@ -62,7 +62,7 @@ case class Cursor(owner: SessionInfo, file: OpenedFile, anchor: Int, head: Optio
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private class Assistant(project: ProjectInfo, createBehavior: AssistantControl => AssistBehavior) extends Actor with ActorLogging with AssistantControl with Stash {
+private class Assistant(project: ProjectInfo, createBehavior: AssistantControl => AssistBehavior) extends Actor with AssistantControl with ActorLogging with Stash {
   var peer              = context.system.deadLetters
   var info: SessionInfo = null
   val collaborators     = Set.empty[SessionInfo]

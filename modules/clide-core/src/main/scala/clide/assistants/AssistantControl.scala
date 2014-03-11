@@ -41,7 +41,7 @@ import scala.concurrent.duration.FiniteDuration
  * @author Martin Ring <martin.ring@dfki.de>
  */
 trait AssistantControl {
-  val log: LoggingAdapter
+  def log: LoggingAdapter
   
   implicit def executionContext: ExecutionContext
 
