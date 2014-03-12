@@ -54,6 +54,7 @@ trait Dependencies {
     val swing    = "org.scala-lang" % "scala-swing"   % version
     val actors   = "org.scala-lang" % "scala-actors"  % version
     val reflect  = "org.scala-lang" % "scala-reflect" % version
+    val quasiquotes = "org.scalamacros" % "quasiquotes" % "2.0.0-M3" cross CrossVersion.full
   }
 
   object playplugins {

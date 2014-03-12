@@ -81,7 +81,7 @@ object App extends JsApp with History {
         }
       )
     )             
-  }
+  } 
   
   val template = Div(className := "clideApp")(
     "Wir befinden uns hier: ", Location.path, 
