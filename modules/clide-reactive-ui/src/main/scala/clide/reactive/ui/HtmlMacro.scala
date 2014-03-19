@@ -30,11 +30,14 @@ package object ui {
   def viewMacroImpl(c: Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
     
-    val param: ClassDef = annottees.map(_.tree).toList match {
-      case (param: ClassDef) :: _ => param
+    val param = annottees.map(_.tree).toList.headOption
+    
+    val (viewName, args, members) = param match {
+      case Some(q"class $name(..$args) { ..$members }") =>
+        (name,args,members)
       case _ =>
-        c.abort(c.enclosingPosition, "@view must be applied to a class definition")
-    }
+        c.abort(c.enclosingPosition, "@view must be applied to a class declaration")
+    } 
     
     var counter = 0
     def nextElemName() = {
@@ -49,8 +52,8 @@ package object ui {
     elemDecls += q"private lazy val $fragment = _root_.org.scalajs.dom.document.createDocumentFragment()"
 
     def getValue(pos: Position, value: String, args: List[Tree]): Tree = 
-      if (value.startsWith("{") && value.endsWith("}")) 
-        args(value.drop(1).dropRight(1).toInt)
+      if (value.startsWith("{{") && value.endsWith("}}")) 
+        args(value.drop(2).dropRight(2).toInt)
       else
         q"$value"
     
@@ -76,10 +79,11 @@ package object ui {
                               .map(md => newTermName(md.value.toString))
                               .getOrElse(nextElemName())
         if (prefix != null)
-          c.abort(pos, "unsupported element prefix: " + prefix)
-        val default = c.typeOf[dom.HTMLElement]
-        val elemType = HTMLTagTypes(label)(c)(pos)
-        elemDecls += atPos(pos)(q"protected lazy val $name: $elemType = _root_.org.scalajs.dom.document.createElement($label).asInstanceOf[$elemType]")
+          elemDecls += atPos(pos)(q"protected lazy val $name = new ${newTermName(prefix)}.${newTermName(label)}")
+        else {
+          val elemType = HTMLTagTypes(label)(c)(pos).getOrElse(c.abort(pos, "unknown html5 tag: " + label))
+          elemDecls += atPos(pos)(q"protected lazy val $name: $elemType = _root_.org.scalajs.dom.document.createElement($label).asInstanceOf[$elemType]")
+        }
         processAttributes(name, pos, attribs, args)
         wiring += atPos(pos)(q"$parent.appendChild($name)")
         processTree(name, pos, child, args)
@@ -88,14 +92,14 @@ package object ui {
       case other => c.warning(pos, "html skipped: " + other)
     }
     
-    param.foreach {
+    members.foreach {
       case html@q"StringContext(..$parts).html(..$args)" =>
         val builder = new StringBuilder
         if (parts.nonEmpty) {
           builder.append(parts.head.asInstanceOf[Literal].value.value.asInstanceOf[String])
           var pos = 0
           while (pos + 1 < parts.length) {
-            builder.append("\"{").append(pos.toString).append("}\"")
+            builder.append("{{").append(pos.toString).append("}}")
             pos += 1
             builder.append(parts(pos).asInstanceOf[Literal].value.value.asInstanceOf[String])
           }
@@ -115,7 +119,7 @@ package object ui {
     }
     
     c.Expr(q"""
-      class ${param.name}(implicit context: _root_.clide.reactive.ui.InsertionContext) { 
+      class ${viewName}(..$args)(implicit context: _root_.clide.reactive.ui.InsertionContext) { 
         ..$elemDecls
         ..$wiring
         context.insert($fragment)

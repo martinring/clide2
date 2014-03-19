@@ -12,4 +12,4 @@ addSbtPlugin("com.typesafe.sbt"  % "sbt-native-packager" % "0.7.0-M2")
 
 addSbtPlugin("com.typesafe.sbt"  % "sbt-pgp"             % "0.8.1")
 
-addSbtPlugin("org.scala-lang.modules.scalajs" % "scalajs-sbt-plugin" % "0.4-SNAPSHOT")
+addSbtPlugin("org.scala-lang.modules.scalajs" % "scalajs-sbt-plugin" % "0.4.1-SNAPSHOT")

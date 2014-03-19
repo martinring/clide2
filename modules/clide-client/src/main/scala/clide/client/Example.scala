@@ -12,15 +12,15 @@ import org.scalajs.dom
 @JSExport
 object Example {
   dom.document.body.innerHTML = ""
-  
+
   implicit val insertionContext = InsertionContext.append(dom.document.body)
   implicit val executionContext = scalajs.concurrent.JSExecutionContext.queue
 
-  object ng {        
+  object ng {
     def hallo(elem: dom.HTMLElement, value: String) =
       elem.textContent = elem.textContent + value
 
-    def bind(elem: dom.HTMLInputElement, value: Event[String]) = 
+    def bind(elem: dom.HTMLInputElement, value: Event[String]) =
       value.foreach(elem.value = _)
   }
   
@@ -31,13 +31,11 @@ object Example {
     html"""
       <div class='test'>
         <span>$name ($age)</span>
-        <input type='text' placeholder='test' ng:bind=${password.textChange} scala:name='username'></input>
+        <input type='text' placeholder='test' ng:bind="${password.textChange}" scala:name='username'></input>
         <input type='password' scala:name='password'></input>
       </div>
     """
   }
   
-  val a = new PersonView()
-  
-  
+  val a = new PersonView("Martin",27)
 }

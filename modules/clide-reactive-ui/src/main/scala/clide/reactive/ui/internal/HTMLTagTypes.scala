@@ -2,125 +2,123 @@ package clide.reactive.ui.internal
 
 import scala.reflect.macros.Context
 import org.scalajs.dom
-import org.scalajs.dom.HTMLElement
 
 object HTMLTagTypes {    
-  def apply(tagName: String)(c: Context)(pos: c.Position): c.Type = tagName match {
+  def apply(tagName: String)(c: Context)(pos: c.Position): Option[c.Type] = tagName match {
     // metadata
-    case "head" => c.typeOf[dom.HTMLHeadElement]
-    case "title" => c.typeOf[dom.HTMLTitleElement]
-    case "base" => c.typeOf[dom.HTMLBaseElement]
-    case "link" => c.typeOf[dom.HTMLLinkElement]
-    case "meta" => c.typeOf[dom.HTMLMetaElement]
-    case "style" => c.typeOf[dom.HTMLStyleElement]                             
+    case "head" => Some(c.typeOf[dom.HTMLHeadElement])
+    case "title" => Some(c.typeOf[dom.HTMLTitleElement])
+    case "base" => Some(c.typeOf[dom.HTMLBaseElement])
+    case "link" => Some(c.typeOf[dom.HTMLLinkElement])
+    case "meta" => Some(c.typeOf[dom.HTMLMetaElement])
+    case "style" => Some(c.typeOf[dom.HTMLStyleElement])
     //scripts
-    case "script" => c.typeOf[dom.HTMLScriptElement]
-    case "noscript" => c.typeOf[dom.HTMLDivElement]          
+    case "script" => Some(c.typeOf[dom.HTMLScriptElement])
+    case "noscript" => Some(c.typeOf[dom.HTMLDivElement])
     // sections          
-    case "body" => c.typeOf[dom.HTMLBodyElement]
+    case "body" => Some(c.typeOf[dom.HTMLBodyElement])
     case "h1" | "h2" | "h3"
-       | "h4" | "h5" | "h6" => c.typeOf[dom.HTMLHeadingElement]
-    case "section" 
-       | "nav" 
-       | "aside" 
-       | "header" 
-       | "footer" 
-       | "address" 
-       | "main" => c.typeOf[HTMLElement]
+       | "h4" | "h5" | "h6" => Some(c.typeOf[dom.HTMLHeadingElement])
+    case "section"
+       | "nav"
+       | "aside"
+       | "header"
+       | "footer"
+       | "address"
+       | "main" => Some(c.typeOf[dom.HTMLElement])
     // grouping
-    case "p" => c.typeOf[dom.HTMLParagraphElement]
-    case "hr" => c.typeOf[dom.HTMLHRElement]
-    case "pre" => c.typeOf[dom.HTMLPreElement]
-    case "blockquote" => c.typeOf[dom.HTMLQuoteElement]
-    case "ol" => c.typeOf[dom.HTMLOListElement]
-    case "ul" => c.typeOf[dom.HTMLUListElement]
-    case "li" => c.typeOf[dom.HTMLLIElement]
-    case "dl" => c.typeOf[dom.HTMLDListElement]
-    case "dt" => c.typeOf[dom.HTMLDTElement]
-    case "dd" => c.typeOf[dom.HTMLDDElement]
+    case "p" => Some(c.typeOf[dom.HTMLParagraphElement])
+    case "hr" => Some(c.typeOf[dom.HTMLHRElement])
+    case "pre" => Some(c.typeOf[dom.HTMLPreElement])
+    case "blockquote" => Some(c.typeOf[dom.HTMLQuoteElement])
+    case "ol" => Some(c.typeOf[dom.HTMLOListElement])
+    case "ul" => Some(c.typeOf[dom.HTMLUListElement])
+    case "li" => Some(c.typeOf[dom.HTMLLIElement])
+    case "dl" => Some(c.typeOf[dom.HTMLDListElement])
+    case "dt" => Some(c.typeOf[dom.HTMLDTElement])
+    case "dd" => Some(c.typeOf[dom.HTMLDDElement])
     case "figure" 
-       | "figcaption" => c.typeOf[HTMLElement]
-    case "div" => c.typeOf[dom.HTMLDivElement]
+       | "figcaption" => Some(c.typeOf[dom.HTMLElement])
+    case "div" => Some(c.typeOf[dom.HTMLDivElement])
     // semantic
-    case "a" => c.typeOf[dom.HTMLAnchorElement]
-    case "em" => c.typeOf[HTMLElement]
-    case "strong" => c.typeOf[HTMLElement]
-    case "small" => c.typeOf[HTMLElement]
-    case "s" => c.typeOf[HTMLElement]
-    case "cite" => c.typeOf[HTMLElement]
-    case "q" => c.typeOf[dom.HTMLQuoteElement]
-    case "dfn" => c.typeOf[HTMLElement]
-    case "abbr" => c.typeOf[HTMLElement]          
-    case "time" => c.typeOf[HTMLElement]
-    case "code" => c.typeOf[HTMLElement]
-    case "var" => c.typeOf[HTMLElement]
-    case "samp" => c.typeOf[HTMLElement]
-    case "kbd" => c.typeOf[HTMLElement]
-    case "sub" => c.typeOf[HTMLElement]
-    case "sup" => c.typeOf[HTMLElement]
-    case "i" => c.typeOf[HTMLElement]
-    case "b" => c.typeOf[HTMLElement]
-    case "u" => c.typeOf[HTMLElement]
-    case "mark" => c.typeOf[HTMLElement]
-    case "ruby" => c.typeOf[HTMLElement]
-    case "rt" => c.typeOf[HTMLElement]
-    case "rp" => c.typeOf[HTMLElement]
-    case "bdi" => c.typeOf[HTMLElement]
-    case "bdo" => c.typeOf[HTMLElement]
-    case "span" => c.typeOf[dom.HTMLSpanElement]
-    case "br" => c.typeOf[dom.HTMLBRElement]
-    case "wbr" => c.typeOf[HTMLElement]
+    case "a" => Some(c.typeOf[dom.HTMLAnchorElement])
+    case "em" => Some(c.typeOf[dom.HTMLElement])
+    case "strong" => Some(c.typeOf[dom.HTMLElement])
+    case "small" => Some(c.typeOf[dom.HTMLElement])
+    case "s" => Some(c.typeOf[dom.HTMLElement])
+    case "cite" => Some(c.typeOf[dom.HTMLElement])
+    case "q" => Some(c.typeOf[dom.HTMLQuoteElement])
+    case "dfn" => Some(c.typeOf[dom.HTMLElement])
+    case "abbr" => Some(c.typeOf[dom.HTMLElement]          )
+    case "time" => Some(c.typeOf[dom.HTMLElement])
+    case "code" => Some(c.typeOf[dom.HTMLElement])
+    case "var" => Some(c.typeOf[dom.HTMLElement])
+    case "samp" => Some(c.typeOf[dom.HTMLElement])
+    case "kbd" => Some(c.typeOf[dom.HTMLElement])
+    case "sub" => Some(c.typeOf[dom.HTMLElement])
+    case "sup" => Some(c.typeOf[dom.HTMLElement])
+    case "i" => Some(c.typeOf[dom.HTMLElement])
+    case "b" => Some(c.typeOf[dom.HTMLElement])
+    case "u" => Some(c.typeOf[dom.HTMLElement])
+    case "mark" => Some(c.typeOf[dom.HTMLElement])
+    case "ruby" => Some(c.typeOf[dom.HTMLElement])
+    case "rt" => Some(c.typeOf[dom.HTMLElement])
+    case "rp" => Some(c.typeOf[dom.HTMLElement])
+    case "bdi" => Some(c.typeOf[dom.HTMLElement])
+    case "bdo" => Some(c.typeOf[dom.HTMLElement])
+    case "span" => Some(c.typeOf[dom.HTMLSpanElement])
+    case "br" => Some(c.typeOf[dom.HTMLBRElement])
+    case "wbr" => Some(c.typeOf[dom.HTMLElement])
     //diff
-    case "ins" => c.typeOf[HTMLElement]
-    case "del" => c.typeOf[HTMLElement]
+    case "ins" => Some(c.typeOf[dom.HTMLElement])
+    case "del" => Some(c.typeOf[dom.HTMLElement])
     //embedded
-    case "img" => c.typeOf[dom.HTMLImageElement]
-    case "iframe" => c.typeOf[dom.HTMLIFrameElement]
-    case "embed" => c.typeOf[dom.HTMLEmbedElement]
-    case "object" => c.typeOf[dom.HTMLObjectElement]
-    case "param" => c.typeOf[dom.HTMLParamElement]
-    case "video" => c.typeOf[dom.HTMLVideoElement]
-    case "audio" => c.typeOf[dom.HTMLAudioElement]
-    case "source" => c.typeOf[dom.HTMLSourceElement]
-    case "track" => c.typeOf[dom.HTMLTrackElement]
-    case "canvas" => c.typeOf[dom.HTMLCanvasElement]
-    case "map" => c.typeOf[dom.HTMLMapElement]
-    case "area" => c.typeOf[dom.HTMLAreaElement]
-    case "svg" => c.typeOf[HTMLElement]
-    case "math" => c.typeOf[HTMLElement]
+    case "img" => Some(c.typeOf[dom.HTMLImageElement])
+    case "iframe" => Some(c.typeOf[dom.HTMLIFrameElement])
+    case "embed" => Some(c.typeOf[dom.HTMLEmbedElement])
+    case "object" => Some(c.typeOf[dom.HTMLObjectElement])
+    case "param" => Some(c.typeOf[dom.HTMLParamElement])
+    case "video" => Some(c.typeOf[dom.HTMLVideoElement])
+    case "audio" => Some(c.typeOf[dom.HTMLAudioElement])
+    case "source" => Some(c.typeOf[dom.HTMLSourceElement])
+    case "track" => Some(c.typeOf[dom.HTMLTrackElement])
+    case "canvas" => Some(c.typeOf[dom.HTMLCanvasElement])
+    case "map" => Some(c.typeOf[dom.HTMLMapElement])
+    case "area" => Some(c.typeOf[dom.HTMLAreaElement])
+    case "svg" => Some(c.typeOf[dom.HTMLElement])
+    case "math" => Some(c.typeOf[dom.HTMLElement])
     //tables
-    case "table" => c.typeOf[dom.HTMLTableElement]
-    case "caption" => c.typeOf[dom.HTMLTableCaptionElement]
-    case "colgroup" => c.typeOf[HTMLElement]
-    case "col" => c.typeOf[dom.HTMLTableColElement]
-    case "tbody" => c.typeOf[dom.HTMLTableSectionElement]
-    case "thead" => c.typeOf[dom.HTMLTableSectionElement]
-    case "tfoot" => c.typeOf[dom.HTMLTableSectionElement]
-    case "tr" => c.typeOf[dom.HTMLTableRowElement]
-    case "td" => c.typeOf[dom.HTMLTableCellElement]
-    case "th" => c.typeOf[dom.HTMLTableHeaderCellElement]
+    case "table" => Some(c.typeOf[dom.HTMLTableElement])
+    case "caption" => Some(c.typeOf[dom.HTMLTableCaptionElement])
+    case "colgroup" => Some(c.typeOf[dom.HTMLElement])
+    case "col" => Some(c.typeOf[dom.HTMLTableColElement])
+    case "tbody" => Some(c.typeOf[dom.HTMLTableSectionElement])
+    case "thead" => Some(c.typeOf[dom.HTMLTableSectionElement])
+    case "tfoot" => Some(c.typeOf[dom.HTMLTableSectionElement])
+    case "tr" => Some(c.typeOf[dom.HTMLTableRowElement])
+    case "td" => Some(c.typeOf[dom.HTMLTableCellElement])
+    case "th" => Some(c.typeOf[dom.HTMLTableHeaderCellElement])
     // forms
-    case "form" => c.typeOf[dom.HTMLFormElement]
-    case "fieldset" => c.typeOf[dom.HTMLFieldSetElement]
-    case "legend" => c.typeOf[dom.HTMLLegendElement]
-    case "label" => c.typeOf[dom.HTMLLabelElement]
-    case "input" => c.typeOf[dom.HTMLInputElement]
-    case "button" => c.typeOf[dom.HTMLButtonElement]
-    case "select" => c.typeOf[dom.HTMLSelectElement]
-    case "datalist" => c.typeOf[dom.HTMLDataListElement]
-    case "optgroupt" => c.typeOf[dom.HTMLOptGroupElement]
-    case "option" => c.typeOf[dom.HTMLOptionElement]
-    case "textarea" => c.typeOf[dom.HTMLTextAreaElement]
-    case "keygen" => c.typeOf[HTMLElement]
-    case "output" => c.typeOf[HTMLElement]
-    case "progress" => c.typeOf[dom.HTMLProgressElement]
-    case "meter" => c.typeOf[HTMLElement]
+    case "form" => Some(c.typeOf[dom.HTMLFormElement])
+    case "fieldset" => Some(c.typeOf[dom.HTMLFieldSetElement])
+    case "legend" => Some(c.typeOf[dom.HTMLLegendElement])
+    case "label" => Some(c.typeOf[dom.HTMLLabelElement])
+    case "input" => Some(c.typeOf[dom.HTMLInputElement])
+    case "button" => Some(c.typeOf[dom.HTMLButtonElement])
+    case "select" => Some(c.typeOf[dom.HTMLSelectElement])
+    case "datalist" => Some(c.typeOf[dom.HTMLDataListElement])
+    case "optgroupt" => Some(c.typeOf[dom.HTMLOptGroupElement])
+    case "option" => Some(c.typeOf[dom.HTMLOptionElement])
+    case "textarea" => Some(c.typeOf[dom.HTMLTextAreaElement])
+    case "keygen" => Some(c.typeOf[dom.HTMLElement])
+    case "output" => Some(c.typeOf[dom.HTMLElement])
+    case "progress" => Some(c.typeOf[dom.HTMLProgressElement])
+    case "meter" => Some(c.typeOf[dom.HTMLElement])
     // interactive
-    case "details" => c.typeOf[HTMLElement]
-    case "summary" => c.typeOf[HTMLElement]
-    case "command" => c.typeOf[HTMLElement]
-    case "menu" => c.typeOf[dom.HTMLMenuElement]                    
-    case other =>
-      c.abort(pos, "tag unsupported in html5: " + other)
+    case "details" => Some(c.typeOf[dom.HTMLElement])
+    case "summary" => Some(c.typeOf[dom.HTMLElement])
+    case "command" => Some(c.typeOf[dom.HTMLElement])
+    case "menu" => Some(c.typeOf[dom.HTMLMenuElement])
+    case other => None
   }
 }
