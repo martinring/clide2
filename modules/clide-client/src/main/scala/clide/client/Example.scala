@@ -21,21 +21,31 @@ object Example {
       elem.textContent = elem.textContent + value
 
     def bind(elem: dom.HTMLInputElement, value: Event[String]) =
-      value.foreach(elem.value = _)
+      value.foreach(elem.value = _) 
   }
   
-  @view class PersonView(name: String, age: Int) {
-    def credentials = (username.value, password.value)
-    val hallo = () => password.value
-    
+  @view class ProjectView(project: Project) {
     html"""
-      <div class='test'>
-        <span>$name ($age)</span>
-        <input type='text' placeholder='test' ng:bind="${password.textChange}" scala:name='username'></input>
-        <input type='password' scala:name='password'></input>
+      <div>
+        <span>${project.name}</span>
       </div>
     """
   }
   
-  val a = new PersonView("Martin",27)
+  @view class PersonView(name: String, age: Int) {    
+    html"""
+      <div class='test'>
+        <span text='@name'>$name (${age.toString})</span>
+        <input type='text' placeholder='test' ng:bind="${passwordBox.textChange}"></input>
+        <input type='password' scala:name='passwordBox'></input>
+        Hallo, dein passwort ist: ${passwordBox.textChange.map(pwd => new ProjectView(Project(pwd)))}
+      </div>
+    """
+
+    def password = passwordBox.value
+  }
+  
+  case class Project(name: String) 
+  
+  val a = new PersonView("Martin",27)  
 }
