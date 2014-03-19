@@ -5,35 +5,39 @@ import scala.scalajs.js.annotation.JSExport
 import clide.reactive.Event
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import clide.reactive.ui.events.DOMEvent
+import scala.language.reflectiveCalls
+import scala.language.existentials
 import org.scalajs.dom
-import clide.reactive.ui.HTMLMacro._
 
-@JSExport  
+@JSExport
 object Example {
-  implicit val ec = scalajs.concurrent.JSExecutionContext.runNow
-  implicit val scheduler = clide.reactive.ui.UiScheduler
-
   dom.document.body.innerHTML = ""
   
-  val x = "itWorks"
-    
-  def parameterized(time: Long) = html"<span>Hallo $time</span>" 
-    
-  val view = html"""
-    <div id='$x'>
-      <input model:username='value' event:usernameChange='input' type='text' placeholder='username'></input><br/>
-      <input model:password='value' type='password' placeholder='password'></input>
-    </div>
-    <div>Hier: ${Event.interval(2 seconds).map(parameterized)}</div>
-  """.render(InsertionContext.append(dom.document.body))
-   
-  import view._
+  implicit val insertionContext = InsertionContext.append(dom.document.body)
+  implicit val executionContext = scalajs.concurrent.JSExecutionContext.queue
 
-  username_=("test")
-  password_=("something else")
-  usernameChange.sample(username).foreach(password_=)
+  object ng {        
+    def hallo(elem: dom.HTMLElement, value: String) =
+      elem.textContent = elem.textContent + value
+
+    def bind(elem: dom.HTMLInputElement, value: Event[String]) = 
+      value.foreach(elem.value = _)
+  }
   
-  @JSExport
-  def destroy() = view.destroy()
-} 
+  @view class PersonView(name: String, age: Int) {
+    def credentials = (username.value, password.value)
+    val hallo = () => password.value
+    
+    html"""
+      <div class='test'>
+        <span>$name ($age)</span>
+        <input type='text' placeholder='test' ng:bind=${password.textChange} scala:name='username'></input>
+        <input type='password' scala:name='password'></input>
+      </div>
+    """
+  }
+  
+  val a = new PersonView()
+  
+  
+}

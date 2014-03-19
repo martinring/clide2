@@ -74,6 +74,11 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
   val client = jsModule("client")
     .dependsOn(scalajs.dom)
     .dependsOn(reactiveUi, collaborationJs, messagesJs)
+    .settings(
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      resolvers += Resolver.sonatypeRepo("releases"),
+      addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
+    )    
 
   val web = playModule("web")    
     .dependsOn(core,messages)
