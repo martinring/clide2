@@ -6,20 +6,5 @@ import scala.concurrent.ExecutionContext
 import org.scalajs.dom.Node
 
 trait View {
-  def apply(ic: InsertionContext): InsertedView
-}
-
-trait InsertedView {
-  def destroy(): Unit
-}
-
-object View {
-  def apply(f: InsertionContext => (() => Unit)) = new View {
-    def apply(ic: InsertionContext) = {
-      val rem = f(ic)
-      new InsertedView {
-        def destroy() = rem()
-      }
-    }
-  }
+  def apply(ic: InsertionContext): InsertedNode
 }

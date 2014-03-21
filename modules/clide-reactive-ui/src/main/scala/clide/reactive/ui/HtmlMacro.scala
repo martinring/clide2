@@ -9,41 +9,18 @@ import scala.reflect.api.Universe
 import scala.collection.mutable.Buffer
 import scala.annotation.StaticAnnotation
 import org.scalajs.dom.HTMLFormElement
-import clide.reactive.ui.internal._
 import clide.reactive.ui.events._
 import scala.concurrent.ExecutionContext
 import reflect.runtime.universe.TypeTag
+import java.io.FileNotFoundException
 
-package object ui {    
+package object ui {
   class view extends StaticAnnotation {
     def macroTransform(annottees: Any*) = macro viewMacroImpl
   }
 
   implicit class HTMLInterpolator(val sc: StringContext) extends AnyVal {
-    def html(args: Any*): Any = sys.error("html interpolator may only be called within @view classes")
-  }
-
-  implicit class RichHTMLElement(val elem: dom.HTMLElement) extends AnyVal {
-    def appendChild(text: String): Unit = elem.appendChild(dom.document.createTextNode(text))
-    def appendChild(event: Event[String])(implicit ec: ExecutionContext): Unit = {
-      val textNode = elem.appendChild(dom.document.createTextNode(""))
-      event.foreach(textNode.textContent = _).foreach(_ => textNode.parentNode.removeChild(textNode))
-    }
-    def appendChild(event: Event[dom.Node])(implicit ec: ExecutionContext, evidence: TypeTag[dom.Node]): Unit = {
-      var node = elem.appendChild(dom.document.createComment("placeholder"))
-      event.foreach(node.parentNode.replaceChild(_, node)).foreach(_ => node.parentNode.removeChild(node))
-    }
-    /*def appendChild(event: Event[InsertionContext => Cancellable])(implicit ec: ExecutionContext): Unit = {
-      var insert = InsertionContext.replace(elem.appendChild(dom.document.createComment("placeholder")))      
-      var cancel = Cancellable()
-      event.foreach { c =>
-        cancel()
-      }
-    }*/
-  }
-  
-  implicit class HTMLEvents(val elem: dom.HTMLInputElement) extends AnyVal {
-    def textChange(implicit ec: ExecutionContext): Event[String] = DOMEvent(elem,"input").sample(elem.value)
+    def html(args: Any*): Any = ???
   }
 
   def viewMacroImpl(c: Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
@@ -67,7 +44,9 @@ package object ui {
     val fragment = newTermName("$rootFragment")
     val elemDecls = Buffer.empty[Tree]
     val wiring = Buffer.empty[Tree]
-
+    val unwiring = Buffer.empty[Tree]
+    val interface = Buffer.empty[Tree]
+    
     elemDecls += q"private lazy val $fragment = _root_.org.scalajs.dom.document.createDocumentFragment()"
 
     def getValue(pos: Position, value: String, args: List[Tree]): Tree = 
@@ -77,18 +56,21 @@ package object ui {
         q"$value"
 
     def processAttributes(parent: TermName, pos: Position, md: MetaData, args: List[Tree]): Unit = md.foreach {
-      case UnprefixedAttribute(key,Text(value),next) =>
-        val keyName = newTermName(key match {
-          case "class" => "className"          
-          case other => other
-        })
-        wiring += atPos(pos)(q"$parent.$keyName = ${getValue(pos,value,args)}")
+      case UnprefixedAttribute(key,Text(value),next) =>                
+        if (value.startsWith("@")) {
+          wiring += atPos(pos)(q"def ${newTermName(value.drop(1) + "_$eq")}(value: String) = $parent.${newTermName(key + "_$eq")}(value)")
+          interface += atPos(pos)(q"def ${newTermName(value.drop(1) + "_$eq")}(value: String): Unit")
+        } else {
+          val l = (key + "_$eq").split('.').foldLeft(q"$parent": Tree)((l,r) => q"$l.${newTermName(r)}")
+          wiring += atPos(pos)(q"$l(${getValue(pos,value,args)})")
+        }
       case PrefixedAttribute(prefix,key,Text(value),next) if prefix != "scala" =>
         val oName = newTermName(prefix)
         val kName = newTermName(key)
-        if (value.startsWith("@"))
-          wiring += atPos(pos)(q"def ${newTermName(key + "_$eq")}(value: String) = $oName.$kName($parent,value)")
-        else
+        if (value.startsWith("@")) {
+          wiring += atPos(pos)(q"def ${newTermName(value.drop(1) + "_$eq")}(value: String) = $oName.$kName($parent,value)")
+          interface += atPos(pos)(q"def ${newTermName(value.drop(1) + "_$eq")}(value: String): Unit")
+        } else
           wiring += atPos(pos)(q"$oName.$kName($parent,${getValue(pos,value,args)})")
       case PrefixedAttribute("scala",key,Text(value),next) =>
         if (key != "name")
@@ -99,12 +81,11 @@ package object ui {
       case Elem(prefix, label, attribs, scope, child @ _*) =>
         val name = attribs.find(_.prefixedKey == "scala:name")
                               .map(md => newTermName(md.value.toString))
-                              .getOrElse(nextElemName())
-        if (prefix != null)
-          elemDecls += atPos(pos)(q"protected lazy val $name = new ${newTermName(prefix)}.${newTermName(label)}")
-        else {
-          val elemType = HTMLTagTypes(label)(c)(pos).getOrElse(c.abort(pos, "unknown html5 tag: " + label))
-          elemDecls += atPos(pos)(q"protected lazy val $name: $elemType = _root_.org.scalajs.dom.document.createElement($label).asInstanceOf[$elemType]")
+                              .getOrElse(nextElemName())        
+        if (prefix != null) {
+          elemDecls += atPos(pos)(q"protected lazy val $name = ${newTermName(prefix)}.${newTermName(label)}()")
+        } else {
+          elemDecls += atPos(pos)(q"protected lazy val $name = ${newTermName(label)}()")
         }
         processAttributes(name, pos, attribs, args)
         wiring += atPos(pos)(q"$parent.appendChild($name)")
@@ -139,21 +120,36 @@ package object ui {
           xml.XML.loadString(builder.result())
         } catch {
           case e: SAXParseException =>
-            c.abort(parts(0).pos.focus, e.getMessage())
+            c.abort(html.pos, e.getMessage())
         }
         processTree(fragment, html.pos, xmlTree, args)
+      case other@q"def $name(..$params): $t = $body" if name.decoded != "<init>" =>
+        interface += q"def $name(..$params): $t"
+        wiring += other
       case other: DefDef if other.name.decoded != "<init>" =>
         wiring += other
+      case imp: Import =>
+        elemDecls += imp
       case other: ValDef =>
         wiring += other
-      case _ => //
+      case other => c.warning(other.pos, "skipped")
     }
 
     c.Expr(q"""
-      class ${viewName}(..$args)(implicit context: _root_.clide.reactive.ui.InsertionContext) {
-        ..$elemDecls
-        ..$wiring
-        context.insert($fragment)
+      trait $viewName extends View {
+        ..$interface
+      }
+      object ${newTermName(viewName.decoded)} {
+        def apply(..$args): $viewName = new $viewName {
+          ..$elemDecls
+          ..$wiring
+          var $$inserted = false
+          def apply(context: InsertionContext): InsertedNode = {
+            if ($$inserted) sys.error(${viewName.decoded} + " may only be inserted once!")
+            $$inserted = true
+            context.insert($fragment)
+          }
+        }
       }""")
   }
 }

@@ -11,17 +11,17 @@ object InsertionContext {
     def insert(node: Node): InsertedNode = {
       action(node)
       InsertedNode(node)
-    }      
+    }
   }
   
-  def append(parent: Node) = 
+  def append(parent: Node) =
     InsertionContext(parent.appendChild)
   
-  def before(ref: Node) = 
-    InsertionContext(ref.parentNode.insertBefore(_, ref))      
+  def before(ref: Node) =
+    InsertionContext(ref.parentNode.insertBefore(_, ref))
   
-  def replace(old: Node) = 
-    InsertionContext(old.parentNode.replaceChild(_, old))      
+  def replace(old: Node) =
+    InsertionContext(old.parentNode.replaceChild(_, old))
 }
 
 trait InsertedNode { 
