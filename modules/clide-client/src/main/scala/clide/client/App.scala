@@ -17,7 +17,11 @@ object App {
   implicit val body = InsertionContext.append(dom.document.body)
   implicit val executionContext = scalajs.concurrent.JSExecutionContext.queue
 
-  val view = clide.client.ui.Main()
-   
-  view(body)
+  val test = 
+    <xml a="4">
+      <a>
+      </a>
+      <b>
+      </b>
+    </xml>
 }

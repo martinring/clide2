@@ -15,6 +15,17 @@ import reflect.runtime.universe.TypeTag
 import java.io.FileNotFoundException
 
 package object ui {
+  def include(path: String) = ???
+  
+  def htmlMacroImpl(c: Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
+    import c.universe._ 
+    val path = annottees.head match {
+      case Literal(Constant(pathLit: String)) => pathLit        
+      case _ => c.abort(annottees.head.tree.pos, "@include must be followed by a string literal")
+    }
+    c.abort(c.enclosingPosition, "loading: " + path)    
+  }
+  
   class view extends StaticAnnotation {
     def macroTransform(annottees: Any*) = macro viewMacroImpl
   }
@@ -123,6 +134,8 @@ package object ui {
             c.abort(html.pos, e.getMessage())
         }
         processTree(fragment, html.pos, xmlTree, args)
+      case q"$xml: $t" if t.tpe =:= c.typeOf[scala.xml.Elem] =>
+        c.abort(xml.pos, "xml!")
       case other@q"def $name(..$params): $t = $body" if name.decoded != "<init>" =>
         interface += q"def $name(..$params): $t"
         wiring += other
@@ -132,7 +145,18 @@ package object ui {
         elemDecls += imp
       case other: ValDef =>
         wiring += other
-      case other => c.warning(other.pos, "skipped")
+      case q"include($pathLit)" => pathLit match {
+        case Literal(Constant(path: String)) =>
+          val html = Option(this.getClass().getResourceAsStream(path)).getOrElse {
+            c.abort(pathLit.pos, "Invalid resource path")
+          }
+          c.warning(pathLit.pos, path)
+        case _ =>
+          c.abort(pathLit.pos, "string literal required here")
+      }
+      case q"<" =>
+        c.warning(params.head.pos, params.head.toString)
+      case other => c.warning(other.pos, "skipped: " + other.toString)
     }
 
     c.Expr(q"""
