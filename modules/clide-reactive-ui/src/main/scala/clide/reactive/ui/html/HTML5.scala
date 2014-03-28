@@ -15,10 +15,10 @@ object HTML5 {
   @inline def link() = document.createElement("link").asInstanceOf[HTMLLinkElement]
   @inline def meta() = document.createElement("meta").asInstanceOf[HTMLMetaElement]
   @inline def style() = document.createElement("style").asInstanceOf[HTMLStyleElement]
-    //scripts
+  // scripts
   @inline def script() = document.createElement("script").asInstanceOf[HTMLScriptElement]
   @inline def noscript() = document.createElement("noscript").asInstanceOf[HTMLDivElement]
-    // sections          
+  // sections          
   @inline def body() = document.createElement("body").asInstanceOf[HTMLBodyElement]
   @inline def h1() = document.createElement("h1").asInstanceOf[HTMLHeadingElement]
   @inline def h2() = document.createElement("h2").asInstanceOf[HTMLHeadingElement]
@@ -33,7 +33,7 @@ object HTML5 {
   @inline def footer() = document.createElement("footer").asInstanceOf[HTMLElement]
   @inline def address() = document.createElement("address").asInstanceOf[HTMLElement]
   @inline def main() = document.createElement("main").asInstanceOf[HTMLElement]
-    // grouping
+  // grouping
   @inline def p() = document.createElement("p").asInstanceOf[HTMLParagraphElement]
   @inline def hr() = document.createElement("hr").asInstanceOf[HTMLHRElement]
   @inline def pre() = document.createElement("pre").asInstanceOf[HTMLPreElement]
@@ -47,7 +47,7 @@ object HTML5 {
   @inline def figure() = document.createElement("figure").asInstanceOf[HTMLElement]
   @inline def figcaption() = document.createElement("figcaption").asInstanceOf[HTMLElement]
   @inline def div() = document.createElement("div").asInstanceOf[HTMLDivElement]
-    // semantic
+  // semantic
   @inline def a() = document.createElement("a").asInstanceOf[HTMLAnchorElement]
   @inline def em() = document.createElement("em").asInstanceOf[HTMLElement]
   @inline def strong() = document.createElement("strong").asInstanceOf[HTMLElement]
@@ -76,10 +76,10 @@ object HTML5 {
   @inline def span() = document.createElement("span").asInstanceOf[HTMLSpanElement]
   @inline def br() = document.createElement("br").asInstanceOf[HTMLBRElement]
   @inline def wbr() = document.createElement("wbr").asInstanceOf[HTMLElement]
-    //diff
+  //diff
   @inline def ins() = document.createElement("ins").asInstanceOf[HTMLElement]
   @inline def del() = document.createElement("del").asInstanceOf[HTMLElement]
-    //embedded
+  //embedded
   @inline def img() = document.createElement("img").asInstanceOf[HTMLImageElement]
   @inline def iframe() = document.createElement("iframe").asInstanceOf[HTMLIFrameElement]
   @inline def embed() = document.createElement("embed").asInstanceOf[HTMLEmbedElement]
@@ -94,7 +94,7 @@ object HTML5 {
   @inline def area() = document.createElement("area").asInstanceOf[HTMLAreaElement]
   @inline def svg() = document.createElement("svg").asInstanceOf[HTMLElement]
   @inline def math() = document.createElement("math").asInstanceOf[HTMLElement]
-    //tables
+  //tables
   @inline def table() = document.createElement("table").asInstanceOf[HTMLTableElement]
   @inline def caption() = document.createElement("caption").asInstanceOf[HTMLTableCaptionElement]
   @inline def colgroup() = document.createElement("colgroup").asInstanceOf[HTMLElement]
@@ -105,7 +105,7 @@ object HTML5 {
   @inline def tr() = document.createElement("tr").asInstanceOf[HTMLTableRowElement]
   @inline def td() = document.createElement("td").asInstanceOf[HTMLTableCellElement]
   @inline def th() = document.createElement("th").asInstanceOf[HTMLTableHeaderCellElement]
-    // forms
+  // forms
   @inline def form() = document.createElement("form").asInstanceOf[HTMLFormElement]
   @inline def fieldset() = document.createElement("fieldset").asInstanceOf[HTMLFieldSetElement]
   @inline def legend() = document.createElement("legend").asInstanceOf[HTMLLegendElement]
@@ -121,7 +121,7 @@ object HTML5 {
   @inline def output() = document.createElement("output").asInstanceOf[HTMLElement]
   @inline def progress() = document.createElement("progress").asInstanceOf[HTMLProgressElement]
   @inline def meter() = document.createElement("meter").asInstanceOf[HTMLElement]
-    // interactive
+  // interactive
   @inline def details() = document.createElement("details").asInstanceOf[HTMLElement]
   @inline def summary() = document.createElement("summary").asInstanceOf[HTMLElement]
   @inline def command() = document.createElement("command").asInstanceOf[HTMLElement]
@@ -134,11 +134,13 @@ object HTML5 {
   }
   
   implicit class RichHTMLElement(val elem: HTMLElement) extends AnyVal {
-    def text_=(value: String) = elem.textContent = value
-    def class_=(value: String) = elem.className = value    
+    def text_=(value: String)  = elem.textContent = value
+    def text: String           = elem.textContent
+    def class_=(value: String) = elem.className = value
+    def `class`: String        = elem.className    
+    def role_=(value: String)  = elem.setAttribute("role", value)
+    def role: String           = elem.getAttribute("role")
     
-    def role_=(value: String) = elem.setAttribute("role", value)
-        
-    def appendChild(view: View) = view.apply(InsertionContext.append(elem))
+    def +=(other: Node) = elem.appendChild(other)
   }    
 }
