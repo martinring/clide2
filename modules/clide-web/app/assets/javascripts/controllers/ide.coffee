@@ -23,7 +23,7 @@
 ##                                                                            ##
 
 ### @controller controllers:IdeController ###
-define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, $routeParams, Dialog, Auth, Toasts, Session, Files) ->
+define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, $routeParams, $sce, Dialog, Auth, Toasts, Session, Files) ->
   $scope.path =
     if $routeParams.path? and $routeParams isnt ''
       $routeParams.path.split('/')
@@ -313,3 +313,5 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
     popup.document.write('</head><body>')
     popup.document.write($('#output-content').html())
     popup.document.write('</body></html>')
+
+  $scope.trustedHtml = (code) -> $sce.trustAsHtml(code)

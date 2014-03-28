@@ -24,9 +24,11 @@
 
 import sbt._
 import Keys._
+import scalajs.sbtplugin.ScalaJSPlugin._
+import ScalaJSKeys._
+import play.Project._
 
-
-object Util {
+trait BuildUtils {
   case class Developer(id: String, name: String, url: URL)
 
   def Developers(devs: Developer*) =
@@ -39,4 +41,54 @@ object Util {
         </developer>
       }
     </developers>
+
+  def baseName: String
+
+  def commonSettings: Seq[Setting[_]]
+
+  def module(suffix: String, idsuffix: String = "") = Project(
+    base = file(s"modules/$baseName-$suffix"),
+    id = s"$baseName-$suffix$idsuffix"
+  ).settings(      
+    name := s"$baseName-$suffix"
+  ).settings(
+    commonSettings :_*
+  )      
+
+  def playModule(suffix: String) = 
+    module(suffix).settings(playScalaSettings:_*)
+
+  def jsModule(suffix: String) =
+    module(suffix,"-js").settings(scalaJSSettings:_*)
+      .settings(target ~= (_ / "javascript"))
+
+  def sharedModule(suffix: String) = 
+    (module(suffix),jsModule(suffix))
+
+  implicit class SharedProject(val projects: (Project,Project)) {
+    private val (jvmp,jsp) = projects
+    def settings(ss: Def.Setting[_]*) = {
+      (jvmp.settings(ss :_*),jsp.settings(ss :_*))
+    }    
+    def jvm(f: Project => Project) = (f(jvmp),jsp)
+    def js(f: Project => Project) = (jvmp,f(jsp))
+  }
+
+  implicit class ScalaJSPlayProject(val project: Project) {
+    def dependsOnJs(references: (Project,String)*): Project =
+      references.foldLeft(project){ case (project,(ref,name)) =>
+        project.settings (
+          resourceGenerators in Compile <+= (preoptimizeJS in (ref,Compile), resourceManaged in Compile).map { (opt,outDir) =>
+            val path = outDir / "public" / "javascripts" / name
+            if (!path.exists || (path olderThan opt))
+              IO.copyFile(opt, path, true)          
+            Seq[java.io.File](path)
+          },
+          watchSources <++= watchSources in ref,
+          playMonitoredFiles <<= (playMonitoredFiles, watchSources in ref).map { (files,refSources) =>
+            (files ++ refSources.map(_.getCanonicalPath)).distinct
+          }
+        )
+      }
+  }
 }

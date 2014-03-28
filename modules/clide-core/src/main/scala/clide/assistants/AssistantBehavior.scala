@@ -29,7 +29,6 @@ import clide.models.OpenedFile
 import clide.collaboration.Operation
 import clide.models.ProjectInfo
 import clide.models.SessionInfo
-import akka.actor.IO.Iteratee
 import scala.concurrent.Future
 
 /**

@@ -138,24 +138,24 @@ object Angular {
 
   private def string(any: Any) = "'" + any.toString() + "'"
 
-  val BoilerplateGenerator = (resourceManaged in Compile, sourceDirectory in Compile, cacheDirectory, name, version, moduleDirs, otherModules, configDir) map { (outDir,sourceDir,cache,appName,appVersion,moduleDirs,otherModules,configDir) =>
+  val BoilerplateGenerator = (resourceManaged in Compile, sourceDirectory in Compile, name, version, moduleDirs, otherModules, configDir) map { (outDir,sourceDir,appName,appVersion,moduleDirs,otherModules,configDir) =>
     val bps = moduleDirs.map { case (what,(ngf,postfix,capitalize)) =>
       val inFiles = ((sourceDir / "assets" / "javascripts" / what) * "*.coffee").get
       val names = SortedSet(inFiles.map(_.getName.dropRight(7)) :_*)
       val outFile = outDir / "public" / "javascripts" / (what+".js")
       if (previous.get(what).map(_ != names).getOrElse(true)) {
         previous(what) = names
-		val builder = new StringBuilder("define([")
-		builder ++= names.map(file => "'"+what+"/"+file+"'").mkString(",")
-		builder ++= "],function("
-		builder ++= names.mkString(",")
-		builder ++= s"){var module=angular.module('$appName.$what',[]);"
-		builder ++= names.map(file => "module."+ngf+"('"+(if(capitalize)file.capitalize else file)+postfix+"',"+file+")").mkString(";")
-		builder ++= "})"
-		IO.write(outFile, builder.toString)
+		    val builder = new StringBuilder("define([")
+		    builder ++= names.map(file => "'"+what+"/"+file+"'").mkString(",")
+		    builder ++= "],function("
+		    builder ++= names.mkString(",")
+		    builder ++= s"){var module=angular.module('$appName.$what',[]);"
+		    builder ++= names.map(file => "module."+ngf+"('"+(if(capitalize)file.capitalize else file)+postfix+"',"+file+")").mkString(";")
+		    builder ++= "})"
+		    IO.write(outFile, builder.toString)
       }
       outFile
-	}
+	  }
     val configs = SortedSet(((sourceDir /"assets"/"javascripts"/configDir) * "*.coffee").get.map(_.getName.dropRight(7)) :_*)
     val appFile = outDir / "public" / "javascripts" / "app.js"
     if (previous.get(configDir).map(_ != configs).getOrElse(true)) {

@@ -28,14 +28,8 @@ import clide.collaboration.Annotate
 import clide.collaboration.Annotation
 import clide.collaboration.Annotations
 import clide.collaboration.Plain
-import isabelle.Document
-import isabelle.Markup
-import isabelle.Symbol
-import isabelle.XML
-import isabelle.HTML
 import clide.collaboration.AnnotationType
-import isabelle.Protocol
-import isabelle.Text
+import isabelle._
 
 object IsabelleMarkup {  
   val classes = Map(      
@@ -129,18 +123,61 @@ object IsabelleMarkup {
     }
   }
   
-  def typeInfo(snapshot: Document.Snapshot): Annotations = {
-    val ws: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.TYPING)), _ =>
-      {
-        case (_, Text.Info(_,elem)) =>
-          Some(Some(elem.toString))
-      })
-    ws.foldLeft(new Annotations) {
-      case (as, Text.Info(range,None))      => as.plain(range.length)
-      case (as, Text.Info(range,Some(msg))) => as.annotate(range.length, List(AnnotationType.Tooltip -> msg))      
+  private val tooltip_elements =
+    Set(Markup.TIMING, Markup.ENTITY, Markup.SORTING, Markup.TYPING,
+      Markup.ML_TYPING, Markup.PATH) 
+
+  private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
+    Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)
+
+  def tooltip(snapshot: Document.Snapshot): Option[Text.Info[XML.Body]] =
+  {
+    def add(prev: Text.Info[(Timing, List[(Boolean, XML.Tree)])],
+      r0: Text.Range, p: (Boolean, XML.Tree)): Text.Info[(Timing, List[(Boolean, XML.Tree)])] =
+    {
+      val r = snapshot.convert(r0)
+      val (t, info) = prev.info
+      if (prev.range == r) Text.Info(r, (t, p :: info)) else Text.Info(r, (t, List(p)))
+    }
+
+    val results =
+      snapshot.cumulate_markup[Text.Info[(Timing, List[(Boolean, XML.Tree)])]](
+        Text.Range(0,Int.MaxValue), Text.Info(Text.Range(0,Int.MaxValue), (Timing.zero, Nil)), Some(tooltip_elements), _ =>
+        {
+          case (Text.Info(r, (t1, info)), Text.Info(_, XML.Elem(Markup.Timing(t2), _))) =>
+            Some(Text.Info(r, (t1 + t2, info)))
+          case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _))) =>
+            val kind1 = space_explode('_', kind).mkString(" ")
+            val txt1 = kind1 + " " + quote(name)
+            val t = prev.info._1
+            val txt2 =
+              if (kind == Markup.COMMAND && t.elapsed.seconds >= timing_threshold)
+                "\n" + t.message
+              else ""
+            Some(add(prev, r, (true, XML.Text(txt1 + txt2))))
+          case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _)))
+          if Path.is_ok(name) =>
+            val jedit_file = PIDE.thy_load.append(snapshot.node_name.dir, Path.explode(name))
+            Some(add(prev, r, (true, XML.Text("file " + quote(jedit_file)))))
+          case (prev, Text.Info(r, XML.Elem(Markup(name, _), body)))
+          if name == Markup.SORTING || name == Markup.TYPING =>
+            Some(add(prev, r, (true, pretty_typing("::", body))))
+          case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
+            Some(add(prev, r, (false, pretty_typing("ML:", body))))
+          case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
+            if (tooltips.isDefinedAt(name))
+              Some(add(prev, r, (true, XML.Text(tooltips(name)))))
+            else None
+        }).map(_.info)
+
+    results.map(_.info).flatMap(_._2) match {
+      case Nil => None
+      case tips =>
+        val r = Text.Range(results.head.range.start, results.last.range.stop)
+        val all_tips = (tips.filter(_._1) ++ tips.filter(!_._1).lastOption.toList).map(_._2)
+        Some(Text.Info(r, Library.separate(Pretty.FBreak, all_tips)))
     }
   }
-  
   def scripts(state: String): Annotations =
     Symbol.iterator(state).foldLeft((new Annotations, false, false, false, false)){
       case ((as,sub,sup,bsub,bsup),sym) if sym.length() > 1 && Symbol.decode(sym) == Symbol.sub_decoded =>
