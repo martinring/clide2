@@ -25,12 +25,12 @@
 import sbt._
 import Keys._
 
-object ClideBuild extends Build with BuildUtils with Publishing with Dependencies {  
+object ClideBuild extends Build with BuildUtils with Publishing with Dependencies {
   override def rootProject = Some(web)
 
   val baseName = "clide"
 
-  val commonSettings = sonatypeSettings ++ Seq(    
+  val commonSettings = sonatypeSettings ++ Seq(
     version := "2.0-SNAPSHOT",
     organization := "net.flatmap",
     organizationName := "flatmap",
@@ -51,7 +51,19 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   val (messages,messagesJs) = sharedModule("messages")
 
-  val core = module("core")    
+  val (xml,xmlJs) = sharedModule("xml")
+    .jvm(_.dependsOn(scala.quasiquotes).settings(
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      resolvers += Resolver.sonatypeRepo("releases"),
+      addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
+    ))
+    .js(_.dependsOn(scala.quasiquotes).settings(
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      resolvers += Resolver.sonatypeRepo("releases"),
+      addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
+    ))
+
+  val core = module("core")
     .dependsOn(collaboration,messages)
     .dependsOn(
       "ch.qos.logback" % "logback-classic" % "1.0.13", spray.json,
@@ -64,25 +76,19 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   val reactiveUi = jsModule("reactive-ui")
     .dependsOn(reactiveJs)
-    .dependsOn(scala.quasiquotes)
-    .settings(      
+
+  val client = jsModule("client")
+    .dependsOn(scalajs.dom)
+    .dependsOn(reactiveUi, collaborationJs, messagesJs, xmlJs)
+    .settings(
       resolvers += Resolver.sonatypeRepo("snapshots"),
       resolvers += Resolver.sonatypeRepo("releases"),
       addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
     )
 
-  val client = jsModule("client")
-    .dependsOn(scalajs.dom)
-    .dependsOn(reactiveUi, collaborationJs, messagesJs)
-    .settings(
-      resolvers += Resolver.sonatypeRepo("snapshots"),
-      resolvers += Resolver.sonatypeRepo("releases"),
-      addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
-    )    
-
-  val web = playModule("web")    
+  val web = playModule("web")
     .dependsOn(core,messages)
-    .settings(Angular.defaultSettings :_*)    
+    .settings(Angular.defaultSettings :_*)
     .dependsOnJs(client -> "client.js")
     .settings(
       Angular.otherModules ++= Map(
@@ -101,7 +107,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
       resourceGenerators in Compile <+= Angular.ModuleCompiler,
       resourceGenerators in Compile <+= Angular.BoilerplateGenerator,
       play.Project.lessEntryPoints <<= (sourceDirectory in Compile){ base =>
-        base / "assets" / "stylesheets" * "main.less" }    
+        base / "assets" / "stylesheets" * "main.less" }
     )
 
   // ASSISTANTS
@@ -111,7 +117,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
     .dependsOn(core)
     .dependsOn(akka.actor, akka.remote, akka.kernel, scala.swing, scala.actors)
 
-  val haskell = module("haskell")          
+  val haskell = module("haskell")
     .dependsOn(core)
     .dependsOn(akka.actor, akka.remote, akka.kernel)
 }
