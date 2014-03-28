@@ -11,13 +11,16 @@ import org.scalajs.dom
 import clide.xml._
 import clide.reactive.ui.InsertionContext
 
-@JSExport
+@JSExport 
 object App {
-  dom.document.body.innerHTML = ""
+  dom.document.body.innerHTML = "" 
 
+  implicit val executionContext = scalajs.concurrent.JSExecutionContext.queue
+  implicit val schedule = clide.reactive.ui.UiScheduler
+ 
   def view = XML.include(HTML5,"backstage.html") {
-    def user = "Martin"
+    def user = Event.interval(100 millis)
   }
-
+  
   dom.document.body.appendChild(view)
 }

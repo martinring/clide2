@@ -10,8 +10,8 @@ import java.io.FileNotFoundException
 import scala.xml.PrefixedAttribute
 
 object XML {
-  def literal(schema: Any, xmlCode: String)(body: Unit = {}) = macro inlineMacro
-  def include(schema: Any, path: String)(body: Unit = {}) = macro includeMacro
+  def literal[S](schema: S, xmlCode: String)(body: Unit = {}) = macro inlineMacro
+  def include[S](schema: S, path: String)(body: Unit = {}) = macro includeMacro
     
   def includeMacro(c: Context)(schema: c.Expr[Any], path: c.Expr[String])(body: c.Expr[Unit]): c.Expr[Any] = {
     import c.universe._
@@ -33,7 +33,7 @@ object XML {
         c.abort(path.tree.pos, s"[${e.getLineNumber()}:${e.getColumnNumber()}]: ${e.getMessage()}")
     }
     
-    expand(c)(schema,xmlTree,body)
+    expand(c)(path.tree.pos,schema,xmlTree,body)
   }
   
   def inlineMacro(c: Context)(schema: c.Expr[Any], xmlCode: c.Expr[String])(body: c.Expr[Unit]): c.Expr[Any] = {
@@ -54,11 +54,11 @@ object XML {
         c.abort(c.enclosingPosition, e.getMessage())
     }
    
-    expand(c)(schema,xmlTree,body)
+    expand(c)(xmlCode.tree.pos, schema,xmlTree,body)
   }
   
   
-  private def expand(c: Context)(schema: c.Expr[Any], xml: scala.xml.Elem, body: c.Expr[Unit]): c.Expr[Any] = {
+  private def expand(c: Context)(pos: c.Position, schema: c.Expr[Any], xml: scala.xml.Elem, body: c.Expr[Unit]): c.Expr[Any] = {
     import c.universe._
     
     // transform into scala code
@@ -68,7 +68,15 @@ object XML {
     
     code += atPos(schema.tree.pos)(q"val $schemaName = $schema")
     code += atPos(schema.tree.pos)(q"import $schemaName._")
-
+    
+    val tagMethods = schema.actualType.members.filter(_.isMethod)
+                                              .filter(_.isPublic)                    
+                                              .filterNot(x => x.owner.isClass && x.owner.asClass.toType =:= c.typeOf[Any])
+                                              .filterNot(x => x.owner.isClass && x.owner.asClass.toType =:= c.typeOf[Object])
+                                              .filterNot(_.isImplicit)
+                                              .map(m => m.name.decoded -> m.asMethod.paramss.headOption.toList.flatten.map(_.name.decoded))
+                                              .toMap
+    
     val regex = "\\{[^\\}]*\\}".r
     
     def getValues(v: String): List[String] = {      
@@ -95,15 +103,29 @@ object XML {
     def createNode(node: scala.xml.Node, parent: Option[TermName] = None): Option[TermName] = node match {
       case scala.xml.Elem(prefix,label,attribs,scope,child@_*) =>
         val name = c.fresh(newTermName(label))
-        code += q"lazy val $name = $schemaName.${newTermName(label)}()"
-        
-        attribs.foreach {
+        val requiredParams = tagMethods.get(label).getOrElse(c.abort(pos, "schema doesn't support element type `" + label + "`"))
+
+        val (req,otherAttribs) = attribs.partition(attrib => attrib.isPrefixed == false && requiredParams.contains(attrib.key))
+
+        val unset = requiredParams.toSet -- req.map(_.key).toSet
+        if (unset.size > 0) {
+          unset.foreach { u =>
+            c.error(pos, "attribute `" + u + "` on element `" + label + "` is required!")
+          }
+          c.abort(pos, "can not initialize element " + label)
+        }
+
+        val params = requiredParams.map(p => atPos(pos)(c.parse(getValues(req.find(_.key == p).get.value.text).mkString(" + "))))
+
+        code += atPos(pos)(q"lazy val $name = $schemaName.${newTermName(label)}(..$params)")
+
+        otherAttribs.foreach {
           case attr@UnprefixedAttribute(key,scala.xml.Text(value),next) =>
             val access = key.split('.').mkString("`", "`.`", "`")
-            code += atPos(c.enclosingPosition)(c.parse("`" + name.decoded + "`." + access + " = " + getValues(value).mkString(" + ")))
+            code += atPos(pos)(c.parse("`" + name.decoded + "`." + access + " = " + getValues(value).mkString(" + ")))
           case attr@PrefixedAttribute(prefix,key,scala.xml.Text(value),next) =>
-            val access = (schemaName.decoded + prefix + '.' + key).split('.').mkString("`", "`.`", "`")
-            code += atPos(c.enclosingPosition)(c.parse(access + "(" + name.decoded + "," + getValues(value).mkString(" + ") + ")"))
+            val access = (schemaName.decoded + "." + prefix + '.' + key).split('.').mkString("`", "`.`", "`")
+            code += atPos(pos)(c.parse(access + "(" + name.decoded + "," + getValues(value).mkString(" + ") + ")"))
         }
         
         child.foreach { e =>            
@@ -111,7 +133,7 @@ object XML {
         }
         
         parent.foreach { parent =>
-          code += atPos(c.enclosingPosition)(q"$parent += $name")
+          code += atPos(pos)(q"$parent += $name")
         }
         
         Some(name)
@@ -119,7 +141,7 @@ object XML {
       case scala.xml.Text(value) =>
         parent.foreach { parent =>
           getValues(value).foreach { value =>
-            code += atPos(c.enclosingPosition)(q"$parent += ${c.parse(value)}")
+            code += atPos(pos)(q"$parent += ${atPos(pos)(c.parse(value))}")
           }
         }
         

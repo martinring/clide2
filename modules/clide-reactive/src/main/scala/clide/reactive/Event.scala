@@ -11,9 +11,9 @@ import scala.math.Numeric
 import scala.concurrent.duration.FiniteDuration
 
 trait Event[+A] {
-  protected def next: Future[Option[(A,Event[A])]]
-  protected def stop(): Unit
-  protected def isCompleted: Boolean = next.isCompleted
+  private[reactive] def next: Future[Option[(A,Event[A])]]
+  private[reactive] def stop(): Unit
+  private[reactive] def isCompleted: Boolean = next.isCompleted
   
   protected def stopWith(f: => Unit)(implicit ec: ExecutionContext): Event[A] = 
     Event(next.map {

@@ -3,6 +3,7 @@ package clide.reactive.ui.html
 import clide.reactive.ui.View
 import clide.reactive.ui.InsertionContext
 import scala.language.implicitConversions
+import scala.concurrent.ExecutionContext
 
 object HTML5 {
   import org.scalajs.dom._
@@ -127,6 +128,8 @@ object HTML5 {
   @inline def command() = document.createElement("command").asInstanceOf[HTMLElement]
   @inline def menu() = document.createElement("menu").asInstanceOf[HTMLMenuElement]
     
+  def person(name: String, age: Int): String = name + " (" + age + ")"
+  
   implicit def stringNode(s: String) = document.createTextNode(s)
   
   implicit class RichHTLLabelElement(val elem: HTMLLabelElement) extends AnyVal {
@@ -142,5 +145,11 @@ object HTML5 {
     def role: String           = elem.getAttribute("role")
     
     def +=(other: Node) = elem.appendChild(other)
+    def +=(text: String) = elem.appendChild(document.createTextNode(text))
+    def +=(event: clide.reactive.Event[Any])(implicit ec: ExecutionContext) = {
+      val textNode = document.createTextNode("Test")      
+      elem.appendChild(textNode)
+      event.foreach((x: Any) => textNode.textContent = x.toString)
+    }
   }    
 }
