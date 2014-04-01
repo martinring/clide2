@@ -120,4 +120,8 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
   val haskell = module("haskell")
     .dependsOn(core)
     .dependsOn(akka.actor, akka.remote, akka.kernel)
+
+  val spec = module("spec")
+    .dependsOn(code)
+    .dependsOn(akka.actor, akka.remove, akka.kernel)
 }
