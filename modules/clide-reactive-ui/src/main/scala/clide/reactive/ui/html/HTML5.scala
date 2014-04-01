@@ -144,7 +144,13 @@ object HTML5 {
   object on {
     def click(elem: HTMLElement, handler: => Unit) = 
       elem.addEventListener("click", (e: Event) => handler)
-  }
+      
+    def submit(elem: HTMLFormElement, handler: => Unit) = 
+      elem.addEventListener("submit", (e: Event) => { e.preventDefault(); handler })
+      
+    def input(elem: HTMLInputElement, handler: => Unit) = 
+      elem.addEventListener("input", (e: Event) => handler)
+  }  
   
   implicit class RichHTMLElement(val elem: HTMLElement) extends AnyVal {
     def text_=(value: String)  = elem.textContent = value

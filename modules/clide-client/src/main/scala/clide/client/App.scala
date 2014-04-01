@@ -14,21 +14,29 @@ import scala.collection.mutable.ArrayBuffer
 import clide.reactive.ObservableBuffer
 
 @JSExport  
-object App {  
+object App {    
   implicit val executionContext = scalajs.concurrent.JSExecutionContext.queue
   implicit val scheduler = clide.reactive.ui.UiScheduler
+  
+  dom.document.body.innerHTML = ""
      
-  { 
-    dom.document.body.innerHTML = ""
-      
-	  val subject = "dlroW" 
-	  val counter = Event.interval(1 second)
-	  val items = ObservableBuffer("Hallo","Test")
-
-	  dom.document.body.appendChild(XML.include(HTML5,"backstage.html"))
+  def basics =
+    XML.include(HTML5,"basics.html")  
+    
+  def todos = {
+    case class Todo(text: String, done: Boolean)
+    val todos = ObservableBuffer(Todo("learn angular", true),
+                                 Todo("build an angular app", false))
+    def remaining = todos.count(!_.done)
+    def archive() = todos.foreach(todo => if (todo.done) todos -= todo)
+    def update(todo: Todo, donen: Boolean) = {
+      println("Hallo")
+      todos(todos.indexOf(todo)) = todo.copy(done = donen)
+    }
+    def addTodo(text: String) = todos += Todo(text,false)
+    XML.include(HTML5,"todo.html") 
   }
   
-  {
-    dom.document.body.appendChild(XML.include(HTML5,"basics.html"))
-  }
+  dom.document.body.appendChild(basics)  
+  dom.document.body.appendChild(todos)
 }

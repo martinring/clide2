@@ -1,0 +1,15 @@
+<div>
+  <span><span scala:for="todo:todos.watch.changes">{ remaining.toString }</span> of <span scala:for="length:todos.watch.length">{ length.toString }</span> remaining</span>
+  [ <a href="#" on:click="{ archive() }">archive</a> ]
+  <ul class="unstyled"> 
+    <li scala:for="todo:todos.watch">
+      <input type="checkbox" checked="{ todo.done }" on:click="{ update(todo,!todo.done) }"/>
+      <span class='{ "done-" + todo.done }'>{todo.text}</span>
+    </li>
+  </ul>
+  <form on:submit="{ addTodo(todoBox.value) }">
+    <input type="text" scala:name='todoBox' size="{30}"
+           placeholder="add new todo here"/>
+    <input class="btn-primary" type="submit" value="add"/>
+  </form>
+</div>

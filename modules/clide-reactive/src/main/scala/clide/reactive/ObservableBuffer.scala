@@ -50,7 +50,7 @@ trait ObservableBuffer[A] extends Buffer[A] with ObservableBufferView[A] {
     event
   }
   
-  def observable: ObservableBufferView[A] = this 
+  def watch: ObservableBufferView[A] = this 
   
   abstract override def +=(element: A): this.type = {
     super.+=(element)

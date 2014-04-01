@@ -96,16 +96,18 @@ object XML {
         Nil
       } else {
 	      var current = regex.findFirstMatchIn(remaining)
-	      while (current.isDefined) {	        
-	        val c = current.get
-	        if (c.start > 0)
-	          buf += '"' + remaining.take(c.start).replace("\"", "\\\"").replace("\\n","\\n") + '"'
-	        buf += c.matched
-	        remaining = remaining.drop(c.end)
+	      while (current.isDefined) {
+	        val cur = current.get	       
+	        if (cur.start > 0)
+	          buf += Literal(Constant(remaining.take(cur.start))).toString
+	        buf += cur.matched
+	        remaining = remaining.drop(cur.end)
 	        current = regex.findFirstMatchIn(remaining)
 	      }
+	      Literal(Constant(""))
+	      
 	      if (remaining.nonEmpty)
-	        buf += s""""$remaining""""
+	        buf += Literal(Constant(remaining)).toString
 	      buf.toList
       }
     }
