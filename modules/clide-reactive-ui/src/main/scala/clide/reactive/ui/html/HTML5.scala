@@ -1,12 +1,17 @@
 package clide.reactive.ui.html
 
+import clide.reactive._
 import clide.reactive.ui.View
 import clide.reactive.ui.InsertionContext
 import scala.language.implicitConversions
 import scala.concurrent.ExecutionContext
+import scala.reflect.ClassTag
+import clide.reactive.ui.events.DOMEvent
+import clide.reactive.ObservableBufferView
 
 object HTML5 {
   import org.scalajs.dom._
+
   // root element
   @inline def html() = document.createElement("html").asInstanceOf[HTMLElement]
   // document metadata
@@ -47,7 +52,7 @@ object HTML5 {
   @inline def dd() = document.createElement("dd").asInstanceOf[HTMLDDElement]
   @inline def figure() = document.createElement("figure").asInstanceOf[HTMLElement]
   @inline def figcaption() = document.createElement("figcaption").asInstanceOf[HTMLElement]
-  @inline def div() = document.createElement("div").asInstanceOf[HTMLDivElement]
+  @inline def div() = document.createElement("div").asInstanceOf[HTMLDivElement]  
   // semantic
   @inline def a() = document.createElement("a").asInstanceOf[HTMLAnchorElement]
   @inline def em() = document.createElement("em").asInstanceOf[HTMLElement]
@@ -127,13 +132,18 @@ object HTML5 {
   @inline def summary() = document.createElement("summary").asInstanceOf[HTMLElement]
   @inline def command() = document.createElement("command").asInstanceOf[HTMLElement]
   @inline def menu() = document.createElement("menu").asInstanceOf[HTMLMenuElement]
-    
-  def person(name: String, age: Int): String = name + " (" + age + ")"
-  
-  implicit def stringNode(s: String) = document.createTextNode(s)
-  
-  implicit class RichHTLLabelElement(val elem: HTMLLabelElement) extends AnyVal {
+
+  implicit class RichHTMLLabelElement(val elem: HTMLLabelElement) extends AnyVal {
     def for_=(value: String) = elem.htmlFor = value
+  }
+    
+  implicit class RichHTMLInputElement(val elem: HTMLInputElement) extends AnyVal {
+    def values(implicit ec: ExecutionContext) = DOMEvent(elem,"input").sample[String](elem.value)
+  }
+  
+  object on {
+    def click(elem: HTMLElement, handler: => Unit) = 
+      elem.addEventListener("click", (e: Event) => handler)
   }
   
   implicit class RichHTMLElement(val elem: HTMLElement) extends AnyVal {
@@ -144,12 +154,68 @@ object HTML5 {
     def role_=(value: String)  = elem.setAttribute("role", value)
     def role: String           = elem.getAttribute("role")
     
-    def +=(other: Node) = elem.appendChild(other)
-    def +=(text: String) = elem.appendChild(document.createTextNode(text))
-    def +=(event: clide.reactive.Event[Any])(implicit ec: ExecutionContext) = {
-      val textNode = document.createTextNode("Test")      
-      elem.appendChild(textNode)
-      event.foreach((x: Any) => textNode.textContent = x.toString)
+    def +=(other: Node): Unit = elem.appendChild(other)
+    def +=(text: String): Unit = elem.appendChild(document.createTextNode(text))    
+    def +=(event: clide.reactive.Event[HTMLElement])(implicit ec: ExecutionContext): Unit = {
+      var node = elem.appendChild(document.createComment("placeholder"))      
+      event.foreach(newNode => { elem.replaceChild(newNode, node); node = newNode })
+    }
+    def +=(xs: TraversableOnce[HTMLElement]): Unit = {
+      for (child <- xs) {
+        elem.appendChild(child)
+      }
+    }    
+    def +=[T <: HTMLElement](buf: ObservableBufferView[T])(implicit ec: ExecutionContext): Unit = {
+      val beforeHead = elem.appendChild(document.createComment("before collection"))
+      val afterLast = elem.appendChild(document.createComment("after collection"))
+      buf.changes.foreach {
+        case Reset =>
+          var current = beforeHead.nextSibling
+          while (current != afterLast) {
+            val rem = current
+            current = current.nextSibling
+            rem.parentNode.removeChild(rem)
+          }
+        case Insert(Head,node) =>
+          elem.insertBefore(node, beforeHead.nextSibling)
+        case Insert(Last,node) =>
+          elem.insertBefore(node, afterLast)
+        case Insert(Index(i), node) =>
+          var n = i
+          var ref = beforeHead.nextSibling
+          while (n > 0) {            
+            ref = ref.nextSibling
+            n -= 1
+          }
+          ref.parentNode.insertBefore(node, ref)
+        case Remove(Head) =>
+          elem.removeChild(beforeHead.nextSibling)
+        case Remove(Last) =>
+          elem.removeChild(afterLast.previousSibling)
+        case Remove(Index(i)) =>
+          println("remove " + i)
+          var n = i
+          var ref = beforeHead.nextSibling
+          while (n > 0) {
+            ref = ref.nextSibling
+            n -= 1
+          }
+          elem.removeChild(ref)        
+        case Update(Head,node) =>
+          elem.replaceChild(node,beforeHead.nextSibling)
+        case Update(Last,node) =>
+          elem.replaceChild(node,afterLast.previousSibling)
+        case Update(Index(i),node) =>
+          var n = i
+          var ref = beforeHead.nextSibling
+          while (n > 0) {
+            ref = ref.nextSibling
+            n -= 1            
+          }
+          elem.replaceChild(node, ref)
+        case other =>
+          println(other.toString)
+      }
     }
   }    
 }

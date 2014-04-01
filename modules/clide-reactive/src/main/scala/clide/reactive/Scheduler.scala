@@ -16,30 +16,3 @@ trait Scheduler {
     promise.future
   }
 }
-
-object BlockingScheduler extends Scheduler {
-  import scala.concurrent.ExecutionContext.Implicits.global
-  
-  def now: Long = System.currentTimeMillis()
-  def schedule[A](duration: FiniteDuration)(task: => A): Cancellable = {
-    var cancelled = false
-    Future {
-      Thread.sleep(duration.toMillis)
-      while (!cancelled) {
-        Future(task)
-        Thread.sleep(duration.toMillis)
-      }
-    }
-    Cancellable(cancelled = true)
-  }
-  
-  def scheduleOnce[A](duration: FiniteDuration)(task: => A): Cancellable = {
-    var cancelled = false
-    Future {
-      Thread.sleep(duration.toMillis)
-      if (!cancelled) task      
-    }
-    Cancellable(cancelled = true)
-  }
-  
-}

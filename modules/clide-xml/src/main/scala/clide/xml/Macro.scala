@@ -8,12 +8,15 @@ import scala.collection.mutable.Buffer
 import scala.xml.UnprefixedAttribute
 import java.io.FileNotFoundException
 import scala.xml.PrefixedAttribute
+import scala.annotation.StaticAnnotation
 
 object XML {
-  def literal[S](schema: S, xmlCode: String)(body: Unit = {}) = macro inlineMacro
-  def include[S](schema: S, path: String)(body: Unit = {}) = macro includeMacro
+  def literal[S](schema: S, xmlCode: String) = macro inlineMacro
+  def include[S](schema: S, path: String) = macro includeMacro
     
-  def includeMacro(c: Context)(schema: c.Expr[Any], path: c.Expr[String])(body: c.Expr[Unit]): c.Expr[Any] = {
+  class inline extends StaticAnnotation
+  
+  def includeMacro(c: Context)(schema: c.Expr[Any], path: c.Expr[String]): c.Expr[Any] = {
     import c.universe._
     
     val pathString = path.tree match {
@@ -33,10 +36,10 @@ object XML {
         c.abort(path.tree.pos, s"[${e.getLineNumber()}:${e.getColumnNumber()}]: ${e.getMessage()}")
     }
     
-    expand(c)(path.tree.pos,schema,xmlTree,body)
+    expand(c)(path.tree.pos,schema,xmlTree)
   }
   
-  def inlineMacro(c: Context)(schema: c.Expr[Any], xmlCode: c.Expr[String])(body: c.Expr[Unit]): c.Expr[Any] = {
+  def inlineMacro(c: Context)(schema: c.Expr[Any], xmlCode: c.Expr[String]): c.Expr[Any] = {
     import c.universe._
 
     //put '{0}' '{1}' ... placeholders betweeen parts
@@ -54,16 +57,16 @@ object XML {
         c.abort(c.enclosingPosition, e.getMessage())
     }
    
-    expand(c)(xmlCode.tree.pos, schema,xmlTree,body)
+    expand(c)(xmlCode.tree.pos, schema,xmlTree)
   }
   
   
-  private def expand(c: Context)(pos: c.Position, schema: c.Expr[Any], xml: scala.xml.Elem, body: c.Expr[Unit]): c.Expr[Any] = {
+  private def expand(c: Context)(pos: c.Position, schema: c.Expr[Any], xml: scala.xml.Elem): c.Expr[Any] = {
     import c.universe._
     
     // transform into scala code
     val code = Buffer.empty[Tree]
-    
+        
     val schemaName = c.fresh(newTermName("schema"))
     
     code += atPos(schema.tree.pos)(q"val $schemaName = $schema")
@@ -74,22 +77,29 @@ object XML {
                                               .filterNot(x => x.owner.isClass && x.owner.asClass.toType =:= c.typeOf[Any])
                                               .filterNot(x => x.owner.isClass && x.owner.asClass.toType =:= c.typeOf[Object])
                                               .filterNot(_.isImplicit)
-                                              .map(m => m.name.decoded -> m.asMethod.paramss.headOption.toList.flatten.map(_.name.decoded))
+                                              .map(m => m.name.decoded -> m.asMethod)
                                               .toMap
+                                              
+    val tagConstructors = schema.actualType.members.filter(_.isClass)
+                                                   .map(_.asClass)
+                                                   .filter(_.isCaseClass)
+                                                   .map(m => m.name.decoded -> m.companionSymbol.typeSignature.members.find(_.name.decoded == "apply").get.asMethod)
     
+    val tags = tagMethods ++ tagConstructors
+                                              
     val regex = "\\{[^\\}]*\\}".r
     
     def getValues(v: String): List[String] = {      
       val buf = Buffer.empty[String]
-      var remaining = v.trim()
+      var remaining = v
       if (remaining.isEmpty()) {
         Nil
       } else {
 	      var current = regex.findFirstMatchIn(remaining)
-	      while (current.isDefined) {
+	      while (current.isDefined) {	        
 	        val c = current.get
 	        if (c.start > 0)
-	          buf += s""""${remaining.take(c.start).replace("\"", "\\\"")}""""
+	          buf += '"' + remaining.take(c.start).replace("\"", "\\\"").replace("\\n","\\n") + '"'
 	        buf += c.matched
 	        remaining = remaining.drop(c.end)
 	        current = regex.findFirstMatchIn(remaining)
@@ -100,65 +110,85 @@ object XML {
       }
     }
     
-    def createNode(node: scala.xml.Node, parent: Option[TermName] = None): Option[TermName] = node match {
-      case scala.xml.Elem(prefix,label,attribs,scope,child@_*) =>
-        val name = c.fresh(newTermName(label))
-        val requiredParams = tagMethods.get(label).getOrElse(c.abort(pos, "schema doesn't support element type `" + label + "`"))
-
-        val (req,otherAttribs) = attribs.partition(attrib => attrib.isPrefixed == false && requiredParams.contains(attrib.key))
-
-        val unset = requiredParams.toSet -- req.map(_.key).toSet
-        if (unset.size > 0) {
-          unset.foreach { u =>
-            c.error(pos, "attribute `" + u + "` on element `" + label + "` is required!")
-          }
-          c.abort(pos, "can not initialize element " + label)
-        }
-
-        val params = requiredParams.map(p => atPos(pos)(c.parse(getValues(req.find(_.key == p).get.value.text).mkString(" + "))))
-
-        code += atPos(pos)(q"lazy val $name = $schemaName.${newTermName(label)}(..$params)")
-
-        otherAttribs.foreach {
-          case attr@UnprefixedAttribute(key,scala.xml.Text(value),next) =>
-            val access = key.split('.').mkString("`", "`.`", "`")
-            code += atPos(pos)(c.parse("`" + name.decoded + "`." + access + " = " + getValues(value).mkString(" + ")))
-          case attr@PrefixedAttribute(prefix,key,scala.xml.Text(value),next) =>
-            val access = (schemaName.decoded + "." + prefix + '.' + key).split('.').mkString("`", "`.`", "`")
-            code += atPos(pos)(c.parse(access + "(" + name.decoded + "," + getValues(value).mkString(" + ") + ")"))
-        }
+    def createNode(node: scala.xml.Node, parent: Option[TermName] = None, code: Buffer[Tree] = code): Option[TermName] = node match {
+      case elem@scala.xml.Elem(prefix,label,attribs,scope,child@_*) =>
+        val name = attribs.find(_.prefixedKey == "scala:name").map(a => newTermName(a.value.text)).getOrElse(c.fresh(newTermName(label + "$")))
         
-        child.foreach { e =>            
-           createNode(e, Some(name))
+        attribs.find(_.prefixedKey == "scala:for") match {
+          case Some(attrib) =>
+            val parts = attrib.value.text.split(":").toList
+            if (parts.length != 2)
+              c.abort(pos, "malformed scala:for. must be of form 'var:container'")
+            val localVar = newTermName(parts.head)
+            val collection = c.parse(parts.last)            
+            val innerCode = Buffer.empty[Tree]
+            val innerRoot = createNode(scala.xml.Elem(prefix,label,attribs.filter(_.prefixedKey != "scala:for"),scope,true,child :_*), None, innerCode).get
+            code += q"lazy val $name = for ($localVar <- $collection) yield { ..$innerCode; $innerRoot }"
+          case None =>
+		        val tagMethod = tags.get(label).getOrElse(c.abort(pos, "schema doesn't support element type `" + label + "`"))
+		        val allParams = tagMethod.paramss.flatten.map(_.name.decoded)
+		        val requiredParams = tagMethod.paramss.flatten.filter(!_.isImplicit).map(_.name.decoded)
+		
+		        val (params,otherAttribs) = attribs.partition(attrib => attrib.isPrefixed == false && allParams.contains(attrib.key))
+		
+		        val unset = requiredParams.toSet -- params.map(_.key).toSet
+		
+		        if (unset.size > 0) {
+		          unset.foreach { u =>
+		            c.error(pos, "attribute `" + u + "` on element `" + label + "` is required!")
+		          }
+		          c.abort(pos, "can not initialize element " + label)
+		        }
+		
+		        val paramss = tagMethod.paramss.map(x => x.collect{ 
+		          case p if params.exists(_.key == p.name.decoded) => atPos(pos)(c.parse(getValues(params.find(_.key == p.name.decoded).get.value.text).mkString(" + "))) 
+		        })
+		
+		        code += atPos(pos)(q"lazy val $name = $schemaName.${newTermName(label)}(...$paramss)")
+		
+		        otherAttribs.foreach {
+		          case attr@UnprefixedAttribute(key,scala.xml.Text(value),next) =>
+		            val access = (key).split('.').foldLeft(q"$name": Tree) { case (l, r) => atPos(pos)(Select(l,newTermName(r))) }
+		            val values = getValues(value).map(v => atPos(pos)(c.parse(v)))
+		            if (values.length == 1)
+		              code += atPos(pos)(q"$access = ${values.head}")
+		            else
+		              code += atPos(pos)(q"$access = Seq(..$values)")
+		          case attr@PrefixedAttribute(prefix,key,scala.xml.Text(value),next) if prefix != "scala" =>            
+		            val access = (key).split('.').foldLeft(q"${newTermName(prefix)}": Tree) { case (l,r) => atPos(pos)(Select(l,newTermName(r))) }
+		            val values = getValues(value).map(v => atPos(pos)(c.parse(v)))
+		            code += atPos(pos)(q"$access($name,..$values)")
+		          case attr@PrefixedAttribute(prefix,key,scala.xml.Text(value),next) if prefix == "scala" =>
+		            if (key == "name") ()
+		            else c.abort(pos, "unsupported macro directive: " + attr.prefixedKey)
+		        }
+		
+		        child.foreach { e =>
+		           createNode(e, Some(name), code)
+		        }
         }
-        
+		
         parent.foreach { parent =>
           code += atPos(pos)(q"$parent += $name")
-        }
+        }        
         
-        Some(name)
-        
+		    Some(name)
+		    
       case scala.xml.Text(value) =>
         parent.foreach { parent =>
           getValues(value).foreach { value =>
             code += atPos(pos)(q"$parent += ${atPos(pos)(c.parse(value))}")
           }
         }
-        
+
         None
-    }
-    
-    val b = body.tree match {
-      case block: Block =>
-        block.children.map(tree => atPos(tree.pos)(c.parse(tree.toString)))        
-      case other => List(atPos(other.pos)(c.parse(other.toString)))
-    }
+    }    
 
     createNode(xml) match {
       case Some(rootElem) =>
-        c.Expr(q"""..$code; ..$b; $rootElem""")
+        c.Expr(q"""..$code; $rootElem""")
       case None =>
-        c.abort(c.enclosingPosition,"no root element")
+        c.abort(c.enclosingPosition,"no valid root element")
     }
   }
 }

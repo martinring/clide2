@@ -1,6 +1,17 @@
 <div id='grid'>
   <div class='box-view'>
-    <h1 class='title'>Hello User #{ user }!</h1>
-    <person name="Martin" age="{27}" blub="7"/>
+    <h1 class='title'>
+      Hello { subject.reverse }!      
+    </h1>
+    <p scala:for='n:counter'>
+      The number { n.toString } will be updated in a second!
+    </p>    
+    <p>
+      Here comes a dynamic list:
+    </p>
+    <ul>
+      <li scala:for='item:items.observable'>{ item } <a href='#' on:click='{ items -= item }'>x</a></li>
+    </ul>
+    <input scala:name='itemBox'></input><button on:click='{ items += itemBox.value }'>Add item</button>
   </div>
 </div>

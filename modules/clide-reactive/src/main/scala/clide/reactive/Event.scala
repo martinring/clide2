@@ -10,6 +10,17 @@ import scala.concurrent.duration.Duration
 import scala.math.Numeric
 import scala.concurrent.duration.FiniteDuration
 
+/**
+ * An Event is an asynchronous List:
+ * 
+ * Type List has the two Constructors `Nil` and `::[A](A,List[A])`. This could be 
+ * represented as `type List[A] = Option[(A,List[A])]` where `Nil = None` and
+ *  `:: = Some`.
+ * 
+ * An Event makes the List asynchronous by wrapping every value in a Future:
+ * 
+ *     Event[A] = Future[Option[(A,Event[A])]]
+ */
 trait Event[+A] {
   private[reactive] def next: Future[Option[(A,Event[A])]]
   private[reactive] def stop(): Unit
