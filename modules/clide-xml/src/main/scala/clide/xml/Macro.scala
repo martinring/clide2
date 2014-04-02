@@ -8,13 +8,10 @@ import scala.collection.mutable.Buffer
 import scala.xml.UnprefixedAttribute
 import java.io.FileNotFoundException
 import scala.xml.PrefixedAttribute
-import scala.annotation.StaticAnnotation
 
 object XML {
-  def literal[S](schema: S, xmlCode: String) = macro inlineMacro
+  def inline[S](schema: S, xmlCode: String) = macro inlineMacro
   def include[S](schema: S, path: String) = macro includeMacro
-    
-  class inline extends StaticAnnotation
   
   def includeMacro(c: Context)(schema: c.Expr[Any], path: c.Expr[String]): c.Expr[Any] = {
     import c.universe._
@@ -122,10 +119,11 @@ object XML {
             if (parts.length != 2)
               c.abort(pos, "malformed scala:for. must be of form 'var:container'")
             val localVar = newTermName(parts.head)
-            val collection = c.parse(parts.last)            
+            val collection = c.parse(parts.last)
+            collection.pos = pos
             val innerCode = Buffer.empty[Tree]
             val innerRoot = createNode(scala.xml.Elem(prefix,label,attribs.filter(_.prefixedKey != "scala:for"),scope,true,child :_*), None, innerCode).get
-            code += q"lazy val $name = for ($localVar <- $collection) yield { ..$innerCode; $innerRoot }"
+            code += atPos(pos)(q"lazy val $name = for ($localVar <- $collection) yield { ..$innerCode; $innerRoot }")
           case None =>
 		        val tagMethod = tags.get(label).getOrElse(c.abort(pos, "schema doesn't support element type `" + label + "`"))
 		        val allParams = tagMethod.paramss.flatten.map(_.name.decoded)
@@ -143,23 +141,31 @@ object XML {
 		        }
 		
 		        val paramss = tagMethod.paramss.map(x => x.collect{ 
-		          case p if params.exists(_.key == p.name.decoded) => atPos(pos)(c.parse(getValues(params.find(_.key == p.name.decoded).get.value.text).mkString(" + "))) 
+		          case p if params.exists(_.key == p.name.decoded) => 
+		            val result = c.parse(getValues(params.find(_.key == p.name.decoded).get.value.text).mkString(" + "))
+		            result.pos = pos
+		            result
 		        })
 		
 		        code += atPos(pos)(q"lazy val $name = $schemaName.${newTermName(label)}(...$paramss)")
 		
 		        otherAttribs.foreach {
 		          case attr@UnprefixedAttribute(key,scala.xml.Text(value),next) =>
-		            val access = (key).split('.').foldLeft(q"$name": Tree) { case (l, r) => atPos(pos)(Select(l,newTermName(r))) }
-		            val values = getValues(value).map(v => atPos(pos)(c.parse(v)))
+		            val access = (key).split('.').foldLeft(atPos(pos)(q"$name"): Tree) { case (l, r) => atPos(pos)(Select(l,newTermName(r))) }
+		            val values = getValues(value).map{ v => 
+		              val result = c.parse(v)
+		              result.pos = pos
+		              result
+		            }
 		            if (values.length == 1)
 		              code += atPos(pos)(q"$access = ${values.head}")
 		            else
 		              code += atPos(pos)(q"$access = Seq(..$values)")
 		          case attr@PrefixedAttribute(prefix,key,scala.xml.Text(value),next) if prefix != "scala" =>            
-		            val access = (key).split('.').foldLeft(q"${newTermName(prefix)}": Tree) { case (l,r) => atPos(pos)(Select(l,newTermName(r))) }
-		            val values = getValues(value).map(v => atPos(pos)(c.parse(v)))
-		            code += atPos(pos)(q"$access($name,..$values)")
+		            val access = (key).split('.').foldLeft(atPos(pos)(q"${newTermName(prefix)}"): Tree) { case (l,r) => atPos(pos)(Select(l,newTermName(r))) }
+		            val values = c.parse(value).duplicate
+		            values.pos = pos
+		            code += atPos(pos)(q"$access($name,$values)")
 		          case attr@PrefixedAttribute(prefix,key,scala.xml.Text(value),next) if prefix == "scala" =>
 		            if (key == "name") ()
 		            else c.abort(pos, "unsupported macro directive: " + attr.prefixedKey)
@@ -179,7 +185,9 @@ object XML {
       case scala.xml.Text(value) =>
         parent.foreach { parent =>
           getValues(value).foreach { value =>
-            code += atPos(pos)(q"$parent += ${atPos(pos)(c.parse(value))}")
+            val cd = c.parse(value)
+            cd.pos = pos
+            code += atPos(pos)(q"$parent += $cd")
           }
         }
 
@@ -188,7 +196,8 @@ object XML {
 
     createNode(xml) match {
       case Some(rootElem) =>
-        c.Expr(q"""..$code; $rootElem""")
+        val result = q"..$code; $rootElem"
+        c.Expr(atPos(pos)(q"..$code; $rootElem"))
       case None =>
         c.abort(c.enclosingPosition,"no valid root element")
     }
