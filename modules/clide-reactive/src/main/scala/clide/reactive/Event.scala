@@ -20,6 +20,14 @@ import scala.concurrent.duration.FiniteDuration
  * An Event makes the List asynchronous by wrapping every value in a Future:
  * 
  *     Event[A] = Future[Option[(A,Event[A])]]
+ *     
+ * This means that while Events support the same kinds of operations as Lists
+ * (e.g. `map`, `flatMap`, `filter`, etc.), there are semantic differences which
+ * make them incompatible with other collection types:
+ * 
+ *  * Results of operations that return a single value are wrapped in a `Future`:
+ *    e.g. `length` returns a Future[Long] or `foldLeft` return  
+ * 
  */
 trait Event[+A] {
   private[reactive] def next: Future[Option[(A,Event[A])]]
