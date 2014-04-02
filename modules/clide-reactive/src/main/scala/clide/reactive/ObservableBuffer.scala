@@ -80,6 +80,19 @@ trait ObservableBuffer[A] extends Buffer[A] with ObservableBufferView[A] {
     elem
   }
   
+  def replaceAll(all: TraversableOnce[A]): Unit = {    
+    val remove = this.clone()
+    all.foreach { a =>
+      remove.indexOf(a) match {
+        case -1 => this += a
+        case i  => remove.remove(i)
+      }
+    }
+    remove.foreach { x =>
+      this.remove(indexOf(x))
+    }
+  }
+  
   abstract override def clear(): Unit = {
     super.clear()
     channels.foreach(_.push(Reset))
