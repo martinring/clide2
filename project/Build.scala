@@ -51,17 +51,12 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   val (messages,messagesJs) = sharedModule("messages")
 
-  val (xml,xmlJs) = sharedModule("xml")
-    .jvm(_.dependsOn(scala.quasiquotes).settings(
+  val xml = module("xml")
+    .dependsOn(scala.quasiquotes).settings(
       resolvers += Resolver.sonatypeRepo("snapshots"),
       resolvers += Resolver.sonatypeRepo("releases"),
       addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
-    ))
-    .js(_.dependsOn(scala.quasiquotes).settings(
-      resolvers += Resolver.sonatypeRepo("snapshots"),
-      resolvers += Resolver.sonatypeRepo("releases"),
-      addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
-    ))
+    )
 
   val core = module("core")
     .dependsOn(collaboration,messages)
@@ -79,7 +74,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   val client = jsModule("client")
     .dependsOn(scalajs.dom)
-    .dependsOn(reactiveUi, collaborationJs, messagesJs, xmlJs)
+    .dependsOn(xml, reactiveUi, collaborationJs, messagesJs)
     .settings(
       resolvers += Resolver.sonatypeRepo("snapshots"),
       resolvers += Resolver.sonatypeRepo("releases"),
@@ -122,6 +117,6 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
     .dependsOn(akka.actor, akka.remote, akka.kernel)
 
   val spec = module("spec")
-    .dependsOn(code)
-    .dependsOn(akka.actor, akka.remove, akka.kernel)
+    .dependsOn(core)
+    .dependsOn(akka.actor, akka.remote, akka.kernel)
 }
