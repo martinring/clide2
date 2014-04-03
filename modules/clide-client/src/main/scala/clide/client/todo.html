@@ -1,15 +1,15 @@
 <div>
-  <span>{ todos.watch.changes.sample(remaining).asText } of { todos.watch.length.asText } remaining</span>
+  <span>{remaining} of {total} remaining</span>
   [ <a href="#" on:click="archive()">archive</a> ]
   <ul class="unstyled"> 
     <li scala:for="todo:todos.watch">
-      <input type="checkbox" checked="{todo.done}" on:toggle="todo.done_=(_)"/>
-      <span class='{ "done-" + todo.done }'>{todo.text}</span>
+      <input type="checkbox" checked="{todo.done}" on:toggle="setDone(todo)"/>
+      <span class='{"done-"+todo.done}'>{todo.text}</span>
     </li>
   </ul>
   <form on:submit="addTodo(todoBox.value)">
     <input type="text" scala:name='todoBox' size="{30}"
            placeholder="add new todo here"/>
-    <input class="btn-primary" type="submit" value="add"/>
+    <button type="submit" class="btn-primary">add</button>
   </form>
 </div>
