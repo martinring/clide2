@@ -16,5 +16,4 @@ object DOMEvent {
       target.removeEventListener(name, jsListener)
     }
   }
-
 }

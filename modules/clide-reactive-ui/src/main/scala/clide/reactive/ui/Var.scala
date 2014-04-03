@@ -22,6 +22,6 @@ object Var {
         trigger(next)
       current = next
     }
-    def watch(implicit ec: ExecutionContext) = listen
+    def watch(implicit ec: ExecutionContext) = register(current)
   }    
 }
