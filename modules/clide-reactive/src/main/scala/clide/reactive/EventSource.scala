@@ -9,10 +9,11 @@ trait EventSource[A] {
   protected def trigger(event: A) = channels.foreach(_.push(event))
   protected def close() = channels.foreach(_.close())
   
-  def listen(implicit ec: ExecutionContext): Event[A] = {
+  protected def register(init: A*)(implicit ec: ExecutionContext): Event[A] = {
+    channels += channel
     lazy val (event: Event[A], channel: Channel[A]) = 
       Event.broadcast(channels -= channel)
-    channels += channel
+    for (x <- init) channel.push(x)
     event
   }
 }
