@@ -9,7 +9,7 @@ import scalajs.js.annotation.JSExport
 import org.scalajs.dom
   
 @JSExport
-object App extends UiApp {
+object App extends UiApp { 
   dom.document.body.innerHTML = ""     
      
   def basics = {

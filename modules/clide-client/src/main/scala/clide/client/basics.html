@@ -1,7 +1,8 @@
 <div>  
   <label>Name:</label>
-  <validityMessage elem="{input1}"/>
-  <input type="text" scala:name='input1' bind:value='name' pattern="[^0-9]+" placeholder="Enter a name here"/>
+  <span class='error'><validityMessage elem="{input1}"/></span><br/>
+  <blub foo='hallo'/>  
+  <input type="text" scala:name='input1' bind:value='name' pattern="[^0-9 ]+" placeholder="Enter a name here"/>
   <hr/>
   <h1>Hello {name}!</h1>
 </div>
