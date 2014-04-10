@@ -9,13 +9,24 @@ import scalajs.js.annotation.JSExport
 import org.scalajs.dom
   
 @JSExport
-object App extends UiApp { 
+object App extends clide.reactive.ui.App with History { 
   dom.document.body.innerHTML = ""     
-     
-  def basics = {
-    val name = Var("World")
-    XML.include(HTML5,"basics.html")
+  
+  val BackstagePath = "/([A-Za-z0-9 ]+)/backstage".r
+    
+  def titles = history.items.map {
+    case "/login" => "Log In"
+    case "/signup" => "Sign Up"
+    case BackstagePath(user) => user + "'s Backstage"
   }
+    case x if x.startsWith("/login") => title = "Login"
+    case _ => title = "Somewhere else"
+  }
+    
+  def basics = {   
+    val name = Var("World")
+    XML.include(HTML5,"basics.html") 
+  } 
     
   def todos = {
     class Todo(val text: String, val done: Boolean)

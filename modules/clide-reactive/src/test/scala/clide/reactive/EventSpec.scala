@@ -13,9 +13,23 @@ import scala.concurrent.Await
 import scala.language.postfixOps
 import org.junit.Test
 import org.scalatest.matchers.ShouldMatchers
+import java.util.Timer
+import java.util.TimerTask
 
 class EventProps extends JUnitSuite with Checkers {
-  implicit val scheduler = BlockingScheduler
+  implicit val scheduler = new Scheduler {
+    def now = System.currentTimeMillis()    
+    def schedule[A](period: FiniteDuration)(task: => A): Cancellable = {
+      val timer = new Timer
+      timer.schedule(new TimerTask { def run() = task }, period.toMillis, period.toMillis)
+      Cancellable(timer.cancel())
+    }
+    def scheduleOnce[A](delay: FiniteDuration)(task: => A): Cancellable = {
+      val timer = new Timer
+      timer.schedule(new TimerTask { def run() = task }, delay.toMillis)
+      Cancellable(timer.cancel())
+    }
+  }
   
   trait EventSeq {
     def event: Event[Int]

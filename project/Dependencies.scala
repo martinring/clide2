@@ -37,7 +37,7 @@ trait Dependencies {
   val junit = "com.novocode" % "junit-interface" % "0.9" % "test"
 
   object akka {
-    val version = "2.2.4"
+    val version = "2.3.2"
     val actor   = "com.typesafe.akka" %% "akka-actor"   % version
     val remote  = "com.typesafe.akka" %% "akka-remote"  % version
     val kernel  = "com.typesafe.akka" %% "akka-kernel"  % version
@@ -50,7 +50,7 @@ trait Dependencies {
   }
 
   object scala {
-    val version  = "2.10.3"
+    val version  = "2.10.4"
     val swing    = "org.scala-lang" % "scala-swing"   % version
     val actors   = "org.scala-lang" % "scala-actors"  % version
     val reflect  = "org.scala-lang" % "scala-reflect" % version
@@ -67,14 +67,14 @@ trait Dependencies {
     val playPickling = "org.scalajs" %% "scalajs-pickling-play-json" % "0.1"
     val pickling = "org.scalajs" %% "scalajs-pickling" % "0.1"
     val resolver = Resolver.url("scala-js-releases",
-      url("http://dl.bintray.com/content/scala-js/scala-js-releases"))(Resolver.ivyStylePatterns)  
+      url("http://dl.bintray.com/content/scala-js/scala-js-releases"))(Resolver.ivyStylePatterns)
   }
 
   implicit class DependenciesProject(project: Project) {
-    def dependsOn(deps: ModuleID*) = 
-      project.settings(libraryDependencies ++= deps)    
+    def dependsOn(deps: ModuleID*) =
+      project.settings(libraryDependencies ++= deps)
 
-    def dependsOnSrc(deps: Project*) = 
+    def dependsOnSrc(deps: Project*) =
       deps.foldLeft(project) { case (p,d) => p.settings(
         unmanagedSourceDirectories in Compile += (sourceDirectory in d).value
       )}

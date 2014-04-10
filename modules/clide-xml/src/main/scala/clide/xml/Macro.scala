@@ -15,15 +15,11 @@ object XML {
   
   def includeMacro(c: Context)(schema: c.Expr[Any], path: c.Expr[String]): c.Expr[Any] = {
     import c.universe._
-    
     val pathString = path.tree match {
       case Literal(Constant(value: String)) => value
       case _ => c.abort(path.tree.pos, "path must be specified as a string literal")
     }
-    
     val xmlFile = new java.io.File(c.enclosingUnit.source.file.file.getParentFile(),pathString) 
-    
-    // parse as xml
     val xmlTree = try {
       scala.xml.XML.loadFile(xmlFile)
     } catch {
@@ -32,28 +28,20 @@ object XML {
       case e: SAXParseException =>       
         c.abort(path.tree.pos, s"[${e.getLineNumber()}:${e.getColumnNumber()}]: ${e.getMessage()}")
     }
-    
     expand(c)(path.tree.pos,schema,xmlTree)
   }
   
   def inlineMacro(c: Context)(schema: c.Expr[Any], xmlCode: c.Expr[String]): c.Expr[Any] = {
     import c.universe._
-
-    //put '{0}' '{1}' ... placeholders betweeen parts
     val xmlString = xmlCode.tree match {
       case Literal(Constant(value: String)) => value
     }
-    
-    val xmlLines = xmlString.split("\n")
-
-    // parse as xml
     val xmlTree = try {
       scala.xml.XML.loadString(xmlString)
     } catch {
       case e: SAXParseException =>       
         c.abort(c.enclosingPosition, e.getMessage())
     }
-   
     expand(c)(xmlCode.tree.pos, schema,xmlTree)
   }
   

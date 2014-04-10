@@ -4,7 +4,7 @@ import clide.reactive._
 import scala.concurrent.duration._
 import org.scalajs.dom
 
-object UiScheduler extends Scheduler {
+object Scheduler extends Scheduler {
   def now = (new scalajs.js.Date).valueOf().toLong
     
   def schedule[A](duration: FiniteDuration)(task: => A) = {      

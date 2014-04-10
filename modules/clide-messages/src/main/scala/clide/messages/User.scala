@@ -1,7 +1,6 @@
 package clide.messages
 
 object User {
-  case object GetProjectInfos
-  
-  case class ProjectInfos(names: List[String])
+  case object RequestProjectList
+  case class ProjectList(names: List[String])
 }

@@ -1,8 +1,8 @@
-package clide.reactive.ui.tags
+package clide.reactive.ui.schema
 
 import org.scalajs.dom._
 
-object SVG {
+trait SVG {
   def a()                   = document.createElement("a").asInstanceOf[SVGAElement]
   def altglyph()            = document.createElement("altglyph").asInstanceOf[SVGElement]
   def altglyphdef()         = document.createElement("altglyphdef").asInstanceOf[SVGElement]
