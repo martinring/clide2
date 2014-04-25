@@ -102,7 +102,6 @@ object Core extends Core with Bootable
  * @author Martin Ring <martin.ring@dfki.de>
  */
 object CoreApp extends App {
-  Core.startup()
-  readLine()
+  Core.startup()  
   Core.shutdown()
 }

@@ -26,6 +26,6 @@ package clide.models
 
 import clide.collaboration.Operation
 
-@SerialVersionUID(560000)
+@SerialVersionUID(1L)
 case class Revision(file: Long, id: Long, op: Operation)
 

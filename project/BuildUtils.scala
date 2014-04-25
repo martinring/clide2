@@ -49,27 +49,34 @@ trait BuildUtils {
   def module(suffix: String, idsuffix: String = "") = Project(
     base = file(s"modules/$baseName-$suffix"),
     id = s"$baseName-$suffix$idsuffix"
-  ).settings(      
+  ).settings(
     name := s"$baseName-$suffix"
   ).settings(
     commonSettings :_*
-  )      
+  )
 
-  def playModule(suffix: String) = 
-    module(suffix).settings(playScalaSettings:_*)
+  def playModule(suffix: String) = Project(
+    base = file(s"modules/$baseName-$suffix"),
+    id = s"$baseName-$suffix"
+  ).settings(
+    name := s"$baseName-$suffix"
+  ).settings(
+    playScalaSettings ++
+    commonSettings :_*
+  )
 
   def jsModule(suffix: String) =
     module(suffix,"-js").settings(scalaJSSettings:_*)
       .settings(target ~= (_ / "javascript"))
 
-  def sharedModule(suffix: String) = 
+  def sharedModule(suffix: String) =
     (module(suffix),jsModule(suffix))
 
   implicit class SharedProject(val projects: (Project,Project)) {
     private val (jvmp,jsp) = projects
     def settings(ss: Def.Setting[_]*) = {
       (jvmp.settings(ss :_*),jsp.settings(ss :_*))
-    }    
+    }
     def jvm(f: Project => Project) = (f(jvmp),jsp)
     def js(f: Project => Project) = (jvmp,f(jsp))
   }
@@ -78,10 +85,10 @@ trait BuildUtils {
     def dependsOnJs(references: (Project,String)*): Project =
       references.foldLeft(project){ case (project,(ref,name)) =>
         project.settings (
-          resourceGenerators in Compile <+= (preoptimizeJS in (ref,Compile), resourceManaged in Compile).map { (opt,outDir) =>
+          resourceGenerators in Compile <+= (fastOptJS in (ref,Compile), resourceManaged in Compile).map { (opt,outDir) =>
             val path = outDir / "public" / "javascripts" / name
             if (!path.exists || (path olderThan opt))
-              IO.copyFile(opt, path, true)          
+              IO.copyFile(opt, path, true)
             Seq[java.io.File](path)
           },
           watchSources <++= watchSources in ref,

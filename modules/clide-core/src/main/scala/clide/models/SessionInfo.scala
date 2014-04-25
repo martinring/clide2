@@ -23,7 +23,7 @@
 
 package clide.models
 
-@SerialVersionUID(570000)
+@SerialVersionUID(1L)
 case class SessionInfo(
   id: Long,
   user: String,

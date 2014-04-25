@@ -27,7 +27,7 @@ package clide.models
 import java.security.MessageDigest
 import java.util.Arrays
 
-@SerialVersionUID(580000)
+@SerialVersionUID(1L)
 case class UserInfo(
     name: String,
     email: String) {

@@ -18,7 +18,6 @@ object App extends clide.reactive.ui.App with History {
     case "/login" => "Log In"
     case "/signup" => "Sign Up"
     case BackstagePath(user) => user + "'s Backstage"
-  }
     case x if x.startsWith("/login") => title = "Login"
     case _ => title = "Somewhere else"
   }
@@ -42,6 +41,6 @@ object App extends clide.reactive.ui.App with History {
     XML.include(HTML5,"todo.html")
   }
   
-  dom.document.body.appendChild(basics)
   dom.document.body.appendChild(todos)
+  dom.document.body.appendChild(basics)
 }

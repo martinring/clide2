@@ -24,10 +24,10 @@
 
 package clide.models
 
-@SerialVersionUID(550000)
+@SerialVersionUID(1L)
 case class ProjectInfo(
     id: Long,
-    name: String,    
+    name: String,
     owner: String,
     description: Option[String] = None,
     public: Boolean = false) {

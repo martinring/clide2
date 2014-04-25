@@ -38,7 +38,7 @@ sealed trait Annotation {
   }
 }
 
-@SerialVersionUID(640000)
+@SerialVersionUID(1L)
 case class Plain(length: Int) extends Annotation {
   override def toString = length.toString
 }
@@ -46,45 +46,45 @@ case class Plain(length: Int) extends Annotation {
 object AnnotationType extends Enumeration {
   /** supported values are ... TODO */
   val Class          = Value("c")
-  
+
   /** currently supports "running", "finished" and "failed" */
-  val Progress      = Value("ls")  
-  
+  val Progress      = Value("ls")
+
   /** can be set to arbitary content and will set a html title attribute */
   val Tooltip        = Value("t")
-  
+
   /** can be html */
   val ErrorMessage   = Value("e")
-  
+
   /** can be html */
   val WarningMessage = Value("w")
-  
+
   /** can be html */
   val InfoMessage    = Value("i")
-  
+
   /** can be html */
   val Output         = Value("o")
-  
+
   /** must be an url-safe document-unique id */
   val Entity         = Value("n")
-  
+
   /** must be an id of the format
-   *  
+   *
    *  "<id>" for local references (as marked with Entity)
    *  "/<file>/<id>" for references in the same project
    *  "//<url>" for external urls
    */
   val Ref            = Value("l")
-  
+
   /** can be used to substitute a text span with some text or html. must not be overlapping. */
   val Substitution   = Value("s")
-      
+
   /** not supported yet */
   val HelpRequest    = Value("h")
-  
+
   /** not supported yet */
   val Completion     = Value("m")
-  
+
   /** not supported yet */
   val ReadOnly       = Value("r")
 }
@@ -114,7 +114,7 @@ case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
       case _ => Annotations(annotations :+ Annotate(n,c.toList))
     }
   } else this
-  
+
   @deprecated("use overloaded annotate with list instead", "2014-01-30")
   def annotate(n: Int, c: Set[(AnnotationType.Value,String)]): Annotations = if (n >= 0) {
     annotations.lastOption match {

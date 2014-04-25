@@ -44,12 +44,16 @@ sealed trait Action {
 }
 
 /** Skip the next `n` positions */
+@SerialVersionUID(1L)
 case class Retain(n: Int) extends Action { require(n>=0) }
 /** Insert the given text at the current position */
+@SerialVersionUID(1L)
 case class Insert(s: String) extends Action
 /** Delete the next `n` characters */
+@SerialVersionUID(1L)
 case class Delete(n: Int) extends Action { require(n>=0) }
 
+@SerialVersionUID(1L)
 case class Operation(actions: List[Action]) extends AnyVal {
   override def toString = "[" + actions.mkString(",") + "]"
 }

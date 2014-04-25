@@ -25,5 +25,5 @@
 package clide.models
 
 trait AuthenticationToken
-@SerialVersionUID(500000) case object EmptyToken extends AuthenticationToken
-@SerialVersionUID(510000) case class FullToken(user: String, key: String) extends AuthenticationToken
+@SerialVersionUID(1L) case object EmptyToken extends AuthenticationToken
+@SerialVersionUID(1L) case class FullToken(user: String, key: String) extends AuthenticationToken

@@ -28,7 +28,7 @@ object XML {
       case e: SAXParseException =>       
         c.abort(path.tree.pos, s"[${e.getLineNumber()}:${e.getColumnNumber()}]: ${e.getMessage()}")
     }
-    expand(c)(path.tree.pos,schema,xmlTree)
+    expand(c)(PositionProvider.forFile(c)(xmlFile.getAbsolutePath()),schema,xmlTree)
   }
   
   def inlineMacro(c: Context)(schema: c.Expr[Any], xmlCode: c.Expr[String]): c.Expr[Any] = {
@@ -42,12 +42,14 @@ object XML {
       case e: SAXParseException =>       
         c.abort(c.enclosingPosition, e.getMessage())
     }
-    expand(c)(xmlCode.tree.pos, schema,xmlTree)
+    expand(c)(PositionProvider.forLiteral(c)(xmlCode.tree), schema,xmlTree)
   }
   
   
-  private def expand(c: Context)(pos: c.Position, schema: c.Expr[Any], xml: scala.xml.Elem): c.Expr[Any] = {
+  private def expand(c: Context)(posProvider: PositionProvider[c.type], schema: c.Expr[Any], xml: scala.xml.Elem): c.Expr[Any] = {
     import c.universe._
+    
+    val pos = posProvider.offset(0)
     
     // transform into scala code
     val code = Buffer.empty[Tree]
@@ -113,7 +115,7 @@ object XML {
             val innerRoot = createNode(scala.xml.Elem(prefix,label,attribs.filter(_.prefixedKey != "scala:for"),scope,true,child :_*), None, innerCode).get
             code += atPos(pos)(q"lazy val $name = for ($localVar <- $collection) yield { ..$innerCode; $innerRoot }")
           case None =>
-		        val tagMethod = tags.get(label).getOrElse(c.abort(pos, "schema doesn't support element type `" + label + "`"))
+		        val tagMethod = tags.get(label).getOrElse(c.abort(pos, s"schema doesn't support element type `$label`"))
 		        val allParams = tagMethod.paramss.flatten.map(_.name.decoded)
 		        val requiredParams = tagMethod.paramss.flatten.filter(!_.isImplicit).map(_.name.decoded)
 		
@@ -123,7 +125,7 @@ object XML {
 		
 		        if (unset.size > 0) {
 		          unset.foreach { u =>
-		            c.error(pos, "attribute `" + u + "` on element `" + label + "` is required!")
+		            c.error(pos, s"attribute `$u` on element `$label` is required!")
 		          }
 		          c.abort(pos, "can not initialize element " + label)
 		        }
@@ -156,7 +158,7 @@ object XML {
 		            code += atPos(pos)(q"$access($name,$values)")
 		          case attr@PrefixedAttribute(prefix,key,scala.xml.Text(value),next) if prefix == "scala" =>
 		            if (key == "name") ()
-		            else c.abort(pos, "unsupported macro directive: " + attr.prefixedKey)
+		            else c.abort(pos, s"unsupported macro directive: ${attr.prefixedKey}")
 		        }
 		
 		        child.foreach { e =>

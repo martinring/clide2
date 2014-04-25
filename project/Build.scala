@@ -47,32 +47,32 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
     Developer("martinring", "Martin Ring", url("http://github.com/martinring")))
   )
 
-  val (collaboration,collaborationJs) = sharedModule("collaboration")
+  lazy val (collaboration,collaborationJs) = sharedModule("collaboration")
 
-  val (messages,messagesJs) = sharedModule("messages")
+  lazy val (messages,messagesJs) = sharedModule("messages")
 
-  val xml = module("xml")
+  lazy val xml = module("xml")
     .dependsOn(scala.quasiquotes).settings(
       resolvers += Resolver.sonatypeRepo("snapshots"),
       resolvers += Resolver.sonatypeRepo("releases"),
       addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
     )
 
-  val core = module("core")
+  lazy val core = module("core")
     .dependsOn(collaboration,messages)
     .dependsOn(
       "ch.qos.logback" % "logback-classic" % "1.0.13", spray.json,
       akka.actor, akka.remote, akka.kernel, akka.testkit,
       scala.reflect, slick,h2,slf4j,scalatest,scalacheck)
 
-  val (reactive,reactiveJs) = sharedModule("reactive")
+  lazy val (reactive,reactiveJs) = sharedModule("reactive")
     .jvm(DependenciesProject(_).dependsOn(scalatest,scalacheck,junit,akka.actor,scala.reflect))
     .js(_.dependsOn(scalajs.dom,scala.reflect))
 
-  val reactiveUi = jsModule("reactive-ui")
+  lazy val reactiveUi = jsModule("reactive-ui")
     .dependsOn(reactiveJs)
 
-  val client = jsModule("client")
+  lazy val client = jsModule("client")
     .dependsOn(scalajs.dom)
     .dependsOn(xml, reactiveUi, collaborationJs, messagesJs)
     .settings(
@@ -81,7 +81,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
       addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
     )
 
-  val web = playModule("web")
+  lazy val web = playModule("web")
     .dependsOn(core,messages)
     .settings(Angular.defaultSettings :_*)
     .dependsOnJs(client -> "client.js")
@@ -108,15 +108,15 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
   // ASSISTANTS
   // ===========================================================================
 
-  val isabelle = module("isabelle")
+  lazy val isabelle = module("isabelle")
     .dependsOn(core)
     .dependsOn(akka.actor, akka.remote, akka.kernel, scala.swing, scala.actors)
 
-  val haskell = module("haskell")
+  lazy val haskell = module("haskell")
     .dependsOn(core)
     .dependsOn(akka.actor, akka.remote, akka.kernel)
 
-  val spec = module("spec")
+  lazy val spec = module("spec")
     .dependsOn(core)
     .dependsOn(akka.actor, akka.remote, akka.kernel)
 }
