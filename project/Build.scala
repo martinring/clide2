@@ -62,7 +62,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
     .dependsOn(collaboration,messages)
     .dependsOn(
       "ch.qos.logback" % "logback-classic" % "1.0.13", spray.json,
-      akka.actor, akka.remote, akka.kernel, akka.testkit,
+      akka.actor, akka.remote, akka.kernel, akka.persistence, akka.testkit,
       scala.reflect, slick,h2,slf4j,scalatest,scalacheck)
 
   lazy val (reactive,reactiveJs) = sharedModule("reactive")
@@ -113,6 +113,10 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
     .dependsOn(akka.actor, akka.remote, akka.kernel, scala.swing, scala.actors)
 
   lazy val haskell = module("haskell")
+    .dependsOn(core)
+    .dependsOn(akka.actor, akka.remote, akka.kernel)
+
+  lazy val scalaAssistant = module("scala")
     .dependsOn(core)
     .dependsOn(akka.actor, akka.remote, akka.kernel)
 
