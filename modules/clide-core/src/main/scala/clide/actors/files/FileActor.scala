@@ -251,7 +251,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
           info = FileInfos.create(
             project = project.id,
             path    = parent.path :+ name,
-            mimeType = name.split('.').toList.last match { // TODO: Move to config
+            mimeType = name.split('.').last match { // TODO: Move to config
               case "thy"    => Some("text/x-isabelle")
               case "scala"  => Some("text/x-scala")
               case "hs"     => Some("text/x-haskell")
