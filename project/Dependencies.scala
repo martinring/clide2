@@ -37,11 +37,12 @@ trait Dependencies {
   val junit = "com.novocode" % "junit-interface" % "0.9" % "test"
 
   object akka {
-    val version = "2.3.2"
-    val actor   = "com.typesafe.akka" %% "akka-actor"   % version
-    val remote  = "com.typesafe.akka" %% "akka-remote"  % version
-    val kernel  = "com.typesafe.akka" %% "akka-kernel"  % version
-    val testkit = "com.typesafe.akka" %% "akka-testkit" % version % "test"
+    val version     = "2.3.2"
+    val actor       = "com.typesafe.akka" %% "akka-actor"   % version
+    val remote      = "com.typesafe.akka" %% "akka-remote"  % version
+    val kernel      = "com.typesafe.akka" %% "akka-kernel"  % version
+    val persistence = "com.typesafe.akka" %% "akka-persistence-experimental"  % version
+    val testkit     = "com.typesafe.akka" %% "akka-testkit" % version % "test"
   }
 
   object spray {
