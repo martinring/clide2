@@ -22,26 +22,32 @@
 **   If not, see <http://www.gnu.org/licenses/>.                              **
 \*                                                                            */
 
-package clide.haskell
+package clide.scala
 
 import java.io.FileWriter
-
 import scala.Array.canBuildFrom
 import scala.collection.mutable.Map
 import scala.sys.process.stringSeqToProcess
-
 import clide.assistants._
 import clide.collaboration._
 import clide.models._
+import scala.reflect.io.VirtualDirectory
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.collection.mutable.SortedSet
 
 object Scala extends AssistantServer(ScalaBehavior)
 
-case class ScalaBehavior(control: AssistantControl) extends AssistBehavior {
+case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with ScalaCompiler {    
   val mimeTypes = Set("text/x-scala")
 
   val log = control.log
   
+  val files = collection.mutable.Map.empty[String,OpenedFile]
+  
   var project: ProjectInfo = null
+    
+  implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
 
   def start(project: ProjectInfo) = {
     this.project = project
@@ -50,15 +56,58 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior {
 
   def stop = noop
 
-  def fileOpened(file: OpenedFile) = noop
+  def annotate() {    
+    messages.foreach { case (path,messages) =>
+      println(path, messages)
+      var annotations = new Annotations
+      var last = 0
+      messages.foreach {
+	      case (offset, length, tpe, msg) =>
+	        if (offset > last) {
+	          annotations = annotations.plain(offset - last)
+	          last = offset
+	        }
+	        annotations = annotations.annotate(length, 
+	          tpe match {
+	            case "error" =>   List(AnnotationType.Class -> "error", AnnotationType.ErrorMessage -> msg)
+	            case "warning" => List(AnnotationType.InfoMessage -> msg)
+	            case _ =>         List(AnnotationType.InfoMessage -> msg)
+	          }
+	        )
+	        last += length
+      }
+      val file = files(path)
+      annotations = annotations.plain(file.state.length)
+      control.annotate(file, "messages", annotations)
+    }    
+  }
+  
+  def fileOpened(file: OpenedFile) = Future {
+    reset()
+    compile(file)
+    files += file.info.path.mkString("/") -> file
+    messages += file.info.path.mkString("/") -> SortedSet.empty
+    annotate()
+  }
 
-  def fileActivated(file: OpenedFile) = noop
+  def fileActivated(file: OpenedFile) = Future {
+    reset()
+    compile(file)
+    files += file.info.path.mkString("/") -> file
+    annotate()
+  }
 
   def fileInactivated(file: OpenedFile) = noop
 
   def fileClosed(file: OpenedFile) = noop
 
-  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = noop
+  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = Future {
+    reset()
+    files += file.info.path.mkString("/") -> file
+    compile(file)    
+    cursors.foreach(x => complete(x.anchor))
+    annotate()
+  }
 
   def collaboratorJoined(who: SessionInfo) = noop
 

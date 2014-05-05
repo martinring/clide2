@@ -76,6 +76,8 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   val automaticWorkingIndicator = config.getBoolean("assistant.automaticWorkingIndicator")
   val automaticFailureIndicator = config.getBoolean("assistant.automaticFailureIndicator")
   val workIndicatorDelay = config.getDuration("assistant.workIndicatorDelay", MILLISECONDS).millis
+  val inputDelayMin = config.getDuration("assistant.inputDelayMin", MILLISECONDS).millis
+  val inputDelayMax = config.getDuration("assistant.inputDelayMax", MILLISECONDS).millis
   
   def chat(msg: String, tpe: Option[String] = None) = {
     peer ! Talk(None,msg,tpe)
@@ -252,7 +254,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       val prev = files(file)
       val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
       files(file) = next
-      doWork(Some(file))(behavior.fileChanged(next, operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))    
+      doWork(Some(file))(behavior.fileChanged(next, operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))
     
     case BroadcastEvent(who, when, Talk(to, msg, tpe)) if (who != info.id || receiveOwnChatMessages) =>
       doWork(None)(behavior.receiveChatMessage(collaborators.find(_.id == who).get,msg,tpe,when))
@@ -351,7 +353,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   private object RefreshInterval
   
   override def preStart() {
-    context.system.scheduler.schedule(1 second, 1 second)(self ! RefreshInterval)
+    context.system.scheduler.schedule(inputDelayMax, inputDelayMax)(self ! RefreshInterval)
   }
 
   override def postStop() {
