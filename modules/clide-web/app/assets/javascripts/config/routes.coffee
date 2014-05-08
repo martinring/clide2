@@ -23,7 +23,11 @@
 ##                                                                            ##
 
 ### @config ###
-define ['routes'], (routes) -> ($routeProvider, $locationProvider) ->
+define ['routes'], (routes) -> ($routeProvider, $locationProvider, $sceProvider) ->
+  console.log("disabling secure mode")
+
+  $sceProvider.enabled(false)
+
   $locationProvider.html5Mode(true)
 
   $routeProvider.when '/'

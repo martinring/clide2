@@ -45,30 +45,30 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
   var session: Session     = null
   var project: ProjectInfo = null
   var cursors = Set.empty[Cursor]
-  
+
   var outdated = Set.empty[Document.Node.Name]
-  
+
   private var files = scala.collection.mutable.Map.empty[Document.Node.Name,(scala.concurrent.Future[Document.Version],OpenedFile)]
-  
-  def updateFile(name: Document.Node.Name, file: OpenedFile, update: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])]): scala.concurrent.Future[Unit] = {    
+
+  def updateFile(name: Document.Node.Name, file: OpenedFile, update: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])]): scala.concurrent.Future[Unit] = {
     session.update(update)
     val p = Promise[Document.Version]()
     val s = scala.concurrent.Future{
       control.annotate(file, "substitutions", IsabelleMarkup.substitutions(file.state))
       control.annotate(file, "sub/superscript", IsabelleMarkup.scripts(file.state))
     }(control.executionContext)
-    
+
     val version = session.current_state.history.tip.version
     version.map(p.success)
     files(name) = (p.future, file)
     p.future.map(_ => ())(control.executionContext)
   }
-  
+
   def refreshAnnotations() = {
     for {
       node    <- outdated
       snapshot = session.snapshot(node,Nil)
-      version  = snapshot.version        
+      version  = snapshot.version
     } for {
       (v,state) <- files.get(snapshot.node_name)
       if v.value.flatMap(_.toOption) == Some(snapshot.version)
@@ -78,14 +78,14 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
       control.annotate(state, "output", IsabelleMarkup.output(snapshot, Set.empty))
       control.annotate(state, "errors", IsabelleMarkup.errors(snapshot))
       control.annotate(state, "warnings", IsabelleMarkup.warnings(snapshot))
-      control.annotate(state, "typing tooltips", IsabelleMarkup.typeInfo(snapshot))
-      control.annotate(state, "progress", IsabelleMarkup.progress(state.state, snapshot))      
+      //control.annotate(state, "typing tooltips", IsabelleMarkup.typeInfo(snapshot))
+      control.annotate(state, "progress", IsabelleMarkup.progress(state.state, snapshot))
     }
     outdated = Set.empty
   }
-  
+
   def start(project: ProjectInfo) = {
-    this.project = project    
+    this.project = project
     val ops = isabelle.Options.init
     val initialized = Promise[Unit]()
     control.log.info("building session content")

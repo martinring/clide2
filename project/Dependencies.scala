@@ -37,7 +37,7 @@ trait Dependencies {
   val junit = "com.novocode" % "junit-interface" % "0.9" % "test"
 
   object akka {
-    val version     = "2.3.2"
+    val version     = "2.2.4"
     val actor       = "com.typesafe.akka" %% "akka-actor"   % version
     val remote      = "com.typesafe.akka" %% "akka-remote"  % version
     val kernel      = "com.typesafe.akka" %% "akka-kernel"  % version

@@ -62,7 +62,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
     .dependsOn(collaboration,messages)
     .dependsOn(
       "ch.qos.logback" % "logback-classic" % "1.0.13", spray.json,
-      akka.actor, akka.remote, akka.kernel, akka.persistence, akka.testkit,
+      akka.actor, akka.remote, akka.kernel, akka.testkit,
       scala.reflect, slick,h2,slf4j,scalatest,scalacheck)
 
   lazy val (reactive,reactiveJs) = sharedModule("reactive")

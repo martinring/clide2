@@ -75,18 +75,18 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   val receiveOwnChatMessages    = config.getBoolean("assistant.receiveOwnChatMessages")
   val automaticWorkingIndicator = config.getBoolean("assistant.automaticWorkingIndicator")
   val automaticFailureIndicator = config.getBoolean("assistant.automaticFailureIndicator")
-  val workIndicatorDelay = config.getDuration("assistant.workIndicatorDelay", MILLISECONDS).millis
-  val inputDelayMin = config.getDuration("assistant.inputDelayMin", MILLISECONDS).millis
-  val inputDelayMax = config.getDuration("assistant.inputDelayMax", MILLISECONDS).millis
-  
+  val workIndicatorDelay = Duration(config.getMilliseconds("assistant.workIndicatorDelay"), MILLISECONDS)
+  val inputDelayMin = Duration(config.getMilliseconds("assistant.inputDelayMin"), MILLISECONDS)
+  val inputDelayMax = Duration(config.getMilliseconds("assistant.inputDelayMax"), MILLISECONDS)
+
   def chat(msg: String, tpe: Option[String] = None) = {
     peer ! Talk(None,msg,tpe)
   }
 
-  case object Continue  
+  case object Continue
 
-  var fileRequests = List.empty[(Long,Promise[OpenedFile])]   
-  def openFile(id: Long): Future[OpenedFile] = 
+  var fileRequests = List.empty[(Long,Promise[OpenedFile])]
+  def openFile(id: Long): Future[OpenedFile] =
     files.get(id) match {
       case Some(file) => Future.successful(file)
       case None =>
@@ -97,26 +97,26 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
     }
 
   var annotationDelays = Map.empty[Long,Cancellable]
-  
+
   def annotate(file: OpenedFile, name: String, annotations: Annotations): Unit = {
     annotationDelays.get(file.info.id).map(_.cancel())
     peer ! Annotate(file.info.id, file.revision, annotations, name)
   }
-  
+
   def annotate(file: OpenedFile, name: String, annotations: Annotations, delay: FiniteDuration): Unit = {
     if (delay == Duration.Zero)
       annotate(file,name,annotations)
     else
-      annotationDelays(file.info.id) = context.system.scheduler.scheduleOnce(delay)(annotate(file,name,annotations))    
+      annotationDelays(file.info.id) = context.system.scheduler.scheduleOnce(delay)(annotate(file,name,annotations))
   }
 
   def edit(file: OpenedFile, edit: Operation): Future[Unit] = ???
 
   val workStates:   Map[Long, Boolean]     = Map.empty.withDefaultValue(false)
-  val workTimeouts: Map[Long, Cancellable] = Map.empty 
-  
+  val workTimeouts: Map[Long, Cancellable] = Map.empty
+
   def workOnFile(file: OpenedFile): Unit = workOnFile(file.info.id)
-  
+
   def workOnFile(file: Long): Unit = {
     if (workIndicatorDelay.length > 0) {
 	  if (workStates(file))
@@ -127,11 +127,11 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
 	  }
     } else {
       peer ! WorkingOnFile(file)
-    }    
+    }
   }
-  
+
   def doneWithFile(file: OpenedFile): Unit = doneWithFile(file.info.id)
-  
+
   def doneWithFile(file: Long): Unit = {
     if (workIndicatorDelay.length > 0) {
       if (workStates(file) == false)
@@ -144,13 +144,13 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       peer ! DoneWithFile(file)
     }
   }
-      
+
   def failedInFile(file: OpenedFile, message: Option[String]): Unit = failedInFile(file.info.id, message)
-  
+
   def failedInFile(file: Long, message: Option[String]): Unit = peer ! FailureInFile(file, message)
-  
+
   def offerAnnotations(file: OpenedFile, name: String, description: Option[String]) = peer ! OfferAnnotations(file.info.id, name, description)
-  
+
   def stop() = self ! PoisonPill
 
   implicit val executionContext = context.dispatcher
@@ -185,8 +185,8 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       case Annotated(file,user,as,name) if files.isDefinedAt(file) =>
         if (annotations.isDefinedAt(file))
           annotations(file) += (user,name) -> as
-          
-      case RefreshInterval => 
+
+      case RefreshInterval =>
 
       case Continue =>
         context.become(initialized)
@@ -198,29 +198,29 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           ((user,name),as) <- as
         } self ! Annotated(file,user,as,name)
         unstashAll()
-        
+
       case Terminated(_) =>
         log.warning("peer terminated")
-        context.stop(self)        
-        
-      case _ => this.stash()      
+        context.stop(self)
+
+      case _ => this.stash()
     }
   }
-  
+
   def doWork(file: Option[Long])(task: Future[Unit]) {
     // can be forced to block for tiny computations with Future.sucessfull
     if (!task.isCompleted) {
       if (automaticWorkingIndicator) file.foreach(workOnFile(_))
       context.become(working)
       task.onComplete {
-        case Success(_) => 
+        case Success(_) =>
           self ! Continue
           if (automaticWorkingIndicator) file.foreach(doneWithFile(_))
         case Failure(e) =>
           log.error(e, "there is a problem with the behavior")
           self ! Continue
           if (automaticFailureIndicator) file.foreach(failedInFile(_,Some(e.getMessage())))
-          
+
       }
     }
   }
@@ -248,21 +248,21 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       } yield ())
 
     case Processed(Edited(file,operation)) if files.isDefinedAt(file) =>
-      doWork(Some(file))(behavior.fileChanged(files(file), operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))      
+      doWork(Some(file))(behavior.fileChanged(files(file), operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))
 
     case Edited(file,operation) if files.isDefinedAt(file) =>
       val prev = files(file)
       val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
       files(file) = next
       doWork(Some(file))(behavior.fileChanged(next, operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))
-    
+
     case BroadcastEvent(who, when, Talk(to, msg, tpe)) if (who != info.id || receiveOwnChatMessages) =>
       doWork(None)(behavior.receiveChatMessage(collaborators.find(_.id == who).get,msg,tpe,when))
-      
+
     case SessionChanged(session) =>
       val existing = collaborators.find(_.id == session.id)
       existing match {
-        case Some(old) => 
+        case Some(old) =>
           collaborators.remove(old)
           // TODO: Handle sesion changes
           if (!old.active && session.active)
@@ -274,9 +274,9 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           collaborators.add(session)
           if (session.active)
             doWork(None)(behavior.collaboratorJoined(session))
-      }      
-      
-    case SessionStopped(session) =>      
+      }
+
+    case SessionStopped(session) =>
       collaborators.filter(_.id != session.id)
       behavior.collaboratorLeft(session)
 
@@ -299,12 +299,12 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       for {
         file <- files.get(file)
       } doWork(Some(file.info.id))(behavior.annotationsRequested(file, name))
-      
+
     case AnnotationsDisregarded(file,name) if files.isDefinedAt(file) =>
       for {
         file <- files.get(file)
       } doWork(Some(file.info.id))(behavior.annotationsDisregarded(file, name))
-      
+
     case BroadcastEvent(who, when, LookingAtFile(file)) =>
       for (who <- collaborators.find(_.id == who) if who.isHuman) {
         log.debug("{} is looking at file {}", who.user, file)
@@ -312,10 +312,10 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
           peer ! OpenFile(file)
         }
       }
-      
-    case RefreshInterval => 
+
+    case RefreshInterval =>
       behavior.refreshInterval()
-      
+
     case Terminated(_) => context.stop(self)
   }
 
@@ -344,14 +344,14 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       this.info = info
       this.collaborators ++= collaborators
       context.become(initialized)
-    
+
     case Terminated(_) => context.stop(self)
-    
-    case RefreshInterval => 
+
+    case RefreshInterval =>
   }
-  
+
   private object RefreshInterval
-  
+
   override def preStart() {
     context.system.scheduler.schedule(inputDelayMax, inputDelayMax)(self ! RefreshInterval)
   }

@@ -1,4 +1,4 @@
-package clide.core.sessions
+/*package clide.core.sessions
 
 import akka.actor._
 import clide.core.projects.ProjectInfo
@@ -12,8 +12,8 @@ class SessionManager(project: ProjectInfo, projectActor: ActorRef) extends Event
   def receiveRecover = {
     case _ =>
   }
-  
+
   def receiveCommand = {
     case _ =>
   }
-}
+}*/

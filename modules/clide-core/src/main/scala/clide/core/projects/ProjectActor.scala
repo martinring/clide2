@@ -1,4 +1,4 @@
-package clide.core.projects
+/*package clide.core.projects
 
 import akka.persistence.EventsourcedProcessor
 import akka.actor.ActorLogging
@@ -7,8 +7,8 @@ class ProjectActor(info: ProjectInfo) extends EventsourcedProcessor with ActorLo
   def receiveRecover = {
     case _ =>
   }
-  
+
   def receiveCommand = {
     case _ =>
   }
-}
+}*/

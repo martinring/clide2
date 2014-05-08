@@ -85,7 +85,7 @@ trait BuildUtils {
     def dependsOnJs(references: (Project,String)*): Project =
       references.foldLeft(project){ case (project,(ref,name)) =>
         project.settings (
-          resourceGenerators in Compile <+= (fastOptJS in (ref,Compile), resourceManaged in Compile).map { (opt,outDir) =>
+          resourceGenerators in Compile <+= (preoptimizeJS in (ref,Compile), resourceManaged in Compile).map { (opt,outDir) =>
             val path = outDir / "public" / "javascripts" / name
             if (!path.exists || (path olderThan opt))
               IO.copyFile(opt, path, true)
