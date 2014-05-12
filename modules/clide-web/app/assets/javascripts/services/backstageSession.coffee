@@ -32,7 +32,7 @@ define ['routes','util/actorSocket'], (routes,ActorSocket) -> ($q,$rootScope,$ht
       projects: null
       otherProjects: null
 
-    apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f)
+    apply = (f) -> unless $rootScope.$$phase then $rootScope.$apply(f) else f()
 
     new ActorSocket url, "#{username}/backstage", (context) ->
       data: session
