@@ -32,6 +32,7 @@ define ['collaboration/Operation'], (Operation) ->
   class Annotations
     constructor: ->
       @annotations = []
+      @responses = []
       @length = 0
 
     equals = (other) ->
@@ -63,6 +64,12 @@ define ['collaboration/Operation'], (Operation) ->
 
     add: (a) ->
       if isPlain(a) then @plain(a) else @annotate(a.l,a.c)
+
+    respond: (request, answer) ->
+      @responses +=
+        request: request
+        answer: answer
+      return this
 
     @isPlain: isPlain
     @isAnnotate: isAnnotate
@@ -127,9 +134,11 @@ define ['collaboration/Operation'], (Operation) ->
 
     @fromJSON: (annotations) ->
       result = new Annotations()
-      for a in annotations
+      for a in annotations.as
         if isPlain(a)
           result.plain(a)
         else
           result.annotate(a.l,a.c)
+      for r in annotations.rs
+        result.respond(r.r,r.a)
       return result

@@ -81,12 +81,6 @@ object AnnotationType extends Enumeration {
 
   /** not supported yet */
   val HelpRequest    = Value("h")
-
-  /** not supported yet */
-  val Completion     = Value("m")
-
-  /** not supported yet */
-  val ReadOnly       = Value("r")
 }
 
 @SerialVersionUID(1L)
@@ -95,7 +89,7 @@ case class Annotate(length: Int, content: List[(AnnotationType.Value,String)]) e
 }
 
 @SerialVersionUID(1L)
-case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
+case class Annotations(annotations: List[Annotation] = Nil, responses: List[(String,String)] = Nil) {
   override def toString = annotations.mkString(";")
 
   def positions(tpe: (AnnotationType.Value,String)): List[Int] = {
@@ -110,39 +104,42 @@ case class Annotations(annotations: List[Annotation] = Nil) extends AnyVal {
 
   def annotate(n: Int, c: List[(AnnotationType.Value,String)]): Annotations = if (n >= 0) {
     annotations.lastOption match {
-      case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c))
-      case _ => Annotations(annotations :+ Annotate(n,c.toList))
+      case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c), responses)
+      case _ => Annotations(annotations :+ Annotate(n,c.toList), responses)
     }
   } else this
 
   @deprecated("use overloaded annotate with list instead", "2014-01-30")
   def annotate(n: Int, c: Set[(AnnotationType.Value,String)]): Annotations = if (n >= 0) {
     annotations.lastOption match {
-      case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c.toList))
-      case _ => Annotations(annotations :+ Annotate(n,c.toList))
+      case Some(Annotate(m,c2)) if c == c2 => Annotations(annotations.init :+ Annotate(n+m,c.toList), responses)
+      case _ => Annotations(annotations :+ Annotate(n,c.toList), responses)
     }
   } else this
 
   def plain(n: Int): Annotations = if (n > 0) {
     annotations.lastOption match {
-      case Some(Plain(m)) => Annotations(annotations.init :+ Plain(n+m))
-      case _ => Annotations(annotations :+ Plain(n))
+      case Some(Plain(m)) => Annotations(annotations.init :+ Plain(n+m), responses)
+      case _ => Annotations(annotations :+ Plain(n), responses)
     }
   } else this
+  
+  def respond(request: String, answer: String) =
+    Annotations(annotations,responses :+ (request,answer))
 
   def :+ (a: Annotation): Annotations = {
     (annotations.lastOption,a) match {
-      case (Some(Plain(n)),Plain(m)) => Annotations(annotations.init :+ Plain(n+m))
-      case (Some(Annotate(n,c)),Annotate(m,d)) if c == d => Annotations(annotations.init :+ Annotate(n+m,c))
-      case _ => Annotations(annotations :+ a)
+      case (Some(Plain(n)),Plain(m)) => Annotations(annotations.init :+ Plain(n+m), responses)
+      case (Some(Annotate(n,c)),Annotate(m,d)) if c == d => Annotations(annotations.init :+ Annotate(n+m,c), responses)
+      case _ => Annotations(annotations :+ a, responses)
     }
   }
 
   def ++ (a: Annotations): Annotations = {
     (annotations.lastOption, a.annotations.headOption) match {
-      case (Some(Plain(n)),Some(Plain(m))) => Annotations(annotations.init ++ (Plain(n+m) +: a.annotations.tail))
-      case (Some(Annotate(n,c)),Some(Annotate(m,d))) if c == d => Annotations(annotations.init ++ (Annotate(n+m,c) +: a.annotations.tail))
-      case _ => Annotations(annotations ++ a.annotations)
+      case (Some(Plain(n)),Some(Plain(m))) => Annotations(annotations.init ++ (Plain(n+m) +: a.annotations.tail), responses)
+      case (Some(Annotate(n,c)),Some(Annotate(m,d))) if c == d => Annotations(annotations.init ++ (Annotate(n+m,c) +: a.annotations.tail), responses)
+      case _ => Annotations(annotations ++ a.annotations, responses)
     }
   }
 
@@ -194,9 +191,10 @@ object Annotations {
       case (Nil,Insert(i)::bs,xs) => loop(Nil,bs,addPlain(i.length,xs))
       case _ => Failure(new Exception("the annotation couldn't be transformed because it hasn't been applied to the same document as the operation"))
     }
-    loop(a.annotations.reverse,o.actions.reverse,Nil).map(Annotations.apply)
+    loop(a.annotations.reverse,o.actions.reverse,Nil).map(Annotations(_,a.responses))
   }
 
+  /** TODO */
   def compose(a: Annotations, b: Annotations): Try[Annotations] = {
     @tailrec
     def loop(as: List[Annotation], bs: List[Annotation], xs: List[Annotation]): Try[List[Annotation]] = (as,bs,xs) match {
@@ -227,6 +225,6 @@ object Annotations {
       case (Nil,b::bs,xs) if b.length == 0 => loop(Nil,bs,add(b,xs))
       case _ => Failure(sys.error("the annotation lengths don't match!"))
     }
-    loop(a.annotations.reverse, b.annotations.reverse, Nil).map(Annotations.apply)
+    loop(a.annotations.reverse, b.annotations.reverse, Nil).map(Annotations(_,a.responses))
   }
 }
