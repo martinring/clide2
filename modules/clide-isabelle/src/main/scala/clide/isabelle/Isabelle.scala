@@ -113,6 +113,9 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
   
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long) = noop
   
+  def helpRequest(from: SessionInfo, file: OpenedFile, index: Int, id: String, request: String) = noop
+  
+  
   override def refreshInterval() {
     refreshAnnotations()
   }
