@@ -74,9 +74,9 @@ object Authentication extends Controller with UserRequests {
                 "key"  -> login.key
             )
           case DoesntExist =>
-            Status(401)(Json.obj("username" -> Json.arr("we don't know anybody by that name")))
+            Status(401)(Json.obj("password" -> Json.arr("Invalid username or password")))
           case WrongPassword =>
-            Status(401)(Json.obj("password" -> Json.arr("invalid password")))
+            Status(401)(Json.obj("password" -> Json.arr("Invalid username or password")))
           case other =>
             Status(500)(other.toString)
         }
