@@ -75,12 +75,10 @@ private class SessionActor(
     if (isHuman) {
       if (activityTimeouts.isDefinedAt(file)) {
         activityTimeouts.get(file).foreach(_.cancel)          
-      } else {
-        log.info("indicating activity")
+      } else {        
         context.parent ! BroadcastEvent(session.id, System.currentTimeMillis, WorkingOnFile(file))  
       }
       activityTimeouts(file) = context.system.scheduler.scheduleOnce(1.second) {
-        log.info("indicating inactivity")
         context.parent ! BroadcastEvent(session.id, System.currentTimeMillis, DoneWithFile(file))
         activityTimeouts.remove(file)
       }

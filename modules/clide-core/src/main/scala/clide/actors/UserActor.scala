@@ -62,7 +62,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
     DB.withSession { implicit session: Session =>
       logins = LoginInfos.getByUser(user.name).map(l => l.key -> l).toMap
       projects = ProjectInfos.getByOwner(user.name).map(p => p.name -> p).toMap // TODO
-      val public = ProjectInfos.getPublic      
+      val public = ProjectInfos.getPublic
       otherProjects = public.filter(_.owner != user.name).map(p => p -> ProjectAccessLevel.Write).toMap
       otherProjects ++= ProjectAccessLevels.getUserProjects(user.name).toMap.filter(_._1.owner != user.name) // TODO      
     }
@@ -117,12 +117,14 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
   }
 
   def external(user: UserInfo, login: LoginInfo): Receive = {
-    case WithProject(name,msg) =>
+    case WithProject(name,msg) =>      
       projects.get(name) match {
         case Some(project) =>
-          context.actorSelection(s"$name").tell(
-              // TODO: ProjectAccessLevel!!!
-            WrappedProjectMessage(user, login.isHuman, ProjectAccessLevel.Write, msg),sender)
+          val access = DB.withSession { implicit session: Session => 
+            ProjectAccessLevels.getProjectUsers(project.id).find(_._2 == user.name).map(_._3)
+          }
+          context.actorSelection(s"$name").tell(           
+            WrappedProjectMessage(user, login.isHuman, access.getOrElse(ProjectAccessLevel.None), msg),sender)
         case None => sender ! DoesntExist
       }
 

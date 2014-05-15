@@ -106,7 +106,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
 
     onGetHelp: (doc, index) =>
       key = Math.random().toString(36).substr(2)
-      annotation = new Annotations().plain(index).annotate(0,{'c': ['cursor',@color],'h': [key]}).plain(doc.getValue().length - index)
+      annotation = new Annotations().plain(index).annotate(0,{'c': ['cursor',@color],'h': ["c:" + key]}).plain(doc.getValue().length - index)
       @trigger 'annotate', annotation
 
     getValue: => @doc.getValue()

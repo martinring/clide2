@@ -208,7 +208,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   }
 
   def doWork(file: Option[Long])(task: Future[Unit]) {
-    // can be forced to block for tiny computations with Future.sucessfull
+    // can be forced to block for tiny computations with Future.sucessful
     if (!task.isCompleted) {
       if (automaticWorkingIndicator) file.foreach(workOnFile(_))
       context.become(working)
@@ -282,7 +282,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
 
     case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
       // TODO: More universal approach on cursor positions etc.
-      val ps = annotations.positions(AnnotationType.Class,"cursor")
+      val ps = annotations.positions(AnnotationType.Class,"cursor")      
       if (ps.nonEmpty) for {
         user  <- collaborators.find(_.id == user)
         file  <- files.get(file)
@@ -294,6 +294,18 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         cursors(file.info.id) += user.id -> Cursor(user,file,pos)
         doWork(Some(file.info.id))(behavior.cursorMoved(Cursor(user,file,pos)))
       }
+      val rs = annotations.positions(AnnotationType.HelpRequest)
+      if (rs.nonEmpty) for {
+        user <- collaborators.find(_.id == user)
+        file <- files.get(file)
+        (pos,req) <- rs
+      } {
+        val r = req.split(":")
+        if (r.length == 2) {            
+          val Array(request,id) = r
+          doWork(Some(file.info.id))(behavior.helpRequest(user, file, pos, id, request))
+        }
+      }              
 
     case AnnotationsRequested(file,name) if files.isDefinedAt(file) =>
       for {

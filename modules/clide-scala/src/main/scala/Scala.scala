@@ -120,6 +120,11 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
   def annotationsDisregarded(file: OpenedFile, name: String) = noop
   
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long) = noop
+  
+  def helpRequest(from: SessionInfo, file: OpenedFile, pos: Int, id: String, request: String) = Future {
+    control.annotate(file, "autocompletion", (new Annotations).respond(id, "Some Value"))
+    println(id,file,pos,request,from)
+  }
 }
 
 object ScalaApp extends App {

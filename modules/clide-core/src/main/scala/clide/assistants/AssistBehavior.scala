@@ -133,5 +133,7 @@ trait AssistBehavior {
    */
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long): Future[Unit]
   
+  def helpRequest(from: SessionInfo, file: OpenedFile, index: Int, id: String, request: String): Future[Unit]
+  
   def refreshInterval(): Unit = {}
 }

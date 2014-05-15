@@ -73,19 +73,20 @@ class AssistantServer(behavior: AssistantControl => AssistBehavior)(implicit dum
     import control.executionContext
     new AssistBehavior {
       def start(project: ProjectInfo): Future[Unit] = Future(underlying.start(project))
-	  def stop: Future[Unit] = Future(underlying.stop)
-	  def mimeTypes: Set[String] = underlying.mimeTypes
-	  def fileOpened(file: OpenedFile): Future[Unit] = Future(underlying.fileOpened(file))
-	  def fileActivated(file: OpenedFile): Future[Unit] = Future(underlying.fileActivated(file))
-	  def fileInactivated(file: OpenedFile): Future[Unit] = Future(underlying.fileInactivated(file))
-	  def fileClosed(file: OpenedFile): Future[Unit] = Future(underlying.fileClosed(file))
-	  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]): Future[Unit] = Future(underlying.fileChanged(file, delta, cursors))
-	  def collaboratorJoined(who: SessionInfo): Future[Unit] = Future(underlying.collaboratorJoined(who))
+		  def stop: Future[Unit] = Future(underlying.stop)
+		  def mimeTypes: Set[String] = underlying.mimeTypes
+		  def fileOpened(file: OpenedFile): Future[Unit] = Future(underlying.fileOpened(file))
+		  def fileActivated(file: OpenedFile): Future[Unit] = Future(underlying.fileActivated(file))
+		  def fileInactivated(file: OpenedFile): Future[Unit] = Future(underlying.fileInactivated(file))
+		  def fileClosed(file: OpenedFile): Future[Unit] = Future(underlying.fileClosed(file))
+		  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]): Future[Unit] = Future(underlying.fileChanged(file, delta, cursors))
+		  def collaboratorJoined(who: SessionInfo): Future[Unit] = Future(underlying.collaboratorJoined(who))
   	  def collaboratorLeft(who: SessionInfo): Future[Unit] = Future(underlying.collaboratorLeft(who))
-	  def cursorMoved(cursor: Cursor): Future[Unit] = Future(underlying.cursorMoved(cursor))
+  	  def cursorMoved(cursor: Cursor): Future[Unit] = Future(underlying.cursorMoved(cursor))
       def annotationsRequested(file: OpenedFile, name: String): Future[Unit] = Future(underlying.annotationsRequested(file, name))
       def annotationsDisregarded(file: OpenedFile, name: String): Future[Unit] = Future(underlying.annotationsDisregarded(file, name))
-	  def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long): Future[Unit] = Future(underlying.receiveChatMessage(from.user, msg, tpe, timestamp))
+      def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long): Future[Unit] = Future(underlying.receiveChatMessage(from.user, msg, tpe, timestamp))
+      def helpRequest(from: SessionInfo, file: OpenedFile, pos: Int, id: String, request: String): Future[Unit] = noop
     }
   }
 }
