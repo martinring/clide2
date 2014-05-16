@@ -22,6 +22,10 @@ object App extends clide.reactive.ui.App with History {
     case _ => title = "Somewhere else"
   }
     
+  def f(x: Int) = x * x
+  
+  val x: Int => Int = f
+  
   def basics = {   
     val name = Var("World")
     XML.include(HTML5,"basics.html") 

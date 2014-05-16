@@ -66,9 +66,9 @@ define ['collaboration/Operation'], (Operation) ->
       if isPlain(a) then @plain(a) else @annotate(a.l,a.c)
 
     respond: (request, answer) ->
-      @responses +=
-        request: request
-        answer: answer
+      @responses.push
+        r: request
+        a: answer
       return this
 
     @isPlain: isPlain

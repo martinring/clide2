@@ -6,11 +6,6 @@ define -> (string) ->
   RotateLeft = (lValue, iShiftBits) ->
     (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits))
   AddUnsigned = (lX, lY) ->
-    lX4 = undefined
-    lY4 = undefined
-    lX8 = undefined
-    lY8 = undefined
-    lResult = undefined
     lX8 = (lX & 0x80000000)
     lY8 = (lY & 0x80000000)
     lX4 = (lX & 0x40000000)
@@ -95,15 +90,10 @@ define -> (string) ->
       n++
     utftext
   x = Array()
-  k = undefined
   AA = undefined
   BB = undefined
   CC = undefined
   DD = undefined
-  a = undefined
-  b = undefined
-  c = undefined
-  d = undefined
   S11 = 7
   S12 = 12
   S13 = 17

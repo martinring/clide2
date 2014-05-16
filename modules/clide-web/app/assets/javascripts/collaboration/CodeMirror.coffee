@@ -38,6 +38,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
       @doc.on "cursorActivity", @onSelectionChange
       @doc.on "getHelp", @onGetHelp
       @annotations = {}
+      @autocompletes = {}
 
     setColor: (color) =>
       @color = color
@@ -101,12 +102,22 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         @trigger "change", CodeMirrorAdapter.operationFromCodeMirrorChange(change, doc)
 
     onSelectionChange: (cm) =>
-      unless @silent
-        @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(@doc, @color)
+      if (@autocompletes[this]?)
+        @autocompletes[this].widget.remove()
+        delete @autocompletes[this]
+      @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(@doc, @color)
 
     onGetHelp: (doc, index) =>
-      key = Math.random().toString(36).substr(2)
-      annotation = new Annotations().plain(index).annotate(0,{'c': ['cursor',@color],'h': ["c:" + key]}).plain(doc.getValue().length - index)
+      key = "c:" + Math.random().toString(36).substr(2)
+      widget = document.createElement("ul")
+      widget.className = "autocomplete"
+      widget.innerHTML = "<li>...</li>"
+      @autocompletes[this] = {
+        widget: widget
+        key: key
+      }
+      doc.getEditor().addWidget(doc.posFromIndex(index), widget, true)
+      annotation = new Annotations().plain(index).annotate(0,{'c': ['cursor',@color],'h': [key]}).plain(doc.getValue().length - index)
       @trigger 'annotate', annotation
 
     getValue: => @doc.getValue()
@@ -149,6 +160,24 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
           @annotations[user.id][name].push cm.addLineWidget line, widget('div','outputWidget info',i)
       if c.ls?
         gutter.push { line: from.line, type: 'progress', state: c.ls }
+      if c.h?
+        w = document.createElement("ul")
+        w.className = "autocomplete"
+        w.innerHTML = "<li>...</li><li><input type='text'/></li>"
+        w.lastChild.firstChild.onkeyup = (e) =>
+          if (e.keyCode == 13)
+            value = w.lastChild.firstChild.value
+            entry = document.createElement("li")
+            entry.innerHTML = value
+            angular.element(w).prepend(entry)
+            annotation = new Annotations().respond(c.h[0],value)
+            @trigger 'annotate', annotation
+            w.lastChild.firstChild.value = ""
+        @autocompletes[user.id] = {
+          widget: w
+          key: c.h[0]
+        }
+        @doc.getEditor()?.addWidget(to or from, w)
       if classes?
         if to? and c.s?
           marker = @doc.markText from, to,
@@ -173,6 +202,8 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
     @registerMouseEvents: (doc) =>
 
     resetAnnotations: (user, name) => if user?
+      @autocompletes[user]?.widget.remove()
+      delete @autocompletes[user]
       unless @annotations[user]?
         @annotations[user] = {}
       existing = @annotations[user][name]
@@ -186,7 +217,6 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
 
       work = =>
         @resetAnnotations(user.id, name) if user?
-
         index = 0 # TODO: Iterate Line/Column based with cm.eachLine
         for a in annotation.annotations
           if Annotations.isPlain(a)
@@ -200,8 +230,16 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
             else
                @annotate(a.c,user,name,gutter,output,inline,from)
 
-      if cm? then cm.operation => work()
-      else work()
+      if cm?
+        for response in annotation.responses
+          for user, autocomplete of @autocompletes
+            if response.r is autocomplete.key
+              entry = document.createElement("li")
+              entry.innerHTML = response.a
+              angular.element(autocomplete.widget).prepend(entry)
+      if annotation.annotations.length > 0
+        if cm? then cm.operation => work()
+        else work()
 
     updateGutter: (output) => if cm = @doc.getEditor() then cm.operation =>
       cm.clearGutter('progress-gutter')

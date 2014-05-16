@@ -107,10 +107,15 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           f: nfile.id
           r: rev
           o: op.actions
-      client.sendAnnotation = (rev,an,name) -> send
+      client.sendAnnotation = (rev,an,name) ->
+        console.log(an)
+        send
           f: nfile.id
           r: rev
-          a: an.annotations
+          a: {
+            as: an.annotations
+            rs: an.responses
+          }
           n: name
 
       adapter.registerCallbacks

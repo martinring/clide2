@@ -98,8 +98,10 @@ object Conversions {
   }
 
   implicit object AnnotationsFormat extends Format[Annotations] {
-    def reads(json: JsValue) =
-      Json.fromJson[List[Annotation]](json).map(Annotations(_))
+    def reads(json: JsValue) = for {
+      annotations <- (json \ "as").validate[List[Annotation]]
+      responses <- (json \ "rs").validate[List[JsObject]]
+    } yield Annotations(annotations,responses.map(x => ((x \ "r").as[String], (x \ "a").as[String])))
     def writes(value: Annotations) =
       Json.obj("as" -> value.annotations, "rs" -> value.responses.map(r => Json.obj("r" -> r._1, "a" -> r._2)))
   }
