@@ -90,11 +90,12 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           apply -> session.cursor = doc.getCursor()
       client  = new Client(file.revision)
       adapter = new CMAdapter(nfile.doc, session.me.color)
+      nfile.doc.blur = adapter.blur
 
       client.applyOperation = adapter.applyOperation
       reset = () ->
-        console.warning('warning', 'emergency resetting ' + nfile.name + ' due to server timeout')
-        nfile.$$emergencyResetMode = true
+        console.warn('warning', 'emergency resetting ' + nfile.name + ' due to server timeout')
+        nfile.$$emergencyResetMode = nfile.doc.getCursor()
         send
           t: 'close'
           id: file.info.id
@@ -107,9 +108,7 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           f: nfile.id
           r: rev
           o: op.actions
-      client.sendAnnotation = (rev,an,name) ->
-        console.log(an)
-        send
+      client.sendAnnotation = (rev,an,name) -> send
           f: nfile.id
           r: rev
           a: {
@@ -166,8 +165,9 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
             stream.show = false
             break
         adapter.resetAnnotations(u,n)
-      if (nfile.$$emergencyResetMode)
-        nfile.$$emergencyResetMode = false
+      if (nfile.$$emergencyResetMode?)
+        nfile.doc.setCursor(nfile.$$emergencyResetMode)
+        nfile.$$emergencyResetMode = undefined
         console.log 'resetted ' + nfile.name
 
       session.openFiles[file.info.id] = (nfile)

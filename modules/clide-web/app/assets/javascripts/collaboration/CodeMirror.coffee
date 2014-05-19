@@ -35,8 +35,8 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
   class CodeMirrorAdapter
     constructor: (@doc,@color) ->
       @doc.on "beforeChange", @onChange
-      @doc.on "cursorActivity", @onSelectionChange
       @doc.on "getHelp", @onGetHelp
+
       @annotations = {}
       @autocompletes = {}
 
@@ -101,22 +101,106 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
       unless @silent
         @trigger "change", CodeMirrorAdapter.operationFromCodeMirrorChange(change, doc)
 
-    onSelectionChange: (cm) =>
-      if (@autocompletes[this]?)
-        @autocompletes[this].widget.remove()
-        delete @autocompletes[this]
-      @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(@doc, @color)
-
     onGetHelp: (doc, index) =>
       key = "c:" + Math.random().toString(36).substr(2)
       widget = document.createElement("ul")
       widget.className = "autocomplete"
-      widget.innerHTML = "<li>...</li>"
+      widget.tabIndex = 1
+      console.log angular.element(widget).controller()
+      if @autocompletes[this]?
+        @autocompletes[this].remove()
       @autocompletes[this] = {
-        widget: widget
+        remove: =>
+          try
+            angular.element(widget).remove()
+          delete @autocompletes[this]
+        add: (value) =>
+          e = document.createElement("li")
+          v = value
+          h = value
+          if (i = value.indexOf '\t') > 0
+            h = value.substr(i + 1)
+            v = value.substr(0,i)
+          e.innerHTML = h
+          e.onclick = ->
+            doc.replaceSelection(v)
+            doc.setCursor(doc.getCursor())
+            doc.getEditor().focus()
+          angular.element(e).data("suggest",v)
+          angular.element(widget).append(e)
         key: key
       }
+      filter = ""
+      update = (more) =>
+        selected = false
+        some = false
+        angular.element(widget).children().each (i) ->
+          e = angular.element(this)
+          e.removeClass("selected")
+          if e.data("suggest").startsWith(filter)
+            e.show()
+            some = true
+            unless selected
+              e.addClass("selected")
+            selected = true
+          else
+            e.hide()
+        unless some
+          @autocompletes[this].remove()
+          @doc.getEditor().focus()
+      next = () ->
+        cur = angular.element(widget).children(".selected")
+        cur.removeClass("selected")
+        cur.next().addClass("selected")
+      complete = () =>
+        the = angular.element(widget).children(".selected")
+        @doc.replaceSelection(the.data("suggest").substr(filter.length))
+        @autocompletes[this].remove()
+        @doc.setCursor(@doc.getCursor())
+        @doc.getEditor().focus()
+      widget.onkeypress = (e) =>
+        filter = filter + String.fromCharCode(e.charCode)
+        @doc.replaceSelection(String.fromCharCode(e.charCode))
+        @doc.setCursor(@doc.getCursor())
+        update()
+        e.preventDefault()
+        false
+      widget.onkeydown = (e) =>
+        switch e.keyCode
+          when 8 # backspace
+            e.preventDefault()
+            @doc.getEditor().execCommand("delCharBefore")
+            if filter.length > 0
+              filter = filter.substr(0, filter.length - 1)
+              update(true)
+            else
+              @doc.getEditor().focus()
+          when 13
+            complete()
+            e.preventDefault()
+            false
+          when 9
+            complete()
+            e.preventDefault()
+            false
+          when 40 #down
+            next()
+          when 37 #left
+            @doc.getEditor().focus()
+            @doc.getEditor().execCommand("goCharLeft")
+          when 39 #right
+            @doc.getEditor().focus()
+            @doc.getEditor().execCommand("goCharRight")
+          else
+            #@doc.replaceSelection(String.fromCharCode(e.keyCode))
+            #@doc.setCursor(@doc.getCursor())
+            #@doc.getEditor().focus()
+      widget.onblur = =>
+        @autocompletes[this]?.remove()
+        annotation = new Annotations().plain(@doc.getValue.length)
+        @trigger 'annotate', annotation
       doc.getEditor().addWidget(doc.posFromIndex(index), widget, true)
+      angular.element(widget).focus()
       annotation = new Annotations().plain(index).annotate(0,{'c': ['cursor',@color],'h': [key]}).plain(doc.getValue().length - index)
       @trigger 'annotate', annotation
 
@@ -161,23 +245,30 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
       if c.ls?
         gutter.push { line: from.line, type: 'progress', state: c.ls }
       if c.h?
-        w = document.createElement("ul")
-        w.className = "autocomplete"
-        w.innerHTML = "<li>...</li><li><input type='text'/></li>"
-        w.lastChild.firstChild.onkeyup = (e) =>
+        w = angular.element(document.createElement("div"))
+        w.addClass "autocomplete"
+        i = document.createElement("input")
+        w.append(i)
+        l = angular.element(document.createElement("ul"))
+        w.append(l)
+        i.onkeyup = (e) =>
           if (e.keyCode == 13)
-            value = w.lastChild.firstChild.value
             entry = document.createElement("li")
-            entry.innerHTML = value
-            angular.element(w).prepend(entry)
-            annotation = new Annotations().respond(c.h[0],value)
+            entry.innerHTML = i.value
+            angular.element(l).append(entry)
+            annotation = new Annotations().respond(c.h[0],i.value)
             @trigger 'annotate', annotation
-            w.lastChild.firstChild.value = ""
+            i.value = ""
         @autocompletes[user.id] = {
-          widget: w
+          remove: =>
+            w.remove()
+            delete @autocompletes[user.id]
+          add: (value) ->
+            entry = if (i = value.indexOf '\t') > 0 then value.substr(i+1) else value
+            l.append("<li>#{entry}</li>")
           key: c.h[0]
         }
-        @doc.getEditor()?.addWidget(to or from, w)
+        @doc.getEditor()?.addWidget(to or from, w[0])
       if classes?
         if to? and c.s?
           marker = @doc.markText from, to,
@@ -202,8 +293,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
     @registerMouseEvents: (doc) =>
 
     resetAnnotations: (user, name) => if user?
-      @autocompletes[user]?.widget.remove()
-      delete @autocompletes[user]
+      @autocompletes[user]?.remove()
       unless @annotations[user]?
         @annotations[user] = {}
       existing = @annotations[user][name]
@@ -211,6 +301,16 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         for marker in existing
           marker.clear()
       @annotations[user][name] = []
+
+    blur: =>
+      annotation = new Annotations().plain(@doc.getValue.length)
+      @trigger 'annotate', annotation
+      for u, c of @autocompletes
+        c.remove()
+      @autocompletes = {}
+
+    focus: =>
+      console.debug "document focused"
 
     applyAnnotation: (annotation, user, name, gutter, output, inline) =>
       cm       = @doc.getEditor()
@@ -234,9 +334,8 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         for response in annotation.responses
           for user, autocomplete of @autocompletes
             if response.r is autocomplete.key
-              entry = document.createElement("li")
-              entry.innerHTML = response.a
-              angular.element(autocomplete.widget).prepend(entry)
+              autocomplete.add(response.a)
+
       if annotation.annotations.length > 0
         if cm? then cm.operation => work()
         else work()

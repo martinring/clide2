@@ -57,8 +57,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
   def stop = noop
 
   def annotate() {    
-    messages.foreach { case (path,messages) =>
-      println(path, messages)
+    messages.foreach { case (path,messages) =>      
       var annotations = new Annotations
       var last = 0
       messages.foreach {
@@ -104,8 +103,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = Future {
     reset()
     files += file.info.path.mkString("/") -> file
-    compile(file)    
-    cursors.foreach(x => complete(x.anchor))
+    compile(file)        
     annotate()
   }
 
@@ -122,8 +120,25 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long) = noop
   
   def helpRequest(from: SessionInfo, file: OpenedFile, pos: Int, id: String, request: String) = Future {
-    control.annotate(file, "autocompletion", (new Annotations).respond(id, "Some Value"))
-    println(id,file,pos,request,from)
+    complete(file, pos){ members =>      
+      members.foreach { member =>
+        val icon =
+          if (member.sym.isPackage) "<span class='scala-package'>p</span>"
+          else if (member.sym.isVariable) "<span class='scala-variable'>v</span>"
+          else if (member.sym.isModule) "<span class='scala-module'>O</span>"
+          else if (member.sym.isTrait) "<span class='scala-trait'>T</span>"
+          else if (member.sym.isClass) "<span class='scala-class'>C</span>"
+          else if (member.sym.isValue) "<span class='scala-value'>v</span>"
+          else if (member.sym.isMethod) "<span class='scala-method'>m</span>"          
+          else "<span class='circled></span>"
+        val tparams = if (member.sym.typeParams.nonEmpty) member.sym.typeParams.map(_.decodedName).mkString("[",",","]") else ""
+        val params = if (member.sym.paramss.nonEmpty) member.sym.paramss.map(_.map(p => p.decodedName + ": " + p.tpe.toString).mkString(", ")).mkString("(",")(",")")
+                     else ""                       
+        val tpe = member.tpe.finalResultType
+        val where = member.sym.enclClass.decodedName
+        control.annotate(file, "autocompletion", (new Annotations).respond("c:" + id,  member.sym.decodedName + "\t" + icon + member.sym.decodedName + "<span>" + tparams +  params + ": " + tpe + "</span><span class='text-muted'> - " + where + "</span>"))
+      }
+    }
   }
 }
 

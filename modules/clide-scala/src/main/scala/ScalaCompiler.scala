@@ -22,6 +22,7 @@ import scala.tools.nsc.interactive.Response
 import scala.io.Source
 import scala.collection.mutable.Buffer
 import clide.models.OpenedFile
+import scala.reflect.internal.util.OffsetPosition
 
 trait ScalaCompiler { self: ScalaBehavior =>
   /*
@@ -99,14 +100,15 @@ trait ScalaCompiler { self: ScalaBehavior =>
   val pathList = compilerPath ::: libPath
   settings.bootclasspath.value = pathList.mkString(File.pathSeparator)
   settings.classpath.value = (pathList ::: impliedClassPath).mkString(File.pathSeparator)
+  settings.YpresentationDebug.value = true
+  settings.YpresentationVerbose.value = true
   
   val messages = collection.mutable.Map.empty[String,SortedSet[(Int,Int,String,String)]]
   
   lazy val reporter = new AbstractReporter {
     val settings = ScalaCompiler.this.settings    
     
-    def display(pos: Position, message: String, severity: Severity) {
-      println("display")
+    def display(pos: Position, message: String, severity: Severity) {      
       severity.count += 1
       val severityName = severity match {
         case ERROR => "error"
@@ -118,7 +120,6 @@ trait ScalaCompiler { self: ScalaBehavior =>
       } catch {
         case _: Throwable => (0,0)        
       }
-      println(pos.source.file.name)
       messages(pos.source.file.name) += ((start, length, severityName, message))
     }
     
@@ -141,28 +142,29 @@ trait ScalaCompiler { self: ScalaBehavior =>
     reporter.reset()
     classLoader = new AbstractFileClassLoader(target, this.getClass().getClassLoader())
   }
-  
-  var source = new BatchSourceFile("<inline>", "")
-  
-  def complete(p: Int) = {    
-    val complResponse = new Response[List[global.Member]]
-    val pos = global.ask(() => global.rangePos(source, p, p, p))    
-    global. askScopeCompletion(pos, complResponse)
-    complResponse.get(1000) match {
-      case None => println("none")
-      case Some(Left(l)) => 
-        l.foreach(x => println(x.sym.name.decoded))
-        println("---")
-      case Some(Right(r)) => println(r)
-    }
+      
+  def complete(state: OpenedFile, p: Int)(respond: List[global.Member] => Unit) = {
+    println("completing")
+    val reloaded = new Response[Unit]
+    val source = new BatchSourceFile(state.info.path.mkString("/"), state.state)
+    global.askReload(List(source), reloaded)
+    
+    val c = reloaded.get.left.map { _ =>
+      val completion = new Response[List[global.Member]]
+	    val pos = global.ask(() => new OffsetPosition(source, p))
+	    global.askTypeCompletion(pos, completion)
+	    completion.get(5000).get.left.foreach { members =>
+        global.ask( () => respond(members) )
+      }
+    }    
   }
   
   def compile(state: OpenedFile) = {
-    //val compiler = global.newTyperRun()
-    source = new BatchSourceFile(state.info.path.mkString("/"), state.state)
-    val response = new Response[Unit]()
-    global.askReload(List(source), response)            
-    response.get
+    println("compiling")
+    val reloaded = new Response[Unit]
+    val source = new BatchSourceFile(state.info.path.mkString("/"), state.state)
+    global.askReload(List(source), reloaded)
+    reloaded.get
   }
   
 }

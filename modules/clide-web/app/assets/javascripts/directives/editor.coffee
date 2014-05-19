@@ -79,4 +79,5 @@ define ['routes','codemirror','modes/isabelle'], (routes) ->
         # TODO: Switch annotations on and off
 
       scope.$watch 'document()', (n,o) ->
+        o?.blur()
         if n? then cm.swapDoc(n) else cm.swapDoc(CodeMirror.Doc(""))
