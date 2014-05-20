@@ -54,7 +54,9 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
     noop
   }
 
-  def stop = noop
+  def stop = Future {
+    global.askShutdown()
+  }
 
   def annotate() {    
     messages.foreach { case (path,messages) =>      
