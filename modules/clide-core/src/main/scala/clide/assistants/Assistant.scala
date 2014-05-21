@@ -175,9 +175,9 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
         files(file) = next
 
-        edits(file) = if (edits.isDefinedAt(file))
-          Operation.compose(edits(file), operation).get
-        else operation
+        edits(file) = if (edits.isDefinedAt(file)) Operation.compose(edits(file), operation).getOrElse {
+          sys.error(s"${edits(file)} -> $operation")
+        } else operation
 
         if (annotations.isDefinedAt(file))
           annotations(file) = annotations(file).mapValues(_ transform operation get)

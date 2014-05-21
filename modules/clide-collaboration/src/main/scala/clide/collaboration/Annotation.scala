@@ -201,7 +201,7 @@ object Annotations {
       }
       case (Nil,Insert(i)::bs,xs) => loop(Nil,bs,addPlain(i.length,xs))
       case _ =>
-        Failure(new Exception("the annotation couldn't be transformed because it hasn't been applied to the same document as the operation"))
+        Success(xs)
     }
     loop(a.annotations.reverse,o.actions.reverse,Nil).map(Annotations(_,a.responses))
   }
@@ -235,7 +235,7 @@ object Annotations {
       }
       case (a::as,Nil,xs) if a.length == 0 => loop(as,Nil,add(a,xs))
       case (Nil,b::bs,xs) if b.length == 0 => loop(Nil,bs,add(b,xs))
-      case _ => Failure(sys.error("the annotation lengths don't match!"))
+      case _ => Success(xs)
     }
     loop(a.annotations.reverse, b.annotations.reverse, Nil).map(Annotations(_,a.responses))
   }

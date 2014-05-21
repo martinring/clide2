@@ -145,16 +145,26 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
             selected = true
           else
             e.hide()
-        unless some
-          @autocompletes[this].remove()
-          @doc.getEditor().focus()
       next = () ->
         cur = angular.element(widget).children(".selected")
         cur.removeClass("selected")
-        cur.next().addClass("selected")
+        nxt = cur.nextAll(":not(:hidden)").first()
+        if nxt.length > 0
+          nxt.addClass("selected").get(0).scrollIntoView()
+        else
+          angular.element(widget).children(":not(:hidden)").first().addClass("selected").get(0).scrollIntoView()
+      prev = () ->
+        cur = angular.element(widget).children(".selected")
+        cur.removeClass("selected")
+        nxt = cur.prevAll(":not(:hidden)").first()
+        if nxt.length > 0
+          nxt.addClass("selected").get(0).scrollIntoView()
+        else
+          angular.element(widget).children(":not(:hidden)").last().addClass("selected").get(0).scrollIntoView()
       complete = () =>
         the = angular.element(widget).children(".selected")
-        @doc.replaceSelection(the.data("suggest").substr(filter.length))
+        if the.length > 0
+          @doc.replaceSelection(the.data("suggest").substr(filter.length))
         @autocompletes[this].remove()
         @doc.setCursor(@doc.getCursor())
         @doc.getEditor().focus()
@@ -183,14 +193,29 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
             complete()
             e.preventDefault()
             false
+          when 33 # pg up
+            for i in [1..10]
+              prev()
+            e.preventDefault()
+          when 34 #pg down
+            for i in [1..10]
+              next()
+            e.preventDefault()
           when 40 #down
             next()
+            e.preventDefault()
+          when 38 #up
+            prev()
+            e.preventDefault()
           when 37 #left
             @doc.getEditor().focus()
             @doc.getEditor().execCommand("goCharLeft")
           when 39 #right
             @doc.getEditor().focus()
             @doc.getEditor().execCommand("goCharRight")
+          when 27 # esc
+            @doc.setCursor(@doc.getCursor())
+            @doc.getEditor().focus()
           else
             #@doc.replaceSelection(String.fromCharCode(e.keyCode))
             #@doc.setCursor(@doc.getCursor())

@@ -137,34 +137,36 @@ trait ScalaCompiler { self: ScalaBehavior =>
   
   var classLoader = new AbstractFileClassLoader(target, this.getClass.getClassLoader)
   
-  def reset() {
-    target.clear
+  def reset() = try {
     reporter.reset()
-    classLoader = new AbstractFileClassLoader(target, this.getClass().getClassLoader())
+    classLoader = new AbstractFileClassLoader(target, this.getClass.getClassLoader)
   }
       
-  def complete(state: OpenedFile, p: Int)(respond: List[global.Member] => Unit) = {
+  def complete(state: OpenedFile, p: Int)(respond: List[global.Member] => Unit) = try {
     println("completing")
     val reloaded = new Response[Unit]
     val source = new BatchSourceFile(state.info.path.mkString("/"), state.state)
     global.askReload(List(source), reloaded)
     
-    val c = reloaded.get.left.map { _ =>
+    val c = reloaded.get.left.foreach { _ =>      
       val completion = new Response[List[global.Member]]
 	    val pos = global.ask(() => new OffsetPosition(source, p))
 	    global.askTypeCompletion(pos, completion)
 	    completion.get(5000).get.left.foreach { members =>
-        global.ask( () => respond(members) )
+        global.ask( () => respond(members) )        
       }
-    }    
+    }
   }
   
-  def compile(state: OpenedFile) = {
+  def compile(state: OpenedFile,done: => Unit) = try {
     println("compiling")
     val reloaded = new Response[Unit]
     val source = new BatchSourceFile(state.info.path.mkString("/"), state.state)
-    global.askReload(List(source), reloaded)
-    reloaded.get
+    global.askReload(List(source), reloaded)    
+    reloaded.get.left.foreach { _ =>
+      println(messages)
+      done 
+    }
   }
   
 }
