@@ -32,6 +32,7 @@ import scala.collection.mutable.{Buffer,Map}
 import scala.util.{Failure,Success}
 import clide.persistence.DBAccess
 import scala.slick.session.Session
+import scala.util.Success
 
 private[actors] object FileActor {
   def props(project: ProjectInfo, parent: FileInfo, name: String)(implicit dbAccess: DBAccess) =
@@ -83,7 +84,13 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
       case ((u,n),(r,a)) =>
         val before = subscriptions.get((u,n)).getOrElse(Set.empty)
         subscriptions((u,n)) = before + receiver
-        receiver ! Annotated(info.id, u, server.transformAnnotation(r.toInt, a).get, n)
+        val transformed = server.transformAnnotation(r.toInt, a) match {
+          case Success(a) => a
+          case Failure(e) => 
+            log.error(e, "transformation of annotation failed")
+            new Annotations()
+        }
+        receiver ! Annotated(info.id, u, transformed, n)
     }
     (subscriptions.keySet -- annotations.keySet).foreach {
       case (u,n) =>
