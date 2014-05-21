@@ -48,6 +48,8 @@ import isabelle.Path
 import isabelle.Document
 import clide.assistants.Cursor
 import akka.actor.Cancellable
+import isabelle.Symbol
+import clide.collaboration.Annotations
 
 object Isabelle extends Isabelle
 
@@ -113,8 +115,15 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
   
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long) = noop
   
-  def helpRequest(from: SessionInfo, file: OpenedFile, index: Int, id: String, request: String) = noop
+  implicit val ec = control.executionContext
   
+  def helpRequest(from: SessionInfo, file: OpenedFile, index: Int, id: String, request: String) = {    
+    isabelle.Symbol.names.foreach {
+      case (sym,name) =>
+        control.annotate(file, "autocompletion", (new Annotations).respond("c:" + id, "\\<" + name + ">\t" + isabelle.Symbol.decode("\\<"+name+">") + "<span class='text-muted pull-right'>" + name + "</span>"))
+    }
+    noop
+  }  
   
   override def refreshInterval() {
     refreshAnnotations()

@@ -137,7 +137,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         angular.element(widget).children().each (i) ->
           e = angular.element(this)
           e.removeClass("selected")
-          if e.data("suggest").startsWith(filter)
+          if e.data("suggest").contains(filter)
             e.show()
             some = true
             unless selected
@@ -164,14 +164,14 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
       complete = () =>
         the = angular.element(widget).children(".selected")
         if the.length > 0
-          @doc.replaceSelection(the.data("suggest").substr(filter.length))
+          @doc.replaceSelection(the.data("suggest"))
         @autocompletes[this].remove()
         @doc.setCursor(@doc.getCursor())
         @doc.getEditor().focus()
       widget.onkeypress = (e) =>
         filter = filter + String.fromCharCode(e.charCode)
-        @doc.replaceSelection(String.fromCharCode(e.charCode))
-        @doc.setCursor(@doc.getCursor())
+        @doc.replaceSelection(filter)
+        #@doc.setCursor(@doc.getCursor())
         update()
         e.preventDefault()
         false
@@ -179,9 +179,9 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         switch e.keyCode
           when 8 # backspace
             e.preventDefault()
-            @doc.getEditor().execCommand("delCharBefore")
             if filter.length > 0
               filter = filter.substr(0, filter.length - 1)
+              @doc.replaceSelection(filter)
               update(true)
             else
               @doc.getEditor().focus()
@@ -217,7 +217,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
             @doc.setCursor(@doc.getCursor())
             @doc.getEditor().focus()
           else
-            #@doc.replaceSelection(String.fromCharCode(e.keyCode))
+            #@doc.replaceSelection(filter + String.fromCharCode(e.keyCode))
             #@doc.setCursor(@doc.getCursor())
             #@doc.getEditor().focus()
       widget.onblur = =>
