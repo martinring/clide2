@@ -100,20 +100,22 @@ trait ScalaCompiler { self: ScalaBehavior =>
   val pathList = compilerPath ::: libPath
   settings.bootclasspath.value = pathList.mkString(File.pathSeparator)
   settings.classpath.value = (pathList ::: impliedClassPath).mkString(File.pathSeparator)
-  settings.YpresentationDebug.value = true
-  settings.YpresentationVerbose.value = true
+  settings.warnEverything.value = true
+  //settings.YpresentationDebug.value = true
+  //settings.YpresentationVerbose.value = true
   
   val messages = collection.mutable.Map.empty[String,SortedSet[(Int,Int,String,String)]]
   
   lazy val reporter = new AbstractReporter {
     val settings = ScalaCompiler.this.settings    
     
-    def display(pos: Position, message: String, severity: Severity) {      
-      severity.count += 1
+    def display(pos: Position, message: String, severity: Severity) {
+      println(pos,message,severity)      
       val severityName = severity match {
         case ERROR => "error"
-        case WARNING => "warning"
-        case _ => "info"
+        case WARNING => "warning"        
+        case INFO => "info"
+        case _ => "warning"
       }
       val (start,length) = try {
         (pos.startOrPoint, pos.endOrPoint - pos.startOrPoint)
@@ -121,6 +123,7 @@ trait ScalaCompiler { self: ScalaBehavior =>
         case _: Throwable => (0,0)        
       }
       messages(pos.source.file.name) += ((start, length, severityName, message))
+      annotate()
     }
     
     def displayPrompt {
@@ -129,7 +132,6 @@ trait ScalaCompiler { self: ScalaBehavior =>
     
     override def reset {
       super.reset
-      messages.values.foreach(_.clear)
     }
   }
 
@@ -142,31 +144,34 @@ trait ScalaCompiler { self: ScalaBehavior =>
     classLoader = new AbstractFileClassLoader(target, this.getClass.getClassLoader)
   }
       
-  def complete(state: OpenedFile, p: Int)(respond: List[global.Member] => Unit) = try {
-    println("completing")
+  def complete(state: OpenedFile, p: Int)(respond: List[global.Member] => Unit) = try {    
     val reloaded = new Response[Unit]
     val source = new BatchSourceFile(state.info.path.mkString("/"), state.state)
     global.askReload(List(source), reloaded)
     
     val c = reloaded.get.left.foreach { _ =>      
-      val completion = new Response[List[global.Member]]
+      val tcompletion = new Response[List[global.Member]]      
 	    val pos = global.ask(() => new OffsetPosition(source, p))
-	    global.askTypeCompletion(pos, completion)
-	    completion.get(5000).get.left.foreach { members =>
-        global.ask( () => respond(members) )        
+	    global.askTypeCompletion(pos, tcompletion)
+	    tcompletion.get(5000).get match {
+        case Left(members) => global.ask( () => respond(members) )
+        case Right(e) =>
+          println("error " + e.getMessage())
+          val scompletion = new Response[List[global.Member]]
+          global.askScopeCompletion(pos, scompletion)         
+	        scompletion.get(5000).get.left.foreach { members =>
+	          global.ask( () => respond(members) )        
+	        }
       }
     }
   }
   
-  def compile(state: OpenedFile,done: => Unit) = try {
-    println("compiling")
+  def compile(state: OpenedFile) = try {    
+    messages.values.foreach(_.clear)
+    annotate()
     val reloaded = new Response[Unit]
     val source = new BatchSourceFile(state.info.path.mkString("/"), state.state)
     global.askReload(List(source), reloaded)    
-    reloaded.get.left.foreach { _ =>
-      println(messages)
-      done 
-    }
   }
   
 }

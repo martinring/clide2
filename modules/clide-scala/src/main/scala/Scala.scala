@@ -85,14 +85,14 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
   
   def fileOpened(file: OpenedFile) = Future {
     reset()
-    compile(file,annotate())
+    compile(file)
     files += file.info.path.mkString("/") -> file
     messages += file.info.path.mkString("/") -> SortedSet.empty    
   }
 
   def fileActivated(file: OpenedFile) = Future {
     reset()
-    compile(file,annotate())
+    compile(file)
     files += file.info.path.mkString("/") -> file    
   }
 
@@ -103,7 +103,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = Future {
     reset()
     files += file.info.path.mkString("/") -> file
-    compile(file, annotate())            
+    compile(file)            
   }
 
   def collaboratorJoined(who: SessionInfo) = noop
