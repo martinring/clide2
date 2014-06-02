@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -35,14 +35,14 @@ import clide.persistence.DBAccess
  */
 object UserServer {
   private[clide] def props(implicit dbAccess: DBAccess) = Props(classOf[UserServer], dbAccess)
-  
+
   case class Forward(name: String, msg: Messages.Message)
 }
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private class UserServer(implicit val dbAccess: DBAccess) extends Actor with ActorLogging {  
+private class UserServer(implicit val dbAccess: DBAccess) extends Actor with ActorLogging {
   import dbAccess.schema._
   import dbAccess.{db => DB}
   import Messages.internal._
@@ -58,7 +58,7 @@ private class UserServer(implicit val dbAccess: DBAccess) extends Actor with Act
         errors += "name" -> "error.required"
       if (password.length < 8)
         errors += "password" -> "error.minLength(8)"
-      if (email.length < 4 || !email.contains('@')) 
+      if (email.length < 4 || !email.contains('@'))
         errors += "email" -> "error.email"
       if (errors.nonEmpty)
         sender ! ActionFailed(errors)
@@ -77,7 +77,7 @@ private class UserServer(implicit val dbAccess: DBAccess) extends Actor with Act
 	        context.system.eventStream.publish(SignedUp(user))
           }
         }
-      }          
+      }
 
     case IdentifiedFor(name,key,message) =>
       context.child(name) match {
@@ -92,11 +92,11 @@ private class UserServer(implicit val dbAccess: DBAccess) extends Actor with Act
         case Some(ref) =>
           ref.forward(Anonymous(message))
       }
-      
+
     // Name resoultion here, to support distributed hierarchy in the future
     case UserServer.Forward(name, msg) =>
       context.child(name) match {
-        case None => 
+        case None =>
           sender ! DoesntExist
         case Some(ref) =>
           ref.forward(msg)

@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -41,17 +41,17 @@ import play.api.Logger
  * @author Martin Ring <martin.ring@dfki.de>
  */
 object Global extends GlobalSettings with Core {
-  private var serverRef: ActorRef = null 
+  private var serverRef: ActorRef = null
   def server = if (serverRef == null) {
     Logger.info("creating user server")
     serverRef = createUserServer()
     serverRef
   } else serverRef
-  
+
   override def beforeStart(app: Application) {
     startup()
   }
-  
+
   override def onStop(app: Application) {
     shutdown()
     serverRef = null

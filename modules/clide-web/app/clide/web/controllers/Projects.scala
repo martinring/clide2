@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -57,7 +57,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
 
   def backstageSession(username: String) = {
     Logger.info("preparing actor socket for backstage")
-    ActorSocket( 
+    ActorSocket(
       user = username,
       message = WithUser(username,StartBackstageSession),
       serialize = serializeEvent,
@@ -83,7 +83,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
           case (Some(file),Some(rev)) => (json\"o").asOpt[Operation] match {
             case Some(operation) => Edit(file,rev,operation)
             case None => (json\"a").asOpt[Annotations] match {
-              case Some(annotation) => Annotate(file,rev,annotation,(json\"n").as[String])              
+              case Some(annotation) => Annotate(file,rev,annotation,(json\"n").as[String])
               case None =>
                 Logger.warn("didn't understand: " + json.toString)
                 ForgetIt

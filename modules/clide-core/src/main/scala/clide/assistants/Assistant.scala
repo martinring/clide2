@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -282,7 +282,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
 
     case Annotated(file, user, annotations, name) if files.isDefinedAt(file) =>
       // TODO: More universal approach on cursor positions etc.
-      val ps = annotations.positions(AnnotationType.Class,"cursor")      
+      val ps = annotations.positions(AnnotationType.Class,"cursor")
       if (ps.nonEmpty) for {
         user  <- collaborators.find(_.id == user)
         file  <- files.get(file)
@@ -301,11 +301,11 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
         (pos,req) <- rs
       } {
         val r = req.split(":")
-        if (r.length == 2) {            
+        if (r.length == 2) {
           val Array(request,id) = r
           doWork(Some(file.info.id))(behavior.helpRequest(user, file, pos, id, request))
         }
-      }              
+      }
 
     case AnnotationsRequested(file,name) if files.isDefinedAt(file) =>
       for {

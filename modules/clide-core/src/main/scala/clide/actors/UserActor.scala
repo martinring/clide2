@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -54,9 +54,9 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
 
   var logins = Map[String,LoginInfo]()
   var projects = Map[String,ProjectInfo]()
-  var otherProjects = Map[ProjectInfo,ProjectAccessLevel.Value]()  
+  var otherProjects = Map[ProjectInfo,ProjectAccessLevel.Value]()
   var backstagePeers: Map[ActorRef,LoginInfo] = Map()
-  
+
   override def preStart() {
     log.info("initializing user actor")
     DB.withSession { implicit session: Session =>
@@ -64,7 +64,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
       projects = ProjectInfos.getByOwner(user.name).map(p => p.name -> p).toMap // TODO
       val public = ProjectInfos.getPublic
       otherProjects = public.filter(_.owner != user.name).map(p => p -> ProjectAccessLevel.Write).toMap
-      otherProjects ++= ProjectAccessLevels.getUserProjects(user.name).toMap.filter(_._1.owner != user.name) // TODO      
+      otherProjects ++= ProjectAccessLevels.getUserProjects(user.name).toMap.filter(_._1.owner != user.name) // TODO
     }
     for (project <- otherProjects.keys)
       log.info(s"${user.name} collaborates in ${project.name} of ${project.owner}")
@@ -95,7 +95,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
       } else {
         context.actorSelection(s"../$user").tell(msg,sender)
       }
-    case msg if backstagePeers.contains(sender) && identified(backstagePeers(sender)).isDefinedAt(msg) => // TODO: Move to dedicated backstage actor      
+    case msg if backstagePeers.contains(sender) && identified(backstagePeers(sender)).isDefinedAt(msg) => // TODO: Move to dedicated backstage actor
       identified(backstagePeers(sender))(msg)
   }
 
@@ -117,13 +117,13 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
   }
 
   def external(user: UserInfo, login: LoginInfo): Receive = {
-    case WithProject(name,msg) =>      
+    case WithProject(name,msg) =>
       projects.get(name) match {
         case Some(project) =>
-          val access = DB.withSession { implicit session: Session => 
+          val access = DB.withSession { implicit session: Session =>
             ProjectAccessLevels.getProjectUsers(project.id).find(_._2 == user.name).map(_._3)
           }
-          context.actorSelection(s"$name").tell(           
+          context.actorSelection(s"$name").tell(
             WrappedProjectMessage(user, login.isHuman, access.getOrElse(ProjectAccessLevel.None), msg),sender)
         case None => sender ! DoesntExist
       }
@@ -178,7 +178,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
       }
 
     case WithUser(name,msg) =>
-      if (name == user.name) (identified(login) orElse anonymous)(msg) 
+      if (name == user.name) (identified(login) orElse anonymous)(msg)
       else context.parent.forward(UserServer.Forward(name, External(user, login, msg)))
 
     case Validate => sender ! Validated(user)

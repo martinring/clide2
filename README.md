@@ -100,7 +100,7 @@ For now that is the way of creating assistants. This will possibly be changed in
 License
 -------
 
-(c) copyright 2012-2013 by Martin Ring <<martin.ring@dfki.de>>
+(c) copyright 2012-2014 by Martin Ring <<martin.ring@dfki.de>>
 
 Clide2 is licensed under the LGPL v3.0 (http://www.gnu.org/copyleft/lesser.html)
 

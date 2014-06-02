@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -37,21 +37,21 @@ import clide.persistence.Schema
 import clide.persistence.DBAccess
 
 trait Core {
-  private var config: Config = null 
+  private var config: Config = null
   private var system: ActorSystem = null
-  
+
   def startup() {
     config = ConfigFactory.load.getConfig("clide-core")
     system = ActorSystem("clide", config)
   }
-  
+
   def shutdown() {
     system.shutdown()
     system.awaitTermination()
     system = null
     config = null
   }
-  
+
   private lazy val profile = {
     val runtimeMirror = universe.runtimeMirror(getClass.getClassLoader)
     val module = runtimeMirror.staticModule(config.getString("db.profile"))
@@ -63,8 +63,8 @@ trait Core {
    * If you are unfamiliar with slick, you should have a look at the
    * <a href='http://slick.typesafe.com/docs/'>slick documentation</a>.
    */
-  lazy val schema = new Schema(profile)  
-  
+  lazy val schema = new Schema(profile)
+
   /**
    * The database connection as configured in the `application.conf` file.
    */
@@ -73,7 +73,7 @@ trait Core {
     user     = config.getString("db.user"),
     password = config.getString("db.password"),
     driver   = config.getString("db.driver"))
-  
+
   /**
    * Starts up the server by creating an instance of
    * [[clide.actors.UserServer `UserServer`]]
@@ -81,7 +81,7 @@ trait Core {
   def createUserServer() = {
     db.withSession{ implicit session: Session => schema.createAllIfNotExist() }
     if (system == null) sys.error("system uninitialized")
-    system.actorOf(UserServer.props(DBAccess(db, schema)), "users")    
+    system.actorOf(UserServer.props(DBAccess(db, schema)), "users")
   }
 }
 
@@ -102,6 +102,6 @@ object Core extends Core with Bootable
  * @author Martin Ring <martin.ring@dfki.de>
  */
 object CoreApp extends App {
-  Core.startup()  
+  Core.startup()
   Core.shutdown()
 }

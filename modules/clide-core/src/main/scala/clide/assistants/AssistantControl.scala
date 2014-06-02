@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -42,7 +42,7 @@ import scala.concurrent.duration.FiniteDuration
  */
 trait AssistantControl {
   def log: LoggingAdapter
-  
+
   implicit def executionContext: ExecutionContext
 
   def chat(message: String, tpe: Option[String] = None): Unit
@@ -58,13 +58,13 @@ trait AssistantControl {
   /**
    * Offer an annotation stream for a file. Can be used to offer expensive or annoying annotations without them beeing
    * enabled by default.
-   * 
+   *
    * @param file the file for which annotations are offered
    * @param name the name of the annotation stream (must be unique)
    * @param description an optional description that will help clients to understand what the purpose of the annotation stream is
    */
   def offerAnnotations(file: OpenedFile, name: String, description: Option[String]): Unit
-  
+
   /**
    * Annotate a file
    *
@@ -73,31 +73,31 @@ trait AssistantControl {
    * @param annotations the updated annotation stream
    * @param delay optional delay. can be used to delay error annotations, so that they will not be broadcasted if the error gets removed during the delay
    */
-  def annotate(file: OpenedFile, name: String, annotations: Annotations, delay: FiniteDuration = Duration.Zero): Unit  
-  
+  def annotate(file: OpenedFile, name: String, annotations: Annotations, delay: FiniteDuration = Duration.Zero): Unit
+
   /**
    * indicate activity on a file.
-   * 
+   *
    * @param file the file
-   * @param busy when set to true, an activity indicator will be displayed to users  
+   * @param busy when set to true, an activity indicator will be displayed to users
    *             otherwise all progress or activity indicators will be removed.
    *             Note, that this flag will be automatically set while the behavior
    *             has not returned from a file update yet.
    * @param progress can be set to Some(x) where x is a value between 0 and 1 indicating
    *                 the progress on the file
-   * @param failed when set to true users will be notified about failure in the file 
+   * @param failed when set to true users will be notified about failure in the file
    */
-  //def updateFileStatus(file: OpenedFile, busy: Boolean, progress: Option[Double] = None, failed: Boolean = false): Unit     
-    
+  //def updateFileStatus(file: OpenedFile, busy: Boolean, progress: Option[Double] = None, failed: Boolean = false): Unit
+
   //def indicateFailure(file: OpenedFile, message: String): Unit
   //def indicateFailure(file: OpenedFile): Unit
   //def progress(file: OpenedFile, progress: Double): Unit
   //def
-  
+
   def workOnFile(file: OpenedFile): Unit
   def doneWithFile(file: OpenedFile): Unit
   def failedInFile(file: OpenedFile, message: Option[String]): Unit
-  
+
   /**
    * Change a file
    *

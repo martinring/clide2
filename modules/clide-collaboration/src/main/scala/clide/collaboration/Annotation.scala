@@ -1,7 +1,7 @@
  /*            _ _     _                                                      *\
  **           | (_)   | |                                                     **
  **        ___| |_  __| | ___      clide 2                                    **
- **       / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+ **       / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
  **      | (__| | | (_| |  __/     http://clide.flatmap.net                   **
  **       \___|_|_|\__,_|\___|                                                **
  **                                                                           **
@@ -101,14 +101,14 @@ case class Annotations(annotations: List[Annotation] = Nil, responses: List[(Str
     }
     result
   }
-  
+
   def positions(tpe: AnnotationType.Value): List[(Int,String)] = {
     val (_,result) = ((0,List.empty[(Int,String)]) /: annotations) {
       case ((offset,ps),Plain(n)) => (offset+n,ps)
       case ((offset,ps),Annotate(n,c)) =>
         c.find(_._1 == tpe).fold(offset+n,ps) {
           case (_,value) => (offset+n,(offset,value)::ps)
-        }        
+        }
     }
     result
   }
@@ -134,7 +134,7 @@ case class Annotations(annotations: List[Annotation] = Nil, responses: List[(Str
       case _ => Annotations(annotations :+ Plain(n), responses)
     }
   } else this
-  
+
   def respond(request: String, answer: String) =
     Annotations(annotations,responses :+ (request,answer))
 

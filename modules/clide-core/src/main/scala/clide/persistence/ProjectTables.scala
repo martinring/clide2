@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -69,8 +69,8 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
 
     def get(id: Long)(implicit session: Session) =
       Query(ProjectInfos).filter(_.id === id).firstOption
-      
-    def getPublic(implicit session: Session) = 
+
+    def getPublic(implicit session: Session) =
       Query(ProjectInfos).filter(_.public === true).elements
   }
 
@@ -113,7 +113,7 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
     def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def userName     = column[String]("name")
     def color        = column[String]("color")
-    def projectId    = column[Long]("project")    
+    def projectId    = column[Long]("project")
     def active       = column[Boolean]("active")
     def isHuman      = column[Boolean]("isHuman")
     def user         = foreignKey("fk_session_user", userName, UserInfos)(_.name,
@@ -145,16 +145,16 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
       val q = for (i <- SessionInfos if i.id === id) yield i
       q.firstOption
     }
-     
+
     // TODO: Make single query
     def cleanProject(id: Long)(implicit session: Session) = {
       // delete duplicates and keep newest
       val newest = for {
-        (name,ss) <- SessionInfos.filter(_.projectId === id) groupBy (_.userName) 
+        (name,ss) <- SessionInfos.filter(_.projectId === id) groupBy (_.userName)
       } yield name -> ss.map(_.id).max
-      
-      val toDelete = for {        
-        (name,newest) <- newest.elements        
+
+      val toDelete = for {
+        (name,newest) <- newest.elements
       } {
         SessionInfos.filter(other => other.projectId === id && other.userName === name && other.id =!= newest).delete
       }
@@ -162,10 +162,10 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
       Query(SessionInfos).map(_.active).update(false)
     }
 
-    def getForProject(id: Long)(implicit session: Session) = 
+    def getForProject(id: Long)(implicit session: Session) =
       Query(SessionInfos).filter(_.projectId === id).elements
 
-    def getForUser(name: String)(implicit session: Session) = 
+    def getForUser(name: String)(implicit session: Session) =
       Query(SessionInfos).filter(_.userName === name).elements
   }
 }

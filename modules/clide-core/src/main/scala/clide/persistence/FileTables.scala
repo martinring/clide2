@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -61,18 +61,18 @@ trait FileTables { this: Profile with ProjectTables with Mappers =>
       FileInfo(id,project,path,mimeType,deleted,exists,isDirectory,parent)
     }
 
-    def get(project: ProjectInfo, path: Seq[String])(implicit session: Session) = 
+    def get(project: ProjectInfo, path: Seq[String])(implicit session: Session) =
       Query(FileInfos).filter(_.projectId === project.id).filter(_.path === path).firstOption
 
-    def get(id: Long)(implicit session: Session) = 
+    def get(id: Long)(implicit session: Session) =
       Query(FileInfos).filter(_.id === id).firstOption
 
-    def getChildren(id: Long)(implicit session: Session) = 
+    def getChildren(id: Long)(implicit session: Session) =
       Query(FileInfos).filter(_.parentId === id).elements
-      
+
     def update(file: FileInfo)(implicit session: Session) =
       Query(FileInfos).filter(_.id === file.id).update(file)
-      
+
     def delete(file: FileInfo)(implicit session: Session) =
       Query(FileInfos).filter(_.id === file.id).delete
   }
@@ -135,7 +135,7 @@ trait FileTables { this: Profile with ProjectTables with Mappers =>
     def clear(file: Long)(implicit session: Session) =
       Query(Revisions).filter(_.fileId === file)
                       .delete
-                      
+
     def create(file: Long, id: Long, content: Operation)(implicit session: Session) =
       this.insert(Revision(file,id,content))
   }

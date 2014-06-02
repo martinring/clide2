@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -64,13 +64,13 @@ trait UserRequests { this: Controller =>
                           request: Request[A])
     extends WrappedRequest[A](request)
 
-    
+
   def ActorSocket(
       user: String,
       message: UserMessage,
       deserialize: JsValue => Message,
       serialize: Event => JsValue) = WebSocket.async[JsValue] { request =>
-        
+
     val auth = for {
       user <- request.session.get("user")
       key  <- request.session.get("key")
@@ -80,45 +80,45 @@ trait UserRequests { this: Controller =>
       case None             => AnonymousFor(user,message)
       case Some((user,key)) => IdentifiedFor(user,key,message)
     }
-            
+
     val promise = Promise[(Iteratee[JsValue,Unit], Enumerator[JsValue])]
-            
+
     val mediator = actor(system)(new Act with ActorLogging {
       val (out,channel) = Concurrent.broadcast[JsValue]
       log.debug("sending request to server: " + req.toString)
       server ! req
-      
+
       become {
         case EventSocket(peer,id) =>
           log.debug("received event socket from server")
           context.watch(peer)
-          
+
           val in = Iteratee.foreach[JsValue]{ j =>
-            log.debug("incoming message: " + j.toString)            
+            log.debug("incoming message: " + j.toString)
             peer ! deserialize(j)
-            (j \ "$ID").asOpt[Long].foreach { case id =>              
+            (j \ "$ID").asOpt[Long].foreach { case id =>
               channel.push(Json.obj("t" -> "ack", "id" -> id))
             }
           }.map { Unit =>
-            peer ! EOF            
+            peer ! EOF
             context.stop(self)
           }
-          
+
           become {
             case e: Event =>
               log.debug("forwarding serialized event: " + e.toString)
               channel.push(serialize(e))
             case EOF =>
               log.debug("EOF")
-              context.stop(self)              
+              context.stop(self)
             case Terminated(_) =>
               log.info("peer terminated")
               context.stop(self)
           }
-          
+
           promise.success(in,out)
       }
-      
+
       override def postStop {
         super.postStop
         channel.end()

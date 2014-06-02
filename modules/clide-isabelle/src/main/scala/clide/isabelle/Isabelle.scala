@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -78,22 +78,22 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
     control.log.info("fileOpened({})", file.info.path)
     noop
   }
-  
+
   def fileActivated(file: OpenedFile) = {
     control.log.info("fileActivated({})", file.info.path)
-    updateFile(file, file, initEdits(file, Nil))    
+    updateFile(file, file, initEdits(file, Nil))
   }
-  
+
   def fileInactivated(file: OpenedFile) = {
     updateFile(file, file, closeEdits(file))
   }
-  
-  def fileClosed(file: OpenedFile) = {
-    updateFile(file, file, removeEdits(file))    
-  }
-  
 
-  
+  def fileClosed(file: OpenedFile) = {
+    updateFile(file, file, removeEdits(file))
+  }
+
+
+
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = {
     control.log.info("fileChanged({},{},...)", file.info.path, delta)
     val edits = opToDocumentEdits(file, cursors, delta)
@@ -103,28 +103,28 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
 
   def collaboratorJoined(who: SessionInfo) = noop
   def collaboratorLeft(who: SessionInfo) = noop
-  
+
   def cursorMoved(cursor: Cursor) = {
     this.cursors += cursor
-    
+
     noop
   }
-  
+
   def annotationsDisregarded(file: OpenedFile, name: String) = noop
   def annotationsRequested(file: OpenedFile, name: String) = noop
-  
+
   def receiveChatMessage(from: SessionInfo, msg: String, tpe: Option[String], timestamp: Long) = noop
-  
+
   implicit val ec = control.executionContext
-  
-  def helpRequest(from: SessionInfo, file: OpenedFile, index: Int, id: String, request: String) = {    
+
+  def helpRequest(from: SessionInfo, file: OpenedFile, index: Int, id: String, request: String) = {
     isabelle.Symbol.names.foreach {
       case (sym,name) =>
         control.annotate(file, "autocompletion", (new Annotations).respond("c:" + id, "\\<" + name + ">\t" + isabelle.Symbol.decode("\\<"+name+">") + "<span class='text-muted pull-right'>" + name + "</span>"))
     }
     noop
-  }  
-  
+  }
+
   override def refreshInterval() {
     refreshAnnotations()
   }
@@ -132,8 +132,8 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
 
 object IsabelleApp extends App {
   Isabelle.startup()
-  readLine()    
+  readLine()
   Isabelle.shutdown()
-  Isabelle.system.awaitTermination()  
+  Isabelle.system.awaitTermination()
   sys.exit()
 }

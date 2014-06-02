@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -46,14 +46,14 @@ case class HaskellBehavior(control: AssistantControl) extends AssistantBehavior 
   def start(project: ProjectInfo) {
     new java.io.File(project.root).mkdirs()
     this.project = project
-    control.chat("i'm ready to go!")    
+    control.chat("i'm ready to go!")
   }
 
   def stop {
     log.info("ghc stopped")
   }
 
-  def fileOpened(file: OpenedFile) {    
+  def fileOpened(file: OpenedFile) {
   }
 
   def fileActivated(file: OpenedFile) {
@@ -146,16 +146,16 @@ case class HaskellBehavior(control: AssistantControl) extends AssistantBehavior 
       })
     }
   }
-   
+
   def annotationsRequested(file: OpenedFile, name: String) = {
     log.info("annotations requested: " + name)
     control.annotate(file, "test", (new Annotations).plain(file.state.length))
   }
-  
+
   def annotationsDisregarded(file: OpenedFile, name: String) = {
     log.info("annotations disregarded: " + name)
   }
-  
+
   def receiveChatMessage(from: String, msg: String, tpe: Option[String], timestamp: Long) {
     control.log.info("{}: {}", from, msg)
   }

@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -38,7 +38,7 @@ class Schema(override val profile: ExtendedDriver) extends
     FileInfos,
     LoginInfos,
     OpenedFiles,
-    ProjectAccessLevels,    
+    ProjectAccessLevels,
     Revisions,
     SessionInfos)
 
@@ -47,7 +47,7 @@ class Schema(override val profile: ExtendedDriver) extends
     val ddls = for (table <- tables if !MTable.getTables.list.exists(_.name.name == table.tableName)) yield table.ddl
     if (ddls.nonEmpty) ddls.reduce(_++_).create
   }
-  
+
   /** drops all existing tables */
   def dropAllIfExist()(implicit session: Session) {
     val ddls = for (table <- tables if MTable.getTables.list.exists(_.name.name == table.tableName )) yield table.ddl

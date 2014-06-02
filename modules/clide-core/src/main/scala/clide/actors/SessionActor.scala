@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -68,15 +68,15 @@ private class SessionActor(
   val fileServers = Map.empty[Long,ActorRef]
 
   val activityTimeouts = Map.empty[Long,Cancellable]
-  
+
   import context.dispatcher
-      
+
   def indicateActivity(file: Long) {
     if (isHuman) {
       if (activityTimeouts.isDefinedAt(file)) {
-        activityTimeouts.get(file).foreach(_.cancel)          
-      } else {        
-        context.parent ! BroadcastEvent(session.id, System.currentTimeMillis, WorkingOnFile(file))  
+        activityTimeouts.get(file).foreach(_.cancel)
+      } else {
+        context.parent ! BroadcastEvent(session.id, System.currentTimeMillis, WorkingOnFile(file))
       }
       activityTimeouts(file) = context.system.scheduler.scheduleOnce(1.second) {
         context.parent ! BroadcastEvent(session.id, System.currentTimeMillis, DoneWithFile(file))
@@ -84,11 +84,11 @@ private class SessionActor(
       }
     }
   }
-  
+
   val colors = context.system.settings.config.getStringList("sessionColors").toSet
 
   def wrap(msg: ProjectMessage) = Messages.internal.WrappedProjectMessage(user,isHuman,level,msg)
-  
+
   def randomColor(): String = {
     var remaining = colors
     collaborators.foreach(remaining -= _.color)
@@ -116,7 +116,7 @@ private class SessionActor(
       }
     }
   }
-  
+
   def forwardToFile(id: Long, msg: FileMessage) = {
     fileServers.get(id).map { ref =>
       ref ! msg
@@ -155,7 +155,7 @@ private class SessionActor(
       setActive(false)
       fileServers.values.foreach { _ ! EOF }
       fileServers.clear()
-      peer = context.system.deadLetters      
+      peer = context.system.deadLetters
       context.unwatch(sender)
     case CloseSession =>
       context.unwatch(peer)
@@ -245,7 +245,7 @@ private class SessionActor(
       receive(CloseSession)
   }
 
-  override def postStop() = DB.withSession { implicit session: Session =>    
+  override def postStop() = DB.withSession { implicit session: Session =>
     SessionInfos.update(this.session.copy(active = false))
   }
 

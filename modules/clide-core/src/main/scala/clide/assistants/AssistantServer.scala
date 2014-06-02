@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -49,7 +49,7 @@ import clide.collaboration.Operation
  *
  * @author Martin Ring <martin.ring@dfki.de>
  */
-class AssistantServer(behavior: AssistantControl => AssistBehavior)(implicit dummy: DummyImplicit) extends Bootable {    
+class AssistantServer(behavior: AssistantControl => AssistBehavior)(implicit dummy: DummyImplicit) extends Bootable {
   val system = ActorSystem("assistant",ConfigFactory.load)
 
   val config = system.settings.config
@@ -61,11 +61,11 @@ class AssistantServer(behavior: AssistantControl => AssistBehavior)(implicit dum
   def shutdown() {
     system.shutdown()
   }
-  
+
   /*override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 5 seconds) {
-    case _: 
+    case _:
   }*/
-  
+
   // should be deprecated some time in the future, when assistbehavior becomes stable
   //@deprecated("Use Future-based AssistBehavior instead!","2.0-SNAPSHOT")
   def this(behavior: AssistantControl => AssistantBehavior) = this {(control: AssistantControl) =>
@@ -96,12 +96,12 @@ class AssistantServer(behavior: AssistantControl => AssistBehavior)(implicit dum
  */
 private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends Actor with ActorLogging {
   var actors = Map.empty[ActorRef,(ProjectInfo,LoginInfo)]
-  
+
   /** May be overridden to modify invitation behaviour **/
   def onInvitation(project: ProjectInfo, me: LoginInfo) = {
     log.info(s"starting session for ${project.owner}/${project.name}")
     val act = context.actorOf(sessionProps(project))
-    actors += act -> (project,me)    
+    actors += act -> (project,me)
     server.tell(IdentifiedFor(me.user,me.key,WithUser(project.owner,WithProject(project.name,StartSession))),act)
     context.watch(act)
   }
@@ -172,7 +172,7 @@ private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends A
       case ChangedProjectUserLevel(project, user, level) if (user == loginInfo.user) =>
         if (level >= ProjectAccessLevel.Read)
           onInvitation(project, loginInfo)
-        else          
+        else
           sessions.get(project.id).map(_ ! PoisonPill)
           sessions.remove(project.id)
       case CreatedProject(project) =>
@@ -181,7 +181,7 @@ private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends A
         sessions.get(project.id).map(_ ! PoisonPill)
       case ServerForwarder.Restarted =>
         throw new Exception("the server was restarted")
-      case Terminated(sess) =>        
+      case Terminated(sess) =>
         sessions.find(_._2 == sess).foreach { case (id,act) =>
           actors.get(sess).foreach { case (p,i) =>
             log.info("restarting project actor")
@@ -190,11 +190,11 @@ private class AssistantServerActor(sessionProps: ProjectInfo => Props) extends A
         }
     }
   }
-  
+
   override def preStart {
     server ! ServerForwarder.Subscribe
   }
-  
+
   override def postStop {
     server ! ServerForwarder.Unsubscribe
   }

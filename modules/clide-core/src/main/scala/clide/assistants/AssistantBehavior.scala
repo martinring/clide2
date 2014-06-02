@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -107,18 +107,18 @@ trait AssistantBehavior {
    * belongs to the assistants scope.
    */
   def cursorMoved(cursor: Cursor): Unit
-  
-  
+
+
   /**
    * at least one client is interested in seeing the specified annotation stream
    */
   def annotationsRequested(file: OpenedFile, name: String): Unit
-  
+
   /**
    * all clients dropped their interest in seeing the specified annotation stream
    */
-  def annotationsDisregarded(file: OpenedFile, name: String): Unit    
-  
+  def annotationsDisregarded(file: OpenedFile, name: String): Unit
+
   /**
    * called when a chat message arrives
    * @param from username of the sender

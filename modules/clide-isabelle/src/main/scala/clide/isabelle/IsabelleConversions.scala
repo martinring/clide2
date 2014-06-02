@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -60,13 +60,13 @@ trait IsabelleConversions { self: IsabelleSession =>
          name -> Document.Node.Edits(List(Text.Edit.insert(0,file.state))),
          name -> cursors)
   }
-  
+
   def closeEdits(file: OpenedFile): List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
     val name: Document.Node.Name = file
     List(session.header_edit(name, file),
          name -> Document.Node.Perspective(true, Text.Perspective.empty, overlays))
   }
-  
+
   def removeEdits(file: OpenedFile): List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])] = {
     val name: Document.Node.Name = file
     List(name -> Document.Node.Clear(), // TODO: There must be a better way to do this

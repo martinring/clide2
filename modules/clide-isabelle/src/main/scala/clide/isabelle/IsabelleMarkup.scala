@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -31,8 +31,8 @@ import clide.collaboration.Plain
 import clide.collaboration.AnnotationType
 import isabelle._
 
-object IsabelleMarkup {  
-  val classes = Map(      
+object IsabelleMarkup {
+  val classes = Map(
       Markup.KEYWORD1 -> "command",
       Markup.KEYWORD2 -> "keyword",
       Markup.STRING -> "string",
@@ -48,10 +48,10 @@ object IsabelleMarkup {
       Markup.VAR -> "var",
       Markup.INNER_STRING -> "innerString",
       Markup.INNER_COMMENT -> "innerComment",
-      Markup.DYNAMIC_FACT -> "dynamic_fact")      
-      
+      Markup.DYNAMIC_FACT -> "dynamic_fact")
+
   val classesElements = classes.keySet
-  
+
     /* message priorities */
 
   private val writeln_pri = 1
@@ -65,19 +65,19 @@ object IsabelleMarkup {
     Markup.WRITELN -> writeln_pri, Markup.WRITELN_MESSAGE -> writeln_pri,
     Markup.TRACING -> tracing_pri, Markup.TRACING_MESSAGE -> tracing_pri,
     Markup.WARNING -> warning_pri, Markup.WARNING_MESSAGE -> warning_pri,
-    Markup.ERROR -> error_pri, Markup.ERROR_MESSAGE -> error_pri)  
-  
+    Markup.ERROR -> error_pri, Markup.ERROR_MESSAGE -> error_pri)
+
   def highlighting(snapshot: Document.Snapshot): Annotations = {
     val cs: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(classesElements), _ =>
       {
-        case (_, Text.Info(_,elem)) => Some(classes.get(elem.name))   
-      })    
+        case (_, Text.Info(_,elem)) => Some(classes.get(elem.name))
+      })
     cs.foldLeft(new Annotations) {
       case (as, Text.Info(range,None))    => as.plain(range.length)
       case (as, Text.Info(range,Some(c))) => as.annotate(range.length, List(AnnotationType.Class -> c))
-    }    
+    }
   }
-  
+
   def errors(snapshot: Document.Snapshot): Annotations = {
     val es: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.ERROR, Markup.ERROR_MESSAGE)), _ =>
       {
@@ -86,7 +86,7 @@ object IsabelleMarkup {
       })
     es.foldLeft(new Annotations) {
       case (as, Text.Info(range,None))    => as.plain(range.length)
-      case (as, Text.Info(range,_)) => as.annotate(range.length, List(AnnotationType.Class -> "error"))      
+      case (as, Text.Info(range,_)) => as.annotate(range.length, List(AnnotationType.Class -> "error"))
     }
   }
 
@@ -96,19 +96,19 @@ object IsabelleMarkup {
         case (_, Text.Info(_,elem)) =>
           Some(Some(elem.toString))
       })
-    ws.foldLeft(new Annotations) {      
+    ws.foldLeft(new Annotations) {
       case (as, Text.Info(range,None))    => as.plain(range.length)
-      case (as, Text.Info(range,_)) => as.annotate(range.length, List(AnnotationType.Class -> "warning"))      
+      case (as, Text.Info(range,_)) => as.annotate(range.length, List(AnnotationType.Class -> "warning"))
     }
   }
-  
-  def output(snapshot: Document.Snapshot, positions: Set[Text.Offset]): Annotations = {    
+
+  def output(snapshot: Document.Snapshot, positions: Set[Text.Offset]): Annotations = {
     snapshot.node.commands.foldLeft (new Annotations) {
       case (as,cmd) => if (!cmd.is_ignored) {
         val state = snapshot.state.command_state(snapshot.version, cmd)
         val outputs = state.results.entries.map(_._2)
           .filterNot(Protocol.is_result(_))
-          .collect{ 
+          .collect{
             case XML.Elem(markup,body) if markup.name == Markup.WRITELN_MESSAGE =>
               AnnotationType.Output -> XML.content(body) //isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n")
             case XML.Elem(markup,body) if markup.name == Markup.ERROR_MESSAGE =>
@@ -122,10 +122,10 @@ object IsabelleMarkup {
       }
     }
   }
-  
+
   private val tooltip_elements =
     Set(Markup.TIMING, Markup.ENTITY, Markup.SORTING, Markup.TYPING,
-      Markup.ML_TYPING, Markup.PATH) 
+      Markup.ML_TYPING, Markup.PATH)
 
   private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
     Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)
@@ -143,7 +143,7 @@ object IsabelleMarkup {
       case ((as,sub,sup,bsub,bsup),sym) if sym.length() > 1 && Symbol.decode(sym) == Symbol.esub_decoded =>
         (as.annotate(sym.length, List(AnnotationType.Substitution -> "")),false,false,false,bsup)
       case ((as,sub,sup,bsub,bsup),sym) if sym.length() > 1 && Symbol.decode(sym) == Symbol.esup_decoded =>
-        (as.annotate(sym.length, List(AnnotationType.Substitution -> "")),false,false,bsub,false)      
+        (as.annotate(sym.length, List(AnnotationType.Substitution -> "")),false,false,bsub,false)
       case ((as,true,sup,bsub,bsup),sym) =>
         (as.annotate(sym.length(), List(AnnotationType.Class -> "sub")),false,false,bsub,bsup)
       case ((as,sub,true,bsub,bsup),sym) =>
@@ -155,7 +155,7 @@ object IsabelleMarkup {
       case ((as,sub,sup,bsub,bsup),sym) =>
         (as.plain(sym.length),sub,sup,bsub,bsup)
     }._1
-  
+
   def substitutions(state: String): Annotations =
     Symbol.iterator(state).foldLeft(new Annotations) {
       case (as, sym) if sym.length == 1 || Symbol.decode(sym) == sym =>
@@ -163,8 +163,8 @@ object IsabelleMarkup {
       case (as, sym) =>
         as.annotate(sym.length, List(AnnotationType.Class -> "symbol",AnnotationType.Substitution -> Symbol.decode(sym)))
     }
-  
-  
+
+
   def progress(state: String, snapshot: Document.Snapshot): Annotations = {
     var offset = 0
     val it = state.linesWithSeparators
@@ -178,9 +178,9 @@ object IsabelleMarkup {
       offset += line.length()
     }
     result
-  } 
-  
-  private val overview_include = Protocol.command_status_markup + Markup.WARNING + Markup.ERROR    
+  }
+
+  private val overview_include = Protocol.command_status_markup + Markup.WARNING + Markup.ERROR
 
   def overview_class(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
@@ -212,5 +212,5 @@ object IsabelleMarkup {
       }
     }
   }
-  
+
 }

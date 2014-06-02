@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -54,7 +54,7 @@ object ServerForwarder {
    *   (i.e. `"akka.tcp://clide@127.0.0.1:9001/user/users"`)
    */
   def apply(path: String) = Props(classOf[ServerForwarder], path)
-  
+
   case object Subscribe
   case object Unsubscribe
   case object Restarted
@@ -70,14 +70,14 @@ private class ServerForwarder(path: String) extends Actor with Stash with ActorL
     log.info("connecting to server at {}", path)
     context.actorSelection(path) ! Identify("server")
   }
-  
+
   var subscribers = Set[ActorRef]()
-  
-  def handleSubscriptions: Receive = {    
-    case ServerForwarder.Subscribe => 
+
+  def handleSubscriptions: Receive = {
+    case ServerForwarder.Subscribe =>
       subscribers += sender
       context.watch(sender)
-    case ServerForwarder.Unsubscribe => 
+    case ServerForwarder.Unsubscribe =>
       subscribers -= sender
     case Terminated(ref) if subscribers.contains(ref) =>
       subscribers -= ref
@@ -90,7 +90,7 @@ private class ServerForwarder(path: String) extends Actor with Stash with ActorL
       case ActorIdentity("server",Some(ref)) =>
         context.become(connected(ref))
       case ActorIdentity("server",None) =>
-      case ReceiveTimeout => connect()      
+      case ReceiveTimeout => connect()
       case _ => stash()
     }
   }
@@ -101,7 +101,7 @@ private class ServerForwarder(path: String) extends Actor with Stash with ActorL
     context.setReceiveTimeout(Duration.Undefined)
     subscribers.foreach(_ ! ServerForwarder.Restarted)
     unstashAll()
-    handleSubscriptions orElse {      
+    handleSubscriptions orElse {
       case Terminated(`server`) =>
         context.become(connecting)
       case ActorIdentity("server",_) =>

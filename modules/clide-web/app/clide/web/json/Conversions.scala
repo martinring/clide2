@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -137,7 +137,7 @@ object Conversions {
   }
 
   private implicit def plain(name: String) = Json.obj("t"->name)
-  
+
   def serializeEvent(event: Event): JsValue = event match {
     case BroadcastEvent(who,when,Talk(w,m,tp))            => "talk" of Json.obj("s" -> who, "t" -> when, "m" -> m, "tp" -> tp)
     case BroadcastEvent(who,when,WorkingOnFile(f))        => "process" of Json.obj("f"->f,"u"->who,"t"->"w")
@@ -160,7 +160,7 @@ object Conversions {
     case FileInitFailed(f) => "failed" of f
     case FileCreated(f)    => "newfile" of f
     case FileDeleted(f)    => "rmfile" of f
-    case FileId(i)         => "file" of i    
+    case FileId(i)         => "file" of i
     case FileClosed(i)     => "close" of i
     case FileOpened(i)     => "opened" of i
     case Edited(file,o)    => Json.obj("f"->file,"o"->o)

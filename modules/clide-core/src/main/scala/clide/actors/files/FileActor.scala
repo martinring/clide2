@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -79,14 +79,14 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
     }
   }
 
-  def resendAnnotations(receiver: ActorRef) = {    
+  def resendAnnotations(receiver: ActorRef) = {
     annotations.foreach {
       case ((u,n),(r,a)) =>
         val before = subscriptions.get((u,n)).getOrElse(Set.empty)
         subscriptions((u,n)) = before + receiver
         val transformed = server.transformAnnotation(r.toInt, a) match {
           case Success(a) => a
-          case Failure(e) => 
+          case Failure(e) =>
             log.error(e, "transformation of annotation failed")
             new Annotations()
         }
@@ -95,9 +95,9 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
     (subscriptions.keySet -- annotations.keySet).foreach {
       case (u,n) =>
         receiver ! AnnotationsOffered(info.id, u, n, descriptions.get((u,n)))
-    }  
+    }
   }
-  
+
   def addSubscription(user: Long, name: String, peer: ActorRef) = {
     val before = subscriptions.get((user,name)).getOrElse(Set.empty)
     if (before.isEmpty) clients.find(_._2.id == user).foreach {
@@ -106,9 +106,9 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
     subscriptions((user,name)) = before + peer
     annotations.get((user,name)).foreach { case (rev,as) =>
       server.transformAnnotation(rev.toInt, as).foreach(peer ! Annotated(info.id,user,_,name))
-    }    
+    }
   }
-  
+
   def removeSubscription(user: Long, name: String, peer: ActorRef) = {
     val before = subscriptions.get((user,name)).getOrElse(Set.empty)
     val after = before - peer
@@ -116,7 +116,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
       case (r,i) => r ! AnnotationsDisregarded(info.id, name)
     }
     subscriptions((user,name)) = after
-    peer ! AnnotationsClosed(info.id,user,name)   
+    peer ! AnnotationsClosed(info.id,user,name)
   }
 
   def receiveMessages: Receive = {
@@ -173,7 +173,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
               }
           }
 
-          clients.keys.filter(ref => ref != sender && subscriptions.get(key).exists(_.contains(ref))).foreach(_ ! Annotated(info.id,clients(sender).id,as,name))          
+          clients.keys.filter(ref => ref != sender && subscriptions.get(key).exists(_.contains(ref))).foreach(_ ! Annotated(info.id,clients(sender).id,as,name))
           annotations(key) = (server.revision,as)
       }
       } else {
@@ -191,20 +191,20 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
           clients.keys.filter(_ != sender).foreach(_ ! Edited(info.id, o))
           sender ! AcknowledgeEdit(info.id)
       }
-      
+
     case SubscribeToAnnotations(_,user,name) if clients.contains(sender) =>
       addSubscription(user, name, sender)
-      
+
     case UnsubscribeFromAnnotations(_,user,name) if clients.contains(sender) =>
       removeSubscription(user, name, sender)
-      
+
     case OfferAnnotations(_,name,descr) if clients.contains(sender) =>
       val user = clients(sender).id
       subscriptions((user,name)) = Set.empty
       descr match {
         case None => descriptions.remove((user,name))
         case Some(d) => descriptions((user,name)) = d
-      }      
+      }
       clients.keys.filter(_ != sender).foreach(_ ! AnnotationsOffered(info.id,user,name,descr))
 
     case EOF =>
@@ -215,7 +215,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
         case None =>
         case Some(c) =>
           annotations.filterKeys(_._1 == c.id).toList.foreach {
-            case ((u,n),as) => 
+            case ((u,n),as) =>
               annotations.remove((u,n))
               subscriptions.remove((u,n)) match {
                 case None =>
@@ -223,12 +223,12 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
               }
           }
       }
-            
+
     case TouchFile =>
       //
 
     case Delete => // TODO !!
-      info = info.copy(deleted = true)      
+      info = info.copy(deleted = true)
       if (info.exists && !file.delete()) {
         DB.withSession { implicit session: Session => FileInfos.update(info) }
         file.deleteOnExit() // HACK: Schedule deletion instead
@@ -240,7 +240,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
 
     case Terminated(ref) =>
       receive(EOF)
-    
+
     case other => log.warning("unhandeled message: {}", other)
   }
 
@@ -251,7 +251,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
   }
 
   override def preStart() {
-    initFileEventSource()    
+    initFileEventSource()
     DB.withSession { implicit session: Session =>
       FileInfos.get(project, parent.path :+ name) match {
         case None => // The file did not previously exist

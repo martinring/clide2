@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -131,7 +131,7 @@ private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo]
       // the disk right now. For those cases we have to mark the
       // file as deleted and postpone the deletion. Otherwise we
       // can remove all evidences right away.
-      info = info.copy(deleted = true)      
+      info = info.copy(deleted = true)
       if (!file.delete()) {
         DB.withSession { implicit session: Session => FileInfos.update(info) }
         file.deleteOnExit() // HACK: Schedule deletion instead
@@ -149,7 +149,7 @@ private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo]
   }
 
   override def preStart = {
-    initFileEventSource()    
+    initFileEventSource()
     DB.withSession { implicit session: Session =>
       FileInfos.get(project, parent.map(_.path :+ name).getOrElse(Seq.empty)) match {
         case None => // The file did not previously exist

@@ -1,7 +1,7 @@
 /*             _ _     _                                                      *\
 **            | (_)   | |                                                     **
 **         ___| |_  __| | ___      clide 2                                    **
-**        / __| | |/ _` |/ _ \     (c) 2012-2013 Martin Ring                  **
+**        / __| | |/ _` |/ _ \     (c) 2012-2014 Martin Ring                  **
 **       | (__| | | (_| |  __/     http://clide.flatmap.net                   **
 **        \___|_|_|\__,_|\___|                                                **
 **                                                                            **
@@ -50,7 +50,7 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
   import clide.actors.Events._
 
   var isHuman: Boolean = false
-  var user: UserInfo = null  
+  var user: UserInfo = null
   var level = ProjectAccessLevel.None
   var root: ActorRef     = context.system.deadLetters
 
@@ -58,11 +58,11 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
   var sessionActors = Map.empty[Long,ActorRef]
 
   // TODO: Persist
-  var eventHistory = Buffer.empty[BroadcastEvent]  
-  
-  def saveEvent(e: BroadcastEvent) = {    
+  var eventHistory = Buffer.empty[BroadcastEvent]
+
+  def saveEvent(e: BroadcastEvent) = {
     e.msg match {
-      case StoppedLookingAtFile(f) => 
+      case StoppedLookingAtFile(f) =>
         eventHistory = eventHistory.filter {
           case BroadcastEvent(e.who,_,LookingAtFile(`f`)) => false
           case _ => true
@@ -86,8 +86,8 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
         eventHistory.append(e)
       case _ =>
         eventHistory.append(e)
-    }    
-  } 
+    }
+  }
 
   def admin: Receive = {
     case DeleteProject =>
@@ -109,17 +109,17 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
         case e: JdbcSQLException =>
           sender ! DoesntExist
       }
-    
+
     case Kick(session) =>
       sessions.find ( _.id == session ).map { session =>
         sessionActors.get(session.id).getOrElse {
-          context.actorOf(SessionActor.props(Some(session.id),sessions,user,this.info,isHuman,eventHistory.toList))          
+          context.actorOf(SessionActor.props(Some(session.id),sessions,user,this.info,isHuman,eventHistory.toList))
         }
       }.map {
         _.forward(Kicked)
-      }      
-  }  
-  
+      }
+  }
+
   def write: Receive = {
     case StartFileBrowser =>
       val browser = context.actorOf(FileBrowser(true,root))
@@ -144,7 +144,7 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
       val browser = context.actorOf(FileBrowser(false,root))
       browser.forward(StartFileBrowser)
     case msg @ WithPath(_,_: FileReadMessage) =>
-      root.forward(msg)    
+      root.forward(msg)
   }
 
   def none: Receive = {
@@ -173,7 +173,7 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
       this.level = level
       if (level == ProjectAccessLevel.Admin)
         (admin orElse write orElse read orElse none)(msg)
-      else if (info.public || level == ProjectAccessLevel.Write)        
+      else if (info.public || level == ProjectAccessLevel.Write)
         (write orElse read orElse none)(msg)
       else if (level == ProjectAccessLevel.Read)
         (read orElse none)(msg)
@@ -189,7 +189,7 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
     root = context.actorOf(FolderActor.props(info, None, "files"),"files")
     sessions = DB.withSession { implicit session =>
       SessionInfos.cleanProject(info.id)
-      SessionInfos.getForProject(info.id).toSet      
+      SessionInfos.getForProject(info.id).toSet
     }
     log.info(s"project ${info.owner}/${info.name}")
   }
