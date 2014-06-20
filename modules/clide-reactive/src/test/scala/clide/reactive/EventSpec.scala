@@ -15,8 +15,9 @@ import org.junit.Test
 import org.scalatest.matchers.ShouldMatchers
 import java.util.Timer
 import java.util.TimerTask
+import org.scalatest.FunSuite
 
-class EventProps extends JUnitSuite with Checkers {
+class EventProps extends FunSuite with Checkers {
   implicit val scheduler = new Scheduler {
     def now = System.currentTimeMillis()    
     def schedule[A](period: FiniteDuration)(task: => A): Cancellable = {
@@ -67,16 +68,23 @@ class EventProps extends JUnitSuite with Checkers {
   }
       
   implicit val arbEvent: Arbitrary[EventSeq] = Arbitrary(eventGen)
-  
-  @Test
-  def testToSeq() {
+    
+  test("Event.toSeq") {
     check { (a: EventSeq) =>
       Await.result(a.event.toSeq.map(_ == a.seq), 5 seconds)
     }
   }
   
-  @Test
-  def testMap() {
+  test("Event.duplicate") {
+    check { (a: EventSeq) =>
+      val (e1,e2) = a.event.duplicate
+      val s1 = e1.toSeq
+      val s2 = e2.toSeq
+      Await.result(s1, 5 seconds) == Await.result(s2, 5 seconds)
+    }
+  }
+    
+  test("Event.map") {
     check { (a: EventSeq) =>
       Await.result(for {
         mapEvent <- a.event.map(_ * 2).toSeq
@@ -84,8 +92,23 @@ class EventProps extends JUnitSuite with Checkers {
     } 
   }
   
-  @Test
-  def testZip() {
+  test("Event.flatMap") {
+    check { (a: EventSeq) =>
+      Await.result(for {
+        mapEvent <- a.event.flatMap(x => Event.interval(0.01 second).map(_ * x).take(2)).toSeq
+      } yield mapEvent.sorted == a.seq.flatMap(x => Seq.tabulate(2)(_ * x)).sorted, 5 seconds)
+    } 
+  }
+  
+  test("Event.filter") {
+    check { (a: EventSeq, i: Int) =>
+      Await.result(for {
+        mapEvent <- a.event.filter(_ < i).toSeq
+      } yield mapEvent == a.seq.filter(_ < i), 5 seconds)
+    } 
+  }  
+  
+  test("Event.zip") {
     check { (a: EventSeq, b: EventSeq) => 
       Await.result(for {
         zipEvent <- (a.event zip b.event).toSeq        
@@ -93,46 +116,40 @@ class EventProps extends JUnitSuite with Checkers {
     } 
   }
   
-  @Test
-  def testFind() {
+  test("Event.find") {
     check { (a: EventSeq) =>  
       Await.result(for {
-        elem <- a.event.find(_ > 7)
-      } yield elem == a.seq.find(_ > 7), 5 seconds)
+        elem <- a.event.find(_ == 7)
+      } yield elem == a.seq.find(_ == 7), 5 seconds)
     }
   }
   
-  @Test
-  def testTake {
+  test("Event.take") {
     check { (a: EventSeq, b: Int) =>
       Await.result(a.event.take(b).toSeq.map(_ == a.seq.take(b)),5 seconds)      
     }
   }
   
-  @Test
-  def testDrop {
+  test("Event.drop") {
     check { (a: EventSeq, b: Int) =>
       Await.result(a.event.drop(b).toSeq.map(_ == a.seq.drop(b)), 5 seconds)
     }
   }
   
-  @Test
-  def testTakeWhile {
+  test("Event.takeWhile") {
     check { (a: EventSeq) =>
       Await.result(a.event.takeWhile(_ < 7).toSeq.map{ s =>         
         s == a.seq.takeWhile(_ < 7) },5 seconds)      
     }
   }
   
-  @Test
-  def testDropWhile {
+  test("Event.dropWhile") {
     check { (a: EventSeq) =>
       Await.result(a.event.dropWhile(_ < 7).toSeq.map(_ == a.seq.dropWhile(_ < 7)), 5 seconds)
     }
   }  
   
-  @Test
-  def testSpan {
+  test("Event.span") {
     check { (a: EventSeq) =>
       Await.result({
         val (l,r) = a.event.span(_ < 7)
@@ -144,8 +161,7 @@ class EventProps extends JUnitSuite with Checkers {
     }
   }
   
-  @Test
-  def testPartition {
+  test("Event.partition") {
     check { (a: EventSeq) =>
       Await.result({
         val (l,r) = a.event.partition(_ < 5)
@@ -157,15 +173,19 @@ class EventProps extends JUnitSuite with Checkers {
     }
   }
   
-  @Test
-  def testTimestampedMonotonicity {
+  test("Event.scan") {
+    check { (a: EventSeq) =>
+      Await.result(a.event.scan(0)(_ * _).toSeq, 5 seconds) == a.seq.scan(0)(_ * _)
+    }
+  }
+  
+  test("Event.timestamped (monotonous)") {
     check { (a: EventSeq) =>
       Await.result(a.event.timestamped.toSeq.map(ts => ts == ts.sortBy(_._2)), 5 seconds)
     }
   }
   
-  @Test
-  def testMerge {
+  test("Event.merge") {
     check { (a: EventSeq, b: EventSeq) =>      
       Await.result(a.event.timestamped.merge(b.event.timestamped).toSeq.map(ts => ts == ts.sortBy(_._2)), 5 seconds)      
     }
@@ -174,19 +194,17 @@ class EventProps extends JUnitSuite with Checkers {
     }
   }
   
-  @Test
-  def test_++ {
+  test("Event ++") {
     check { (a: EventSeq, b: EventSeq) =>
       Await.result((a.event ++ b.event).toSeq.map(_ == a.seq ++ b.seq), 10 seconds)
     }
   }
       
-  @Test
-  def testVarying {
+  test("Event.varying") {
     def varyingSeq(seq: Seq[Int]) =
       seq.take(1) ++ seq.zip(seq.drop(1)).collect { case (a,b) if a != b => b }
     check { (a: EventSeq) =>
       Await.result(a.event.varying.toSeq.map(_ == varyingSeq(a.seq)), 5 seconds)
     }
-  }
+  }  
 }

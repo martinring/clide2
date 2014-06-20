@@ -30,21 +30,21 @@ define ['routes'], (routes) -> ($routeProvider, $locationProvider, $sceProvider)
 
   $locationProvider.html5Mode(true)
 
-  $routeProvider.when '/'
+  $routeProvider.when '/',
     redirectTo: '/login'
-  $routeProvider.when '/login'
+  $routeProvider.when '/login',
     title:       'login'
     templateUrl: '/client/partials/login.html'
     controller:  'LoginController'
-  $routeProvider.when '/signup'
+  $routeProvider.when '/signup',
     title:       'signup'
     templateUrl: '/client/partials/signup.html'
     controller:  'SignupController'
-  $routeProvider.when '/admin'
+  $routeProvider.when '/admin',
     title:       'admin'
     templateUrl: '/client/partials/admin.html'
     controller:  'AdminController'
-  $routeProvider.when '/:user/backstage'
+  $routeProvider.when '/:user/backstage',
     title:       'backstage'
     templateUrl: '/client/partials/backstage.html'
     controller:  'BackstageController'

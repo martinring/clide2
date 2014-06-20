@@ -31,13 +31,13 @@ import clide.web.json.Conversions.ProjectInfoWrites
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.Results._
-import play.api.mvc.SimpleResult
+import play.api.mvc.Result
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
 trait DefaultResults {
-  implicit def defaultResult(event: Event): SimpleResult = event match {
+  implicit def defaultResult(event: Event): Result = event match {
     case CreatedProject(info) => Ok(Json.toJson(info))
     case ProjectCouldNotBeCreated(reason) => BadRequest(reason)
     case DeletedProject(info) => Ok

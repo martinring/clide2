@@ -69,7 +69,7 @@ trait UserRequests { this: Controller =>
       user: String,
       message: UserMessage,
       deserialize: JsValue => Message,
-      serialize: Event => JsValue) = WebSocket.async[JsValue] { request =>
+      serialize: Event => JsValue) = WebSocket.tryAccept[JsValue] { request =>
 
     val auth = for {
       user <- request.session.get("user")
@@ -81,7 +81,7 @@ trait UserRequests { this: Controller =>
       case Some((user,key)) => IdentifiedFor(user,key,message)
     }
 
-    val promise = Promise[(Iteratee[JsValue,Unit], Enumerator[JsValue])]
+    val promise = Promise[Either[Result,(Iteratee[JsValue,Unit], Enumerator[JsValue])]]
 
     val mediator = actor(system)(new Act with ActorLogging {
       val (out,channel) = Concurrent.broadcast[JsValue]
@@ -116,7 +116,7 @@ trait UserRequests { this: Controller =>
               context.stop(self)
           }
 
-          promise.success(in,out)
+          promise.success(Right(in,out))
       }
 
       override def postStop {
@@ -127,13 +127,12 @@ trait UserRequests { this: Controller =>
 
     promise.future.recover {
       case e =>
-        Logger.info("failed")
-        (Iteratee.ignore[JsValue], Enumerator[JsValue](Json.obj("t"->"e","c"->e.getMessage)).andThen(Enumerator.eof))
+        Left(Unauthorized("unauthorized for socket"))        
     }
   }
 
   object UserRequest extends ActionBuilder[UserAskRequest] {
-    def invokeBlock[A](request: Request[A], block: UserAskRequest[A] => Future[SimpleResult]) = {
+    def invokeBlock[A](request: Request[A], block: UserAskRequest[A] => Future[Result]) = {
       val auth = for {
         user <- request.session.get("user")
         key  <- request.session.get("key")

@@ -26,7 +26,7 @@ import scala.concurrent.duration.FiniteDuration
  * make them incompatible with other collection types:
  * 
  *  * Results of operations that return a single value are wrapped in a `Future`:
- *    e.g. `length` returns a Future[Long] or `foldLeft` return  
+ *    e.g. `length` returns a `Future[Long]` or `foldLeft[B]` returns a `Future[B]`
  * 
  */
 trait Event[+A] {
@@ -124,10 +124,10 @@ trait Event[+A] {
   def last(implicit ec: ExecutionContext): Future[A] =
     lastOption.map(_.getOrElse(throw new NoSuchElementException("Event.last on empty event")))
     
-  def tail(implicit ec: ExecutionContext): Future[Event[A]] = next.map {
+  def tail(implicit ec: ExecutionContext): Event[A] = Event(next.flatMap {
     case None => throw new UnsupportedOperationException("Event.tail on empty event")
-    case Some((_,tail)) => tail
-  }
+    case Some((_,tail)) => tail.next
+  })(stop())
 
   def apply(index: Int)(implicit ec: ExecutionContext): Future[A] = 
     if (index < 0) Future.failed(new IndexOutOfBoundsException)
@@ -235,11 +235,11 @@ trait Event[+A] {
     }   
     
   def scan[B](start: B)(f: (B,A) => B)(implicit ec: ExecutionContext): Event[B] = 
-    Event(next.map {
+    Event.single(start) ++ Event(next.map {
       case None => None
       case Some((a,e)) =>
         val b = f(start,a)
-        Some(b,e.scan(b)(f))
+        Some(b,e.scan(b)(f).tail)
     })(stop())
   
   def scanF[B](start: B)(f: (B,A) => Future[B])(implicit ec: ExecutionContext): Event[B] =
@@ -274,7 +274,7 @@ trait Event[+A] {
       
   def splitBy[B](that: Event[B])(implicit ec: ExecutionContext): Event[Event[A]] = {
     val (head,tail) = timeSpan(that.head)
-    head +: tail.splitBy(that)
+    head +: tail.splitBy(that.tail)
   }
   
   def timestamped(implicit ec: ExecutionContext, scheduler: Scheduler): Event[(A,Long)] =

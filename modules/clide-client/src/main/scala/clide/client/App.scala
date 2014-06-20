@@ -10,7 +10,7 @@ import org.scalajs.dom
   
 @JSExport
 object App extends clide.reactive.ui.App with History { 
-  dom.document.body.innerHTML = ""     
+  dom.document.body.innerHTML = ""
   
   val BackstagePath = "/([A-Za-z0-9 ]+)/backstage".r
     
@@ -21,11 +21,7 @@ object App extends clide.reactive.ui.App with History {
     case x if x.startsWith("/login") => title = "Login"
     case _ => title = "Somewhere else"
   }
-    
-  def f(x: Int) = x * x
-  
-  val x: Int => Int = f
-  
+
   def basics = {   
     val name = Var("World")
     XML.include(HTML5,"basics.html") 

@@ -47,7 +47,7 @@ import scala.concurrent.Future
  */
 object Application extends Controller with UserRequests {
   def index(path: String) = UserRequest.async { implicit request =>
-    def notLoggedIn: SimpleResult = path match {
+    def notLoggedIn: Result = path match {
       case "login" => Ok(clide.web.views.html.index()).withNewSession
       case _       => Redirect("/login").withNewSession
     }

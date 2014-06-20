@@ -24,6 +24,10 @@
 
 import sbt._
 import Keys._
+import scala.scalajs.sbtplugin.ScalaJSPlugin._
+import ScalaJSKeys._
+import com.typesafe.sbt.packager.universal.UniversalKeys
+import com.typesafe.sbteclipse.core.EclipsePlugin.EclipseKeys
 
 object ClideBuild extends Build with BuildUtils with Publishing with Dependencies {
   override def rootProject = Some(web)
@@ -81,27 +85,23 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
       addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
     )
 
-  lazy val web = playModule("web")
+  lazy val web = playModule("web").enablePlugins(Angular)
     .dependsOn(core,messages)
-    .settings(Angular.defaultSettings :_*)
-    .dependsOnJs(client -> "client.js")
+    //.dependsOnJs(client -> "client.js")
     .settings(
-      Angular.otherModules ++= Map(
+      Angular.autoImport.angularOtherModules ++= Map(
         "angular-animate"  -> "ngAnimate",
         "angular-cookies"  -> "ngCookies",
         "angular-route"    -> "ngRoute",
         "angular-resource" -> "ngResource",
         "ui-bootstrap"     -> "ui.bootstrap"),
-      Angular.moduleDirs ++= Map(
+      Angular.autoImport.angularModuleDirs ++= Map(
           "controllers" -> ("controller", "Controller", true),
           "directives"  -> ("directive","",false),
           "filters"     -> ("filter","",false),
           "services"    -> ("service","",true)),
-      resourceGenerators in Compile <+= play.Project.LessCompiler,
-      resourceGenerators in Compile <+= play.Project.JavascriptCompiler(fullCompilerOptions = None),
-      resourceGenerators in Compile <+= Angular.ModuleCompiler,
       resourceGenerators in Compile <+= Angular.BoilerplateGenerator,
-      play.Project.lessEntryPoints <<= (sourceDirectory in Compile){ base =>
+      play.PlayImport.PlayKeys.lessEntryPoints <<= (sourceDirectory in Compile){ base =>
         base / "assets" / "stylesheets" * "main.less" }
     )
 

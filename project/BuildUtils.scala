@@ -26,7 +26,6 @@ import sbt._
 import Keys._
 import scalajs.sbtplugin.ScalaJSPlugin._
 import ScalaJSKeys._
-import play.Project._
 
 trait BuildUtils {
   case class Developer(id: String, name: String, url: URL)
@@ -58,10 +57,10 @@ trait BuildUtils {
   def playModule(suffix: String) = Project(
     base = file(s"modules/$baseName-$suffix"),
     id = s"$baseName-$suffix"
-  ).settings(
+  ).enablePlugins(play.PlayScala)
+   .settings(
     name := s"$baseName-$suffix"
   ).settings(
-    playScalaSettings ++
     commonSettings :_*
   )
 
@@ -81,21 +80,15 @@ trait BuildUtils {
     def js(f: Project => Project) = (jvmp,f(jsp))
   }
 
-  implicit class ScalaJSPlayProject(val project: Project) {
+  /*implicit class ScalaJSPlayProject(val project: Project) {
     def dependsOnJs(references: (Project,String)*): Project =
       references.foldLeft(project){ case (project,(ref,name)) =>
         project.settings (
-          resourceGenerators in Compile <+= (preoptimizeJS in (ref,Compile), resourceManaged in Compile).map { (opt,outDir) =>
-            val path = outDir / "public" / "javascripts" / name
-            if (!path.exists || (path olderThan opt))
-              IO.copyFile(opt, path, true)
-            Seq[java.io.File](path)
-          },
-          watchSources <++= watchSources in ref,
-          playMonitoredFiles <<= (playMonitoredFiles, watchSources in ref).map { (files,refSources) =>
-            (files ++ refSources.map(_.getCanonicalPath)).distinct
-          }
+          scalajsOutputDir     := (crossTarget in Compile).value / "classes" / "public" / "javascripts",
+          compile in Compile <<= (compile in Compile) dependsOn (preoptimizeJS in (project, Compile)),
+          dist <<= dist dependsOn (optimizeJS in (project, Compile)),
+          unmanagedSourceDirectories in Compile += new File((baseDirectory.value / ".." / sharedSrcDir).getCanonicalPath)
         )
       }
-  }
+  }*/
 }
