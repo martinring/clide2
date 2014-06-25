@@ -48,6 +48,8 @@ object UserInfoWithPassword {
     new UserInfo(name,email) with Password { val password = pword }
 
   def unapply(u: UserInfo with Password) = Some((u.name,u.email,u.password))
+  
+  val tupled = (apply _).tupled
 }
 
 trait Password { self: UserInfo =>

@@ -25,7 +25,7 @@ package clide.models
 
 @SerialVersionUID(1L)
 case class SessionInfo(
-  id: Long,
+  id: Long = 0,
   user: String,
   color: String,
   project: Long,

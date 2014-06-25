@@ -29,15 +29,13 @@ import java.io.File
 import akka.actor.ActorLogging
 import clide.models._
 import clide.actors._
-import clide.persistence.DBAccess
-import scala.slick.session.Session
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private[actors] object FolderActor {
-  def props(project: ProjectInfo, parent: Option[FileInfo], name: String)(implicit dbAccess: DBAccess) =
-    Props(classOf[FolderActor], project, parent, name, dbAccess)
+  def props(project: ProjectInfo, parent: Option[FileInfo], name: String) =
+    Props(classOf[FolderActor], project, parent, name)
 }
 
 /**
@@ -45,9 +43,10 @@ private[actors] object FolderActor {
  *
  * @author Martin Ring <martin.ring@dfki.de>
  **/
-private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String)(implicit val dbAccess: DBAccess) extends Actor with ActorLogging with FileEventSource {
-  import dbAccess.schema._
-  import dbAccess.{db => DB}
+private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo], name: String) extends Actor with ActorLogging with FileEventSource {
+  import clide.Core.{ db => DB }
+  import clide.Core.schema._
+  import clide.Core.profile.simple._
   import Messages._
   import Events._
 
@@ -153,7 +152,7 @@ private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo]
     DB.withSession { implicit session: Session =>
       FileInfos.get(project, parent.map(_.path :+ name).getOrElse(Seq.empty)) match {
         case None => // The file did not previously exist
-          info = FileInfos.create(
+          info = FileInfos.create(FileInfo(
             project = project.id,
             path    = parent.map(_.path :+ name).getOrElse(Seq.empty),
             mimeType = None,
@@ -161,7 +160,7 @@ private[actors] class FolderActor(project: ProjectInfo, parent: Option[FileInfo]
             exists  = false,
             isDirectory = true,
             parent = parent.map(_.id)
-          )
+          ))
           log.info("created file " + info)
           triggerFileEvent(FileCreated(info))
         case Some(info) =>

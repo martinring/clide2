@@ -40,20 +40,20 @@ import play.api.Logger
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-object Global extends GlobalSettings with Core {
+object Global extends GlobalSettings {
   private var serverRef: ActorRef = null
   def server = if (serverRef == null) {
     Logger.info("creating user server")
-    serverRef = createUserServer()
+    serverRef = Core.createUserServer()
     serverRef
   } else serverRef
 
   override def beforeStart(app: Application) {
-    startup()
+    Core.startup()
   }
 
   override def onStop(app: Application) {
-    shutdown()
+    Core.shutdown()
     serverRef = null
   }
 }

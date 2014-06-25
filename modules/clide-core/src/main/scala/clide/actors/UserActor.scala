@@ -25,9 +25,7 @@ package clide.actors
 
 import akka.actor._
 import clide.models._
-import scala.slick.session.Session
 import java.util.UUID
-import clide.persistence.DBAccess
 import akka.pattern.ask
 import scala.concurrent.duration._
 import akka.util.Timeout
@@ -37,17 +35,17 @@ import scala.util.Success
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private object UserActor {
-  def props(user: UserInfo with Password)(implicit dbAccess: DBAccess) =
-    Props(classOf[UserActor], user, dbAccess)
+  def props(user: UserInfo with Password) =
+    Props(classOf[UserActor], user)
 }
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private class UserActor(var user: UserInfo with Password)(implicit val dbAccess: DBAccess) extends Actor with ActorLogging {
-  println("instance created")
-  import dbAccess.schema._
-  import dbAccess.{db => DB}
+private class UserActor(var user: UserInfo with Password) extends Actor with ActorLogging {
+  import clide.Core.{ db => DB }
+  import clide.Core.schema._
+  import clide.Core.profile.simple._  
   import Messages.internal._
   import Messages._
   import Events._
@@ -157,7 +155,7 @@ private class UserActor(var user: UserInfo with Password)(implicit val dbAccess:
       } else if (projects.contains(name)) {
         sender ! ProjectCouldNotBeCreated("A project with this name already exists")
       } else {
-        val project = DB.withSession { implicit session: Session => ProjectInfos.create(name,user.name,description,public) }
+        val project = DB.withSession { implicit session: Session => ProjectInfos.create(ProjectInfo(0,name,user.name,description,public)) }
         projects += name -> project
         context.actorOf(ProjectActor(project), project.name)
         sender ! CreatedProject(project)

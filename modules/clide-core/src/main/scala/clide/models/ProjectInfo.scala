@@ -26,7 +26,7 @@ package clide.models
 
 @SerialVersionUID(1L)
 case class ProjectInfo(
-    id: Long,
+    id: Long = 0,
     name: String,
     owner: String,
     description: Option[String] = None,

@@ -4,17 +4,15 @@
   
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
      <file>${application.home}/logs/application.log</file>
-     
-   </appender>
-
-  <encoder>
+     <encoder>
        <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
-     </encoder><appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%coloredLevel %logger{15} - %message%n%xException{5}</pattern>
-    </encoder>
-  </appender>
-  
+     </encoder>
+   </appender>
+<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+  <encoder>
+    <pattern>[%X{akkaTimestamp}] [%-5level] [%logger{36}] [%X{akkaSource}] - %msg%n</pattern>
+  </encoder>
+</appender>
   <logger name="play" level="INFO" />
   <logger name="application" level="INFO" />
 

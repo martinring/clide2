@@ -24,7 +24,6 @@
 
 package clide.persistence
 
-import scala.slick.lifted.MappedTypeMapper
 import clide.collaboration._
 import clide.models._
 import akka.serialization.SerializationExtension
@@ -35,9 +34,11 @@ import java.io.ObjectInputStream
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 
-trait Mappers {
+trait Mappers { self: Profile =>
+  import profile.simple._
+  
   implicit val ProjectAccessLevelMapper =
-    MappedTypeMapper.base[ProjectAccessLevel.Value, Int](_.id , ProjectAccessLevel.apply _)
+    MappedColumnType.base[ProjectAccessLevel.Value, Int](_.id , ProjectAccessLevel.apply _)
 
   implicit val OperationMapper = {
     def serialize(op: Operation) = JsArray(op.actions.map {
@@ -56,6 +57,6 @@ trait Mappers {
       case _ => sys.error("can't parse operation")
     }
 
-    MappedTypeMapper.base[Operation, String](serialize,deserialize)
+    MappedColumnType.base[Operation, String](serialize,deserialize)
   }
 }

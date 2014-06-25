@@ -56,18 +56,13 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
   lazy val (messages,messagesJs) = sharedModule("messages")
 
   lazy val xml = module("xml")
-    .dependsOn(scala.quasiquotes).settings(
-      resolvers += Resolver.sonatypeRepo("snapshots"),
-      resolvers += Resolver.sonatypeRepo("releases"),
-      addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
-    )
 
   lazy val core = module("core")
     .dependsOn(collaboration,messages)
     .dependsOn(
       "ch.qos.logback" % "logback-classic" % "1.0.13", spray.json,
       akka.actor, akka.remote, akka.kernel, akka.testkit,
-      scala.reflect, slick,h2,slf4j,scalatest,scalacheck)
+      scala.reflect, slick,h2,scalatest,scalacheck)
 
   lazy val (reactive,reactiveJs) = sharedModule("reactive")
     .jvm(DependenciesProject(_).dependsOn(scalatest,scalacheck,junit,akka.actor,scala.reflect))
@@ -79,11 +74,6 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
   lazy val client = jsModule("client")
     .dependsOn(scalajs.dom)
     .dependsOn(xml, reactiveUi, collaborationJs, messagesJs)
-    .settings(
-      resolvers += Resolver.sonatypeRepo("snapshots"),
-      resolvers += Resolver.sonatypeRepo("releases"),
-      addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
-    )
 
   lazy val web = playModule("web").enablePlugins(Angular)
     .dependsOn(core,messages)
@@ -110,7 +100,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   lazy val isabelle = module("isabelle")
     .dependsOn(core)
-    .dependsOn(akka.actor, akka.remote, akka.kernel, scala.swing, scala.actors)
+    .dependsOn(akka.actor, akka.remote, akka.kernel, scala.actors)
 
   lazy val haskell = module("haskell")
     .dependsOn(core)

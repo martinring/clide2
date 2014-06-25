@@ -28,15 +28,12 @@ import akka.actor._
 import com.typesafe.config.ConfigFactory
 import akka.kernel.Bootable
 import clide.actors.UserServer
-import scala.slick.session.Database
 import scala.reflect.runtime.universe
-import scala.slick.driver.ExtendedDriver
-import scala.slick.session.Session
 import com.typesafe.config.Config
 import clide.persistence.Schema
-import clide.persistence.DBAccess
+import scala.slick.driver.JdbcDriver
 
-trait Core {
+object Core extends Bootable {
   private var config: Config = null
   private var system: ActorSystem = null
 
@@ -52,11 +49,13 @@ trait Core {
     config = null
   }
 
-  private lazy val profile = {
+  lazy val profile = {
     val runtimeMirror = universe.runtimeMirror(getClass.getClassLoader)
     val module = runtimeMirror.staticModule(config.getString("db.profile"))
-    runtimeMirror.reflectModule(module).instance.asInstanceOf[ExtendedDriver]
+    runtimeMirror.reflectModule(module).instance.asInstanceOf[JdbcDriver]
   }
+
+  import profile.simple._
 
   /**
    * The Data Access Layer. (see [[clide.persistence.Schema `clide.persistence.Schema`]])
@@ -68,10 +67,10 @@ trait Core {
   /**
    * The database connection as configured in the `application.conf` file.
    */
-  lazy val db = slick.session.Database.forURL(
+  lazy val db = Database.forURL(
     url      = config.getString("db.url"),
     user     = config.getString("db.user"),
-    password = config.getString("db.password"),
+    password = config.getString("db.password"),    
     driver   = config.getString("db.driver"))
 
   /**
@@ -79,21 +78,12 @@ trait Core {
    * [[clide.actors.UserServer `UserServer`]]
    */
   def createUserServer() = {
-    db.withSession{ implicit session: Session => schema.createAllIfNotExist() }
+    // FIXME: createAll must be working again
+    //db.withSession{ implicit session: Session => schema.createAllIfNotExist() }
     if (system == null) sys.error("system uninitialized")
-    system.actorOf(UserServer.props(DBAccess(db, schema)), "users")
+    system.actorOf(UserServer.props, "users")
   }
 }
-
-/**
- * This is the main entry point for the microkernel akka application. It sets up
- * the configuration and then starts an instance of a
- * [[clide.actors.UserServer `UserServer`]].
- *
- * @author Martin Ring <martin.ring@dfki.de>
- */
-object Core extends Core with Bootable
-
 
 /**
  * The CoreApp can be utilized to start an instance of the core server without

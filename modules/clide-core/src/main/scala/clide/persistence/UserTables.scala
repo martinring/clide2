@@ -26,60 +26,67 @@ package clide.persistence
 
 import clide.models._
 import java.sql.Date
-import slick.lifted.ForeignKeyAction
 import java.security.MessageDigest
 import scala.slick.lifted.MappedProjection
 
 trait UserTables { this: Profile =>
   import profile.simple._
 
-  object UserInfos extends Table[UserInfo with Password]("users") {
+  class UserInfos(tag: Tag) extends Table[UserInfo with Password](tag, "users") {
     def name     = column[String]("name", O.PrimaryKey)
     def email    = column[String]("email")
     def password = column[Array[Byte]]("password")
-    def *        = name ~ email ~ password <> (UserInfoWithPassword.apply _, UserInfoWithPassword.unapply _)
-
+    def *        = (name, email, password) <> (UserInfoWithPassword.tupled, UserInfoWithPassword.unapply)
+  }
+  
+  val userInfos = TableQuery[UserInfos]
+  
+  object UserInfos {
     def get(name: String)(implicit session: Session) =
-      Query(UserInfos).filter(_.name === name).firstOption
+      userInfos.filter(_.name === name).firstOption
 
     def getAll(implicit session: Session) =
-      Query(UserInfos).elements
+      userInfos.list
 
     def getByEmail(email: String)(implicit session: Session) =
-      Query(UserInfos).filter(_.email === email).firstOption
+      userInfos.filter(_.email === email).firstOption
 
     def authenticate(user: UserInfo with Password)(implicit session: Session) =
-      Query(UserInfos).filter(_.name === user.name).filter(_.password === user.password).exists
+      userInfos.filter(_.name === user.name).filter(_.password === user.password).exists
 
     def insert(user: UserInfo with Password)(implicit session: Session) = {
-      name ~ email ~ password insert (user.name, user.email, user.password)
+      userInfos += user
     }
   }
 
-  object LoginInfos extends Table[LoginInfo]("logins") {
+  class LoginInfos(tag: Tag) extends Table[LoginInfo](tag, "logins") {
     def userName = column[String]("user")
     def key      = column[String]("key")
     def timeout  = column[Option[Date]]("timeout")
-    def user     = foreignKey("fk_login_user", userName, UserInfos)(_.name,
-        onUpdate = ForeignKeyAction.Cascade,
-        onDelete = ForeignKeyAction.Cascade)
+    def user     = foreignKey("fk_login_user", userName, userInfos)(_.name,
+        ForeignKeyAction.Cascade, // update
+        ForeignKeyAction.Cascade) // delete
     def isHuman  = column[Boolean]("isHuman")
 
-    def *        = userName ~ key ~ timeout ~ isHuman <> (LoginInfo.apply _, LoginInfo.unapply _)
-
+    def *        = (userName, key, timeout, isHuman) <> (LoginInfo.tupled, LoginInfo.unapply)
+  }
+  
+  val loginInfos = TableQuery[LoginInfos]
+  
+  object LoginInfos {
     def create(info: LoginInfo)(implicit session: Session) = {
-      *.insert(info)
+      loginInfos += info
     }
 
     def getByUser(user: String)(implicit session: Session) =
-      Query(LoginInfos).filter(_.userName === user).elements
+      loginInfos.filter(_.userName === user).list
 
     def getByKey(key: String)(implicit session: Session) =
-      Query(LoginInfos).filter(_.key === key).elements
+      loginInfos.filter(_.key === key).list
 
     def delete(login: LoginInfo)(implicit session: Session) =
-      Query(LoginInfos).filter(_.key === login.key)
-                       .filter(_.userName === login.user)
-                       .delete
+      loginInfos.filter(_.key === login.key)
+                .filter(_.userName === login.user)
+                .delete
   }
 }

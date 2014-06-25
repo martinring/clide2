@@ -24,33 +24,34 @@
 
  package clide.persistence
 
-import scala.slick.driver.ExtendedDriver
-import scala.slick.jdbc.meta.MTable
+import scala.slick.driver.JdbcDriver
+ import scala.slick.jdbc.meta.MTable
+ import scala.slick.driver.JdbcDriver
 
-class Schema(override val profile: ExtendedDriver) extends
+class Schema(override val profile: JdbcDriver) extends
   FileTables with ProjectTables with UserTables with Profile with Mappers {
 
   import profile.simple._
 
   val tables = Seq(
-    UserInfos,
-    ProjectInfos,
-    FileInfos,
-    LoginInfos,
-    OpenedFiles,
-    ProjectAccessLevels,
-    Revisions,
-    SessionInfos)
+    userInfos,
+    projectInfos,
+    fileInfos,
+    loginInfos,
+    openedFiles,
+    projectAccessLevels,
+    revisions,
+    sessionInfos)
 
-  /** creates the tables, that don't exist already */
+  /** creates the tables, that don't exist already *
   def createAllIfNotExist()(implicit session: Session) {
     val ddls = for (table <- tables if !MTable.getTables.list.exists(_.name.name == table.tableName)) yield table.ddl
     if (ddls.nonEmpty) ddls.reduce(_++_).create
-  }
+  }*/
 
-  /** drops all existing tables */
+  /** drops all existing tables *
   def dropAllIfExist()(implicit session: Session) {
     val ddls = for (table <- tables if MTable.getTables.list.exists(_.name.name == table.tableName )) yield table.ddl
     if (ddls.nonEmpty) ddls.reduce(_++_).drop
-  }
+  }*/
 }

@@ -28,10 +28,8 @@ import clide.models._
 import scala.util.Random
 import scala.collection.JavaConversions._
 import scala.collection.mutable.Map
-import scala.slick.session.Session
 import clide.actors.Messages._
 import clide.actors.Events._
-import clide.persistence.DBAccess
 import scala.concurrent.duration._
 /**
  * @author Martin Ring <martin.ring@dfki.de>
@@ -43,8 +41,8 @@ private object SessionActor {
     user: UserInfo,
     project: ProjectInfo,
     isHuman: Boolean,
-    eventHistory: List[BroadcastEvent])(implicit dbAccess: DBAccess) =
-      Props(classOf[SessionActor], id, collaborators, user, project, isHuman, eventHistory, dbAccess)
+    eventHistory: List[BroadcastEvent]) =
+      Props(classOf[SessionActor], id, collaborators, user, project, isHuman, eventHistory)
 }
 
 /**
@@ -56,11 +54,11 @@ private class SessionActor(
     val user: UserInfo,
     val project: ProjectInfo,
     val isHuman: Boolean,
-    var eventHistory: List[BroadcastEvent])
-    (implicit val dbAccess: DBAccess) extends Actor with ActorLogging{
-  import dbAccess.schema._
-  import dbAccess.{db => DB}
-
+    var eventHistory: List[BroadcastEvent]) extends Actor with ActorLogging{
+  import clide.Core.{ db => DB }
+  import clide.Core.schema._
+  import clide.Core.profile.simple._  
+  
   val level = ProjectAccessLevel.Admin // TODO
   var session: SessionInfo = null
   var peer = context.system.deadLetters
@@ -256,12 +254,12 @@ private class SessionActor(
   override def preStart() = DB.withSession { implicit session: Session =>
     this.session = id.flatMap { id => SessionInfos.get(id)
     }.getOrElse {
-      val res = SessionInfos.create(
+      val res = SessionInfos.create(SessionInfo(
         user = this.user.name,
         color = randomColor(),
         project = project.id,
         isHuman = this.isHuman,
-        active = false)
+        active = false))
       context.parent ! SessionChanged(res)
       res
     }

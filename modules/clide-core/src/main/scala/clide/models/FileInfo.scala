@@ -24,14 +24,8 @@
 
 package clide.models
 
-import scala.slick.driver.H2Driver.simple._
-import Database.{threadLocalSession => session}
-import akka.actor.Actor
-import java.sql.Date
-import scala.slick.lifted.ForeignKeyAction
-
 case class FileInfo(
-  id: Long,
+  id: Long = 0,
   project: Long,
   path: Seq[String],
   mimeType: Option[String],

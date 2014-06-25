@@ -25,124 +25,132 @@
 package clide.persistence
 
 import clide.models._
-import scala.slick.lifted.ForeignKeyAction
 
 trait ProjectTables { this: Profile with Mappers with UserTables with FileTables =>
   import profile.simple._
 
-  object ProjectInfos extends Table[ProjectInfo]("projects") {
+  class ProjectInfos(tag: Tag) extends Table[ProjectInfo](tag,"projects") {
     def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def name         = column[String]("name")
     def ownerName    = column[String]("owner")
     def description  = column[Option[String]]("description")
     def public       = column[Boolean]("public")
-    def owner        = foreignKey("fk_project_user", ownerName, UserInfos)(_.name,
-        onUpdate = ForeignKeyAction.Cascade,
-        onDelete = ForeignKeyAction.Cascade)
-    def *            = id ~ name ~ ownerName ~ description ~ public <> (ProjectInfo.apply _, ProjectInfo.unapply _)
-
+    def owner        = foreignKey("fk_project_user", ownerName, userInfos)(_.name,
+        ForeignKeyAction.Cascade, // update
+        ForeignKeyAction.Cascade) // delete
+    def *            = (id, name, ownerName, description, public) <> (ProjectInfo.tupled, ProjectInfo.unapply)
     // for every owner, the names of all his projects must be unique
-    // which means, that project names alone don't have to be.
+    // which means, that project names alone don't have to be.    
     def ownerProject = index("idx_owner_project", (ownerName, name), unique = true)
+  }
 
-    def create(name: String, owner: String, description: Option[String], public: Boolean)(implicit session: Session) = {
-      val q = (this.id.? ~ this.name ~ this.ownerName ~ this.description ~ this.public returning this.id)
-      val id = q.insert((None,name,owner,description,public))
-      ProjectInfo(id,name,owner,description,public)
+  val projectInfos = TableQuery[ProjectInfos]
+  
+  object ProjectInfos {
+    def create(project: ProjectInfo)(implicit session: Session) = {
+      val id = projectInfos.returning(projectInfos.map(_.id)) += project      
+      project.copy(id = id)      
     }
 
     def delete(id: Long)(implicit session: Session) =
-      Query(ProjectInfos).filter(_.id === id).delete
+      projectInfos.filter(_.id === id).delete
 
     def delete(p: ProjectInfo)(implicit session: Session) =
-      Query(ProjectInfos).filter(_.id === p.id).delete
+      projectInfos.filter(_.id === p.id).delete
 
     def update(p: ProjectInfo)(implicit session: Session) =
-      Query(ProjectInfos).filter(_.id === p.id).update(p)
+      projectInfos.filter(_.id === p.id).update(p)
 
     def getByOwner(owner: String)(implicit session: Session) =
-      Query(ProjectInfos).filter(_.ownerName === owner).elements
+      projectInfos.filter(_.ownerName === owner).list
 
     def get(owner: String, name: String)(implicit session: Session) =
-      Query(ProjectInfos).filter(_.ownerName === owner)
-                         .filter(_.name === name).elements
+      projectInfos.filter(_.ownerName === owner)
+                  .filter(_.name === name).list
 
     def get(id: Long)(implicit session: Session) =
-      Query(ProjectInfos).filter(_.id === id).firstOption
+      projectInfos.filter(_.id === id).firstOption
 
     def getPublic(implicit session: Session) =
-      Query(ProjectInfos).filter(_.public === true).elements
+      projectInfos.filter(_.public === true).list
   }
 
-  object ProjectAccessLevels extends Table[(Long,String,ProjectAccessLevel.Value)]("rights") {
+  class ProjectAccessLevels(tag: Tag) extends Table[(Long,String,ProjectAccessLevel.Value)](tag,"rights") {
     def projectId = column[Long]("project")
     def userName  = column[String]("user")
-    def project   = foreignKey("fk_right_project", projectId, ProjectInfos)(_.id,
+    def project   = foreignKey("fk_right_project", projectId, projectInfos)(_.id,
         onUpdate = ForeignKeyAction.Cascade,
         onDelete = ForeignKeyAction.Cascade)
-    def user      = foreignKey("fk_right_user", userName, UserInfos)(_.name,
+    def user      = foreignKey("fk_right_user", userName, userInfos)(_.name,
         onUpdate = ForeignKeyAction.Cascade,
         onDelete = ForeignKeyAction.Cascade)
     def pk        = primaryKey("pk_right", (projectId,userName))
     def level     = column[ProjectAccessLevel.Value]("policy")
-    def *         = projectId ~ userName ~ level
+    def *         = (projectId, userName, level)
+  }
+  
+  val projectAccessLevels = TableQuery[ProjectAccessLevels]
 
+  object ProjectAccessLevels {
     def change(project: Long, user: String, level: ProjectAccessLevel.Value)(implicit session: Session) = {
       level match {
         case ProjectAccessLevel.None =>
-          Query(ProjectAccessLevels).filter(l => l.projectId === project && l.userName === user).delete
+          projectAccessLevels.filter(l => l.projectId === project && l.userName === user).delete
         case level => // TODO: Transaction?
-          val q = Query(ProjectAccessLevels).filter(l => l.projectId === project && l.userName === user)
+          val q = projectAccessLevels.filter(l => l.projectId === project && l.userName === user)
           q.firstOption match {
-            case None          => ProjectAccessLevels.insert((project,user,level))
+            case None          => projectAccessLevels += (project,user,level)
             case Some((p,u,l)) => q.update((p,u,level))
           }
       }
     }
 
     def getUserProjects(user: String)(implicit session: Session) =
-      Query(ProjectAccessLevels).filter(_.userName === user)
-                                .join(Query(ProjectInfos)).on(_.projectId === _.id)
-                                .map{ case (a,p) => p -> a.level }.elements
+      projectAccessLevels.filter(_.userName === user)
+                         .join(projectInfos).on(_.projectId === _.id)
+                         .map{ case (a,p) => p -> a.level }.list
 
     def getProjectUsers(project: Long)(implicit session: Session) =
-      Query(ProjectAccessLevels).filter(_.projectId === project).elements
+      projectAccessLevels.filter(_.projectId === project).list
   }
 
-  object SessionInfos extends Table[SessionInfo]("sessions") {
+  class SessionInfos(tag: Tag) extends Table[SessionInfo](tag, "sessions") {
     def id           = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def userName     = column[String]("name")
     def color        = column[String]("color")
     def projectId    = column[Long]("project")
     def active       = column[Boolean]("active")
     def isHuman      = column[Boolean]("isHuman")
-    def user         = foreignKey("fk_session_user", userName, UserInfos)(_.name,
-        onUpdate = ForeignKeyAction.Cascade,
-        onDelete = ForeignKeyAction.Cascade)
-    def project      = foreignKey("fk_session_project", projectId, ProjectInfos)(_.id,
-        onUpdate = ForeignKeyAction.Cascade,
-        onDelete = ForeignKeyAction.Cascade)
+    def user         = foreignKey("fk_session_user", userName, userInfos)(_.name,
+        ForeignKeyAction.Cascade,
+        ForeignKeyAction.Cascade)
+    def project      = foreignKey("fk_session_project", projectId, projectInfos)(_.id,
+        ForeignKeyAction.Cascade,
+        ForeignKeyAction.Cascade)
 
-    def * = id ~ userName ~ color ~ projectId ~ isHuman ~ active <> (SessionInfo.apply _, SessionInfo.unapply _)
-
-    def create(user: String, color: String, project: Long, isHuman: Boolean, active: Boolean)(implicit session: Session) = {
-      val q = this.id.? ~ this.userName ~ this.color ~ this.projectId ~ this.isHuman ~ this.active returning this.id
-      val id = q.insert((None,user,color,project,isHuman,active))
-      SessionInfo(id,user,color,project,isHuman,active)
+    def * = (id, userName, color, projectId, isHuman, active) <> (SessionInfo.tupled, SessionInfo.unapply)
+  }
+  
+  val sessionInfos = TableQuery[SessionInfos]
+  
+  object SessionInfos {
+    def create(sessionInfo: SessionInfo)(implicit session: Session) = {      
+      val id = sessionInfos.returning(sessionInfos.map(_.id)) += sessionInfo
+      sessionInfo.copy(id = id)
     }
 
     def update(info: SessionInfo)(implicit session: Session) = {
-      val q = for (i <- SessionInfos if i.id === info.id) yield i
+      val q = for (i <- sessionInfos if i.id === info.id) yield i
       q.update(info)
     }
 
     def delete(info: SessionInfo)(implicit session: Session) = {
-      val q = for (i <- SessionInfos if i.id === info.id) yield i
+      val q = for (i <- sessionInfos if i.id === info.id) yield i
       q.delete
     }
 
     def get(id: Long)(implicit session: Session) = {
-      val q = for (i <- SessionInfos if i.id === id) yield i
+      val q = for (i <- sessionInfos if i.id === id) yield i
       q.firstOption
     }
 
@@ -150,22 +158,22 @@ trait ProjectTables { this: Profile with Mappers with UserTables with FileTables
     def cleanProject(id: Long)(implicit session: Session) = {
       // delete duplicates and keep newest
       val newest = for {
-        (name,ss) <- SessionInfos.filter(_.projectId === id) groupBy (_.userName)
+        (name,ss) <- sessionInfos.filter(_.projectId === id) groupBy (_.userName)
       } yield name -> ss.map(_.id).max
 
       val toDelete = for {
-        (name,newest) <- newest.elements
+        (name,newest) <- newest.list
       } {
-        SessionInfos.filter(other => other.projectId === id && other.userName === name && other.id =!= newest).delete
+        sessionInfos.filter(other => other.projectId === id && other.userName === name && other.id =!= newest).delete
       }
       // set all sessions to inactive
-      Query(SessionInfos).map(_.active).update(false)
+      sessionInfos.map(_.active).update(false)
     }
 
     def getForProject(id: Long)(implicit session: Session) =
-      Query(SessionInfos).filter(_.projectId === id).elements
+      sessionInfos.filter(_.projectId === id).list
 
     def getForUser(name: String)(implicit session: Session) =
-      Query(SessionInfos).filter(_.userName === name).elements
+      sessionInfos.filter(_.userName === name).list
   }
 }

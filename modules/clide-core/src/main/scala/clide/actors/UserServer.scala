@@ -25,16 +25,13 @@ package clide.actors
 
 import akka.actor._
 import clide.models._
-import slick.session.Session
-import scala.slick.session.Database
-import clide.persistence.DBAccess
 
 /**
  *
  * @author Martin Ring <martin.ring@dfki.de>
  */
 object UserServer {
-  private[clide] def props(implicit dbAccess: DBAccess) = Props(classOf[UserServer], dbAccess)
+  private[clide] def props = Props(classOf[UserServer])
 
   case class Forward(name: String, msg: Messages.Message)
 }
@@ -42,9 +39,10 @@ object UserServer {
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private class UserServer(implicit val dbAccess: DBAccess) extends Actor with ActorLogging {
-  import dbAccess.schema._
-  import dbAccess.{db => DB}
+private class UserServer extends Actor with ActorLogging {
+  import clide.Core.{ db => DB }
+  import clide.Core.schema._
+  import clide.Core.profile.simple._  
   import Messages.internal._
   import Messages._
   import Events._

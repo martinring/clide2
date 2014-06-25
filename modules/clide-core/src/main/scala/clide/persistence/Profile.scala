@@ -24,8 +24,8 @@
 
 package clide.persistence
 
-import scala.slick.driver.ExtendedProfile
+import scala.slick.driver.JdbcProfile
 
 trait Profile {
-  val profile: ExtendedProfile
+  val profile: JdbcProfile
 }

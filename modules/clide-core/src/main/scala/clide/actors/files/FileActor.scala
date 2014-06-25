@@ -30,23 +30,22 @@ import java.io.File
 import clide.actors._
 import scala.collection.mutable.{Buffer,Map}
 import scala.util.{Failure,Success}
-import clide.persistence.DBAccess
-import scala.slick.session.Session
 import scala.util.Success
 
 private[actors] object FileActor {
-  def props(project: ProjectInfo, parent: FileInfo, name: String)(implicit dbAccess: DBAccess) =
-    Props(classOf[FileActor], project, parent, name,dbAccess)
+  def props(project: ProjectInfo, parent: FileInfo, name: String) =
+    Props(classOf[FileActor], project, parent, name)
 }
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: String)(implicit dbAccess: DBAccess) extends Actor
+private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: String) extends Actor
                                                                          with ActorLogging
                                                                          with FileEventSource {
-  import dbAccess.schema._
-  import dbAccess.{db => DB}
+  import clide.Core.{ db => DB }
+  import clide.Core.schema._
+  import clide.Core.profile.simple._  
   import Messages._
   import Events._
 
@@ -255,7 +254,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
     DB.withSession { implicit session: Session =>
       FileInfos.get(project, parent.path :+ name) match {
         case None => // The file did not previously exist
-          info = FileInfos.create(
+          info = FileInfos.create(FileInfo(
             project = project.id,
             path    = parent.path :+ name,
             mimeType = name.split('.').last match { // TODO: Move to config
@@ -276,7 +275,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
             exists  = false,
             isDirectory = false,
             parent = Some(parent.id)
-          )
+          ))
           log.info("file created: " + info)
           triggerFileEvent(FileCreated(info))
         case Some(info) =>

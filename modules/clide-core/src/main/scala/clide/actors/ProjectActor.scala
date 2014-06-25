@@ -26,28 +26,27 @@ package clide.actors
 import akka.actor._
 import clide.models._
 import clide.actors.files._
-import scala.slick.session.Session
 import org.h2.jdbc.JdbcSQLException
-import clide.persistence.DBAccess
 import scala.collection.mutable.Buffer
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
 private object ProjectActor {
-  def apply(info: ProjectInfo)(implicit dbAccess: DBAccess) =
-    Props(classOf[ProjectActor], info, dbAccess)
+  def apply(info: ProjectInfo) =
+    Props(classOf[ProjectActor], info)
 }
 
 /**
  * @author Martin Ring <martin.ring@dfki.de>
  */
-private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAccess) extends Actor with ActorLogging {
-  import dbAccess.schema._
-  import dbAccess.{db => DB}
+private class ProjectActor(var info: ProjectInfo) extends Actor with ActorLogging {
   import clide.actors.Messages.internal._
   import clide.actors.Messages._
   import clide.actors.Events._
+  import clide.Core.{ db => DB }
+  import clide.Core.schema._
+  import clide.Core.profile.simple._
 
   var isHuman: Boolean = false
   var user: UserInfo = null
@@ -91,7 +90,7 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
 
   def admin: Receive = {
     case DeleteProject =>
-      DB.withSession { implicit session: Session =>
+      DB.withSession { implicit session =>
         ProjectInfos.delete(info.id)
       }
       sender         ! DeletedProject(info)
@@ -101,7 +100,7 @@ private class ProjectActor(var info: ProjectInfo)(implicit val dbAccess: DBAcces
       context.stop(self)
 
     case ChangeProjectUserLevel(user,level) =>
-      try { DB.withSession { implicit session: Session =>
+      try { DB.withSession { implicit session =>
         ProjectAccessLevels.change(info.id, user, level)
         sessionActors.values.foreach(_ ! ChangedProjectUserLevel(info, user, level))
         context.parent ! ChangedProjectUserLevel(info, user, level)

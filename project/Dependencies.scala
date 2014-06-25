@@ -24,11 +24,12 @@
 
 import sbt._
 import Keys._
+import scala.scalajs.sbtplugin.ScalaJSPlugin._
+import ScalaJSKeys._
 
 trait Dependencies {
-  val slick = "com.typesafe.slick" %% "slick" % "1.0.1"
+  val slick = "com.typesafe.slick" %% "slick" % "2.1.0-M2"
   val h2    = "com.h2database" % "h2" % "1.3.166"
-  val slf4j = "org.slf4j" % "slf4j-nop" % "1.6.4"
 
   val jscala = "org.jscala" %% "jscala-macros" % "0.3-SNAPSHOT"
 
@@ -47,27 +48,26 @@ trait Dependencies {
 
   object spray {
     val resolver = "spray" at "http://repo.spray.io/"
-    val json     = "io.spray" %% "spray-json" % "1.2.5"
+    val json     = "io.spray" %% "spray-json" % "1.2.6"
   }
 
   object scala {
-    val version  = "2.10.4"
+    val version  = "2.11.1"
     def compiler(version: String) = "org.scala-lang" % "scala-compiler" % version
     val swing    = "org.scala-lang" % "scala-swing"   % version
     val actors   = "org.scala-lang" % "scala-actors"  % version
     val reflect  = "org.scala-lang" % "scala-reflect" % version
-    val quasiquotes = "org.scalamacros" % "quasiquotes" % "2.0.0-M3" cross CrossVersion.full
+    //val quasiquotes = "org.scalamacros" % "quasiquotes" % "2.0.0-M3" cross CrossVersion.full
   }
 
   object playplugins {
-    val slick   = "com.typesafe.play" %% "play-slick"          % "0.5.0.2"
     val mailer  = "com.typesafe"      %% "play-plugins-mailer" % "2.1.0"
   }
 
   object scalajs {
-    val dom          = "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.3"
-    val playPickling = "org.scalajs" %% "scalajs-pickling-play-json" % "0.2"
-    val pickling     = "org.scalajs" %% "scalajs-pickling" % "0.2"
+    val dom          = "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6"
+    val playPickling = "org.scalajs" %% "scalajs-pickling-play-json" % "0.3"
+    val pickling     = "org.scalajs" %% "scalajs-pickling" % "0.3"
   }
 
   implicit class DependenciesProject(project: Project) {
