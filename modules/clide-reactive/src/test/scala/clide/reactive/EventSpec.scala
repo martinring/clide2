@@ -161,6 +161,21 @@ class EventProps extends FunSuite with Checkers {
     }
   }
   
+  test("Event.completedSpan") {    
+    val (e,channel) = Event.broadcast[Int]()
+    channel.push(1)
+    channel.push(2)
+    channel.push(3)
+    Thread.sleep(100)
+    val (compl,rest) = e.completedSpan
+    assert(compl == List(1,2,3))
+    channel.push(4)
+    channel.push(5)
+    Thread.sleep(100)
+    val (compl2,rest2) = rest.completedSpan
+    assert(compl2 == List(4,5))
+  }
+  
   test("Event.partition") {
     check { (a: EventSeq) =>
       Await.result({
