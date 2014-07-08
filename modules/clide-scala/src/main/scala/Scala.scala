@@ -130,7 +130,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
           else if (member.sym.isClass) "<span class='scala-class'>C</span>"
           else if (member.sym.isValue) "<span class='scala-value'>v</span>"
           else if (member.sym.isMethod) "<span class='scala-method'>m</span>"
-          else "<span class='circled></span>"
+          else "<span class='circled'></span>"
         val name = member.sym.decodedName
         val tparams = if (member.sym.typeParams.nonEmpty) member.sym.typeParams.map(_.decodedName).mkString("[",",","]") else ""
         val params = if (member.sym.paramss.nonEmpty) member.sym.paramss.map(_.map(p => p.decodedName + ": " + p.tpe.toString).mkString(", ")).mkString("(",")(",")")
