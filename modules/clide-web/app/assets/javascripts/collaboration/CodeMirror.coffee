@@ -35,6 +35,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
   class CodeMirrorAdapter
     constructor: (@doc,@color) ->
       @doc.on "beforeChange", @onChange
+      @doc.on "cursorActivity", @onSelectionChange
       @doc.on "getHelp", @onGetHelp
 
       @annotations = {}
@@ -100,6 +101,12 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
     onChange: (doc, change) =>
       unless @silent
         @trigger "change", CodeMirrorAdapter.operationFromCodeMirrorChange(change, doc)
+
+    onSelectionChange: (cm) =>
+      if (@autocompletes[this]?)
+        @autocompletes[this].widget.remove()
+        delete @autocompletes[this]
+      @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(@doc, @color)
 
     onGetHelp: (doc, index) =>
       key = "c:" + Math.random().toString(36).substr(2)
