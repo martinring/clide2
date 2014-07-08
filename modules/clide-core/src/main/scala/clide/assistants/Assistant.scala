@@ -75,9 +75,9 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   val receiveOwnChatMessages    = config.getBoolean("assistant.receiveOwnChatMessages")
   val automaticWorkingIndicator = config.getBoolean("assistant.automaticWorkingIndicator")
   val automaticFailureIndicator = config.getBoolean("assistant.automaticFailureIndicator")
-  val workIndicatorDelay = Duration(config.getMilliseconds("assistant.workIndicatorDelay"), MILLISECONDS)
-  val inputDelayMin = Duration(config.getMilliseconds("assistant.inputDelayMin"), MILLISECONDS)
-  val inputDelayMax = Duration(config.getMilliseconds("assistant.inputDelayMax"), MILLISECONDS)
+  val workIndicatorDelay = config.getDuration("assistant.workIndicatorDelay", MILLISECONDS).millis
+  val inputDelayMin = config.getDuration("assistant.inputDelayMin", MILLISECONDS).millis
+  val inputDelayMax = config.getDuration("assistant.inputDelayMax", MILLISECONDS).millis
 
   def chat(msg: String, tpe: Option[String] = None) = {
     peer ! Talk(None,msg,tpe)
