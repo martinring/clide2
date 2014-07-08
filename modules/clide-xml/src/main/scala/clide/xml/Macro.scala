@@ -1,13 +1,11 @@
 package clide.xml
 
-import scala.reflect.macros.Context
+import scala.reflect.macros.whitebox.Context
 import scala.language.experimental.macros
 import scala.collection.mutable.StringBuilder
 import org.xml.sax.SAXParseException
 import scala.collection.mutable.Buffer
-import scala.xml.UnprefixedAttribute
 import java.io.FileNotFoundException
-import scala.xml.PrefixedAttribute
 
 object XML {
   def inline[S](schema: S, xmlCode: String) = macro inlineMacro
@@ -19,7 +17,7 @@ object XML {
       case Literal(Constant(value: String)) => value
       case _ => c.abort(path.tree.pos, "path must be specified as a string literal")
     }
-    val xmlFile = new java.io.File(c.enclosingUnit.source.file.file.getParentFile(),pathString) 
+    val xmlFile = new java.io.File(c.enclosingPosition.source.file.file.getParentFile(),pathString) 
     val xmlTree = try {
       scala.xml.XML.loadFile(xmlFile)
     } catch {
@@ -39,7 +37,7 @@ object XML {
     val xmlTree = try {
       scala.xml.XML.loadString(xmlString)
     } catch {
-      case e: SAXParseException =>       
+      case e: SAXParseException =>
         c.abort(c.enclosingPosition, e.getMessage())
     }
     expand(c)(PositionProvider.forLiteral(c)(xmlCode.tree), schema,xmlTree)
@@ -54,7 +52,7 @@ object XML {
     // transform into scala code
     val code = Buffer.empty[Tree]
         
-    val schemaName = c.fresh(newTermName("schema"))
+    val schemaName = c.freshName[TermName]("shema")
     
     code += atPos(schema.tree.pos)(q"val $schemaName = $schema")
     code += atPos(schema.tree.pos)(q"import $schemaName._")
@@ -64,13 +62,13 @@ object XML {
                                               .filterNot(x => x.owner.isClass && x.owner.asClass.toType =:= c.typeOf[Any])
                                               .filterNot(x => x.owner.isClass && x.owner.asClass.toType =:= c.typeOf[Object])
                                               .filterNot(_.isImplicit)
-                                              .map(m => m.name.decoded -> m.asMethod)
+                                              .map(m => m.name.decodedName -> m.asMethod)
                                               .toMap
                                               
     val tagConstructors = schema.actualType.members.filter(_.isClass)
                                                    .map(_.asClass)
                                                    .filter(_.isCaseClass)
-                                                   .map(m => m.name.decoded -> m.companionSymbol.typeSignature.members.find(_.name.decoded == "apply").get.asMethod)
+                                                   .map(m => m.name.decodedName -> m.companion.typeSignature.members.find(_.name.decoded == "apply").get.asMethod)
     
     val tags = tagMethods ++ tagConstructors
                                               
@@ -108,7 +106,7 @@ object XML {
             val parts = attrib.value.text.split(":").toList
             if (parts.length != 2)
               c.abort(pos, "malformed scala:for. must be of form 'var:container'")
-            val localVar = newTermName(parts.head)
+            val localVar = TermName(parts.head)
             val collection = c.parse(parts.last)
             collection.pos = pos
             val innerCode = Buffer.empty[Tree]
