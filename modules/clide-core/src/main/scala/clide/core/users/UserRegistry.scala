@@ -1,45 +1,48 @@
-/*package clide.core.users
+package clide.core.users
 
-import akka.persistence.EventsourcedProcessor
+import akka.persistence.PersistentActor
 import scala.collection.mutable.Map
 import akka.actor._
+import scala.collection.mutable.Buffer
 
 object UserRegistry {
   def props = Props[UserRegistry]()
-  case class SignedUp(name: String, email: String, hash: Array[Byte])
+  
+  object Events {
+    case class SignedUp(name: String, email: String, hash: Array[Byte], isHuman: Boolean)
+  }  
 }
 
-class UserRegistry extends EventsourcedProcessor with ActorLogging {
-  import Auth._
+class UserRegistry extends PersistentActor with ActorLogging {  
+  import clide.messages.users.Auth._
 
-  val users = Map.empty[String,ActorRef]
+  val persistenceId = "users"
+  
+  val users = Map.empty[String,ActorRef]    
 
   def receiveRecover = {
-    case msg @ UserRegistry.SignedUp(name,email,password) =>
-      users += name -> context.actorOf(UserActor.props(name,email,password),name)
+    case msg @ UserRegistry.Events.SignedUp(name,email,password,isHuman) =>
+      users += name -> context.actorOf(User.props(name,email,password,isHuman))
   }
 
   def receiveCommand = {
-    case msg @ SignUp(UserInfo(name,email), password: String) =>
-      if (!name.matches("[a-zA-Z0-9_]+")) sender ! SignUpRefused(SignUpRefused.InvalidName)
-      else if (password.length < 8)       sender ! SignUpRefused(SignUpRefused.InvalidPassword)
-      else if (users.contains(name))      sender ! SignUpRefused(SignUpRefused.NameNotUnique)
-      persist(UserRegistry.SignedUp(name,email,Hash(password+email))) { msg =>
-        val actor = context.actorOf(UserActor.props(msg.name, msg.email, msg.hash),msg.name)
-        users += msg.name -> actor
-        sender ! SignedUp(UserInfo(msg.name,msg.email))
-      }
+    case SignUp(name,email,password,isHuman) =>
+      val client = sender
 
-    case msg @ Login(name, pwd) =>
-      users.get(name) match {
-        case None => sender ! LoginRefused
-        case Some(actor) => actor.forward(msg)
-      }
+      val errors = Buffer.empty[SignUpRefused.Reason]
 
-    case msg : Request =>
-      users.get(msg.username) match {
-        case None => sender ! Response(msg.id, AuthenticationRefused)
-        case Some(actor) => actor.forward(msg)
+      if (!Security.namingPattern.pattern.matcher(name).matches()) 
+        errors += SignUpRefused.InvalidName        
+      if (password.length < Security.minimumPasswordLength)
+        errors += SignUpRefused.InvalidPassword
+      if (users.contains(name))
+        errors += SignUpRefused.NameNotUnique           
+      
+      if (errors.nonEmpty)
+        client ! SignUpRefused(errors.toSeq)
+      else persist(UserRegistry.Events.SignedUp(name,email,Security.hash(email,password),isHuman)) { msg =>        
+        users += msg.name -> context.actorOf(User.props(name, email, msg.hash,isHuman))
+        client ! SignedUp(msg.name,msg.email)
       }
   }
-}*/
+}

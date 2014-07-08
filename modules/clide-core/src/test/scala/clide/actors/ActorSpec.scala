@@ -3,25 +3,22 @@ package clide.actors
 import akka.actor._
 import akka.testkit._
 import org.scalatest.WordSpecLike
-import org.scalatest.matchers.MustMatchers
 import org.scalatest.BeforeAndAfterAll
 import clide.persistence.Schema
-import clide.persistence.DBAccess
 import clide.models._
-import scala.slick.session.Session
 import clide.actors.files.FolderActor
 import org.scalatest.Matchers
 
 class TestSetup {
   val schema = new Schema(scala.slick.driver.H2Driver)  
   
-  val db = slick.session.Database.forURL(
+  import schema.profile.simple._
+  
+  val db = Database.forURL(
     url      = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
     user     = "sa",
     password = "",
-    driver   = "org.h2.Driver")
-    
-  implicit val dbAccess = DBAccess(db,schema)        
+    driver   = "org.h2.Driver")             
       
   val testUserPwd = "password"
     
@@ -32,8 +29,8 @@ class TestSetup {
   import schema._
   
   db.withSession { implicit session: Session => 
-    dropAllIfExist()
-    createAllIfNotExist()
+    /*dropAllIfExist()
+    createAllIfNotExist()*/
     UserInfos.insert(testUser1)
     UserInfos.insert(testUser2)
     UserInfos.insert(testUser3)
@@ -41,7 +38,7 @@ class TestSetup {
   
   val (testProject1a, testProject2a,
        testProject2b, testProject3a,
-       testProject3b, testProject3c) = db.withSession { implicit session: Session =>
+       testProject3b, testProject3c) = db.withSession { implicit session =>
     (ProjectInfos.create("test-project-1a", testUser1.name, None, false),
      ProjectInfos.create("test-project-2a", testUser2.name, None, false),
      ProjectInfos.create("test-project-2b", testUser2.name, None, false),

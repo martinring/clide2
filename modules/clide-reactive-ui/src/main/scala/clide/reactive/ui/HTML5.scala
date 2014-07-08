@@ -65,11 +65,11 @@ object HTML5 extends directives.Events
         case Some(e) => e
       }
     } 
-    def +=(event: clide.reactive.Event[Option[String]])(implicit ec: ExecutionContext, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): Unit = {
-      elem += event.map {
+    def +=(event: clide.reactive.Event[Option[String]])(implicit ec: ExecutionContext, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): Unit = {      
+      elem.+=(event.map {
         case None => ""
         case Some(e) => e
-      }
+      })(ec,d1,d2)
     } 
     def +=(xs: TraversableOnce[HTMLElement]): Unit = {
       for (child <- xs) {
