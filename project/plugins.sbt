@@ -7,6 +7,10 @@ resolvers += "Typesafe snapshots" at "http://repo.typesafe.com/typesafe/snapshot
 resolvers += Resolver.url("scala-js-snapshots",
     url("http://repo.scala-js.org/repo/snapshots/"))(Resolver.ivyStylePatterns)
 
+resolvers += Resolver.url("scala-js-releases",
+    url("http://dl.bintray.com/content/scala-js/scala-js-releases"))(
+    Resolver.ivyStylePatterns)
+
 addSbtPlugin("com.typesafe.play" % "sbt-plugin"          % "2.3.0")
 
 addSbtPlugin("com.typesafe.sbt"  % "sbt-coffeescript"    % "1.0.0")

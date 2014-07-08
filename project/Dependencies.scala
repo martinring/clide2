@@ -38,7 +38,7 @@ trait Dependencies {
   val junit = "com.novocode" % "junit-interface" % "0.9" % "test"
 
   object akka {
-    val version     = "2.3.3"
+    val version     = "2.3.4"
     val actor       = "com.typesafe.akka" %% "akka-actor"   % version
     val remote      = "com.typesafe.akka" %% "akka-remote"  % version
     val kernel      = "com.typesafe.akka" %% "akka-kernel"  % version
@@ -67,7 +67,7 @@ trait Dependencies {
   object scalajs {
     val dom          = "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6"
     val playPickling = "org.scalajs" %% "scalajs-pickling-play-json" % "0.3"
-    val pickling     = "org.scalajs" %% "scalajs-pickling" % "0.3"
+    val pickling     = "org.scalajs" %%% "scalajs-pickling" % "0.3"
   }
 
   implicit class DependenciesProject(project: Project) {
