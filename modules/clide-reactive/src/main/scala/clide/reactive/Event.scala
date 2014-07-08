@@ -44,7 +44,7 @@ trait Event[+A] {
     val leftC = Promise[Unit]
     val rightC = Promise[Unit]
     leftC.future.onComplete(_ => rightC.future.onComplete(_ => stop()))
-    (this.stopWith(leftC.success()),this.stopWith(rightC.success()))
+    (this.stopWith(leftC.success(())),this.stopWith(rightC.success(())))
   }
       
   def map[B](f: A => B)(implicit ec: ExecutionContext): Event[B] =  
@@ -114,7 +114,7 @@ trait Event[+A] {
   
   def headOption(implicit ec: ExecutionContext): Future[Option[A]] = 
     next.map{x => stop(); x.map(_._1)}
-    
+      
   def head(implicit ec: ExecutionContext): Future[A] =
     headOption.map(_.getOrElse(throw new NoSuchElementException("Event.head on empty event")))     
   
@@ -329,7 +329,7 @@ object Event {
     }
   }
   
-  def empty[A] = Event[A] { Future.successful(None) } ()
+  def empty[A] = Event[A] { Future.successful(None) } (())
   
   def interval(duration: FiniteDuration)(implicit ec: ExecutionContext, scheduler: Scheduler): Event[Long] = {
     var counter = 0L
@@ -342,13 +342,13 @@ object Event {
   }
   
   def single[A](value: A): Event[A] = 
-    Event(Future.successful(Some(value,empty[A])))()
+    Event(Future.successful(Some(value,empty[A])))(())
     
   def single[A](future: Future[A])(implicit ec: ExecutionContext): Event[A] =
-    Event(future.map(value => Some(value,empty[A])))()
+    Event(future.map(value => Some(value,empty[A])))(())
           
   def fromIterable[A](iterable: Iterable[A]): Event[A] = 
-    iterable.foldRight(Event.empty[A])((a,b) => Event(Future.successful(Some((a,b))))())    
+    iterable.foldRight(Event.empty[A])((a,b) => Event(Future.successful(Some((a,b))))(()))
     
   def merge[A](es: Iterable[Event[A]])(implicit ec: ExecutionContext): Event[A] = es.size match {
     case 0 => Event.empty[A]
@@ -373,12 +373,12 @@ object Event {
   def broadcast[A](unsubscribe: => Unit = ())(implicit ec: ExecutionContext): (Event[A], Channel[A]) = {
     var current = Promise[Option[(A,Event[A])]]
     val head = current.future
-    val channel = Channel[A](a => synchronized {
+    val channel = Channel[A] { a => Future {
       val next = Promise[Option[(A,Event[A])]]
       if (current.isCompleted) sys.error("pushing into closed channel")
       current.completeWith(Future(Some(a,Event(next.future)(unsubscribe))))
       current = next
-    })(current.failure)(current.success(None))
+    } } (current.failure)(current.success(None))
     (Event(head)(unsubscribe),channel)
   }
   
