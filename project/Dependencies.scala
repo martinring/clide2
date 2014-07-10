@@ -52,7 +52,7 @@ trait Dependencies {
   }
 
   object scala {
-    val version  = "2.11.1"
+    val version  = "2.10.4"
     def compiler(version: String) = "org.scala-lang" % "scala-compiler" % version
     val swing    = "org.scala-lang" % "scala-swing"   % version
     val actors   = "org.scala-lang" % "scala-actors"  % version

@@ -60,7 +60,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
   lazy val core = module("core")
     .dependsOn(collaboration,messages)
     .dependsOn(
-      "ch.qos.logback" % "logback-classic" % "1.0.13",
+      "ch.qos.logback" % "logback-classic" % "1.0.13", spray.json,
       akka.actor, akka.remote, akka.kernel, akka.testkit,
       akka.persistence, scala.reflect, slick,h2,scalatest,scalacheck)
 
