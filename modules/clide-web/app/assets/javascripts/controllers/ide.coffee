@@ -181,6 +181,10 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
 
   $scope.userContextMenu = (user) ->
     [
+      icon: 'eye'
+      text: 'follow activity'
+      action: -> $scope.followUser(user)
+    ,
       icon: 'hand-o-right'
       text: "Kick #{user.user}"
       action: -> $scope.kickUser(user)
@@ -188,6 +192,9 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
 
   $scope.kickUser = (user) ->
     session.kick(user.id)
+
+  $scope.followUser = (user) ->
+    session.follow(user.id)
 
   $scope.fileContextMenu = (file) ->
     if (file.isDirectory)

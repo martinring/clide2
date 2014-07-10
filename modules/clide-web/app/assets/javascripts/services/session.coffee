@@ -225,6 +225,10 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           context.tell
             t: 'kick'
             s: id
+        follow: (id) ->
+          for user in session.collaborators
+            user.followed = user.id is id
+
         subscribe: (file, user, name) ->
           context.tell
             t: 'subscribe'

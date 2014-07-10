@@ -94,7 +94,7 @@
                   </p>
                 <ul class='list-group'>
                   <li class='list-group-item' context-menu='userContextMenu(user)' ng-repeat="user in session.collaborators | orderBy:['-isHuman','-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
-                    <i class='fa fa-fw color-{{user.color}}' ng-class="{'fa-user': user.isHuman, 'fa-cloud': !user.isHuman}"></i> {{user.user}}<span class='badge' ng-show='user.active'>online</span>
+                    <i class='fa fa-fw color-{{user.color}}' ng-class="{'fa-user': user.isHuman, 'fa-cloud': !user.isHuman}"></i> <span ng-class="{'followed': user.followed}">{{user.user}}</span><span class='badge' ng-show='user.active'>online</span>
                     <div class='form-group' ng-show='user.active && session.activeAnnotations()[user.id].length > 0'>
                       <div class='checkbox' ng-repeat='stream in session.activeAnnotations()[user.id]'>
                         <div ng-click='stream.show ? unsubscribe(session.me.activeFile,user.id,stream.name) : subscribe(session.me.activeFile,user.id,stream.name)'><i class='fa' ng-class="{'fa-eye': stream.show ,'fa-eye-slash': !stream.show}"></i> {{stream.name}}</div>
