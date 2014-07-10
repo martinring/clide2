@@ -240,7 +240,7 @@ private class SessionActor(
       context.parent.forward(wrap(msg))
     case Kicked =>
       peer ! Kicked
-      receive(CloseSession)
+      self ! CloseSession
   }
 
   override def postStop() = DB.withSession { implicit session: Session =>
