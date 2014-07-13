@@ -103,9 +103,6 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         @trigger "change", CodeMirrorAdapter.operationFromCodeMirrorChange(change, doc)
 
     onSelectionChange: (cm) =>
-      if (@autocompletes[this]?)
-        @autocompletes[this].remove()
-        delete @autocompletes[this]
       @trigger "annotate", CodeMirrorAdapter.annotationFromCodeMirrorSelection(@doc, @color)
 
     onGetHelp: (doc, index) =>
