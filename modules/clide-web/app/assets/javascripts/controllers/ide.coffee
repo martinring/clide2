@@ -180,10 +180,16 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
           result.error = 'Please enter a name'
 
   $scope.userContextMenu = (user) ->
-    [
+    un_follow = if user.followed
+      icon: 'eye'
+      text: 'unfollow activity'
+      action: -> $scope.unfollowUser(user)
+    else
       icon: 'eye'
       text: 'follow activity'
       action: -> $scope.followUser(user)
+    [
+      un_follow
     ,
       icon: 'hand-o-right'
       text: "Kick #{user.user}"

@@ -228,6 +228,9 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
         follow: (id) ->
           for user in session.collaborators
             user.followed = user.id is id
+        unfollow: (id) ->
+          for user in session.collaborators
+            user.followed = false
 
         subscribe: (file, user, name) ->
           context.tell

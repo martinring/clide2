@@ -305,11 +305,15 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
             handleMouseEvents: true
           @annotations[user.id][name].push marker
         else if to?
+          if user.followed
+            @doc.getEditor()?.scrollIntoView(from,to)
           marker = @doc.markText from, to,
             className: classes
             title:     c.t
           @annotations[user.id][name].push marker
         else
+          if user.followed
+            @doc.getEditor()?.scrollIntoView(from)
           bookmark = @doc.setBookmark from,
             widget:     widget('span','','')
             insertLeft: true
