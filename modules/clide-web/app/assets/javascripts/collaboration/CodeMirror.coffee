@@ -141,7 +141,7 @@ define ['collaboration/Operation','collaboration/Annotations','codemirror'], (Op
         angular.element(widget).children().each (i) ->
           e = angular.element(this)
           e.removeClass("selected")
-          if e.data("suggest").contains(filter)
+          if e.data("suggest").indexOf(filter) isnt -1
             e.show()
             some = true
             unless selected
