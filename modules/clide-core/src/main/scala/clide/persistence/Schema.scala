@@ -43,15 +43,15 @@ class Schema(override val profile: JdbcDriver) extends
     revisions,
     sessionInfos)
 
-  /** creates the tables, that don't exist already *
+  /** creates the tables, that don't exist already */
   def createAllIfNotExist()(implicit session: Session) {
-    val ddls = for (table <- tables if !MTable.getTables.list.exists(_.name.name == table.tableName)) yield table.ddl
+    val ddls = for (table <- tables if !MTable.getTables.list.exists(_.name.name == table.baseTableRow.tableName)) yield table.ddl
     if (ddls.nonEmpty) ddls.reduce(_++_).create
-  }*/
+  }
 
-  /** drops all existing tables *
+  /** drops all existing tables */
   def dropAllIfExist()(implicit session: Session) {
-    val ddls = for (table <- tables if MTable.getTables.list.exists(_.name.name == table.tableName )) yield table.ddl
+    val ddls = for (table <- tables if MTable.getTables.list.exists(_.name.name == table.baseTableRow.tableName )) yield table.ddl
     if (ddls.nonEmpty) ddls.reduce(_++_).drop
-  }*/
+  }
 }

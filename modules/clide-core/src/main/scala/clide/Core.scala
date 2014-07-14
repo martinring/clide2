@@ -79,7 +79,7 @@ object Core extends Bootable {
    */
   def createUserServer() = {
     // FIXME: createAll must be working again
-    //db.withSession{ implicit session: Session => schema.createAllIfNotExist() }
+    db.withSession{ implicit session: Session => schema.createAllIfNotExist() }
     if (system == null) sys.error("system uninitialized")
     system.actorOf(UserServer.props, "users")
   }
