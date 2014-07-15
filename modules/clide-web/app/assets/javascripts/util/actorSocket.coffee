@@ -61,16 +61,17 @@ define ->
       socket.onerror = (e) ->
         service.state = 'failed'
         console.error "[#{time()}] [#{name}] failed", e
+        socket?.close()
 
       socket.onclose = () ->
-        service.state = 'closed'
+        service.state = 'disconnected'
         console.debug "[#{time()}] [#{name}] closed"
         behavior.receive
           t: 'terminated'
         behavior.postStop?()
 
       socket.onopen = () ->
-        service.state = 'open'
+        service.state = 'connected'
         console.debug "[#{time()}] [#{name}] opened"
         behavior.preStart?()
         while outbox.length > 0
@@ -92,6 +93,7 @@ define ->
         socket?.close()
         socket = new WebSocket(url)
         service.state = 'connecting'
+        behavior = behaviorFactory(context)
         addListeners()
 
     ready = -> socket?.readyState is WebSocket.OPEN

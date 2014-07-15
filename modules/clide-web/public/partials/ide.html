@@ -23,7 +23,7 @@
           <ul id="sidebarSections">
             <li class="section" id='section-files' ng-class='{active: sidebarSection=="files"}' ng-click='sidebarSection="files"'>
               <h3>Files
-              <div class='pull-right btn-group' ng-show='files'>
+              <div class='pull-right btn-group' ng-show='fileService.state == "connected"'>
                 <a class='btn btn-default' ng-click='browseTo(files.currentDir.info.path.slice(0,-1))' ng-disabled='files.currentDir.info.parent==null'>
                   <i class='fa fa-level-up'></i>
                 </a>
@@ -35,8 +35,7 @@
                 </a>
               </div>
               </h3>
-              <p class='text-muted' ng-show='files.currentDir == null'>loading...</p>
-              <ul class="breadcrumb" ng-show='files'>
+              <ul class="breadcrumb" ng-show='fileService.state == "connected"'>
                 <li ng-repeat='segment in files.currentDir.path'>
                   <a ng-click='browseTo(segment.path)' ng-show='segment.name != "$home"'>
                     {{segment.name}}
@@ -46,7 +45,7 @@
                   </a>
                 </li>
               </ul>
-              <div class='list-group' ng-show='files'>
+              <div class='list-group' ng-show='fileService.state == "connected"'>
                 <a ng-repeat='file in files.currentDir.files | orderBy:["-isDirectory","+name"]'
                    ng-click='openFile(file)'
                    class='list-group-item bordercolor-{{session.me.color}}'
@@ -59,15 +58,15 @@
                   This folder is empty. Create a <a ng-click='createFile(files.currentDir.info)'>new file</a> or <a ng-click='createFolder(files.currentDir.info)'>folder</a> to get started.
                 </div>
               </div>
-              <div class='alert alert-info' ng-show='files.state=="connecting"'>
+              <div class='alert alert-info' ng-show='fileService.state=="connecting"'>
                 Connecting to server...
               </div>
-              <div class='alert alert-warning' ng-show='files.state=="disconnected"'>
+              <div class='alert alert-warning' ng-show='fileService.state=="disconnected"'>
                 The connection to the server file system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a class='alert-link' ng-click='reconnect()'>reconnect</a>.
               </div>
             </li>
             <li class="section" id='section-collab' ng-class='{active: sidebarSection=="collab"}' ng-click='sidebarSection="collab"'>
-              <div ng-show='session.state=="connected"' class='pull-right' style='position:relative'>
+              <div ng-show='sessionService.state=="connected"' class='pull-right' style='position:relative'>
                 <span class='btn dropdown-toggle bgcolor-{{session.me.color}}' style='color:white' title='click to choose color'><i class='fa fa-user'></i></span>
                 <ul class="dropdown-menu" role='menu'>
                   <li class='menu-item' role='presentation'><a role='menuitem' ng-click="setColor('crimson')"><i class='fa fa-fw fa-stop color-crimson'></i> Crimson</a></li>
@@ -81,17 +80,15 @@
                 </ul>
               </div>
               <h3>Collaboration</h3>
-              <p class='text-muted' ng-show='session.collaborators == null'>loading...</p>
-              <div ng-show="session.state=='connected'">
-                <div ng-show='session.me'>
-                  <p>
-                    <ng-pluralize count='session.collaborators.length'
-                                  when="{'0': 'You are currently the only collaborator',
-                                         '1': 'One other collaborator is participating',
-                                         '2': 'Two other collaborators are participating',
-                                         'other': '{} other collaborators are participating'}">
-                    </ng-pluralize> in this project:
-                  </p>
+              <div ng-show='sessionService.state=="connected"'>                
+                <p>
+                  <ng-pluralize count='session.collaborators.length'
+                                when="{'0': 'You are currently the only collaborator',
+                                       '1': 'One other collaborator is participating',
+                                       '2': 'Two other collaborators are participating',
+                                       'other': '{} other collaborators are participating'}">
+                  </ng-pluralize> in this project:
+                </p>
                 <ul class='list-group'>
                   <li class='list-group-item' context-menu='userContextMenu(user)' ng-repeat="user in session.collaborators | orderBy:['-isHuman','-active','+name']" ng-class="{ 'text-muted': !user.active }" title='id: {{user.id}}'>
                     <i class='fa fa-fw color-{{user.color}}' ng-class="{'fa-user': user.isHuman, 'fa-cloud': !user.isHuman}"></i> <span ng-class="{'followed': user.followed}">{{user.user}}</span><span class='badge' ng-show='user.active'>online</span>
@@ -108,10 +105,10 @@
                   </a>
                 </div>
               </div>
-              <div class='alert alert-info' ng-show='session.state=="connecting"'>
+              <div class='alert alert-info' ng-show='sessionService.state=="connecting"'>
                 Connecting to server...
               </div>
-              <div class='alert alert-warning' ng-show='session.state=="disconnected"'>
+              <div class='alert alert-warning' ng-show='sessionService.state=="disconnected"'>
                 The connection to the collaboration system closed unexpectedly. Please make sure, you are connected to the Internet and then try to <a class='alert-link' ng-click='reconnectSession()'>reconnect</a>.
               </div>
             </li>
