@@ -10,8 +10,12 @@ CLIDE_HOME=/home/clide/clide2
 
 export CLIDE_HOME
 cd ${CLIDE_HOME}
+# Backup database
+cp modules/clide-web/target/universal/stage/data.*.db ~/temp
 git pull
 sbt clean clide-web:stage clide-isabelle:dist
+# Restore database
+cp ~/temp/data.*.db modules/clide-web/target/universal/stage
 echo "Restarting server."
 nohup ${CLIDE_HOME}/bin/clide-web restart > ${CLIDE_HOME}/logs/clide-web.log &
-nohup ${CLIDE_HOME}/bin/clide-isabelle restart > ${CLIDE_HOME}/logs/clide-isabelle.log &
+# nohup ${CLIDE_HOME}/bin/clide-isabelle restart > ${CLIDE_HOME}/logs/clide-isabelle.log &
