@@ -31,6 +31,7 @@ case class SessionInfo(
   project: Long,
   isHuman: Boolean,
   active: Boolean) {
+  override def hashCode = id.hashCode()
   override def equals(other: Any) = other match {
     case SessionInfo(id,_,_,_,_,_) => id == this.id
     case _ => false

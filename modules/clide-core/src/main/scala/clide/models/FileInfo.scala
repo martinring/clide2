@@ -33,6 +33,7 @@ case class FileInfo(
   exists: Boolean,
   isDirectory: Boolean,
   parent: Option[Long]) {
+  override def hashCode = id.hashCode()
   override def equals(other: Any) = other match {
     case f: FileInfo if f.id == this.id => true
     case _ => false
