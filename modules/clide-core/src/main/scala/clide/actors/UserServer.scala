@@ -25,6 +25,7 @@ package clide.actors
 
 import akka.actor._
 import clide.models._
+import java.net.URLEncoder
 
 /**
  *
@@ -70,7 +71,7 @@ private class UserServer extends Actor with ActorLogging {
             sender ! ActionFailed(Map("email" -> "error.unique"))
           } else {
             UserInfos.insert(user)
-            context.actorOf(UserActor.props(user), user.name)
+            context.actorOf(UserActor.props(user), URLEncoder.encode(user.name,"UTF-8"))
             sender ! SignedUp(user)
 	        context.system.eventStream.publish(SignedUp(user))
           }
@@ -78,14 +79,14 @@ private class UserServer extends Actor with ActorLogging {
       }
 
     case IdentifiedFor(name,key,message) =>
-      context.child(name) match {
+      context.child(URLEncoder.encode(name,"UTF-8")) match {
         case None      => sender ! DoesntExist
         case Some(ref) =>
           ref.forward(Identified(key,message))
       }
 
     case AnonymousFor(name,message) =>
-      context.child(name) match {
+      context.child(URLEncoder.encode(name,"UTF-8")) match {
         case None => sender ! DoesntExist
         case Some(ref) =>
           ref.forward(Anonymous(message))
@@ -93,7 +94,7 @@ private class UserServer extends Actor with ActorLogging {
 
     // Name resoultion here, to support distributed hierarchy in the future
     case UserServer.Forward(name, msg) =>
-      context.child(name) match {
+      context.child(URLEncoder.encode(name,"UTF-8")) match {
         case None =>
           sender ! DoesntExist
         case Some(ref) =>
@@ -106,7 +107,7 @@ private class UserServer extends Actor with ActorLogging {
     DB.withSession { implicit session: Session =>
       users = UserInfos.getAll.toList
     }
-    users.foreach { user => context.actorOf(UserActor.props(user), user.name) }
+    users.foreach { user => context.actorOf(UserActor.props(user), URLEncoder.encode(user.name,"UTF-8")) }
     log.info("waiting for requests")
   }
 }
