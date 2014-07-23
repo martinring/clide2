@@ -21,10 +21,13 @@ import scala.collection.mutable.SortedSet
 import scala.tools.nsc.interactive.Response
 import scala.io.Source
 import scala.collection.mutable.Buffer
+import scala.tools.refactoring.common.PimpedTrees
+import scala.tools.refactoring.common.CompilerAccess
 import clide.models.OpenedFile
 import scala.reflect.internal.util.OffsetPosition
+import scala.util.control.NonFatal
 
-trait ScalaCompiler { self: ScalaBehavior =>
+trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavior =>    
   /*
    * For a given FQ classname, trick the resource finder into telling us the containing jar.
    */
@@ -104,12 +107,30 @@ trait ScalaCompiler { self: ScalaBehavior =>
   //settings.YpresentationDebug.value = true
   //settings.YpresentationVerbose.value = true
   
-  val messages = collection.mutable.Map.empty[String,SortedSet[(Int,Int,String,String)]]
+  val messages = collection.mutable.Map.empty[String,SortedSet[(Int,Int,String,String)]]  
+  val identifiers = collection.mutable.Map.empty[String,SortedSet[(Int,Int,String)]]
+  val implicits = collection.mutable.Map.empty[String,SortedSet[(Int,Int)]]
+  
+  def markImplicit(pos: Position) = if (pos.isDefined) {    
+    if (!implicits.isDefinedAt(pos.source.file.name))
+      implicits(pos.source.file.name) = SortedSet.empty
+    val (start,length) =
+      (pos.startOrPoint, pos.endOrPoint - pos.startOrPoint)
+    implicits(pos.source.file.name) += ((start,length))
+  }
+  
+  def identifier(pos: Position, kind: String) = if (pos.isDefined) {    
+    if (!identifiers.isDefinedAt(pos.source.file.name))
+      identifiers(pos.source.file.name) = SortedSet.empty
+    val (start,length) =
+      (pos.startOrPoint, pos.endOrPoint - pos.startOrPoint)  
+    identifiers(pos.source.file.name) += ((start,length,kind))
+  }
   
   lazy val reporter = new AbstractReporter {
     val settings = ScalaCompiler.this.settings    
     
-    def display(pos: Position, message: String, severity: Severity) {
+    def display(pos: Position, message: String, severity: Severity) = if (pos.isDefined) {
       println(pos,message,severity)      
       val severityName = severity match {
         case ERROR => "error"
@@ -120,8 +141,9 @@ trait ScalaCompiler { self: ScalaBehavior =>
       val (start,length) = try {
         (pos.startOrPoint, pos.endOrPoint - pos.startOrPoint)
       } catch {
-        case _: Throwable => (0,0)        
+        case NonFatal(_) => (0,0)        
       }
+      if (!messages.isDefinedAt(pos.source.file.name)) messages(pos.source.file.name) = SortedSet.empty
       messages(pos.source.file.name) += ((start, length, severityName, message))
       annotate()
     }
@@ -136,6 +158,8 @@ trait ScalaCompiler { self: ScalaBehavior =>
   }
 
   lazy val global = new Global(settings, reporter)
+  
+  def compilationUnitOfFile(f: tools.nsc.io.AbstractFile): Option[global.CompilationUnit] = None
   
   var classLoader = new AbstractFileClassLoader(target, this.getClass.getClassLoader)
   
@@ -165,13 +189,126 @@ trait ScalaCompiler { self: ScalaBehavior =>
       }
     }
   }
+    
+  def annotationsFromTree(tree: global.Tree): Unit = tree match {    
+    /*case tpeTree: global.TypeTree =>
+      val originalSym = 
+        if (!(tpeTree.original eq null) && tpeTree.original != tpeTree)
+          annotationsFromTree(tpeTree.original)
+        else if (tpeTree.pos.isRange) {
+          val tpeSym = global.ask(() => tree.symbol)          
+          identifier(tpeTree.namePosition, "cm-quote")
+        }
+    case global.Import(expr, selectors) =>
+      println("TODO: import")
+    case global.AppliedTypeTree(tpe,args) =>
+      if (tpe.pos.isRange) annotationsFromTree(tpe)
+      args.foreach(annotationsFromTree)
+    case tpe @ global.SelectFromTypeTree(qualifier,_) =>
+      global.ask { () =>
+        identifier(tpe.namePosition, "cm-quote") 
+      }
+    case global.CompoundTypeTree(global.Template(parents, _, body)) =>
+      (if (parents.size == 1) body else parents).foreach(annotationsFromTree)
+    case global.TypeBoundsTree(lo,hi) =>
+      annotationsFromTree(lo)
+      annotationsFromTree(hi)
+    case global.ValDef(_, name, tpt: global.TypeTree, _) if name.startsWith("evidence$") =>
+      tpt.original match {
+        case global.AppliedTypeTree(_, args) if args.size == 2 =>
+          annotationsFromTree(args(1))
+        case global.AppliedTypeTree(tpe,args) if args.size == 1 && !args.head.pos.isRange =>
+          global.ask { () =>
+            identifier(tpe.namePosition, "cm-quote")
+          }
+        case tpt =>
+          annotationsFromTree(tpt)
+      }
+    case global.ExistentialTypeTree(tpt, whereClauses) =>
+      (tpt :: whereClauses).foreach(annotationsFromTree)
+    case _ : global.LabelDef => //
+    case tpe @ global.Select(qualifier, _) =>
+      if (tpe.pos.isRange) global.ask { () =>
+        identifier(tpe.namePosition, "cm-quote")
+      }
+      if (qualifier.pos.isRange) annotationsFromTree(qualifier)
+    case global.SingletonTypeTree(ref) =>
+      annotationsFromTree(ref)
+    case _ =>
+      val sym1 = Option(tree.symbol).map { sym =>
+        if (sym.isLazy && sym.isMutable) sym.lazyAccessor
+        else sym
+      }
+      
+      if (tree.pos.isRange)
+        identifier(tree.namePosition, "cm-quote")*/
+    case c: global.TypeDef if c.symbol != global.NoSymbol =>
+      identifier(c.namePosition, "type")
+      c.children.foreach(annotationsFromTree(_))
+    case c: global.ClassDef if c.symbol != global.NoSymbol  =>
+      identifier(c.namePosition, "type")
+      c.children.foreach(annotationsFromTree(_))
+    case c: global.ModuleDef if c.symbol != global.NoSymbol =>
+      identifier(c.namePosition, "module")
+      c.children.foreach(annotationsFromTree(_))    
+    case c: global.Bind if c.symbol != global.NoSymbol =>      
+      identifier(c.namePosition, "local")      
+      c.children.foreach(annotationsFromTree(_))
+    case c: global.ValDef if c.symbol != global.NoSymbol =>
+      if (c.symbol.isVariable)
+        identifier(c.namePosition, "variable")      
+      else if (c.symbol.isLocal)
+        identifier(c.namePosition, "local")
+      c.children.foreach(annotationsFromTree(_))          
+    case c: global.DefDef if c.symbol != global.NoSymbol =>
+      if (c.symbol.isVariable)
+        identifier(c.namePosition, "variable")
+      else if (c.symbol.isLocal)
+        identifier(c.namePosition, "local")
+      c.children.foreach(annotationsFromTree(_))
+    case a: global.Apply if a.symbol != global.NoSymbol =>
+      if (a.symbol.isImplicit)
+        markImplicit(a.namePosition)
+      a.children.foreach(annotationsFromTree(_))
+    case c: global.Select if c.symbol != global.NoSymbol =>
+      if (c.symbol.isVariable)
+        identifier(c.namePosition, "variable")
+      else if (c.symbol.isLocal)
+        identifier(c.namePosition, "local")
+      else identifier(c.namePosition, "symbol")
+      c.children.foreach(annotationsFromTree(_))
+    case i: global.Ident if i.symbol != global.NoSymbol &&  i.symbol.isVariable =>
+      identifier(i.namePosition, "variable")
+      i.children.foreach(annotationsFromTree(_))
+    case i: global.Ident if i.symbol != global.NoSymbol &&  i.symbol.isLocal =>
+      identifier(i.namePosition, "local")
+      i.children.foreach(annotationsFromTree(_))      
+    case i: global.Ident if i.symbol != global.NoSymbol &&  i.symbol.isType =>
+      identifier(i.namePosition, "type")
+      i.children.foreach(annotationsFromTree(_))
+    case i: global.Ident if i.symbol != global.NoSymbol =>      
+      identifier(i.namePosition, "type")
+      i.children.foreach(annotationsFromTree(_))
+    case t: global.Tree =>
+      //println(t)
+      t.children.foreach(annotationsFromTree(_))
+  }   
   
   def compile(state: OpenedFile) = try {    
-    messages.values.foreach(_.clear)
-    annotate()
-    val reloaded = new Response[Unit]
+    messages.values.foreach(_.clear)   
     val source = new BatchSourceFile(state.info.path.mkString("/"), state.state)
-    global.askReload(List(source), reloaded)    
+    val reloaded = new Response[Unit]
+    global.askReload(List(source), reloaded)
+    reloaded.get.left.foreach { _ =>
+      val tree = new Response[global.Tree]
+      global.askLoadedTyped(source, tree)
+      tree.get.left.foreach { tree =>
+        identifiers.get(source.path).foreach(_.clear())
+        implicits.get(source.path).foreach(_.clear())
+        annotationsFromTree(tree)
+        annotateSemantics()
+        annotate()
+      }
+    }
   }
-  
 }

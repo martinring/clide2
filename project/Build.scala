@@ -108,7 +108,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   lazy val scalaAssistant = module("scala")
     .dependsOn(core)
-    .dependsOn(akka.actor, akka.remote, akka.kernel, scala.compiler(scala.version))
+    .dependsOn(akka.actor, akka.remote, akka.kernel, scala.compiler(scala.version), "org.scala-refactoring" %% "org.scala-refactoring.library" % "0.6.2")
 
   lazy val spec = module("spec")
     .dependsOn(core)

@@ -58,8 +58,9 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
     global.askShutdown()
   }
 
+  
   def annotate() {
-    messages.foreach { case (path,messages) =>
+    messages.collect { case (path,messages) if files.isDefinedAt(path) =>
       var annotations = new Annotations
       var last = 0
       messages.foreach {
@@ -80,13 +81,54 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
       val file = files(path)
       annotations = annotations.plain(file.state.length)
       control.annotate(file, "messages", annotations)
+    }   
+  }
+  
+  def annotateSemantics() {
+    identifiers.collect { case (path,messages) if files.isDefinedAt(path) =>
+      var annotations = new Annotations
+      var last = 0
+      messages.foreach {
+        case (offset, length, tpe) =>
+          if (offset > last) {
+            annotations = annotations.plain(offset - last)
+            last = offset
+          }
+          annotations = annotations.annotate(length,
+            Set(AnnotationType.Class -> tpe)
+          )
+          last += length
+      }
+      val file = files(path)
+      annotations = annotations.plain(file.state.length)
+      control.annotate(file, "semantic", annotations)
     }
+    
+    implicits.collect { case (path,messages) if files.isDefinedAt(path) =>
+      var annotations = new Annotations
+      var last = 0
+      messages.foreach {
+        case (offset, length) =>
+          if (offset > last) {
+            annotations = annotations.plain(offset - last)
+            last = offset
+          }
+          annotations = annotations.annotate(length,
+            Set(AnnotationType.Class -> "implicit")
+          )
+          last += length
+      }
+      val file = files(path)
+      annotations = annotations.plain(file.state.length)
+      control.annotate(file, "implicits", annotations)
+    }    
   }
 
   def fileOpened(file: OpenedFile) = Future {
     reset()
     compile(file)
     files += file.info.path.mkString("/") -> file
+    identifiers += file.info.path.mkString("/") -> SortedSet.empty
     messages += file.info.path.mkString("/") -> SortedSet.empty
   }
 
