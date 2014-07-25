@@ -1,21 +1,29 @@
 .cm-s-default {
-  .type {
-    color: #2B91AF;
-  }
-  .local {
-    color: #5E5EFF;
-  }
-  .module {
-    color: #2B91AF;
-    font-weight: bold;
-  }
   .implicit {
     border-bottom: 1px solid #ccc;
   }
-  .symbol {
+  .ref, .def {
+    &.deprecated {
+      text-decoration: line-through;
+    }
     color: black;
+    &.type {
+      color: #2B91AF;
+    }
+    &.local {
+      color: #5E5EFF;
+      &.param {
+        color: black;
+        font-style: italic;
+      }
+    }
+    &.variable {
+      color: #e75;
+    }
+    &.module {
+      color: #2B91AF;
+      font-weight: bold;
+    }
   }
-  .variable {
-    color: #e75;
-  }
+
 }

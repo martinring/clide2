@@ -79,28 +79,29 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
 	        last += length
       }
       val file = files(path)
-      annotations = annotations.plain(file.state.length)
+      annotations = annotations.plain(file.state.length - last)
       control.annotate(file, "messages", annotations)
     }   
   }
   
-  def annotateSemantics() {
+  def annotateSemantics() {    
     identifiers.collect { case (path,messages) if files.isDefinedAt(path) =>
       var annotations = new Annotations
       var last = 0
       messages.foreach {
-        case (offset, length, tpe) =>
+        case (offset, length, tt, tpe) =>
           if (offset > last) {
             annotations = annotations.plain(offset - last)
             last = offset
           }
           annotations = annotations.annotate(length,
-            Set(AnnotationType.Class -> tpe)
+            tpe.toList.map{ (x: String) => AnnotationType.Class -> x } ++
+            tt.toList.map( (x: String) => AnnotationType.Tooltip -> x )
           )
           last += length
       }
       val file = files(path)
-      annotations = annotations.plain(file.state.length)
+      annotations = annotations.plain(file.state.length - last)
       control.annotate(file, "semantic", annotations)
     }
     
@@ -108,27 +109,47 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
       var annotations = new Annotations
       var last = 0
       messages.foreach {
-        case (offset, length) =>
+        case (offset, length, tt) =>
           if (offset > last) {
             annotations = annotations.plain(offset - last)
             last = offset
           }
           annotations = annotations.annotate(length,
-            Set(AnnotationType.Class -> "implicit")
+            List(AnnotationType.Class -> "implicit",
+                 AnnotationType.InfoMessage -> ("implicit conversion: " + tt))
           )
           last += length
       }
       val file = files(path)
-      annotations = annotations.plain(file.state.length)
+      annotations = annotations.plain(file.state.length - last)
       control.annotate(file, "implicits", annotations)
-    }    
+    }
+    
+    substitutions.collect { case (path,messages) if files.isDefinedAt(path) =>
+      var annotations = new Annotations
+      var last = 0
+      messages.foreach {
+        case (offset, length, sym) =>
+          if (offset > last) {
+            annotations = annotations.plain(offset - last)
+            last = offset
+          }
+          annotations = annotations.annotate(length,
+            List(AnnotationType.Substitution -> sym)
+          )
+          last += length
+      }
+      val file = files(path)
+      annotations = annotations.plain(file.state.length - last)
+      control.annotate(file, "substitutions", annotations)
+    }
   }
 
   def fileOpened(file: OpenedFile) = Future {
     reset()
     compile(file)
     files += file.info.path.mkString("/") -> file
-    identifiers += file.info.path.mkString("/") -> SortedSet.empty
+    identifiers += file.info.path.mkString("/") -> SortedSet.empty(Ordering.by(x => (x._1,x._2)))
     messages += file.info.path.mkString("/") -> SortedSet.empty
   }
 
