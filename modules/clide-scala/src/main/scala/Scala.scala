@@ -157,6 +157,8 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
     reset()
     compile(file)
     files += file.info.path.mkString("/") -> file
+    identifiers += file.info.path.mkString("/") -> SortedSet.empty(Ordering.by(x => (x._1,x._2)))
+    messages += file.info.path.mkString("/") -> SortedSet.empty    
   }
 
   def fileInactivated(file: OpenedFile) = noop
