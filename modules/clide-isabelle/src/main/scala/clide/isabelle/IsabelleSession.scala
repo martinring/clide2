@@ -51,7 +51,7 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
   private var files = scala.collection.mutable.Map.empty[Document.Node.Name,(scala.concurrent.Future[Document.Version],OpenedFile)]
 
   def updateFile(name: Document.Node.Name, file: OpenedFile, update: List[(Document.Node.Name,Document.Node.Edit[Text.Edit,Text.Perspective])]): scala.concurrent.Future[Unit] = {
-    session.update(update)
+    session.update(Document.Blobs.empty, update)
     val p = Promise[Document.Version]()
     val s = scala.concurrent.Future{
       control.annotate(file, "substitutions", IsabelleMarkup.substitutions(file.state))
@@ -90,28 +90,18 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
     val initialized = Promise[Unit]()
     control.log.info("building session content")
     val content = Build.session_content(ops, false, Nil, "HOL")
-    session = new Session(new isabelle.Thy_Load(content.loaded_theories, content.syntax) {
+    session = new Session(new Resources(content.loaded_theories, Map.empty, content.syntax) {
       override def append(dir: String, source_path: Path): String = {
         //control.log.info("thy_load.append({}, {})", dir, source_path)
         val path = source_path.expand
-        if (path.is_absolute) Isabelle_System.platform_path(path)
+        if (dir == "" || path.is_absolute)           
+          Isabelle_System.platform_path(path)
         else {
           (Path.explode(dir) + source_path).expand.implode
         }
-      }
-      override def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A = {
-        control.log.info("thy_load.with_thy_text({},{})", name, f)
-        //thys.get(name).map(file => f(file.state)).getOrElse {
-          f("")
-        //}
-      }
-      override def text_edits(reparse_limit: Int, previous: Document.Version, edits: List[Document.Edit_Text]) = {
-        val result = super.text_edits(reparse_limit, previous, edits)
-        //control.log.info("thy_load.text_edits({},{},{})", reparse_limit, previous, edits)
-        result
-      }
-    })
-    session.phase_changed += { p => p match {
+      }      
+    })    
+    session.phase_changed += Session.Consumer("clide"){ p => p match {
       case Session.Startup  =>
         control.chat("I'm starting up, please wait a second!")
       case Session.Shutdown =>
@@ -127,20 +117,20 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
         if (!initialized.isCompleted)
           initialized.success(())
     } }
-    session.syslog_messages += { msg =>
+    session.syslog_messages += Session.Consumer("clide"){ msg =>
       control.log.info("SYSLOG: {}", XML.content(msg.body))
       control.chat(XML.content(msg.body))
     }
-    session.commands_changed += { msg =>
+    session.commands_changed += Session.Consumer("clide"){ msg =>
       outdated ++= msg.nodes
     }
-    session.start(List("-S","HOL"))
+    session.start("clide", List("-S","HOL"))
     initialized.future
   }
 
   def stop = {
     val done = Promise[Unit]
-    session.phase_changed += (p => p match {
+    session.phase_changed += Session.Consumer("clide")(p => p match {
       case Session.Inactive =>
         if (!done.isCompleted) done.success(())
       case _ =>

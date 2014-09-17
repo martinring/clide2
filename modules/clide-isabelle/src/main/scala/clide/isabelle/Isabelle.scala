@@ -59,8 +59,7 @@ class Isabelle extends AssistantServer(IsabelleAssistBehavior) {
     super.startup()
   }
 
-  override def shutdown() {
-    scala.actors.Scheduler.shutdown()
+  override def shutdown() {    
     super.shutdown()
   }
 }
@@ -92,8 +91,6 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
     updateFile(file, file, removeEdits(file))
   }
 
-
-
   def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = {
     control.log.info("fileChanged({},{},...)", file.info.path, delta)
     val edits = opToDocumentEdits(file, cursors, delta)
@@ -106,7 +103,6 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
 
   def cursorMoved(cursor: Cursor) = {
     this.cursors += cursor
-
     noop
   }
 

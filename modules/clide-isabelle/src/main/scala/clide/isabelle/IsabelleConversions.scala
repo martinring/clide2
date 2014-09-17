@@ -39,8 +39,8 @@ trait IsabelleConversions { self: IsabelleSession =>
   }.get
 
   implicit def fileToNodeHeader(file: OpenedFile): Document.Node.Header =
-    Exn.capture {
-      session.thy_load.check_thy_text(file, file.state)
+    Exn.capture {      
+      session.resources.check_thy_reader("", file, new scala.util.parsing.input.CharSequenceReader(file.state))
     } match {
       case Exn.Res(header) => header
       case Exn.Exn(exn) => Document.Node.bad_header(Exn.message(exn))
@@ -89,7 +89,7 @@ trait IsabelleConversions { self: IsabelleSession =>
 
   def commandAt(file: OpenedFile, snapshot: Document.Snapshot, pos: Int): Option[Command] = {
     val node = snapshot.version.nodes(file)
-    val commands = snapshot.node.command_range(pos)
+    val commands = snapshot.node.command_iterator(pos)
     if (commands.hasNext) {
       val (cmd0,_) = commands.next
       node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)

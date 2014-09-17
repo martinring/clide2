@@ -50,7 +50,7 @@ object IsabelleMarkup {
       Markup.INNER_COMMENT -> "innerComment",
       Markup.DYNAMIC_FACT -> "dynamic_fact")
 
-  val classesElements = classes.keySet
+  val classesElements = Markup.Elements(classes.keySet)
 
     /* message priorities */
 
@@ -68,7 +68,7 @@ object IsabelleMarkup {
     Markup.ERROR -> error_pri, Markup.ERROR_MESSAGE -> error_pri)
 
   def highlighting(snapshot: Document.Snapshot): Annotations = {
-    val cs: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(classesElements), _ =>
+    val cs: List[Text.Info[Option[String]]] = snapshot.cumulate(Text.Range(0,Int.MaxValue), Option.empty[String], classesElements, _ =>
       {
         case (_, Text.Info(_,elem)) => Some(classes.get(elem.name))
       })
@@ -79,7 +79,7 @@ object IsabelleMarkup {
   }
 
   def errors(snapshot: Document.Snapshot): Annotations = {
-    val es: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.ERROR, Markup.ERROR_MESSAGE)), _ =>
+    val es: List[Text.Info[Option[String]]] = snapshot.cumulate(Text.Range(0,Int.MaxValue), Option.empty[String], Markup.Elements(Markup.ERROR, Markup.ERROR_MESSAGE), _ =>
       {
         case (_, Text.Info(_,elem)) =>
           Some(Some(elem.toString))
@@ -91,7 +91,7 @@ object IsabelleMarkup {
   }
 
   def warnings(snapshot: Document.Snapshot): Annotations = {
-    val ws: List[Text.Info[Option[String]]] = snapshot.cumulate_markup(Text.Range(0,Int.MaxValue), Option.empty[String], Some(Set(Markup.WARNING, Markup.WARNING_MESSAGE)), _ =>
+    val ws: List[Text.Info[Option[String]]] = snapshot.cumulate(Text.Range(0,Int.MaxValue), Option.empty[String], Markup.Elements(Markup.WARNING, Markup.WARNING_MESSAGE), _ =>
       {
         case (_, Text.Info(_,elem)) =>
           Some(Some(elem.toString))
@@ -105,8 +105,8 @@ object IsabelleMarkup {
   def output(snapshot: Document.Snapshot, positions: Set[Text.Offset]): Annotations = {
     snapshot.node.commands.foldLeft (new Annotations) {
       case (as,cmd) => if (!cmd.is_ignored) {
-        val state = snapshot.state.command_state(snapshot.version, cmd)
-        val outputs = state.results.entries.map(_._2)
+        val state = snapshot.state.command_states(snapshot.version, cmd)        
+        val outputs = state.flatMap(_.results.iterator.map(_._2)
           .filterNot(Protocol.is_result(_))
           .collect{
             case XML.Elem(markup,body) if markup.name == Markup.WRITELN_MESSAGE =>
@@ -115,7 +115,7 @@ object IsabelleMarkup {
               AnnotationType.ErrorMessage -> XML.content(body) //isabelle.Pretty.formatted(body, 120.0, isabelle.Pretty.Metric_Default).mkString("\n")
             case XML.Elem(markup,body) if markup.name == Markup.WARNING_MESSAGE =>
               AnnotationType.WarningMessage -> XML.content(body)
-          }
+          })
         as.annotate(cmd.length, outputs.toList)
       } else {
         as.plain(cmd.length)
@@ -180,34 +180,25 @@ object IsabelleMarkup {
     result
   }
 
-  private val overview_include = Protocol.command_status_markup + Markup.WARNING + Markup.ERROR
+  private val overview_include = Markup.Elements(Markup.WARNING, Markup.ERROR, Markup.RUNNING, Markup.ACCEPTED, Markup.FAILED)
 
   def overview_class(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
     if (snapshot.is_outdated) None
     else {
       val results =
-        snapshot.cumulate_markup[(Protocol.Status, Int)](
-          range, (Protocol.Status.init, 0), Some(overview_include), _ =>
+        snapshot.cumulate[List[Markup]](
+          range, Nil, Protocol.liberal_status_elements, _ =>
           {
-            case ((status, pri), Text.Info(_, elem)) =>
-              if (elem.name == Markup.WARNING || elem.name == Markup.ERROR)
-                Some((status, pri max message_pri(elem.name)))
-              else if (overview_include(elem.name))
-                Some((Protocol.command_status(status, elem.markup), pri))
-              else None
-          })
+            case (status, Text.Info(_, elem)) => Some(elem.markup :: status) 
+          }, status = true)
       if (results.isEmpty) None
       else {
-        val (status, pri) =
-          ((Protocol.Status.init, 0) /: results) {
-            case ((s1, p1), Text.Info(_, (s2, p2))) => (s1 + s2, p1 max p2) }
-
+        val status = Protocol.Status.make(results.iterator.flatMap(_.info))         
         if (status.is_running) Some("running")
-        else if (pri == warning_pri) Some("warning")
-        else if (pri == error_pri) Some("error")
-        else if (status.is_unprocessed) Some("pending")
         else if (status.is_failed) Some("failed")
+        else if (status.is_warned) Some("warning")
+        else if (status.is_unprocessed) Some("pending")        
         else None
       }
     }
