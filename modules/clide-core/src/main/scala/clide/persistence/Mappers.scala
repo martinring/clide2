@@ -47,7 +47,7 @@ trait Mappers { self: Profile =>
       case Delete(n) => JsNumber(-n)
     }:_*).compactPrint
 
-    def deserialize(s: String) = s.asJson match {
+    def deserialize(s: String) = s.parseJson match {
       case JsArray(s) => Operation(s.map {
         case JsString(s) => Insert(s)
         case JsNumber(n) if n < 0 => Delete(-n.toInt)
