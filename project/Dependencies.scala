@@ -28,7 +28,7 @@ import scala.scalajs.sbtplugin.ScalaJSPlugin._
 import ScalaJSKeys._
 
 trait Dependencies {
-  val slick = "com.typesafe.slick" %% "slick" % "2.1.0-M2"
+  val slick = "com.typesafe.slick" %% "slick" % "2.1.0"
   val h2    = "com.h2database" % "h2" % "1.3.166"
 
   val jscala = "org.jscala" %% "jscala-macros" % "0.3-SNAPSHOT"
@@ -38,7 +38,7 @@ trait Dependencies {
   val junit = "com.novocode" % "junit-interface" % "0.9" % "test"
 
   object akka {
-    val version     = "2.3.4"
+    val version     = "2.3.6"
     val actor       = "com.typesafe.akka" %% "akka-actor"   % version
     val remote      = "com.typesafe.akka" %% "akka-remote"  % version
     val kernel      = "com.typesafe.akka" %% "akka-kernel"  % version
@@ -52,11 +52,12 @@ trait Dependencies {
   }
 
   object scala {
-    val version  = "2.10.4"
+    val version  = "2.11.2"
     def compiler(version: String) = "org.scala-lang" % "scala-compiler" % version
     val swing    = "org.scala-lang" % "scala-swing"   % version
     val actors   = "org.scala-lang" % "scala-actors"  % version
     val reflect  = "org.scala-lang" % "scala-reflect" % version
+    val parsers  = "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2"
     //val quasiquotes = "org.scalamacros" % "quasiquotes" % "2.0.0-M3" cross CrossVersion.full
   }
 
@@ -65,9 +66,7 @@ trait Dependencies {
   }
 
   object scalajs {
-    val dom          = "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6"
     val playPickling = "org.scalajs" %% "scalajs-pickling-play-json" % "0.3"
-    val pickling     = "org.scalajs" %%% "scalajs-pickling" % "0.3"
   }
 
   implicit class DependenciesProject(project: Project) {

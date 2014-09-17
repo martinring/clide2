@@ -66,13 +66,13 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   lazy val (reactive,reactiveJs) = sharedModule("reactive")
     .jvm(DependenciesProject(_).dependsOn(scalatest,scalacheck,junit,akka.actor,scala.reflect))
-    .js(_.dependsOn(scalajs.dom,scala.reflect))
+    .js(_.settings(libraryDependencies ++= Seq("org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",scala.reflect)))
 
   lazy val reactiveUi = jsModule("reactive-ui")
     .dependsOn(reactiveJs)
 
   lazy val client = jsModule("client")
-    .dependsOn(scalajs.dom)
+    .settings(libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6")
     .dependsOn(xml, reactiveUi, collaborationJs, messagesJs)
 
   lazy val web = playModule("web").enablePlugins(Angular)
@@ -100,7 +100,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   lazy val isabelle = module("isabelle")
     .dependsOn(core)
-    .dependsOn(akka.actor, akka.remote, akka.kernel, scala.actors)
+    .dependsOn(akka.actor, akka.remote, akka.kernel, scala.actors, scala.parsers)
 
   lazy val haskell = module("haskell")
     .dependsOn(core)
