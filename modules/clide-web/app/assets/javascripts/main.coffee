@@ -24,8 +24,6 @@
 
 # RequireJS configuration
 require.config
-  paths:
-    'codemirror':         'vendor/codemirror/codemirror-compressed'
   shim:
     'codemirror':
       exports: 'CodeMirror'

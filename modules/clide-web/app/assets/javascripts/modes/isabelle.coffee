@@ -22,7 +22,7 @@
 ##   If not, see <http://www.gnu.org/licenses/>.                              ##
 ##                                                                            ##
 
-define ['modes/isabelle/defaultWords','codemirror'], (defaultWords) ->
+define ['modes/isabelle/defaultWords'], (defaultWords) ->
   CodeMirror.defineMode "isabelle", (config,parserConfig) ->
     parserConfig = parserConfig or { }
     parserConfig.words = parserConfig.words or defaultWords

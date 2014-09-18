@@ -23,7 +23,7 @@
 ##                                                                            ##
 
 ### @directive directives:editor ###
-define ['routes','codemirror','modes/isabelle'], (routes) ->
+define ['routes','modes/isabelle'], (routes) ->
   # TODO: Move somewhere else...
   CodeMirror.commands.autocomplete = (cm) ->
     CodeMirror.showHint(cm,'anyword')
