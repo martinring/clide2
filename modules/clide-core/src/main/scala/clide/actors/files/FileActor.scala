@@ -29,8 +29,7 @@ import clide.models._
 import java.io.File
 import clide.actors._
 import scala.collection.mutable.{Buffer,Map}
-import scala.util.{Failure,Success}
-import scala.util.Success
+import scala.util.{Try,Failure,Success}
 
 private[actors] object FileActor {
   def props(project: ProjectInfo, parent: FileInfo, name: String) =
@@ -59,6 +58,8 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
   val annotations = Map[(Long,String),(Long,Annotations)]()
   val subscriptions = Map[(Long,String),Set[ActorRef]]()
   val descriptions = Map[(Long,String),String]()
+  
+  val mimeTypes = context.system.settings.config.getConfig("mimeTypes") 
 
   def initOt() {
     log.info("initializing ot")
@@ -257,20 +258,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
           info = FileInfos.create(FileInfo(
             project = project.id,
             path    = parent.path :+ name,
-            mimeType = name.split('.').last match { // TODO: Move to config
-              case "thy"    => Some("text/x-isabelle")
-              case "scala"  => Some("text/x-scala")
-              case "hs"     => Some("text/x-haskell")
-              case "java"   => Some("text/x-java")
-              case "js"     => Some("text/javascript")
-              case "coffee" => Some("text/x-coffeescript")
-              case "css"    => Some("text/css")
-              case "less"   => Some("text/x-less")
-              case "md"     => Some("text/x-markdown")
-              case "sql"    => Some("text/x-sql")
-              case "txt"    => Some("text/plain")
-              case _        => None
-            },
+            mimeType = Try(mimeTypes.getString(name.split('.').last)).toOption,
             deleted = false,
             exists  = false,
             isDirectory = false,
