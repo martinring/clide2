@@ -27,4 +27,4 @@ addSbtPlugin("com.typesafe.sbt"  % "sbt-native-packager" % "0.7.0-RC2")
 
 addSbtPlugin("com.typesafe.sbt"  % "sbt-pgp"             % "0.8.2")
 
-addSbtPlugin("org.scala-lang.modules.scalajs" % "scalajs-sbt-plugin" % "0.5.4")
+addSbtPlugin("org.scala-lang.modules.scalajs" % "scalajs-sbt-plugin" % "0.5.5")
