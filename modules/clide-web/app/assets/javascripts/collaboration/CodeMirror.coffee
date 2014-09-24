@@ -25,7 +25,7 @@
 ## Loosely Based on the javascript ot implementation 'ot.js' by Tim Baumann (MIT
 ## License) see https://github.com/Operational-Transformation/ot.js
 
-define ['collaboration/Operation','collaboration/Annotations','vendor/codemirror/codemirror-compressed'], (Operation,Annotations,CodeMirror) ->
+define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annotations) ->
   CodeMirror.commands.getHelp = (cm) ->
     doc = cm.getDoc()
     if doc? and !doc.somethingSelected()
