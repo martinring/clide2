@@ -25,11 +25,8 @@
 # RequireJS configuration
 require.config
   shim:
-    'codemirror':
-      exports: 'CodeMirror'
     'routes':
       exports: 'jsRoutes'
-
 
 require ['app'], (app) ->
   app.run ($rootScope, Session, Files) ->
