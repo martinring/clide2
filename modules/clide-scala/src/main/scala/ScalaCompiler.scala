@@ -97,13 +97,11 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
   val target = new VirtualDirectory("<memory>", None)
   
   lazy val settings = new scala.tools.nsc.Settings  
-  settings.outputDirs.setSingleOutput(target)
-  settings.warnEverything.value = true
+  settings.outputDirs.setSingleOutput(target)  
   
   val pathList = compilerPath ::: libPath
   settings.bootclasspath.value = pathList.mkString(File.pathSeparator)
   settings.classpath.value = (pathList ::: impliedClassPath).mkString(File.pathSeparator)
-  settings.warnEverything.value = true
   //settings.YpresentationDebug.value = true
   //settings.YpresentationVerbose.value = true
   
