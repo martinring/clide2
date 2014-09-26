@@ -1,6 +1,7 @@
 package clide.xml
 
-import scala.reflect.macros.Context
+import scala.language.experimental.macros
+import scala.reflect.macros.whitebox.Context
 import javax.xml.parsers.SAXParserFactory
 import java.io.InputStream
 import scala.collection.mutable.Buffer

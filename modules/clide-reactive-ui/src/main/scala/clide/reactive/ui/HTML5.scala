@@ -49,33 +49,41 @@ object HTML5 extends directives.Events
     def role: String           = elem.getAttribute("role")
     
     def +=(other: Node): Unit = elem.appendChild(other)
+    
     def +=(text: String): Unit = elem.appendChild(document.createTextNode(text))
+    
     def +=(text: Bindable[String])(implicit ec: ExecutionContext): Unit = +=(text.watch)
+    
     def +=(event: clide.reactive.Event[Node])(implicit ec: ExecutionContext): Unit = {
       var node = elem.appendChild(document.createComment("placeholder"))      
       event.foreach(newNode => { elem.replaceChild(newNode, node); node = newNode })
     }
+    
     def +=(event: clide.reactive.Event[String])(implicit ec: ExecutionContext, d1: DummyImplicit): Unit = {
       var node = elem.appendChild(document.createTextNode(""))      
       event.foreach(node.textContent = _)
     }
+    
     def +=(event: clide.reactive.Event[Option[Node]])(implicit ec: ExecutionContext, d1: DummyImplicit, d2: DummyImplicit): Unit = {
       elem += event.map {
         case None => document.createComment("placeholder")
         case Some(e) => e
       }
     } 
+    
     def +=(event: clide.reactive.Event[Option[String]])(implicit ec: ExecutionContext, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): Unit = {      
       elem.+=(event.map {
         case None => ""
         case Some(e) => e
-      })(ec,d1,d2)
-    } 
+      })(ec,d1)
+    }
+    
     def +=(xs: TraversableOnce[HTMLElement]): Unit = {
       for (child <- xs) {
         elem.appendChild(child)
       }
-    }    
+    }
+    
     def +=[T <: HTMLElement](buf: ObservableBufferView[T])(implicit ec: ExecutionContext): Unit = {
       val beforeHead = elem.appendChild(document.createComment("before collection"))
       val afterLast = elem.appendChild(document.createComment("after collection"))

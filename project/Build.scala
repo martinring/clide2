@@ -24,12 +24,13 @@
 
 import sbt._
 import Keys._
+import play.Play._
 import scala.scalajs.sbtplugin.ScalaJSPlugin._
 import ScalaJSKeys._
 import com.typesafe.sbt.packager.universal.UniversalKeys
 import com.typesafe.sbteclipse.core.EclipsePlugin.EclipseKeys
 
-object ClideBuild extends Build with BuildUtils with Publishing with Dependencies {
+object ClideBuild extends Build with BuildUtils with Publishing with Dependencies with UniversalKeys {
   override def rootProject = Some(web)
 
   val baseName = "clide"
@@ -55,7 +56,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   lazy val (messages,messagesJs) = sharedModule("messages")
 
-  lazy val xml = module("xml")
+  lazy val xml = module("xml").dependsOn(scala.reflect, scala.xml)
 
   lazy val core = module("core")
     .dependsOn(collaboration,messages)
@@ -72,7 +73,8 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
     .dependsOn(reactiveJs)
 
   lazy val client = jsModule("client")
-    .settings(libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6")
+    .settings(libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
+              libraryDependencies += "com.greencatsoft" %%% "scalajs-angular" % "0.1")
     .dependsOn(xml, reactiveUi, collaborationJs, messagesJs)
 
   lazy val web = playModule("web").enablePlugins(Angular)
@@ -92,15 +94,29 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
           "services"    -> ("service","",true)),
       resourceGenerators in Compile <+= Angular.BoilerplateGenerator,
       play.PlayImport.PlayKeys.lessEntryPoints <<= (sourceDirectory in Compile){ base =>
-        base / "assets" / "stylesheets" * "main.less" }
+        base / "assets" / "stylesheets" * "main.less" },
+      compile in Compile <<= (compile in Compile) dependsOn (fastOptJS in (client, Compile)), // dependsOn copySourceMapsTask,
+      dist <<= dist dependsOn (fullOptJS in (client, Compile)),
+      stage <<= stage dependsOn (fullOptJS in (client, Compile)),
+      crossTarget in (client, Compile, packageLauncher) := (classDirectory in Compile).value / "public" / "javascripts",
+      crossTarget in (client, Compile, fastOptJS) := (classDirectory in Compile).value / "public" / "javascripts",
+      crossTarget in (client, Compile, fullOptJS) := (classDirectory in Compile).value / "public" / "javascripts"
     )
+
+  val copySourceMapsTask = Def.task {
+    val scalaFiles = (Seq(client.base) ** ("*.scala")).get
+    for (scalaFile <- scalaFiles) {
+      val target = new File((classDirectory in Compile).value, scalaFile.getPath)
+      IO.copyFile(scalaFile, target)
+    }
+  }
 
   // ASSISTANTS
   // ===========================================================================
 
   lazy val isabelle = module("isabelle")
     .dependsOn(core)
-    .dependsOn(akka.actor, akka.remote, akka.kernel, scala.actors, scala.parsers)
+    .dependsOn(akka.actor, akka.remote, akka.kernel, scala.parsers)
 
   lazy val haskell = module("haskell")
     .dependsOn(core)

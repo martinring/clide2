@@ -8,6 +8,7 @@ import clide.reactive.ui._
 import scalajs.js.annotation.JSExport
 import org.scalajs.dom
   
+// Experimental Stuff
 @JSExport
 object App extends clide.reactive.ui.App with History { 
   dom.document.body.innerHTML = ""

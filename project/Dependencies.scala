@@ -57,6 +57,7 @@ trait Dependencies {
     val swing    = "org.scala-lang" % "scala-swing"   % version
     val actors   = "org.scala-lang" % "scala-actors"  % version
     val reflect  = "org.scala-lang" % "scala-reflect" % version
+    val xml      = "org.scala-lang.modules" %% "scala-xml" % "1.0.2"
     val parsers  = "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2"
     //val quasiquotes = "org.scalamacros" % "quasiquotes" % "2.0.0-M3" cross CrossVersion.full
   }

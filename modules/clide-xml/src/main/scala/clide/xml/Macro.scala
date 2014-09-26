@@ -6,10 +6,11 @@ import scala.collection.mutable.StringBuilder
 import org.xml.sax.SAXParseException
 import scala.collection.mutable.Buffer
 import java.io.FileNotFoundException
+import scala.xml._
 
 object XML {
-  def inline[S](schema: S, xmlCode: String) = macro inlineMacro
-  def include[S](schema: S, path: String) = macro includeMacro
+  def inline[S](schema: S, xmlCode: String): Any = macro inlineMacro
+  def include[S](schema: S, path: String): Any = macro includeMacro
   
   def includeMacro(c: Context)(schema: c.Expr[Any], path: c.Expr[String]): c.Expr[Any] = {
     import c.universe._
@@ -108,12 +109,11 @@ object XML {
               c.abort(pos, "malformed scala:for. must be of form 'var:container'")
             val localVar = TermName(parts.head)
             val collection = c.parse(parts.last)
-            collection.pos = pos
             val innerCode = Buffer.empty[Tree]
             val innerRoot = createNode(scala.xml.Elem(prefix,label,attribs.filter(_.prefixedKey != "scala:for"),scope,true,child :_*), None, innerCode).get
             code += atPos(pos)(q"lazy val $name = for ($localVar <- $collection) yield { ..$innerCode; $innerRoot }")
           case None =>
-		        val tagMethod = tags.get(label).getOrElse(c.abort(pos, s"schema doesn't support element type `$label`"))
+		        val tagMethod = tags.get(newTermName(label)).getOrElse(c.abort(pos, s"schema doesn't support element type `$label`"))
 		        val allParams = tagMethod.paramss.flatten.map(_.name.decoded)
 		        val requiredParams = tagMethod.paramss.flatten.filter(!_.isImplicit).map(_.name.decoded)
 		
@@ -130,9 +130,8 @@ object XML {
 		
 		        val paramss = tagMethod.paramss.map(x => x.collect{ 
 		          case p if params.exists(_.key == p.name.decoded) => 
-		            val result = c.parse(getValues(params.find(_.key == p.name.decoded).get.value.text).mkString(" + "))
-		            result.pos = pos
-		            result
+		            val result = c.parse(getValues(params.find(_.key == p.name.decoded).get.value.text).mkString(" + "))		            
+		            atPos(pos)(result)
 		        })
 		
 		        code += atPos(pos)(q"lazy val $name = $schemaName.${newTermName(label)}(...$paramss)")
@@ -141,9 +140,7 @@ object XML {
 		          case attr@UnprefixedAttribute(key,scala.xml.Text(value),next) =>
 		            val access = (key).split('.').foldLeft(atPos(pos)(q"$name"): Tree) { case (l, r) => atPos(pos)(Select(l,newTermName(r))) }
 		            val values = getValues(value).map{ v => 
-		              val result = c.parse(v)
-		              result.pos = pos
-		              result
+		              atPos(pos)(c.parse(v))
 		            }
 		            if (values.length == 1)
 		              code += atPos(pos)(q"$access = ${values.head}")
@@ -151,8 +148,7 @@ object XML {
 		              code += atPos(pos)(q"$access = Seq(..$values)")
 		          case attr@PrefixedAttribute(prefix,key,scala.xml.Text(value),next) if prefix != "scala" =>            
 		            val access = (key).split('.').foldLeft(atPos(pos)(q"${newTermName(prefix)}"): Tree) { case (l,r) => atPos(pos)(Select(l,newTermName(r))) }
-		            val values = c.parse(value).duplicate
-		            values.pos = pos
+		            val values = c.parse(value).duplicate		            
 		            code += atPos(pos)(q"$access($name,$values)")
 		          case attr@PrefixedAttribute(prefix,key,scala.xml.Text(value),next) if prefix == "scala" =>
 		            if (key == "name") ()
@@ -173,8 +169,7 @@ object XML {
       case scala.xml.Text(value) =>
         parent.foreach { parent =>
           getValues(value).foreach { value =>
-            val cd = c.parse(value)
-            cd.pos = pos
+            val cd = c.parse(value)            
             code += atPos(pos)(q"$parent += $cd")
           }
         }
