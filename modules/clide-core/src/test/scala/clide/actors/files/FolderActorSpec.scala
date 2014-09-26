@@ -5,9 +5,7 @@ import akka.actor._
 import org.scalatest.WordSpecLike
 import org.scalatest.matchers.MustMatchers
 import org.scalatest.BeforeAndAfterAll
-import clide.persistence.DBAccess
 import clide.persistence.Schema
-import scala.slick.session.Session
 import clide.models._
 import clide.actors.Messages
 import clide.actors.Events
