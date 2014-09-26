@@ -50,6 +50,7 @@ import clide.assistants.Cursor
 import akka.actor.Cancellable
 import isabelle.Symbol
 import clide.collaboration.Annotations
+import scala.io.StdIn
 
 object Isabelle extends Isabelle
 
@@ -128,7 +129,7 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
 
 object IsabelleApp extends App {
   Isabelle.startup()
-  readLine()
+  StdIn.readLine()
   Isabelle.shutdown()
   Isabelle.system.awaitTermination()
   sys.exit()
