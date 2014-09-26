@@ -76,7 +76,7 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
 
   def fileOpened(file: OpenedFile) = {
     control.log.info("fileOpened({})", file.info.path)
-    noop
+    updateFile(file, file, initEdits(file, Nil))
   }
 
   def fileActivated(file: OpenedFile) = {
