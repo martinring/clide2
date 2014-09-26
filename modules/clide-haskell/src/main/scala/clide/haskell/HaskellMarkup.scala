@@ -28,7 +28,6 @@ import clide.collaboration.Annotate
 import clide.collaboration.Annotation
 import clide.collaboration.Annotations
 import clide.collaboration.Plain
-import scala.util.parsing.combinator.RegexParsers
 import clide.collaboration.AnnotationType
 
 object HaskellMarkup {
