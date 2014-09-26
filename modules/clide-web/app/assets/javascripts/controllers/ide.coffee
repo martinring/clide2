@@ -320,8 +320,9 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
     $scope.sidebar = true
     $scope.sidebarSection = section
     top = $("#section-#{section}").position().top - 16
-    api = $('#sidebarContent').data('jsp')
-    api.scrollTo(0,top)
+    $('#sidebarContent').animate(
+      { scrollTop: $("#section-#{section}").offset.top },
+      2000)
 
   $scope.detachOutput = () ->
     popup = window.open('about:blank','_blank','height=400, width=600, resizable=no, toolbar=no, scrollbars=no, menubar=no, status=no, directories=no')
