@@ -1,6 +1,6 @@
 package clide.xml
 
-import scala.reflect.macros.Context
+import scala.reflect.macros.whitebox.Context
 import scala.reflect.io.AbstractFile
 import scala.io.Source
 import scala.reflect.internal.util.BatchSourceFile

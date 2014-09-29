@@ -51,6 +51,6 @@ object Expander {
 
     parser.parse(source, handler)
     
-    c.Expr(Block(code:_*))
+    c.Expr(q"..$code")
   }
 }
