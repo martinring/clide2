@@ -66,8 +66,8 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
       akka.persistence, scala.reflect, slick,h2,scalatest,scalacheck)
 
   lazy val (reactive,reactiveJs) = sharedModule("reactive")
-    .jvm(DependenciesProject(_).dependsOn(scalatest,scalacheck,junit,akka.actor,scala.reflect))
-    .js(_.settings(libraryDependencies ++= Seq("org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",scala.reflect)))
+    .jvm(DependenciesProject(_).dependsOn(scalatest,scalacheck,junit))
+    .js(_.settings(libraryDependencies ++= Seq(scalatest,scalacheck,junit,"org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",scala.reflect)))
 
   lazy val reactiveUi = jsModule("reactive-ui")
     .dependsOn(reactiveJs)
