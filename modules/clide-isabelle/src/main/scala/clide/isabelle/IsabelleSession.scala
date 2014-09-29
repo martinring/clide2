@@ -90,9 +90,9 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
     val initialized = Promise[Unit]()
     control.log.info("building session content")
     val content = Build.session_content(ops, false, Nil, "HOL")
-    session = new Session(new Resources(content.loaded_theories, Map.empty, content.syntax) {
+    session = new Session(new Resources(content.loaded_theories, content.known_theories, content.syntax) {
       override def append(dir: String, source_path: Path): String = {
-        //control.log.info("thy_load.append({}, {})", dir, source_path)
+        control.log.info("thy_load.append({}, {})", dir, source_path)
         val path = source_path.expand
         if (dir == "" || path.is_absolute)           
           Isabelle_System.platform_path(path)
@@ -128,14 +128,8 @@ trait IsabelleSession { self: AssistBehavior with Control with IsabelleConversio
     initialized.future
   }
 
-  def stop = {
-    val done = Promise[Unit]
-    session.phase_changed += Session.Consumer("clide")(p => p match {
-      case Session.Inactive =>
-        if (!done.isCompleted) done.success(())
-      case _ =>
-    })
+  def stop = {    
     session.stop()
-    done.future
+    noop
   }
 }
