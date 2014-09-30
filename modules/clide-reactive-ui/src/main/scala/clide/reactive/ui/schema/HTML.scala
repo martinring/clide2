@@ -9,7 +9,7 @@ trait HTML {
   def acronym()    = document.createElement("acronym").asInstanceOf[HTMLElement]
   def address()    = document.createElement("address").asInstanceOf[HTMLElement]
   @deprecated("Not supported in HTML5. Use <object> instead", "HTML 5")
-  def applet()     = document.createElement("applet").asInstanceOf[HTMLElement] 
+  def applet()     = document.createElement("applet").asInstanceOf[HTMLAppletElement] 
   def area()       = document.createElement("area").asInstanceOf[HTMLAreaElement]
   def aside()      = document.createElement("aside").asInstanceOf[HTMLElement]
   def audio()      = document.createElement("audio").asInstanceOf[HTMLAudioElement]
