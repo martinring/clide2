@@ -35,6 +35,7 @@ import scala.reflect.io.VirtualDirectory
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.collection.mutable.SortedSet
+import scala.io.StdIn
 
 object Scala extends AssistantServer(ScalaBehavior)
 
@@ -187,7 +188,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
     complete(file, pos){ members =>
       members.filter(m => m.accessible && !m.sym.isConstructor).foreach { member =>
         val icon =
-          if (member.sym.isPackage) "<span class='scala-package'>p</span>"
+          if (member.sym.isPackageObjectOrClass) "<span class='scala-package'>p</span>"
           else if (member.sym.isConstructor) "<span class='scala-class'>C</span>"
           else if (member.sym.isVariable) "<span class='scala-variable'>v</span>"
           else if (member.sym.isModule) "<span class='scala-module'>O</span>"
@@ -210,6 +211,6 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
 
 object ScalaApp extends App {
   Scala.startup()
-  readLine()
+  StdIn.readLine()
   Scala.shutdown()
 }
