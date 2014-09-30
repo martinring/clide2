@@ -7,6 +7,10 @@ import org.xml.sax.SAXParseException
 import scala.collection.mutable.Buffer
 import java.io.FileNotFoundException
 import scala.xml._
+import scala.reflect.io.AbstractFile
+import scala.reflect.internal.util.BatchSourceFile
+import scala.reflect.internal.util.Position
+import scala.reflect.internal.util.OffsetPosition
 
 object XML {
   def inline[S](schema: S, xmlCode: String): Any = macro inlineMacro
@@ -24,8 +28,12 @@ object XML {
     } catch {
       case e: FileNotFoundException =>
         c.abort(path.tree.pos, e.getMessage())
-      case e: SAXParseException =>       
-        c.abort(path.tree.pos, s"[${e.getLineNumber()}:${e.getColumnNumber()}]: ${e.getMessage()}")
+      case e: SAXParseException =>
+        val af = AbstractFile.getFile(xmlFile)        
+        val content = scala.io.Source.fromFile(xmlFile).mkString
+        val sf = new BatchSourceFile(af, content)
+        val pos = new OffsetPosition(sf, sf.lineToOffset(e.getLineNumber() - 1) + e.getColumnNumber()).asInstanceOf[c.universe.Position]
+        c.abort(pos, e.getMessage())
     }
     expand(c)(PositionProvider.forFile(c)(xmlFile.getAbsolutePath()),schema,xmlTree)
   }

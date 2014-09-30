@@ -7,7 +7,7 @@ import java.io.InputStream
 import scala.collection.mutable.Buffer
 import javax.xml.XMLConstants
 
-object Expander {
+private [xml] object Expander {
   def expand(c: Context)(positionProvider: PositionProvider[c.type], source: InputStream): c.Expr[Any] = {
     import org.xml.sax._
     import org.xml.sax.helpers.DefaultHandler
