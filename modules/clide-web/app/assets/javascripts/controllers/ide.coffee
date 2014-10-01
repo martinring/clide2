@@ -23,7 +23,7 @@
 ##                                                                            ##
 
 ### @controller controllers:IdeController ###
-define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, $routeParams, $sce, Dialog, Auth, Toasts, Session, Files) ->
+define ['routes'], (routes) -> ($scope, $location, $timeout, $routeParams, $sce, Dialog, Auth, Toasts, Session, Files) ->
   $scope.path =
     if $routeParams.path? and $routeParams isnt ''
       $routeParams.path.split('/')
@@ -87,8 +87,10 @@ define ['routes','util/fonts'], (routes,fonts) -> ($scope, $location, $timeout, 
   $scope.start = () ->
     $scope.state = 'ide'
 
-  $scope.fonts      = fonts
-  $scope.editorFont = fonts.monospace[0]
+  $scope.fonts      =
+    monospace: Fonts().availableMonospaceFonts
+    math: Fonts().availableMathFonts
+  $scope.editorFont = Fonts().availableMonospaceFonts[0]
   $scope.showLineNumbers = true
   $scope.editorFontSizeDefault = 12
   $scope.editorFontSize = $scope.editorFontSizeDefault
