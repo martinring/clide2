@@ -73,9 +73,13 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
     .dependsOn(reactiveJs)
 
   lazy val client = jsModule("client")
-    .settings(libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
-              libraryDependencies += "com.greencatsoft" %%% "scalajs-angular" % "0.1")
-    .dependsOn(xml, reactiveUi, collaborationJs, messagesJs)
+    .settings(
+      libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
+      libraryDependencies += "com.greencatsoft" %%% "scalajs-angular" % "0.1",
+      persistLauncher := true,
+      persistLauncher in Test := true,
+      relativeSourceMaps := true
+    ).dependsOn(xml, reactiveUi, collaborationJs, messagesJs)
 
   lazy val web = playModule("web").enablePlugins(Angular)
     .dependsOn(core,messages)
@@ -95,7 +99,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
       resourceGenerators in Compile <+= Angular.BoilerplateGenerator,
       play.PlayImport.PlayKeys.lessEntryPoints <<= (sourceDirectory in Compile){ base =>
         base / "assets" / "stylesheets" * "main.less" },
-      compile in Compile <<= (compile in Compile) dependsOn (fastOptJS in (client, Compile)), // dependsOn copySourceMapsTask,
+      compile in Compile <<= (compile in Compile) dependsOn (fastOptJS in (client, Compile)) dependsOn copySourceMapsTask,
       dist <<= dist dependsOn (fullOptJS in (client, Compile)),
       stage <<= stage dependsOn (fullOptJS in (client, Compile)),
       crossTarget in (client, Compile, packageLauncher) := (classDirectory in Compile).value / "public" / "javascripts",

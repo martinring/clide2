@@ -3,8 +3,8 @@ POST    /api/auth/login                     clide.web.controllers.Authentication
 GET     /api/auth/validateSession           clide.web.controllers.Authentication.validateSession
 POST    /api/auth/signup                    clide.web.controllers.Authentication.signup
 GET     /api/auth/logout                    clide.web.controllers.Authentication.logout
-
-# Projects
+ 
+# Projects    
 GET     /api/projects/:user                 clide.web.controllers.Projects.index(user)
 GET     /api/projects/:user/backstage       clide.web.controllers.Projects.backstageSession(user)
 PUT     /api/projects/:user                 clide.web.controllers.Projects.put(user)
@@ -17,6 +17,9 @@ GET     /client/javascripts/routes.js       clide.web.controllers.Application.ja
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /client/*file                       controllers.Assets.at(path="/public", file)
+
+# source maps  
+GET     /clide-*module/*path                clide.web.controllers.SourceMaps.scalaFile(module, path)                 
 
 # Home page (Has to be served last because it catches everything else)
 GET     /                                   clide.web.controllers.Application.index(path="")
