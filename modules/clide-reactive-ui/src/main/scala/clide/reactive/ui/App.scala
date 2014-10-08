@@ -14,6 +14,14 @@ trait App extends DelayedInit {
     dom.history.replaceState(dom.history.state, value, dom.location.pathname)
   }
   
-  def delayedInit(body: => Unit) =
-    dom.document.addEventListener("DOMContentLoaded",(e: dom.Event) => body)
+  def delayedInit(body: => Unit) = {
+    val idempbody = {
+      var initialized = false
+      () => if (!initialized) {
+        initialized = true
+        body
+      }
+    }
+    dom.document.addEventListener("DOMContentLoaded", (e: dom.Event) => idempbody())    
+  }
 }
