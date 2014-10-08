@@ -14,7 +14,7 @@ object Fonts {
     result.style.position = "absolute"
     result.style.fontSize = "128px"
     result.style.left = "-99999px"
-    result.innerHTML = "abcdefghijklmnopqrstuvwxyz0123456789"
+    result.innerHTML = "abcdefghijklmnopqrstuvwxyz0123456789!\"§$%&/()=?"
     result
   }
       
