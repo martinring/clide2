@@ -8,8 +8,8 @@ import scala.scalajs.js.annotation.JSExportDescendentObjects
 import scala.scalajs.js.RegExp
 import scala.scalajs.js.UndefOr
 
-@JSName("CodeMirror")
-object CodeMirror extends js.Object with WithEvents {
+@JSName("CodeMirror")   
+object CodeMirror extends js.Object with WithEvents { 
   def version: String = ???
   def fromTextArea(host: HTMLTextAreaElement, options: CodeMirrorConfiguration = ???): CodeMirror with FromTextArea = ???
   def defaults: CodeMirrorConfiguration = ???
@@ -28,6 +28,8 @@ object CodeMirror extends js.Object with WithEvents {
   def defineMIME(mime: String, modeSpec: String): Unit = ???
   def defineMIME[S](mime: String, modeSpec: Mode[S]): Unit = ???
   def extendMode[S](mode: String, extensions: Mode[S]): Unit = ???
+  
+  def commands: CodeMirrorCommands = ???
 }
 
 trait FromTextArea {
@@ -38,7 +40,8 @@ trait FromTextArea {
 
 @JSName("CodeMirror")
 class CodeMirror protected () extends WithEvents {
-  def this(place: HTMLElement, options: CodeMirrorConfiguration = ???) = this()
+  def this(place: HTMLElement, options: CodeMirrorConfiguration) = this()
+  def this(place: HTMLElement) = this()
   def this(place: js.Function1[HTMLElement, Unit], options: CodeMirrorConfiguration = ???) = this()
   def hasFocus(): Boolean = ???
   def findPosH(start: Position, amount: Int, unit: String, visually: Boolean): PositionWithHitSide = ???
@@ -49,7 +52,8 @@ class CodeMirror protected () extends WithEvents {
   def getOption(option: String): js.Dynamic = ???
   def addKeyMap(map: js.Any, bottom: Boolean = ???): Unit = ???
   def removeKeyMap(map: js.Any): Unit = ???
-  def addOverlay(mode: String, options: js.Any = ???): Unit = ???
+  def addOverlay(mode: String, options: js.Any): Unit = ???  
+  def addOverlay(mode: String): Unit = ???
   def addOverlay[S](mode: Mode[S], options: js.Any = ???): Unit = ???
   def removeOverlay(mode: String): Unit = ???
   def removeOverlay[S](mode: Mode[S]): Unit = ???  
@@ -66,7 +70,8 @@ class CodeMirror protected () extends WithEvents {
   def lineInfo(line: Int): js.Any = ???
   def lineInfo(line: LineHandle): js.Any = ???
   def addWidget(pos: Position, node: HTMLElement, scrollIntoView: Boolean = ???): Unit = ???
-  def addLineWidget(line: Int, node: HTMLElement, options: js.Any = ???): LineWidget = ???
+  def addLineWidget(line: Int, node: HTMLElement): LineWidget = ???
+  def addLineWidget(line: Int, node: HTMLElement, options: js.Any): LineWidget = ???
   def addLineWidget(line: LineHandle, node: HTMLElement, options: js.Any = ???): LineWidget = ???
   def setSize(width: Int, height: js.Any): Unit = ???
   def setSize(width: String, height: js.Any): Unit = ???
@@ -134,8 +139,14 @@ trait DocEditorCommon extends js.Object {
   def listSelections(): js.Array[Range] = ???
   /** Return true if any text is selected */
   def somethingSelected(): Boolean = ???
-  def setCursor(pos: Position, ch: Int = ???, options: SelectionOptions = ???): Unit = ???
-  def setCursor(pos: Int, ch: Int = ???, options: SelectionOptions = ???): Unit = ???
+  def setCursor(pos: Position): Unit = ???
+  def setCursor(pos: Int): Unit = ???
+  def setCursor(pos: Position, ch: Int): Unit = ???
+  def setCursor(pos: Int, ch: Int): Unit = ???  
+  def setCursor(pos: Position, options: SelectionOptions): Unit = ???
+  def setCursor(pos: Int, options: SelectionOptions): Unit = ???
+  def setCursor(pos: Position, ch: Int, options: SelectionOptions): Unit = ???
+  def setCursor(pos: Int, ch: Int, options: SelectionOptions): Unit = ???
   def setSelection(anchor: Position, head: Position = ???, options: SelectionOptions = ???): Unit = ???
   def setSelections(ranges: js.Array[Range], primary: Int = ???, options: SelectionOptions = ???): Unit = ???
   def addSelection(anchor: Position, head: Position = ???): Unit = ???
@@ -190,7 +201,7 @@ trait WithEvents extends js.Object {
 @JSName("Doc")
 class Doc protected () extends DocEditorCommon with WithEvents {
   def this(text: String, mode: js.Any = ???, firstLineNumber: Int = ???) = this()
-  def getEditor(): CodeMirror
+  def getEditor(): CodeMirror = ???
   def copy(copyHistory: Boolean = ???): Doc = ???
   
 }
@@ -260,7 +271,7 @@ trait PositionWithHitSide extends Position {
   var hitSide: js.UndefOr[Boolean] = ???
 }
 
-trait CodeMirrorCommands extends js.Object with Map[String, Function[CodeMirror, Unit]] {
+trait CodeMirrorCommands extends js.Object {
   type Command = js.Function1[CodeMirror, Unit]
   /** Select the whole content of the editor. */
   var selectAll: Command = ???
@@ -416,8 +427,7 @@ trait CodeMirrorCommands extends js.Object with Map[String, Function[CodeMirror,
   var replace: Command = ???
 
   /** Not defined by the core library, but defined in the search addon (or custom client addons). */
-  var replaceAll: Command = ???
-
+  var replaceAll: Command = ???    
 }
 
 trait TextMarkerOptions extends js.Object {

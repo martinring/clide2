@@ -7,7 +7,7 @@ import scala.scalajs.js.RegExp
 trait Mode[S] {
   @JSExport def startState(): S = js.undefined.asInstanceOf[S]
   @JSExport def token(stream: Stream, state: S): String
-}
+} 
 
 trait BlankLineBehavior[S] { self: Mode[S] =>
   @JSExport def blankLine(state: S): S  
@@ -29,27 +29,50 @@ trait ElectricCharBehavior { slef: Mode[_] =>
   @JSExport def electricInput: String = js.undefined.asInstanceOf[String]
 }
 
-
-trait Stream {
-  def eol(): Boolean = ???
-  def sol(): Boolean = ???
-  def peek(): js.String = ???
-  def next(): js.String = ???
-  def eat(`match`: String): js.String = ???
-  def eat(`match`: RegExp): js.String = ???
-  def eat(`match`: js.Function1[js.String, Boolean]): js.String = ???
-  def eatWhile(`match`: String): Boolean = ???
-  def eatWhile(`match`: RegExp): Boolean = ???
-  def eatWhile(`match`: js.Function1[js.String, Boolean]): Boolean = ???
+trait Stream extends js.Object {
+  def eol(): js.UndefOr[Boolean] = ???
+  def sol(): js.UndefOr[Boolean] = ???
+  def peek(): String = ???
+  def next(): String = ???
+  def eat(`match`: String): js.UndefOr[String] = ???
+  def eat(`match`: RegExp): js.UndefOr[String] = ???
+  def eat(`match`: js.Function1[js.String, Boolean]): js.UndefOr[String] = ???
+  def eatSpace(): js.UndefOr[Boolean] = ???
+  def eatWhile(`match`: String): js.UndefOr[Boolean] = ???
+  def eatWhile(`match`: RegExp): js.UndefOr[Boolean] = ???
+  def eatWhile(`match`: js.Function1[js.String, Boolean]): js.UndefOr[Boolean] = ???  
   def skipToEnd(): Unit = ???
-  def skipTo(char: js.String) = ???
-  def `match`(pattern: String, consume: Boolean, caseFold: Boolean): Boolean = ???
-  def `match`(pattern: String, consume: Boolean): Boolean = ???
-  def `match`(pattern: String): Boolean = ???
+  def skipTo(char: Char): js.UndefOr[Boolean] = ???
+  def `match`(pattern: String, consume: Boolean, caseFold: Boolean): js.UndefOr[Boolean] = ???
+  def `match`(pattern: String, consume: Boolean): js.UndefOr[Boolean] = ???
+  def `match`(pattern: String): js.UndefOr[Boolean] = ???
   def `match`(pattern: RegExp, consume: Boolean): js.Array[String] = ???
   def `match`(pattern: RegExp): js.Array[String] = ???
   def backUp(n: Integer): Unit = ???
   def column(): Int = ???
   def indentation(): Int = ???
-  def current(): String = ???
+  def current(): String = ???    
+}
+
+object Stream {
+  implicit class StreamOps(stream: Stream) extends Iterable[Char] {
+    def nextOption = Option(stream.next()).map(_.asInstanceOf[Char])
+    
+    def iterator = new Iterator[Char] {
+      private var _next: String = null
+      
+      def hasNext = _next != null || {        
+        _next = stream.next()
+        _next != null
+      }
+      
+      def next() = if (_next != null) {
+        val result = _next.asInstanceOf[Char]
+        _next = null
+        result
+      } else {
+        stream.next().asInstanceOf[Char]
+      }
+    }
+  }
 }
