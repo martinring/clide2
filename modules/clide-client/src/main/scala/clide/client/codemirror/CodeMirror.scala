@@ -169,8 +169,6 @@ trait DocEditorCommon extends js.Object {
   def findMarks(from: Position, to: Position): js.Array[TextMarker] = ???
   def findMarksAt(pos: Position): js.Array[TextMarker] = ???
   def getAllMarks(): js.Array[TextMarker] = ???
-  
-  
 }
 
 trait HistorySizeInfo extends js.Object {
@@ -275,157 +273,106 @@ trait CodeMirrorCommands extends js.Object {
   type Command = js.Function1[CodeMirror, Unit]
   /** Select the whole content of the editor. */
   var selectAll: Command = ???
-
   /** When multiple selections are present, this deselects all but the primary selection. */
   var singleSelection: Command = ???
-
   /** Emacs-style line killing. Deletes the part of the line after the cursor. If that consists only of whitespace, the newline at the end of the line is also deleted. */
   var killLine: Command = ???
-
   /** Deletes the whole line under the cursor, including newline at the end. */
   var deleteLine: Command = ???
-
   /** Delete the part of the line before the cursor. */
   var delLineLeft: Command = ???
-
   /** Delete the part of the line from the left side of the visual line the cursor is on to the cursor. */
   var delWrappedLineLeft: Command = ???
-
   /** Delete the part of the line from the cursor to the right side of the visual line the cursor is on. */
   var delWrappedLineRight: Command = ???
-
   /** Undo the last change. */
   var undo: Command = ???
-
   /** Redo the last undone change. */
   var redo: Command = ???
-
   /** Undo the last change to the selection, or if there are no selection-only changes at the top of the history, undo the last change. */
   var undoSelection: Command = ???
-
   /** Redo the last change to the selection, or the last text change if no selection changes remain. */
   var redoSelection: Command = ???
-
   /** Move the cursor to the start of the document. */
   var goDocStart: Command = ???
-
   /** Move the cursor to the end of the document. */
   var goDocEnd: Command = ???
-
   /** Move the cursor to the start of the line. */
   var goLineStart: Command = ???
-
   /** Move to the start of the text on the line, or if we are already there, to the actual start of the line (including whitespace). */
   var goLineStartSmart: Command = ???
-
   /** Move the cursor to the end of the line. */
   var goLineEnd: Command = ???
-
   /** Move the cursor to the right side of the visual line it is on. */
   var goLineRight: Command = ???
-
   /** Move the cursor to the left side of the visual line it is on. If this line is wrapped, that may not be the start of the line. */
   var goLineLeft: Command = ???
-
   /** Move the cursor to the left side of the visual line it is on. If that takes it to the start of the line, behave like goLineStartSmart. */
   var goLineLeftSmart: Command = ???
-
   /** Move the cursor up one line. */
   var goLineUp: Command = ???
-
   /** Move down one line. */
   var goLineDown: Command = ???
-
   /** Move the cursor up one screen, and scroll up by the same distance. */
   var goPageUp: Command = ???
-
   /** Move the cursor down one screen, and scroll down by the same distance. */
   var goPageDown: Command = ???
-
   /** Move the cursor one character left, going to the previous line when hitting the start of line. */
   var goCharLeft: Command = ???
-
   /** Move the cursor one character right, going to the next line when hitting the end of line. */
   var goCharRight: Command = ???
-
   /** Move the cursor one character left, but don't cross line boundaries. */
   var goColumnLeft: Command = ???
-
   /** Move the cursor one character right, don't cross line boundaries. */
   var goColumnRight: Command = ???
-
   /** Move the cursor to the start of the previous word. */
   var goWordLeft: Command = ???
-
   /** Move the cursor to the end of the next word. */
   var goWordRight: Command = ???
-
   /** Move to the left of the group before the cursor. A group is a stretch of word characters, a stretch of punctuation characters, a newline, or a stretch of more than one whitespace character. */
   var goGroupLeft: Command = ???
-
   /** Move to the right of the group after the cursor (see above). */
   var goGroupRight: Command = ???
-
   /** Delete the character before the cursor. */
   var delCharBefore: Command = ???
-
   /** Delete the character after the cursor. */
   var delCharAfter: Command = ???
-
   /** Delete up to the start of the word before the cursor. */
   var delWordBefore: Command = ???
-
   /** Delete up to the end of the word after the cursor. */
   var delWordAfter: Command = ???
-
   /** Delete to the left of the group before the cursor. */
   var delGroupBefore: Command = ???
-
   /** Delete to the start of the group after the cursor. */
   var delGroupAfter: Command = ???
-
   /** Auto-indent the current line or selection. */
   var indentAuto: Command = ???
-
   /** Indent the current line or selection by one indent unit. */
   var indentMore: Command = ???
-
   /** Dedent the current line or selection by one indent unit. */
   var indentLess: Command = ???
-
   /** Insert a tab character at the cursor. */
   var insertTab: Command = ???
-
   /** Insert the amount of spaces that match the width a tab at the cursor position would have. */
   var insertSoftTab: Command = ???
-
   /** If something is selected, indent it by one indent unit. If nothing is selected, insert a tab character. */
   var defaultTab: Command = ???
-
   /** Swap the characters before and after the cursor. */
   var transposeChars: Command = ???
-
   /** Insert a newline and auto-indent the new line. */
   var newlineAndIndent: Command = ???
-
   /** Flip the overwrite flag. */
   var toggleOverwrite: Command = ???
-
   /** Not defined by the core library, only referred to in key maps. Intended to provide an easy way for user code to define a save command. */
   var save: Command = ???
-
   /** Not defined by the core library, but defined in the search addon (or custom client addons). */
   var find: Command = ???
-
   /** Not defined by the core library, but defined in the search addon (or custom client addons). */
   var findNext: Command = ???
-
   /** Not defined by the core library, but defined in the search addon (or custom client addons). */
   var findPrev: Command = ???
-
   /** Not defined by the core library, but defined in the search addon (or custom client addons). */
   var replace: Command = ???
-
   /** Not defined by the core library, but defined in the search addon (or custom client addons). */
   var replaceAll: Command = ???    
 }
