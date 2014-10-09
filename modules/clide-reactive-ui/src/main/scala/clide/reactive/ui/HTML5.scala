@@ -118,7 +118,7 @@ object HTML5 extends directives.Events
             ref = ref.nextSibling
             n -= 1
           }
-          elem.removeChild(ref)        
+          elem.removeChild(ref)
         case Update(Head,node) =>
           elem.replaceChild(node,beforeHead.nextSibling)
         case Update(Last,node) =>

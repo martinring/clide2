@@ -4,7 +4,7 @@ import scalajs.js
 import org.scalajs.dom
 import clide.reactive.Event
 
-trait App extends DelayedInit {
+trait JSApp extends DelayedInit {
   implicit val executionContext = scalajs.concurrent.JSExecutionContext.runNow
   implicit val scheduler = clide.reactive.ui.Scheduler
   
@@ -15,13 +15,13 @@ trait App extends DelayedInit {
   }
   
   def delayedInit(body: => Unit) = {
-    val idempbody = {
+    val idempbody = { 
       var initialized = false
       () => if (!initialized) {
         initialized = true
         body
       }
     }
-    dom.document.addEventListener("DOMContentLoaded", (e: dom.Event) => idempbody())    
+    dom.document.addEventListener("DOMContentLoaded", (e: dom.Event) => idempbody())
   }
 }

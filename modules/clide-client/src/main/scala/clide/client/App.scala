@@ -7,10 +7,11 @@ import clide.reactive._
 import clide.reactive.ui._
 import scalajs.js.annotation.JSExport
 import org.scalajs.dom
+import clide.reactive.ui.JSApp
   
 // Experimental Stuff
 @JSExport
-object App extends clide.reactive.ui.App with History { 
+object App extends JSApp with History { 
   dom.document.body.innerHTML = ""
   
   val BackstagePath = "/([A-Za-z0-9 ]+)/backstage".r
@@ -29,16 +30,16 @@ object App extends clide.reactive.ui.App with History {
   } 
     
   def todos = {
-    class Todo(val text: String, val done: Boolean)
+    case class Todo(text: String, done: Boolean)
     lazy val todos = ObservableBuffer(
-      new Todo("learn scala.js", true), 
-      new Todo("build a scala.js app", false))
+      Todo("learn scala.js", true), 
+      Todo("build a scala.js app", false))
     def remaining = todos.changes.sample(todos.count(!_.done).toString)
     def total = todos.watch.length.map(_.toString)
     def archive() = todos.replaceAll(todos.filter(!_.done))
     def setDone(todo: Todo)(value: Boolean) =
-      todos(todos.indexOf(todo)) = new Todo(todo.text, value)
-    def addTodo(text: String) = todos += new Todo(text,false)
+      todos(todos.indexOf(todo)) = Todo(todo.text, value)
+    def addTodo(text: String) = todos += Todo(text,false)
     XML.include(HTML5,"todo.html")
   }
   

@@ -4,7 +4,7 @@ import scalajs.js
 import org.scalajs.dom
 import clide.reactive.Event
 
-trait History extends DelayedInit { self: App =>
+trait History extends DelayedInit { self: JSApp =>
   object history {
     private [History] val (event,channel) = Event.broadcast[String]()
     channel.push(dom.location.pathname)

@@ -35,7 +35,7 @@ object HotPlate {
     }      
     
     def consume = {
-      lazy val (out: Event[A],channel: Channel[A]) = 
+      lazy val (out: Event[A], channel: Channel[A]) = 
         Event.broadcast[A](listeners -= channel)
       latest.foreach(channel.push(_))
       out
