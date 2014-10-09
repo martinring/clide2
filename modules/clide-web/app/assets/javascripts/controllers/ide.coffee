@@ -61,7 +61,6 @@ define ['routes'], (routes) -> ($scope, $location, $timeout, $routeParams, $sce,
     session = sessionService.interface
     $scope.session = sessionService.data
     $scope.sessionService = sessionService
-    console.log sessionService.state
     sessionService.data.kicked = () ->
       Toasts.push 'warning', "You have been kicked from '#{$routeParams.user}/#{$routeParams.project}'"
       $scope.backstage()

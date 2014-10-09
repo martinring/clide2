@@ -23,7 +23,7 @@
 ##                                                                            ##
 
 ### @service services:Session ###
-define ['routes','util/actorSocket','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations','modes/isabelle/defaultWords'], (routes,ActorSocket,Operation,CMAdapter,Client,Annotations,idw) -> ($q,$rootScope,$http,Toasts,Dialog) ->
+define ['routes','util/actorSocket','collaboration/Operation','collaboration/CodeMirror','collaboration/Client','collaboration/Annotations'], (routes,ActorSocket,Operation,CMAdapter,Client,Annotations) -> ($q,$rootScope,$http,Toasts,Dialog) ->
   (username, project) ->
     session =
       state: 'closed'
@@ -82,8 +82,7 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
       else
         if file.info.mimeType is 'text/isabelle'
           nfile.doc  = CodeMirror.Doc file.state,
-            name: 'isabelle'
-            words: idw
+            name: 'isabelle' #FIXME: initialize keywords
         else
           nfile.doc = CodeMirror.Doc file.state, (file.info.mimeType or 'text/plain')
         nfile.doc.on "cursorActivity", (doc) ->
