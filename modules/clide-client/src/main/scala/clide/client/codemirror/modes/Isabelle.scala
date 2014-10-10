@@ -463,15 +463,23 @@ object IsabelleMode {
   }  
 
   def tokenString(stream: Stream, state: IsabelleModeState): String = {
-    if (stream.skipTo('"') exists identity) {
-      stream.next()
+    if (stream.eatSpace() exists identity) "string"
+    else if (stream.eat("\"").isDefined) {
       state.tokenize = tokenBase
       "string"
-    }
+    } else if (stream.`match`(IsabelleMode.escaped) != null) "string escaped"
+    else if (stream.`match`(IsabelleMode.longident) != null) "string longident"
+    else if (stream.`match`(IsabelleMode.ident) != null) "string ident"
+    else if (stream.`match`(IsabelleMode.typefree) != null) "string tfree"
+    else if (stream.`match`(IsabelleMode.typevar) != null) "string tvar"
+    else if (stream.`match`(IsabelleMode.num) != null) "string num"
+    else if (stream.`match`(IsabelleMode.symident) != null) "string symbol"
+    else if (stream.`match`(IsabelleMode.control) != null) "string control"
+    else if (stream.`match`(IsabelleMode.incomplete) != null) "string incomplete"
     else {
-      stream.skipToEnd()
-      "string"
-    }    
+      stream.next()
+      "string" 
+    }
   }
 
   def tokenAltString(stream: Stream, state: IsabelleModeState): String = {
