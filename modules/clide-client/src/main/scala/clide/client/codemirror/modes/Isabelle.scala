@@ -407,7 +407,8 @@ object IsabelleMode {
     }
     
     if (char == "(") {
-      if (stream.`match`("(*") exists identity) {
+      stream.next()
+      if (stream.eat("*") != null) {
         state.commentLevel += 1
         state.tokenize = tokenComment
         return state.tokenize(stream, state)
@@ -464,7 +465,7 @@ object IsabelleMode {
 
   def tokenString(stream: Stream, state: IsabelleModeState): String = {
     if (stream.eatSpace() exists identity) "string"
-    else if (stream.eat("\"").isDefined) {
+    else if (stream.eat("\"") != null) {
       state.tokenize = tokenBase
       "string"
     } else if (stream.`match`(IsabelleMode.escaped) != null) "string escaped"
