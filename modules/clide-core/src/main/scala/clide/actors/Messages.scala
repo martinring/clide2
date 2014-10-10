@@ -31,19 +31,19 @@ import clide.collaboration.Annotations
  * @author Martin Ring <martin.ring@dfki.de>
  */
 object Messages {
-  trait Message
+  sealed trait Message
 
   @SerialVersionUID(1L) case object Register extends Message
   @SerialVersionUID(1L) case object Unregister extends Message
   @SerialVersionUID(1L) case object ForgetIt extends Message
 
-  trait UserServerMessage extends Message
+  sealed trait UserServerMessage extends Message
   // FIXME: Security: plain password!!!
   @SerialVersionUID(1L) case class SignUp(name: String, email: String, password: String) extends UserServerMessage
   @SerialVersionUID(1L) case class IdentifiedFor(user: String, key: String, message: UserMessage) extends UserServerMessage
   @SerialVersionUID(1L) case class AnonymousFor(user: String, message: UserMessage) extends UserServerMessage
 
-  trait UserMessage extends Message
+  sealed trait UserMessage extends Message
   @SerialVersionUID(1L) case object Validate extends UserMessage
   @SerialVersionUID(1L) case class Login(password: String, isHuman: Boolean = false) extends UserMessage
   @SerialVersionUID(1L) case object Logout extends UserMessage
@@ -56,7 +56,7 @@ object Messages {
   @SerialVersionUID(1L) case object StartBackstageSession extends UserMessage
   @SerialVersionUID(1L) case object RequestBackstageInfo extends UserMessage with SessionMessage
 
-  trait ProjectMessage extends Message
+  sealed trait ProjectMessage extends Message
   @SerialVersionUID(1L) case object DeleteProject extends ProjectMessage
 
   @SerialVersionUID(1L) case class WithPath(path: Seq[String], message: FileMessage) extends ProjectMessage with FileMessage
@@ -65,9 +65,9 @@ object Messages {
 
   @SerialVersionUID(1L) case class ChangeProjectUserLevel(user: String, level: ProjectAccessLevel.Value) extends ProjectMessage
 
-  trait FileMessage        extends Message
-  trait FileReadMessage    extends FileMessage
-  trait FileWriteMessage   extends FileReadMessage
+  sealed trait FileMessage        extends Message
+  sealed trait FileReadMessage    extends FileMessage
+  sealed trait FileWriteMessage   extends FileReadMessage
 
   @SerialVersionUID(1L) case object BrowseFolder extends FileReadMessage
   @SerialVersionUID(1L) case object ExplorePath  extends FileReadMessage
@@ -79,7 +79,7 @@ object Messages {
 
   @SerialVersionUID(1L) case object EOF extends Message
 
-  trait SessionMessage extends Message
+  sealed trait SessionMessage extends Message
   @SerialVersionUID(1L) case object EnterSession extends SessionMessage
   @SerialVersionUID(1L) case object LeaveSession extends SessionMessage
   @SerialVersionUID(1L) case object CloseSession extends SessionMessage
@@ -94,11 +94,11 @@ object Messages {
   @SerialVersionUID(1L) case class UnsubscribeFromAnnotations(id: Long, user: Long, name: String) extends SessionMessage with FileReadMessage
   @SerialVersionUID(1L) case class OfferAnnotations(id: Long, name: String, description: Option[String]) extends SessionMessage with FileReadMessage
 
-  trait BroadcastMessage extends SessionMessage
+  sealed trait BroadcastMessage extends SessionMessage
 
   @SerialVersionUID(1L) case class Talk(to: Option[Long], msg: String, tpe: Option[String]) extends BroadcastMessage
 
-  trait ProcessingMessage extends BroadcastMessage
+  sealed trait ProcessingMessage extends BroadcastMessage
   @SerialVersionUID(1L) case class LookingAtFile(file: Long) extends ProcessingMessage
   @SerialVersionUID(1L) case class StoppedLookingAtFile(file: Long) extends ProcessingMessage
   @SerialVersionUID(1L) case class WorkingOnFile(file: Long) extends ProcessingMessage
@@ -107,10 +107,10 @@ object Messages {
   @SerialVersionUID(1L) case class FailureInFile(file: Long, msg: Option[String]) extends ProcessingMessage
 
   private[actors] object internal {
-    trait UserMessageWrapper extends Message
-	case class Identified(key: String, message: UserMessage) extends UserMessageWrapper
-	case class Anonymous(message: UserMessage) extends UserMessageWrapper
-	case class External(sender: UserInfo, login: LoginInfo, message: UserMessage) extends UserMessageWrapper
+    sealed trait UserMessageWrapper extends Message
+  	case class Identified(key: String, message: UserMessage) extends UserMessageWrapper
+  	case class Anonymous(message: UserMessage) extends UserMessageWrapper
+  	case class External(sender: UserInfo, login: LoginInfo, message: UserMessage) extends UserMessageWrapper
 
     case class WrappedProjectMessage(
       user: UserInfo,

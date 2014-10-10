@@ -32,7 +32,7 @@ import clide.actors.Messages.BroadcastMessage
  * @author Martin Ring <martin.ring@dfki.de>
  */
 object Events {
-  trait Event
+  sealed trait Event
   @SerialVersionUID(1L) case object TimeOut extends Event
   @SerialVersionUID(1L) case object UnexpectedTermination extends Event
 
@@ -43,21 +43,21 @@ object Events {
   @SerialVersionUID(1L) case class EventSocket(in: ActorRef, id: String) extends Event
   @SerialVersionUID(1L) case object Welcome extends Event
 
-  trait FileEvent extends Event
+  sealed trait FileEvent extends Event
   @SerialVersionUID(1L) case class FileCreated(file: FileInfo) extends FileEvent
   @SerialVersionUID(1L) case class FileDeleted(file: FileInfo) extends FileEvent
   @SerialVersionUID(1L) case class FileMoved(file: FileInfo, from: Seq[String]) extends FileEvent
 
-  trait FileBrowserEvent extends FileEvent
+  sealed trait FileBrowserEvent extends FileEvent
   @SerialVersionUID(1L) case class FolderContent(folder: FileInfo, files: Seq[FileInfo]) extends FileBrowserEvent
   @SerialVersionUID(1L) case class FileId(id: FileInfo) extends FileBrowserEvent
 
-  trait UserEvent extends Event
+  sealed trait UserEvent extends Event
   @SerialVersionUID(1L) case class SignedUp(user: UserInfo) extends UserEvent
   @SerialVersionUID(1L) case class LoggedIn(user: UserInfo, login: LoginInfo) extends UserEvent
   @SerialVersionUID(1L) case class LoggedOut(user: UserInfo) extends UserEvent
 
-  trait AuthEvent extends Event
+  sealed trait AuthEvent extends Event
   @SerialVersionUID(1L) case object DoesntExist extends AuthEvent
   @SerialVersionUID(1L) case object WrongPassword extends AuthEvent
   @SerialVersionUID(1L) case object SessionTimedOut extends AuthEvent
@@ -65,13 +65,13 @@ object Events {
   @SerialVersionUID(1L) case object NotAllowed extends AuthEvent
   @SerialVersionUID(1L) case class Validated(user: UserInfo) extends AuthEvent
 
-  trait ProjectEvent extends Event
+  sealed trait ProjectEvent extends Event
   @SerialVersionUID(1L) case class CreatedProject(project: ProjectInfo) extends ProjectEvent
   @SerialVersionUID(1L) case class ProjectCouldNotBeCreated(reason: String) extends ProjectEvent
   @SerialVersionUID(1L) case class DeletedProject(project: ProjectInfo) extends ProjectEvent
   @SerialVersionUID(1L) case class ChangedProjectUserLevel(project: ProjectInfo, user: String, level: ProjectAccessLevel.Value) extends ProjectEvent
 
-  trait SessionEvent extends Event
+  sealed trait SessionEvent extends Event
   @SerialVersionUID(1L) case class SessionInit(
       info: SessionInfo,
       collaborators: Set[SessionInfo],
