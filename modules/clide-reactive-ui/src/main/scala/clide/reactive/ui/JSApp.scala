@@ -4,6 +4,7 @@ import scalajs.js
 import org.scalajs.dom
 import clide.reactive.Event
 
+@SuppressWarnings(Array("deprecation"))
 trait JSApp extends DelayedInit {
   implicit val executionContext = scalajs.concurrent.JSExecutionContext.runNow
   implicit val scheduler = clide.reactive.ui.Scheduler
@@ -22,6 +23,7 @@ trait JSApp extends DelayedInit {
         body
       }
     }
+    
     dom.document.addEventListener("DOMContentLoaded", (e: dom.Event) => idempbody())
   }
 }
