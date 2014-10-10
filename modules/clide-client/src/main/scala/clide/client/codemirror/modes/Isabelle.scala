@@ -386,7 +386,7 @@ object IsabelleMode {
     
     if (char == "{") {
       stream.next()
-      if (stream.eat("*") != null) {
+      if (stream.eat("*").isDefined) {
         state.tokenize = tokenVerbatim
         return state.tokenize(stream,state)
       } else stream.backUp(1)
@@ -408,7 +408,7 @@ object IsabelleMode {
     
     if (char == "(") {
       stream.next()
-      if (stream.eat("*") != null) {
+      if (stream.eat("*").isDefined) {
         state.commentLevel += 1
         state.tokenize = tokenComment
         return state.tokenize(stream, state)
@@ -465,7 +465,7 @@ object IsabelleMode {
 
   def tokenString(stream: Stream, state: IsabelleModeState): String = {
     if (stream.eatSpace() exists identity) "string"
-    else if (stream.eat("\"") != null) {
+    else if (stream.eat("\"").isDefined) {
       state.tokenize = tokenBase
       "string"
     } else if (stream.`match`(IsabelleMode.escaped) != null) "string escaped"
