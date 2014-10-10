@@ -51,8 +51,8 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
       throw new RuntimeException("Unable to load Scala interpreter from classpath (scala-compiler jar is missing?)", e)
   }
   
-  private lazy val libPath = try {
-    classPathOfClass("scala.ScalaObject")
+  private lazy val libPath = try {    
+    classPathOfClass("scala.AnyVal")
   } catch {
     case e: Throwable =>
       throw new RuntimeException("Unable to load scala base object from classpath (scala-library jar is missing?)", e)
