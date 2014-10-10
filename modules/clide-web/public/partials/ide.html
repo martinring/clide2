@@ -80,7 +80,7 @@
                 </ul>
               </div>
               <h3>Collaboration</h3>
-              <div ng-show='sessionService.state=="connected"'>                
+              <div ng-show='sessionService.state=="connected"'>
                 <p>
                   <ng-pluralize count='session.collaborators.length'
                                 when="{'0': 'You are currently the only collaborator',
@@ -171,8 +171,8 @@
             <!--<li class="section" id='section-settings' ng-class='{active: sidebarSection=="settings"}' ng-click='sidebarSection="settings"'>
               <h3>Settings</h3>
             </li>-->
-            <li class="section" id='section-help' ng-class='{active: sidebarSection=="help"}' ng-click='sidebarSection="help"'>
-              <h3>Help</h3>
+            <li class="section" id='section-help' ng-controller='AppController' ng-class='{active: sidebarSection=="help"}' ng-click='sidebarSection="help"'>
+              <h3>About</h3>
               &copy; 2012-2014 Martin Ring<br/>
               Licensed under LGPL v3<br/>
               Version {{version}}, last updated {{date}}.
