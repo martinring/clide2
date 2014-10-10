@@ -78,6 +78,7 @@ trait BuildUtils {
     }
     def jvm(f: Project => Project) = (f(jvmp),jsp)
     def js(f: Project => Project) = (jvmp,f(jsp))
+    def dependsOn(references: ModuleID*) = settings(libraryDependencies ++= references)
   }
 
   /*implicit class ScalaJSPlayProject(val project: Project) {

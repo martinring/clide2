@@ -65,17 +65,16 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
       akka.actor, akka.remote, akka.kernel, akka.testkit,
       akka.persistence, scala.reflect, slick,h2,scalatest,scalacheck)
 
-  lazy val (reactive,reactiveJs) = sharedModule("reactive")
-    .jvm(DependenciesProject(_).dependsOn(scalatest,scalacheck,junit))
-    .js(_.settings(libraryDependencies ++= Seq(scalatest,scalacheck,junit,"org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",scala.reflect)))
+  lazy val (reactive,reactiveJs) = sharedModule("reactive").dependsOn(scalatest,scalacheck,junit)
 
-  lazy val reactiveUi = jsModule("reactive-ui")
-    .dependsOn(reactiveJs)
+  lazy val reactiveUi = jsModule("reactive-ui").dependsOn(reactiveJs).settings(
+    libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6")
 
   lazy val client = jsModule("client")
     .settings(
       libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
       libraryDependencies += "com.greencatsoft" %%% "scalajs-angular" % "0.1",
+      libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.2.5",
       persistLauncher := true,
       persistLauncher in Test := true,
       relativeSourceMaps := true
@@ -83,7 +82,6 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   lazy val web = playModule("web").enablePlugins(Angular)
     .dependsOn(core,messages)
-    //.dependsOnJs(client -> "client.js")
     .settings(
       Angular.autoImport.angularOtherModules ++= Map(
         "angular-animate"  -> "ngAnimate",
@@ -102,6 +100,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
       compile in Compile <<= (compile in Compile) dependsOn (fastOptJS in (client, Compile)) dependsOn copySourceMapsTask,
       dist <<= dist dependsOn (fullOptJS in (client, Compile)),
       stage <<= stage dependsOn (fullOptJS in (client, Compile)),
+      libraryDependencies += "com.lihaoyi" %% "upickle" % "0.2.5",
       crossTarget in (client, Compile, packageLauncher) := (classDirectory in Compile).value / "public" / "javascripts",
       crossTarget in (client, Compile, fastOptJS) := (classDirectory in Compile).value / "public" / "javascripts",
       crossTarget in (client, Compile, fullOptJS) := (classDirectory in Compile).value / "public" / "javascripts"
