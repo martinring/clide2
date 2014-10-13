@@ -77,19 +77,19 @@ object Operation {
 
   private def normalize(ops: List[Action]): List[Action] = {
     @tailrec
-	def loop(as: List[Action], bs: List[Action]): List[Action] = (as,bs) match {
-	  case (as,Nil) => as
-	  case (as,Retain(n)::bs) =>
-	    if (n == 0) loop(as,bs)
-	    else loop(addRetain(n,as),bs)
-	  case (as,Insert(i)::bs) =>
-	    if (i == "") loop(as,bs)
-	    else loop(addInsert(i,as),bs)
-	  case (as,Delete(d)::bs) =>
-	    if (d == 0) loop(as,bs)
-	    else loop(addDelete(d,as),bs)
-    }
-	loop(Nil,ops.reverse).reverse
+  	def loop(as: List[Action], bs: List[Action]): List[Action] = (as,bs) match {
+  	  case (as,Nil) => as
+  	  case (as,Retain(n)::bs) =>
+  	    if (n == 0) loop(as,bs)
+  	    else loop(addRetain(n,as),bs)
+  	  case (as,Insert(i)::bs) =>
+  	    if (i == "") loop(as,bs)
+  	    else loop(addInsert(i,as),bs)
+  	  case (as,Delete(d)::bs) =>
+  	    if (d == 0) loop(as,bs)
+  	    else loop(addDelete(d,as),bs)
+      }
+  	loop(Nil,ops.reverse).reverse
   }
 
   def transform(a: Operation, b: Operation): Try[(Operation, Operation)] = {
@@ -99,26 +99,22 @@ object Operation {
       case (aa@(a::as),bb@(b::bs),xs,ys) => (a,b) match {
         case (Insert(i),_) => loop(as,bb,addInsert(i,xs),addRetain(i.length,ys))
         case (_,Insert(i)) => loop(aa,bs,addRetain(i.length,xs),addInsert(i,ys))
-        case (Retain(n),Retain(m)) => (n <=> m) match {
-          case LT => loop(as,Retain(m-n)::bs,addRetain(n,xs),addRetain(n,ys))
-          case EQ => loop(as,bs,addRetain(n,xs),addRetain(n,ys))
-          case GT => loop(Retain(n-m)::as,bs,addRetain(m,xs),addRetain(m,ys))
-        }
-        case (Delete(n),Delete(m)) => (n <=> m) match {
-          case LT => loop(as,Delete(m-n)::bs,xs,ys)
-          case EQ => loop(as,bs,xs,ys)
-          case GT => loop(Delete(n-m)::as,bs,xs,ys)
-        }
-        case (Retain(r),Delete(d)) => (r <=> d) match {
-          case LT => loop(as,Delete(d-r)::bs,xs,addDelete(r,ys))
-          case EQ => loop(as,bs,xs,addDelete(d,ys))
-          case GT => loop(Retain(r-d)::as,bs,xs,addDelete(d,ys))
-        }
-        case (Delete(d),Retain(r)) => (d <=> r) match {
-          case LT => loop(as,Retain(r-d)::bs,addDelete(d,xs),ys)
-          case EQ => loop(as,bs,addDelete(d,xs),ys)
-          case GT => loop(Delete(d-r)::as,bs,addDelete(r,xs),ys)
-        }
+        case (Retain(n),Retain(m)) => 
+          if (n < m)       loop(as,Retain(m-n)::bs,addRetain(n,xs),addRetain(n,ys))
+          else if (n == m) loop(as,bs,addRetain(n,xs),addRetain(n,ys))
+          else             loop(Retain(n-m)::as,bs,addRetain(m,xs),addRetain(m,ys))        
+        case (Delete(n),Delete(m)) => 
+          if (n < m)       loop(as,Delete(m-n)::bs,xs,ys)
+          else if (n == m) loop(as,bs,xs,ys)
+          else             loop(Delete(n-m)::as,bs,xs,ys)        
+        case (Retain(r),Delete(d)) => 
+          if (r < d)       loop(as,Delete(d-r)::bs,xs,addDelete(r,ys))
+          else if (r == d) loop(as,bs,xs,addDelete(d,ys))
+          else             loop(Retain(r-d)::as,bs,xs,addDelete(d,ys))        
+        case (Delete(d),Retain(r)) => 
+          if (d < r)       loop(as,Retain(r-d)::bs,addDelete(d,xs),ys)
+          else if (d == r) loop(as,bs,addDelete(d,xs),ys)
+          else             loop(Delete(d-r)::as,bs,addDelete(r,xs),ys)        
       }
       case (Nil,Insert(i)::bs,xs,ys) => loop(Nil,bs,addRetain(i.length,xs),addInsert(i,ys))
       case (Insert(i)::as,Nil,xs,ys) => loop(as,Nil,addInsert(i,xs),addRetain(i.length,ys))
@@ -134,27 +130,25 @@ object Operation {
       case (aa@(a::as),bb@(b::bs),xs) => (a,b) match {
         case (Delete(d),_) => loop(as,bb,addDelete(d,xs))
         case (_,Insert(i)) => loop(aa,bs,addInsert(i,xs))
-        case (Retain(n),Retain(m)) => (n <=> m) match {
-          case LT => loop(as,Retain(m-n)::bs,addRetain(n,xs))
-          case EQ => loop(as,bs,addRetain(n,xs))
-          case GT => loop(Retain(n-m)::as,bs,addRetain(m,xs))
-        }
-        case (Retain(r),Delete(d)) => (r <=> d) match {
-          case LT => loop(as,Delete(d-r)::bs,addDelete(r,xs))
-          case EQ => loop(as,bs,addDelete(d,xs))
-          case GT => loop(Retain(r-d)::as,bs,addDelete(d,xs))
-        }
-        case (Insert(i),Retain(m)) => (i.length <=> m) match {
-          case LT => loop(as,Retain(m-i.length)::bs,addInsert(i,xs))
-          case EQ => loop(as,bs,addInsert(i,xs))
-          case GT => val (before,after) = i.splitAt(m)
-                     loop(Insert(after)::as,bs,addInsert(before,xs))
-        }
-        case (Insert(i),Delete(d)) => (i.length <=> d) match {
-          case LT => loop(as,Delete(d-i.length)::bs,xs)
-          case EQ => loop(as,bs,xs)
-          case GT => loop(Insert(i.drop(d))::as,bs,xs)
-        }
+        case (Retain(n),Retain(m)) =>
+          if (n < m)       loop(as,Retain(m-n)::bs,addRetain(n,xs))
+          else if (n == m) loop(as,bs,addRetain(n,xs))
+          else             loop(Retain(n-m)::as,bs,addRetain(m,xs))        
+        case (Retain(r),Delete(d)) => 
+          if (r < d)       loop(as,Delete(d-r)::bs,addDelete(r,xs))
+          else if (r == d) loop(as,bs,addDelete(d,xs))
+          else             loop(Retain(r-d)::as,bs,addDelete(d,xs))        
+        case (Insert(i),Retain(m)) => 
+          if (i.length < m)       loop(as,Retain(m-i.length)::bs,addInsert(i,xs))
+          else if (i.length == m) loop(as,bs,addInsert(i,xs))
+          else {
+            val (before,after) = i.splitAt(m)
+            loop(Insert(after)::as,bs,addInsert(before,xs))        
+          }
+        case (Insert(i),Delete(d)) => 
+          if (i.length < d)       loop(as,Delete(d-i.length)::bs,xs)
+          else if (i.length == d) loop(as,bs,xs)
+          else                    loop(Insert(i.drop(d))::as,bs,xs)        
       }
       case _ => Failure(new Exception("the operations cannot be composed: output-length of a must match input-length of a"))
     }

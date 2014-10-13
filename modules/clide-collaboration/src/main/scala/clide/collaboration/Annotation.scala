@@ -188,16 +188,14 @@ object Annotations {
       case (Nil,Nil,xs) => Success(xs)
       case (aa@(a::as),bb@(b::bs),xs) => (a,b) match {
         case (a,Insert(i)) => loop(aa,bs,addWithLength(i.length,a,xs))
-        case (a,Retain(m)) => (a.length <=> m) match {
-          case LT => loop(as,Retain(m-a.length)::bs,add(a,xs))
-          case EQ => loop(as,bs,add(a,xs))
-          case GT => loop(addWithLength(a.length-m,a,as),bs,addWithLength(m,a,xs))
-        }
-        case (a,Delete(d)) => (a.length <=> d) match {
-          case LT => loop(as,Delete(d-a.length)::bs,xs)
-          case EQ => loop(as,bs,xs)
-          case GT => loop(addWithLength(a.length-d,a,as),bs,xs)
-        }
+        case (a,Retain(m)) =>
+          if (a.length < m)       loop(as,Retain(m-a.length)::bs,add(a,xs))
+          else if (a.length == m) loop(as,bs,add(a,xs))
+          else                    loop(addWithLength(a.length-m,a,as),bs,addWithLength(m,a,xs))        
+        case (a,Delete(d)) => 
+          if (a.length < d)       loop(as,Delete(d-a.length)::bs,xs)
+          else if (a.length == d) loop(as,bs,xs)
+          else                    loop(addWithLength(a.length-d,a,as),bs,xs)        
       }
       case (Nil,Insert(i)::bs,xs) => loop(Nil,bs,addPlain(i.length,xs))
       case _ =>
@@ -212,26 +210,22 @@ object Annotations {
     def loop(as: List[Annotation], bs: List[Annotation], xs: List[Annotation]): Try[List[Annotation]] = (as,bs,xs) match {
       case (Nil,Nil,xs) => Success(xs)
       case (aa@(a::as),bb@(b::bs),xs) => (a,b) match {
-        case (Plain(n),Plain(m)) => (n <=> m) match {
-          case LT => loop(as,addPlain(m-n,bs),addPlain(n,xs))
-          case EQ => loop(as,bs,addPlain(n,xs))
-          case GT => loop(addPlain(n-m,as),bs,addPlain(m,xs))
-        }
-        case (Plain(n),Annotate(m,c)) => (n <=> m) match {
-          case LT => loop(as,addAnnotate(m-n,c,bs),addAnnotate(n,c,xs))
-          case EQ => loop(as,bs,addAnnotate(n,c,xs))
-          case GT => loop(addPlain(n-m,as),bs,addAnnotate(m,c,xs))
-        }
-        case (Annotate(n,c),Plain(m)) => (n <=> m) match {
-          case LT => loop(as,addPlain(m-n,bs),addAnnotate(n,c,xs))
-          case EQ => loop(as,bs,addAnnotate(n,c,xs))
-          case GT => loop(addAnnotate(n-m,c,as),bs,addAnnotate(m,c,xs))
-        }
-        case (Annotate(n,c),Annotate(m,c2)) => (n <=> m) match {
-          case LT => loop(as,addAnnotate(m-n,c2,bs),addAnnotate(n,c ++ c2,xs))
-          case EQ => loop(as,bs,addAnnotate(n,c ++ c2,xs))
-          case GT => loop(addAnnotate(n-m,c,as),bs,addAnnotate(m,c ++ c2,xs))
-        }
+        case (Plain(n),Plain(m)) => 
+          if (n < m)       loop(as,addPlain(m-n,bs),addPlain(n,xs))
+          else if (n == m) loop(as,bs,addPlain(n,xs))
+          else                    loop(addPlain(n-m,as),bs,addPlain(m,xs))
+        case (Plain(n),Annotate(m,c)) => 
+          if (n < m)       loop(as,addAnnotate(m-n,c,bs),addAnnotate(n,c,xs))
+          else if (n == m) loop(as,bs,addAnnotate(n,c,xs))
+          else             loop(addPlain(n-m,as),bs,addAnnotate(m,c,xs))        
+        case (Annotate(n,c),Plain(m)) => 
+          if (n < m)       loop(as,addPlain(m-n,bs),addAnnotate(n,c,xs))
+          else if (n == m) loop(as,bs,addAnnotate(n,c,xs))
+          else             loop(addAnnotate(n-m,c,as),bs,addAnnotate(m,c,xs))        
+        case (Annotate(n,c),Annotate(m,c2)) => 
+          if (n < m)       loop(as,addAnnotate(m-n,c2,bs),addAnnotate(n,c ++ c2,xs))
+          else if (n == m) loop(as,bs,addAnnotate(n,c ++ c2,xs))
+          else             loop(addAnnotate(n-m,c,as),bs,addAnnotate(m,c ++ c2,xs))        
       }
       case (a::as,Nil,xs) if a.length == 0 => loop(as,Nil,add(a,xs))
       case (Nil,b::bs,xs) if b.length == 0 => loop(Nil,bs,add(b,xs))
