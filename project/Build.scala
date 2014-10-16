@@ -54,12 +54,12 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
 
   lazy val (collaboration,collaborationJs) = sharedModule("collaboration")
 
-  lazy val (messages,messagesJs) = sharedModule("messages")
+  lazy val (common,commonJs) = sharedModule("common")
 
   lazy val xml = module("xml").dependsOn(scala.reflect, scala.xml)
 
   lazy val core = module("core")
-    .dependsOn(collaboration,messages)
+    .dependsOn(collaboration,common)
     .dependsOn(
       "ch.qos.logback" % "logback-classic" % "1.0.13", spray.json,
       akka.actor, akka.remote, akka.kernel, akka.testkit,
@@ -78,10 +78,10 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
       persistLauncher := true,
       persistLauncher in Test := true,
       relativeSourceMaps := true
-    ).dependsOn(xml, reactiveUi, collaborationJs, messagesJs)
+    ).dependsOn(xml, reactiveUi, collaborationJs, commonJs)
 
   lazy val web = playModule("web").enablePlugins(Angular)
-    .dependsOn(core,messages)
+    .dependsOn(core,common)
     .settings(
       Angular.autoImport.angularOtherModules ++= Map(
         "angular-animate"  -> "ngAnimate",
