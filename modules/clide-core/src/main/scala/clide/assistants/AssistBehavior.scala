@@ -84,7 +84,7 @@ trait AssistBehavior {
    *         messages will be automatically accumulated where possible so that you will receive 
    *         e.g. only one `fileChanged` notification afterwards with a combined delta. 
    */
-  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]): Future[Unit]
+  def fileChanged(file: OpenedFile, delta: Operation[Char], cursors: Seq[Cursor]): Future[Unit]
 
   /**
    * called when a collaborator joined the session.

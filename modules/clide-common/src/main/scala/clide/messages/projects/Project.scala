@@ -1,5 +1,7 @@
 package clide.messages.projects
 
+import clide.messages.Request
+
 object Project {
   case class Create(name: String, public: Boolean)
   

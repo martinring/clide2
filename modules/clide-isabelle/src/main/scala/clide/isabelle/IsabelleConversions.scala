@@ -73,13 +73,13 @@ trait IsabelleConversions { self: IsabelleSession =>
          name -> Document.Node.Perspective(true, Text.Perspective.empty, overlays))
   }
 
-  def opToEdits(operation: Operation): List[Text.Edit] = operation.actions.foldLeft((0,Nil: List[Text.Edit])) {
+  def opToEdits(operation: Operation[Char]): List[Text.Edit] = operation.actions.foldLeft((0,Nil: List[Text.Edit])) {
     case ((i,edits),Retain(n)) => (i+n,edits)
     case ((i,edits),Delete(n)) => (i+n,Text.Edit.remove(i,Seq.fill(n)('-').mkString) :: edits)
-    case ((i,edits),Insert(s)) => (i+s.length,Text.Edit.insert(i,s) :: edits)
+    case ((i,edits),Insert(s)) => (i+s.length,Text.Edit.insert(i,s.mkString) :: edits)
   }._2.reverse // TODO: Do we need to reverse???
 
-  def opToDocumentEdits(file: OpenedFile, cursors: Seq[Cursor], operation: Operation): List[Document.Edit_Text] = {
+  def opToDocumentEdits(file: OpenedFile, cursors: Seq[Cursor], operation: Operation[Char]): List[Document.Edit_Text] = {
     val name: Document.Node.Name = file
     val edits = opToEdits(operation)
     List(session.header_edit(name, file),

@@ -106,25 +106,25 @@ object Conversions {
       Json.obj("as" -> value.annotations, "rs" -> value.responses.map(r => Json.obj("r" -> r._1, "a" -> r._2)))
   }
 
-  implicit object ActionFormat extends Format[Action] {
-    def reads(json: JsValue): JsResult[Action] = json match {
+  implicit object ActionFormat extends Format[Action[Char]] {
+    def reads(json: JsValue): JsResult[Action[Char]] = json match {
       case JsNumber(n) if n > 0      => JsSuccess(Retain(n.toInt))
       case JsNumber(n) if n < 0      => JsSuccess(Delete(-n.toInt))
       case JsString(s) if s.nonEmpty => JsSuccess(Insert(s))
 
       case _                         => JsError("cant parse action: expected number, string or object")
     }
-    def writes(action: Action): JsValue = action match {
+    def writes(action: Action[Char]): JsValue = action match {
       case Retain(n) => JsNumber(n)
       case Delete(n) => JsNumber(-n)
-      case Insert(s) => JsString(s)
+      case Insert(s) => JsString(s.mkString)
     }
   }
 
-  implicit object OperationFormat extends Format[Operation] {
+  implicit object OperationFormat extends Format[Operation[Char]] {
     def reads(json: JsValue) =
-      Json.fromJson[List[Action]](json).map(Operation.apply)
-    def writes(value: Operation) =
+      Json.fromJson[List[Action[Char]]](json).map(Operation.apply)
+    def writes(value: Operation[Char]) =
       Json.toJson(value.actions)
   }
 

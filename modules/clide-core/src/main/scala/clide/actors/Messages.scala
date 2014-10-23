@@ -88,7 +88,7 @@ object Messages {
   @SerialVersionUID(1L) case class OpenFile(id: Long) extends SessionMessage
   @SerialVersionUID(1L) case class CloseFile(id: Long) extends SessionMessage
   @SerialVersionUID(1L) case class Kick(id: Long) extends SessionMessage with ProjectMessage
-  @SerialVersionUID(1L) case class Edit(id: Long, revision: Long, operation: Operation) extends SessionMessage with FileWriteMessage
+  @SerialVersionUID(1L) case class Edit(id: Long, revision: Long, operation: Operation[Char]) extends SessionMessage with FileWriteMessage
   @SerialVersionUID(1L) case class Annotate(id: Long, revision: Long, annotation: Annotations, name: String) extends SessionMessage with FileReadMessage
   @SerialVersionUID(1L) case class SubscribeToAnnotations(id: Long, user: Long, name: String) extends SessionMessage with FileReadMessage
   @SerialVersionUID(1L) case class UnsubscribeFromAnnotations(id: Long, user: Long, name: String) extends SessionMessage with FileReadMessage

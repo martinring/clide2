@@ -28,9 +28,9 @@ import scala.reflect.ClassTag
 import scala.util.{Try,Success,Failure}
 import scala.collection.mutable.Buffer
 
-class Server(initialState: Document) {
-  private val history: Buffer[Operation] = Buffer.empty
-  private var state: Document = initialState
+class Server[T](initialState: Document[T]) {
+  private val history: Buffer[Operation[T]] = Buffer.empty
+  private var state: Document[T] = initialState
 
   def text = state.content
   def revision = history.length
@@ -40,13 +40,13 @@ class Server(initialState: Document) {
    * an operation arrives from a client
    * @param rev the revision the client refers to
    */
-  def applyOperation(operation: Operation, rev: Long): Try[Operation] = {
+  def applyOperation(operation: Operation[T], rev: Long): Try[Operation[T]] = {
     val result = for {
 	  concurrentOps <- Try {
 	    require((0 to revision) contains rev, "invalid revision: " + rev)
 	    history.view(rev.toInt, revision) // TODO: Long Revisions
 	  }
-	  operation <- concurrentOps.foldLeft(Success(operation): Try[Operation]) {
+	  operation <- concurrentOps.foldLeft(Success(operation): Try[Operation[T]]) {
 	    case (a,b) => a.flatMap(a => Operation.transform(a,b).map(_._1)) }
 	  nextState <- state(operation)
 	} yield (nextState, operation)

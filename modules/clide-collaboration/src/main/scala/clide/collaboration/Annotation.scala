@@ -157,7 +157,7 @@ case class Annotations(annotations: List[Annotation] = Nil, responses: List[(Str
   def length = annotations.map(_.length).reduceOption(_ + _).getOrElse(0)
 
   def compose(other: Annotations): Try[Annotations] = Annotations.compose(this,other)
-  def transform(op: Operation): Try[Annotations] = Annotations.transform(this, op)
+  def transform[T](op: Operation[T]): Try[Annotations] = Annotations.transform(this, op)
 }
 
 object Annotations {
@@ -182,9 +182,9 @@ object Annotations {
     case Annotate(_,c) => addAnnotate(n,c,as)
   }
 
-  def transform(a: Annotations, o: Operation): Try[Annotations] = {
+  def transform[T](a: Annotations, o: Operation[T]): Try[Annotations] = {
     @tailrec
-    def loop(as: List[Annotation], bs: List[Action], xs: List[Annotation]): Try[List[Annotation]] = (as,bs,xs) match {
+    def loop(as: List[Annotation], bs: List[Action[T]], xs: List[Annotation]): Try[List[Annotation]] = (as,bs,xs) match {
       case (Nil,Nil,xs) => Success(xs)
       case (aa@(a::as),bb@(b::bs),xs) => (a,b) match {
         case (a,Insert(i)) => loop(aa,bs,addWithLength(i.length,a,xs))
@@ -209,11 +209,11 @@ object Annotations {
     @tailrec
     def loop(as: List[Annotation], bs: List[Annotation], xs: List[Annotation]): Try[List[Annotation]] = (as,bs,xs) match {
       case (Nil,Nil,xs) => Success(xs)
-      case (aa@(a::as),bb@(b::bs),xs) => (a,b) match {
+      case ((a::as),(b::bs),xs) => (a,b) match {
         case (Plain(n),Plain(m)) => 
           if (n < m)       loop(as,addPlain(m-n,bs),addPlain(n,xs))
           else if (n == m) loop(as,bs,addPlain(n,xs))
-          else                    loop(addPlain(n-m,as),bs,addPlain(m,xs))
+          else             loop(addPlain(n-m,as),bs,addPlain(m,xs))
         case (Plain(n),Annotate(m,c)) => 
           if (n < m)       loop(as,addAnnotate(m-n,c,bs),addAnnotate(n,c,xs))
           else if (n == m) loop(as,bs,addAnnotate(n,c,xs))

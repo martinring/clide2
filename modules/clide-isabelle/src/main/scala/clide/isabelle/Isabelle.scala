@@ -92,7 +92,7 @@ case class IsabelleAssistBehavior(control: AssistantControl) extends AssistBehav
     updateFile(file, file, removeEdits(file))
   }
 
-  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = {
+  def fileChanged(file: OpenedFile, delta: Operation[Char], cursors: Seq[Cursor]) = {
     control.log.info("fileChanged({},{},...)", file.info.path, delta)
     val edits = opToDocumentEdits(file, cursors, delta)
     this.cursors = cursors.toSet

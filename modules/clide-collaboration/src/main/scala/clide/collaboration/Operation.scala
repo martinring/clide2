@@ -35,7 +35,7 @@ import scala.util.Failure
 import scala.annotation.tailrec
 import clide.util.compare._
 
-sealed trait Action {
+sealed trait Action[+T] {
   override def toString = this match {
     case Retain(n) => n.toString
     case Insert(s) => "\""+s+"\""
@@ -45,39 +45,39 @@ sealed trait Action {
 
 /** Skip the next `n` positions */
 @SerialVersionUID(1L)
-case class Retain(n: Int) extends Action { require(n>=0) }
+case class Retain(n: Int) extends Action[Nothing] { require(n>=0) }
 /** Insert the given text at the current position */
 @SerialVersionUID(1L)
-case class Insert(s: String) extends Action
+case class Insert[T](s: Seq[T]) extends Action[T]
 /** Delete the next `n` characters */
 @SerialVersionUID(1L)
-case class Delete(n: Int) extends Action { require(n>=0) }
+case class Delete(n: Int) extends Action[Nothing] { require(n>=0) }
 
 @SerialVersionUID(1L)
-case class Operation(actions: List[Action]) extends AnyVal {
+case class Operation[+T](actions: List[Action[T]]) extends AnyVal {
   override def toString = "[" + actions.mkString(",") + "]"
 }
 
 object Operation {
-  private def addRetain(n: Int, ops: List[Action]): List[Action] = ops match {
+  private def addRetain[T](n: Int, ops: List[Action[T]]): List[Action[T]] = ops match {
     case Retain(m)::xs => Retain(n+m)::xs
     case xs            => Retain(n)::xs
   }
 
-  private def addInsert(s: String, ops: List[Action]): List[Action] = ops match {
+  private def addInsert[T](s: Seq[T], ops: List[Action[T]]): List[Action[T]] = ops match {
     case Delete(d)::xs => Delete(d)::addInsert(s,xs)
-    case Insert(t)::xs => Insert(t+s)::xs
+    case Insert(t)::xs => Insert(t++s)::xs
     case xs            => Insert(s)::xs
   }
 
-  private def addDelete(n: Int, ops: List[Action]): List[Action] = ops match {
+  private def addDelete[T](n: Int, ops: List[Action[T]]): List[Action[T]] = ops match {
     case Delete(m)::xs => Delete(n+m)::xs
     case xs            => Delete(n)::xs
   }
 
-  private def normalize(ops: List[Action]): List[Action] = {
+  private def normalize[T](ops: List[Action[T]]): List[Action[T]] = {
     @tailrec
-  	def loop(as: List[Action], bs: List[Action]): List[Action] = (as,bs) match {
+  	def loop(as: List[Action[T]], bs: List[Action[T]]): List[Action[T]] = (as,bs) match {
   	  case (as,Nil) => as
   	  case (as,Retain(n)::bs) =>
   	    if (n == 0) loop(as,bs)
@@ -92,9 +92,9 @@ object Operation {
   	loop(Nil,ops.reverse).reverse
   }
 
-  def transform(a: Operation, b: Operation): Try[(Operation, Operation)] = {
+  def transform[T](a: Operation[T], b: Operation[T]): Try[(Operation[T], Operation[T])] = {
     @tailrec
-    def loop(as: List[Action], bs: List[Action], xs: List[Action], ys: List[Action]): Try[(List[Action],List[Action])] = (as,bs,xs,ys) match {
+    def loop(as: List[Action[T]], bs: List[Action[T]], xs: List[Action[T]], ys: List[Action[T]]): Try[(List[Action[T]],List[Action[T]])] = (as,bs,xs,ys) match {
       case (Nil,Nil,xs,ys) => Success((xs,ys))
       case (aa@(a::as),bb@(b::bs),xs,ys) => (a,b) match {
         case (Insert(i),_) => loop(as,bb,addInsert(i,xs),addRetain(i.length,ys))
@@ -123,9 +123,9 @@ object Operation {
     loop(a.actions,b.actions,Nil,Nil).map { case (a,b) => (Operation(a.reverse), Operation(b.reverse)) }
   }
 
-  def compose(a: Operation, b: Operation): Try[Operation] = {
+  def compose[T](a: Operation[T], b: Operation[T]): Try[Operation[T]] = {
     @tailrec
-    def loop(as: List[Action], bs: List[Action], xs: List[Action]): Try[List[Action]] = (as,bs,xs) match {
+    def loop(as: List[Action[T]], bs: List[Action[T]], xs: List[Action[T]]): Try[List[Action[T]]] = (as,bs,xs) match {
       case (Nil,Nil,xs) => Success(xs)
       case (aa@(a::as),bb@(b::bs),xs) => (a,b) match {
         case (Delete(d),_) => loop(as,bb,addDelete(d,xs))

@@ -105,7 +105,7 @@ trait AssistantControl {
    * @param edit the operation which is applied to the file state
    * @return a future indicating the acknowledgement from the server
    */
-  def edit(file: OpenedFile, edit: Operation): Future[Unit]
+  def edit(file: OpenedFile, edit: Operation[Char]): Future[Unit]
 
   /**
    * Stops the assistant

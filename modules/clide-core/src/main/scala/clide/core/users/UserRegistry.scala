@@ -18,7 +18,7 @@ class UserRegistry extends PersistentActor with ActorLogging {
 
   val persistenceId = "users"
   
-  val users = Map.empty[String,ActorRef]    
+  val users = Map.empty[String,ActorRef]
 
   def receiveRecover = {
     case msg @ UserRegistry.Events.SignedUp(name,email,password,isHuman) =>
@@ -30,14 +30,14 @@ class UserRegistry extends PersistentActor with ActorLogging {
       val client = sender
 
       val errors = Buffer.empty[SignUpRefused.Reason]
-
-      if (!Security.namingPattern.pattern.matcher(name).matches()) 
-        errors += SignUpRefused.InvalidName        
+             
       if (password.length < Security.minimumPasswordLength)
         errors += SignUpRefused.InvalidPassword
-      if (users.contains(name))
-        errors += SignUpRefused.NameNotUnique           
-      
+      if (!Security.namingPattern.pattern.matcher(name).matches()) 
+        errors += SignUpRefused.InvalidName
+      else if (users.contains(name))
+        errors += SignUpRefused.NameNotUnique
+
       if (errors.nonEmpty)
         client ! SignUpRefused(errors.toSeq)
       else persist(UserRegistry.Events.SignedUp(name,email,Security.hash(email,password),isHuman)) { msg =>        

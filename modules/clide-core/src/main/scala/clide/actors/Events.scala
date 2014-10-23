@@ -80,7 +80,7 @@ object Events {
   @SerialVersionUID(1L) case class SessionStopped(info: SessionInfo) extends SessionEvent
   @SerialVersionUID(1L) case class FileClosed(id: Long) extends SessionEvent
   @SerialVersionUID(1L) case class FileOpened(file: OpenedFile) extends SessionEvent
-  @SerialVersionUID(1L) case class Edited(file: Long, op: Operation) extends SessionEvent
+  @SerialVersionUID(1L) case class Edited(file: Long, op: Operation[Char]) extends SessionEvent
   @SerialVersionUID(1L) case class AnnotationsOffered(file: Long, user: Long, name: String, description: Option[String]) extends SessionEvent
   @SerialVersionUID(1L) case class AnnotationsRequested(file: Long, name: String) extends SessionEvent
   @SerialVersionUID(1L) case class AnnotationsDisregarded(file: Long, name: String) extends SessionEvent

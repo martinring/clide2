@@ -1,3 +1,3 @@
 package clide.messages
 
-trait Request
+sealed trait Request

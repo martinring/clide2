@@ -166,7 +166,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
 
   def fileClosed(file: OpenedFile) = noop
 
-  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) = Future {
+  def fileChanged(file: OpenedFile, delta: Operation[Char], cursors: Seq[Cursor]) = Future {
     reset()
     files += file.info.path.mkString("/") -> file
     compile(file)

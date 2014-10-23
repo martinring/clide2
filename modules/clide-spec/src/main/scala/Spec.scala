@@ -72,7 +72,7 @@ case class SpecBehavior(control: AssistantControl) extends AssistantBehavior {
 
   val Output = """^.*:([0-9]+):([0-9]+):(.*)$""".r
 
-  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]) {
+  def fileChanged(file: OpenedFile, delta: Operation[Char], cursors: Seq[Cursor]) {
     //control.annotate(file, "substitutions", HaskellMarkup.substitutions(file.state))
 
     val temp = new java.io.File(project.root + "/" + file.info.path.mkString("/"))

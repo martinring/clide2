@@ -41,9 +41,9 @@ trait Mappers { self: Profile =>
     MappedColumnType.base[ProjectAccessLevel.Value, Int](_.id , ProjectAccessLevel.apply _)
 
   implicit val OperationMapper = {
-    def serialize(op: Operation) = JsArray(op.actions.map {
+    def serialize(op: Operation[Char]) = JsArray(op.actions.map {
       case Retain(n) => JsNumber(n)
-      case Insert(s) => JsString(s)
+      case Insert(s) => JsString(s.mkString)
       case Delete(n) => JsNumber(-n)
     }:_*).compactPrint
 
@@ -57,6 +57,6 @@ trait Mappers { self: Profile =>
       case _ => sys.error("can't parse operation")
     }
 
-    MappedColumnType.base[Operation, String](serialize,deserialize)
+    MappedColumnType.base[Operation[Char], String](serialize,deserialize)
   }
 }

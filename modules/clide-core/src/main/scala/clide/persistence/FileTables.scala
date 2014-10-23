@@ -123,7 +123,7 @@ trait FileTables { this: Profile with ProjectTables with Mappers =>
     def fileId  = column[Long]("fileId")
     def id      = column[Long]("id")
 
-    def content = column[Operation]("content")
+    def content = column[Operation[Char]]("content")
 
     def file = foreignKey("fk_revision_file", fileId, fileInfos)(_.id,
         ForeignKeyAction.Cascade,
@@ -147,7 +147,7 @@ trait FileTables { this: Profile with ProjectTables with Mappers =>
       revisions.filter(_.fileId === file)
                       .delete
 
-    def create(file: Long, id: Long, content: Operation)(implicit session: Session) =
+    def create(file: Long, id: Long, content: Operation[Char])(implicit session: Session) =
       revisions.insert(Revision(file,id,content))
   }
 }

@@ -53,7 +53,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
 
   var otActive = false
   val clients = Map[ActorRef,SessionInfo]()
-  var server: Server = null
+  var server: Server[Char] = null
 
   val annotations = Map[(Long,String),(Long,Annotations)]()
   val subscriptions = Map[(Long,String),Set[ActorRef]]()
@@ -132,7 +132,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
           initOt()
           clients += sender -> user
           context.watch(sender)
-          sender ! Events.internal.OTState(this.info, server.text, server.revision)
+          sender ! Events.internal.OTState(this.info, server.text.mkString, server.revision)
           resendAnnotations(sender)
         }
         catch {
@@ -143,7 +143,7 @@ private[actors] class FileActor(project: ProjectInfo, parent: FileInfo, name: St
       } else {
         clients += sender -> user
         context.watch(sender)
-        sender ! Events.internal.OTState(this.info, server.text, server.revision)
+        sender ! Events.internal.OTState(this.info, server.text.mkString, server.revision)
         resendAnnotations(sender)
       }
 

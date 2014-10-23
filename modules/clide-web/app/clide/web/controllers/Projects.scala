@@ -80,7 +80,7 @@ object Projects extends Controller with UserRequests with DefaultResults {
       serialize = serializeEvent,
       deserialize = { json =>
         ((json \ "f").asOpt[Long],(json \ "r").asOpt[Long]) match {
-          case (Some(file),Some(rev)) => (json\"o").asOpt[Operation] match {
+          case (Some(file),Some(rev)) => (json\"o").asOpt[Operation[Char]] match {
             case Some(operation) => Edit(file,rev,operation)
             case None => (json\"a").asOpt[Annotations] match {
               case Some(annotation) => Annotate(file,rev,annotation,(json\"n").as[String])

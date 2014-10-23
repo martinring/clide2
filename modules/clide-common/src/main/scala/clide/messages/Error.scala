@@ -1,6 +1,6 @@
 package clide.messages
 
-trait Error {
+sealed trait Error {
   def message: String
 }
 

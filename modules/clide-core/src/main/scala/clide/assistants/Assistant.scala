@@ -67,7 +67,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   var info: SessionInfo = null
   val collaborators     = Set.empty[SessionInfo]
   val files             = Map.empty[Long,OpenedFile]
-  val clients           = Map.empty[Long,Client]
+  val clients           = Map.empty[Long,Client[Char]]
   val behavior          = createBehavior(this)
   val cursors           = Map.empty[Long,Map[Long,Cursor]]
   val config            = context.system.settings.config
@@ -110,7 +110,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
       annotationDelays(file.info.id) = context.system.scheduler.scheduleOnce(delay)(annotate(file,name,annotations))
   }
 
-  def edit(file: OpenedFile, edit: Operation): Future[Unit] = ???
+  def edit(file: OpenedFile, edit: Operation[Char]): Future[Unit] = ???
 
   val workStates:   Map[Long, Boolean]     = Map.empty.withDefaultValue(false)
   val workTimeouts: Map[Long, Cancellable] = Map.empty
@@ -158,7 +158,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
   case class Processed(e: Event)
 
   def working: Receive = {
-    val edits:       Map[Long,Operation] = Map.empty
+    val edits:       Map[Long,Operation[Char]] = Map.empty
     val annotations: Map[Long,scala.collection.Map[(Long,String),Annotations]] = Map.empty
 
     {
@@ -172,7 +172,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
 
       case Edited(file,operation) if files.isDefinedAt(file) =>
         val prev = files(file)
-        val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
+        val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content.mkString, prev.revision + 1)
         files(file) = next
 
         edits(file) = if (edits.isDefinedAt(file)) Operation.compose(edits(file), operation).getOrElse {
@@ -252,7 +252,7 @@ private class Assistant(project: ProjectInfo, createBehavior: AssistantControl =
 
     case Edited(file,operation) if files.isDefinedAt(file) =>
       val prev = files(file)
-      val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content, prev.revision + 1)
+      val next = OpenedFile(prev.info,new Document(prev.state).apply(operation).get.content.mkString, prev.revision + 1)
       files(file) = next
       doWork(Some(file))(behavior.fileChanged(next, operation, cursors.get(file).map(_.values.toSeq).getOrElse(Seq.empty)))
 

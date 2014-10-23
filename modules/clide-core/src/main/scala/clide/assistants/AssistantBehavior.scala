@@ -90,7 +90,7 @@ trait AssistantBehavior {
    * @param file the state of the file **after** the edit occured.
    * @param delta the operation that has been performed
    */
-  def fileChanged(file: OpenedFile, delta: Operation, cursors: Seq[Cursor]): Unit
+  def fileChanged(file: OpenedFile, delta: Operation[Char], cursors: Seq[Cursor]): Unit
 
   /**
    * called when a collaborator joined the session.
