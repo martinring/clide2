@@ -101,8 +101,12 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
         send
           t: 'open'
           id: file.info.id
+      delay = () ->
+        apply -> nfile.$delay += 100
       client.sendOperation = (rev,op) ->
-        nfile.$$emergencyReset = setTimeout(reset, 1000)
+        nfile.$delay = 0
+        nfile.$$delayInterval = setInterval(delay, 100)
+        nfile.$$emergencyReset = setTimeout(reset, 5000)
         send
           f: nfile.id
           r: rev
@@ -122,7 +126,9 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
 
       nfile.$ackEdit = () ->
         clearTimeout(nfile.$$emergencyReset)
+        clearInterval(nfile.$$delayInterval)
         client.serverAckEdit()
+
       nfile.$ackAnnotation = () -> client.serverAckAnnotation()
       nfile.$apply = (os) -> client.applyServer(os)
       nfile.$syncState = -> client.syncState()

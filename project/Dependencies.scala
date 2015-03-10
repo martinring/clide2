@@ -24,8 +24,6 @@
 
 import sbt._
 import Keys._
-import scala.scalajs.sbtplugin.ScalaJSPlugin._
-import ScalaJSKeys._
 
 trait Dependencies {
   val slick = "com.typesafe.slick" %% "slick" % "2.1.0"
@@ -38,7 +36,7 @@ trait Dependencies {
   val junit = "com.novocode" % "junit-interface" % "0.9" % "test"
 
   object akka {
-    val version     = "2.3.6"
+    val version     = "2.3.9"
     val actor       = "com.typesafe.akka" %% "akka-actor"   % version
     val remote      = "com.typesafe.akka" %% "akka-remote"  % version
     val kernel      = "com.typesafe.akka" %% "akka-kernel"  % version
@@ -48,11 +46,11 @@ trait Dependencies {
 
   object spray {
     val resolver = "spray" at "http://repo.spray.io/"
-    val json     = "io.spray" %% "spray-json" % "1.2.6"
+    val json     = "io.spray" %% "spray-json" % "1.3.1"
   }
 
   object scala {
-    val version  = "2.11.2"
+    val version  = "2.11.6"
     def compiler(version: String) = "org.scala-lang" % "scala-compiler" % version
     val swing    = "org.scala-lang" % "scala-swing"   % version
     val actors   = "org.scala-lang" % "scala-actors"  % version

@@ -25,7 +25,6 @@ package clide.collaboration
 
 import scala.util._
 import scala.annotation.tailrec
-import clide.util.compare._
 
 /**
  * @author Martin Ring

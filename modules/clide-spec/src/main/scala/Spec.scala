@@ -53,7 +53,7 @@ case class SpecBehavior(control: AssistantControl) extends AssistantBehavior {
     log.info("ghc stopped")
   }
 
-  def fileOpened(file: OpenedFile) {
+  def fileOpened(file: OpenedFile) {    
   }
 
   def fileActivated(file: OpenedFile) {
@@ -102,7 +102,7 @@ case class SpecBehavior(control: AssistantControl) extends AssistantBehavior {
   }
 
   def collaboratorJoined(who: SessionInfo){
-
+    
   }
 
   def collaboratorLeft(who: SessionInfo){

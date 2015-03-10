@@ -53,6 +53,8 @@ object Global extends GlobalSettings {
   }
 
   override def onStop(app: Application) {
+    val x = new blub.External.P("Hallo")
+    //println(4 + x)
     Core.shutdown()
     serverRef = null
   }

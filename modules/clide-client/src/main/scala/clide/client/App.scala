@@ -11,7 +11,8 @@ import clide.reactive.ui.JSApp
   
 // Experimental Stuff
 @JSExport
-object App extends JSApp with History { 
+object App extends JSApp with History {
+  /*
   dom.document.body.innerHTML = ""
   
   val BackstagePath = "/([A-Za-z0-9 ]+)/backstage".r
@@ -22,27 +23,35 @@ object App extends JSApp with History {
     case BackstagePath(user) => user + "'s Backstage"
     case x if x.startsWith("/login") => title = "Login"
     case _ => title = "Somewhere else"
-  }
+  }  
 
-  def basics = {   
-    val name = Var("World")
+  def basics(intialName: String) = {    
+    val name = Var(intialName)
     XML.include(HTML5,"basics.html") 
-  } 
+  }
     
   def todos = {
     case class Todo(text: String, done: Boolean)
+    
     lazy val todos = ObservableBuffer(
       Todo("learn scala.js", true), 
       Todo("build a scala.js app", false))
-    def remaining = todos.changes.sample(todos.count(!_.done).toString)
-    def total = todos.watch.length.map(_.toString)
-    def archive() = todos.replaceAll(todos.filter(!_.done))
+      
+    def remaining = todos.watch.count(!_.done)
+    def total     = todos.watch.length.toStrings
+    
+    def archive() = todos.clear(_.done)
+    
     def setDone(todo: Todo)(value: Boolean) =
       todos(todos.indexOf(todo)) = Todo(todo.text, value)
+      
     def addTodo(text: String) = todos += Todo(text,false)
+    
     XML.include(HTML5,"todo.html")
   }
   
   dom.document.body.appendChild(todos)
-  dom.document.body.appendChild(basics)
+  dom.document.body.appendChild(basics("World"))
+  
+  */
 }

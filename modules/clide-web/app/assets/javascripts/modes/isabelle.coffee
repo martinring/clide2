@@ -23,5 +23,5 @@
 ##                                                                              ##
 
 define ->
-  CodeMirror.defineMode "isabelle", (a,b) -> new IsabelleMode(a,b)
+  CodeMirror.defineMode "isabelle", (a,b) -> new clide.client.codemirror.modes.IsabelleMode(a,b)
   CodeMirror.defineMIME("text/x-isabelle","isabelle")

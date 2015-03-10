@@ -1,6 +1,7 @@
 package clide.reactive.ui.directives
 
 import org.scalajs.dom._
+import org.scalajs.dom.raw._
 
 trait Events {
   object on {

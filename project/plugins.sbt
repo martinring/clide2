@@ -4,14 +4,7 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 
 resolvers += "Typesafe snapshots" at "http://repo.typesafe.com/typesafe/snapshots/"
 
-resolvers += Resolver.url("scala-js-snapshots",
-    url("http://repo.scala-js.org/repo/snapshots/"))(Resolver.ivyStylePatterns)
-
-resolvers += Resolver.url("scala-js-releases",
-    url("http://dl.bintray.com/content/scala-js/scala-js-releases"))(
-    Resolver.ivyStylePatterns)
-
-addSbtPlugin("com.typesafe.play" % "sbt-plugin"          % "2.3.4")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin"          % "2.3.8")
 
 addSbtPlugin("com.typesafe.sbt"  % "sbt-coffeescript"    % "1.0.0")
 
@@ -27,4 +20,4 @@ addSbtPlugin("com.typesafe.sbt"  % "sbt-native-packager" % "0.7.0-RC2")
 
 addSbtPlugin("com.typesafe.sbt"  % "sbt-pgp"             % "0.8.2")
 
-addSbtPlugin("org.scala-lang.modules.scalajs" % "scalajs-sbt-plugin" % "0.5.5")
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.1")

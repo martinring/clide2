@@ -25,8 +25,8 @@
 import sbt._
 import Keys._
 import play.Play._
-import scala.scalajs.sbtplugin.ScalaJSPlugin._
-import ScalaJSKeys._
+import org.scalajs.sbtplugin._
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import com.typesafe.sbt.packager.universal.UniversalKeys
 import com.typesafe.sbteclipse.core.EclipsePlugin.EclipseKeys
 
@@ -68,13 +68,12 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
   lazy val (reactive,reactiveJs) = sharedModule("reactive").dependsOn(scalatest,scalacheck,junit)
 
   lazy val reactiveUi = jsModule("reactive-ui").dependsOn(reactiveJs).settings(
-    libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6")
+    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.8.0")
 
   lazy val client = jsModule("client")
     .settings(
-      libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
-      libraryDependencies += "com.greencatsoft" %%% "scalajs-angular" % "0.1",
-      libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.2.5",
+      libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.8.0",
+      libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.2.8",
       persistLauncher := true,
       persistLauncher in Test := true,
       relativeSourceMaps := true
@@ -101,7 +100,7 @@ object ClideBuild extends Build with BuildUtils with Publishing with Dependencie
       dist <<= dist dependsOn (fullOptJS in (client, Compile)),
       stage <<= stage dependsOn (fullOptJS in (client, Compile)),
       libraryDependencies += "com.lihaoyi" %% "upickle" % "0.2.5",
-      crossTarget in (client, Compile, packageLauncher) := (classDirectory in Compile).value / "public" / "javascripts",
+      //crossTarget in (client, Compile, packageLauncher) := (classDirectory in Compile).value / "public" / "javascripts",
       crossTarget in (client, Compile, fastOptJS) := (classDirectory in Compile).value / "public" / "javascripts",
       crossTarget in (client, Compile, fullOptJS) := (classDirectory in Compile).value / "public" / "javascripts"
     )

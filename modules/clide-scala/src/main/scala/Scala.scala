@@ -61,7 +61,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
 
   
   def annotate() {
-    messages.collect { case (path,messages) if files.isDefinedAt(path) =>
+    messages.foreach { case (path,messages) if files.isDefinedAt(path) =>
       var annotations = new Annotations
       var last = 0
       messages.foreach {
@@ -74,7 +74,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
 	          tpe match {
 	            case "error" =>   List(AnnotationType.Class -> "error", AnnotationType.ErrorMessage -> msg)
 	            case "warning" => List(AnnotationType.InfoMessage -> msg)
-	            case _ =>         List(AnnotationType.InfoMessage -> msg)
+	            case _ =>         List(AnnotationType.InfoMessage -> msg)              
 	          }
 	        )
 	        last += length
@@ -86,7 +86,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
   }
   
   def annotateSemantics() {    
-    identifiers.collect { case (path,messages) if files.isDefinedAt(path) =>
+    identifiers.foreach { case (path,messages) if files.isDefinedAt(path) =>
       var annotations = new Annotations
       var last = 0
       messages.foreach {
@@ -106,7 +106,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
       control.annotate(file, "semantic", annotations)
     }
     
-    implicits.collect { case (path,messages) if files.isDefinedAt(path) =>
+    implicits.foreach { case (path,messages) if files.isDefinedAt(path) =>
       var annotations = new Annotations
       var last = 0
       messages.foreach {
@@ -126,7 +126,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
       control.annotate(file, "implicits", annotations)
     }
     
-    substitutions.collect { case (path,messages) if files.isDefinedAt(path) =>
+    substitutions.foreach { case (path,messages) if files.isDefinedAt(path) =>
       var annotations = new Annotations
       var last = 0
       messages.foreach {
@@ -154,13 +154,7 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
     messages += file.info.path.mkString("/") -> SortedSet.empty
   }
 
-  def fileActivated(file: OpenedFile) = Future {
-    reset()
-    compile(file)
-    files += file.info.path.mkString("/") -> file
-    identifiers += file.info.path.mkString("/") -> SortedSet.empty(Ordering.by(x => (x._1,x._2)))
-    messages += file.info.path.mkString("/") -> SortedSet.empty    
-  }
+  def fileActivated(file: OpenedFile) = fileOpened(file)
 
   def fileInactivated(file: OpenedFile) = noop
 

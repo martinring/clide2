@@ -208,13 +208,13 @@
             </li>
           </ul>
           <ul class="statusMessages" ng-mousedown='startSlidebar($event)'>
-            <!--<li id="syncState">{{session.syncState()}}</li>
-            <li id="traffic">{{session.activeAnnotations()}}</li>
-            --><li>
+              <li id="syncState" ng-if="session.syncState() > 0"><i class='fa fa-refresh'></i></li>
+              <li id="traffic">{{session.activeAnnotations()}}</li>
+              <li>
               <span class="color-{{session.me.color}}" title='{{session.me.user}}'>
                 <i class='fa fa-asterisk' ng-class='{ "fa-spin": session.fileStates[session.me.activeFile][session.me.id].working }'></i>
               </span>
-            </li>
+              </li>
           </ul>
         </div>
         <div id="output">

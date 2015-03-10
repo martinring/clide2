@@ -7,8 +7,8 @@ import scala.util.Try
 
 trait Scheduler {
   def now: Long
-  def schedule[A](duration: FiniteDuration)(task: => A): Cancellable
-  def scheduleOnce[A](duration: FiniteDuration)(task: => A): Cancellable
+  def schedule[A](duration: FiniteDuration)(task: => A): Ticket
+  def scheduleOnce[A](duration: FiniteDuration)(task: => A): Ticket
   
   def timeout[A](duration: FiniteDuration): Future[Unit] = {
     val promise = Promise[Unit]

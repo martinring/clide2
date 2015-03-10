@@ -11,6 +11,7 @@ object HTML5 extends directives.Events
                 with directives.Bindings
                 with schema.HTML {
   import org.scalajs.dom._
+  import org.scalajs.dom.raw._
    
   def validityMessage(elem: HTMLInputElement) = { 
     val s = span()
@@ -95,10 +96,8 @@ object HTML5 extends directives.Events
             current = current.nextSibling
             rem.parentNode.removeChild(rem)
           }
-        case Insert(Head,node) =>
+        case Insert(Index(0),node) =>
           elem.insertBefore(node, beforeHead.nextSibling)
-        case Insert(Last,node) =>
-          elem.insertBefore(node, afterLast)
         case Insert(Index(i), node) =>
           var n = i
           var ref = beforeHead.nextSibling
@@ -107,11 +106,11 @@ object HTML5 extends directives.Events
             n -= 1
           }
           ref.parentNode.insertBefore(node, ref)
-        case Remove(Head) =>
+        case Insert(Last,node) =>
+          elem.insertBefore(node, afterLast)
+        case Remove(Index(0), _) =>
           elem.removeChild(beforeHead.nextSibling)
-        case Remove(Last) =>
-          elem.removeChild(afterLast.previousSibling)
-        case Remove(Index(i)) =>
+        case Remove(Index(i), _) =>
           var n = i
           var ref = beforeHead.nextSibling
           while (n > 0) {
@@ -119,11 +118,11 @@ object HTML5 extends directives.Events
             n -= 1
           }
           elem.removeChild(ref)
-        case Update(Head,node) =>
+        case Remove(Last, _) =>
+          elem.removeChild(afterLast.previousSibling)
+        case Update(Index(0),_,node) =>
           elem.replaceChild(node,beforeHead.nextSibling)
-        case Update(Last,node) =>
-          elem.replaceChild(node,afterLast.previousSibling)
-        case Update(Index(i),node) =>
+        case Update(Index(i),_,node) =>
           var n = i
           var ref = beforeHead.nextSibling
           while (n > 0) {
@@ -131,6 +130,8 @@ object HTML5 extends directives.Events
             n -= 1            
           }
           elem.replaceChild(node, ref)
+        case Update(Last,_,node) =>
+          elem.replaceChild(node,afterLast.previousSibling)
       }
     }
   }    

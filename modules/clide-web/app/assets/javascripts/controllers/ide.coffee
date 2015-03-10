@@ -87,9 +87,9 @@ define ['routes'], (routes) -> ($scope, $location, $timeout, $routeParams, $sce,
     $scope.state = 'ide'
 
   $scope.fonts      =
-    monospace: Fonts().availableMonospaceFonts
-    math: Fonts().availableMathFonts
-  $scope.editorFont = Fonts().availableMonospaceFonts[0]
+    monospace: clide.client.util.Fonts().availableMonospaceFonts
+    math: clide.client.util.Fonts().availableMathFonts
+  $scope.editorFont = clide.client.util.Fonts().availableMonospaceFonts[0]
   $scope.showLineNumbers = true
   $scope.editorFontSizeDefault = 12
   $scope.editorFontSize = $scope.editorFontSizeDefault

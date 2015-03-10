@@ -1,6 +1,7 @@
 package clide.reactive.ui.schema
 
 import org.scalajs.dom._
+import org.scalajs.dom.raw._
 
 trait HTML {
   def a()          = document.createElement("a").asInstanceOf[HTMLAnchorElement]

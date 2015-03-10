@@ -12,7 +12,7 @@ case class IsabelleModeState(
   var tokenize: (Stream,IsabelleModeState) => String)
 
 trait IsabelleModeConfig extends js.Object {
-  var words: js.UndefOr[js.Dictionary[String]]
+  var words: js.UndefOr[js.Dictionary[String]] = js.native
 }
   
 @JSExport("Regexpes")

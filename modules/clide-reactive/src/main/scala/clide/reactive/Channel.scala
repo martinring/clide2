@@ -13,5 +13,5 @@ object Channel {
     def push(a: => A) = f(a)
     def failure(t: Throwable) = e(t)
     def close() = c
-  } 
+  }
 }

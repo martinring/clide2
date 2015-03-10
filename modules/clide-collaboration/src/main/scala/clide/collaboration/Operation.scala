@@ -33,7 +33,6 @@ import scala.util.Try
 import scala.util.Success
 import scala.util.Failure
 import scala.annotation.tailrec
-import clide.util.compare._
 
 sealed trait Action[+T] {
   override def toString = this match {

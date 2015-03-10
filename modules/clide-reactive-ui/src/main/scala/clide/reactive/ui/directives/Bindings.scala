@@ -3,6 +3,7 @@ package clide.reactive.ui.directives
 import scala.concurrent.ExecutionContext
 import clide.reactive.ui.Bindable
 import org.scalajs.dom._
+import org.scalajs.dom.raw.HTMLInputElement
 
 
 trait Bindings {

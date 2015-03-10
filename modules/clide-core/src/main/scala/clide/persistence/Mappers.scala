@@ -53,7 +53,7 @@ trait Mappers { self: Profile =>
         case JsNumber(n) if n < 0 => Delete(-n.toInt)
         case JsNumber(n) if n > 0 => Retain(n.toInt)
         case _ => sys.error("can't parse action")
-      })
+      }.toList)
       case _ => sys.error("can't parse operation")
     }
 

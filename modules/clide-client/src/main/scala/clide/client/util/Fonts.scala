@@ -4,7 +4,7 @@ import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
 import org.scalajs.dom.document
 import org.scalajs.dom.console
-import org.scalajs.dom.HTMLSpanElement
+import org.scalajs.dom.raw.HTMLSpanElement
 import scala.scalajs.js.annotation.JSExport
 
 @JSExport

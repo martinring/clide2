@@ -3,6 +3,7 @@ package clide.reactive.ui
 import clide.reactive.Event
 import clide.reactive.EventSource
 import scala.concurrent.ExecutionContext
+import scala.reflect.ClassTag
 
 trait Settable[A] {
   def := (value: A)
@@ -15,7 +16,7 @@ trait Bindable[A] extends Settable[A] {
 
 object Var {
   def apply[A](init: A) = new Bindable[A] with EventSource[A] {
-    private var current = init    
+    private var current = init
     def get = current
     def := (next: A) = {
       if (current != next)
@@ -23,5 +24,5 @@ object Var {
       current = next
     }
     def watch(implicit ec: ExecutionContext) = register(current)
-  }    
+  }
 }

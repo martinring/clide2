@@ -32,7 +32,7 @@ import scala.concurrent.duration.FiniteDuration
 trait Event[+A] {
   private[reactive] def next: Future[Option[(A,Event[A])]]
   private[reactive] def stop(): Unit
-  private[reactive] def isCompleted: Boolean = next.isCompleted
+  private[reactive] def isCompleted: Boolean = next.isCompleted 
   
   protected def stopWith(f: => Unit)(implicit ec: ExecutionContext): Event[A] = 
     Event(next.map {
@@ -181,7 +181,7 @@ trait Event[+A] {
     Event(Future.successful(Some(elem,this)))(this.stop())
     
   def +[B >: A](elem: Future[B])(implicit ec: ExecutionContext): Event[B] = 
-    merge(Event.single(elem))    
+    merge(Event.singleF(elem))    
   
   def find(f: A => Boolean)(implicit ec: ExecutionContext): Future[Option[A]] =
     next.flatMap {
@@ -284,7 +284,7 @@ trait Event[+A] {
     splitBy(Event.interval(duration))
         
   def throttle(duration: FiniteDuration)(implicit ec: ExecutionContext, scheduler: Scheduler): Event[A] =
-    window(duration).mapF(_.last)*/
+    window(duration).mapF(_.last)*/   
     
   def product[B >: A](implicit ec: ExecutionContext, num: Numeric[B]): Future[B] = 
     foldLeft(num.one)(num.times)
@@ -334,7 +334,7 @@ object Event {
   def interval(duration: FiniteDuration)(implicit ec: ExecutionContext, scheduler: Scheduler): Event[Long] = {
     var counter = 0L
     lazy val (event,channel) = broadcast[Long](task.cancel())
-    lazy val task: Cancellable = scheduler.schedule(duration){      
+    lazy val task: Ticket = scheduler.schedule(duration){      
       channel.push(counter)
       counter += 1
     }
@@ -344,7 +344,7 @@ object Event {
   def single[A](value: A): Event[A] = 
     Event(Future.successful(Some(value,empty[A])))(())
     
-  def single[A](future: Future[A])(implicit ec: ExecutionContext): Event[A] =
+  def singleF[A](future: Future[A])(implicit ec: ExecutionContext): Event[A] =
     Event(future.map(value => Some(value,empty[A])))(())
           
   def fromIterable[A](iterable: Iterable[A]): Event[A] = 

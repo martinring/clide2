@@ -20,15 +20,15 @@ import org.scalatest.FunSuite
 class EventProps extends FunSuite with Checkers {
   implicit val scheduler = new Scheduler {
     def now = System.currentTimeMillis()    
-    def schedule[A](period: FiniteDuration)(task: => A): Cancellable = {
+    def schedule[A](period: FiniteDuration)(task: => A): Ticket = {
       val timer = new Timer
       timer.schedule(new TimerTask { def run() = task }, period.toMillis, period.toMillis)
-      Cancellable(timer.cancel())
+      Ticket(timer.cancel())
     }
-    def scheduleOnce[A](delay: FiniteDuration)(task: => A): Cancellable = {
+    def scheduleOnce[A](delay: FiniteDuration)(task: => A): Ticket = {
       val timer = new Timer
       timer.schedule(new TimerTask { def run() = task }, delay.toMillis)
-      Cancellable(timer.cancel())
+      Ticket(timer.cancel())
     }
   }
   
@@ -71,7 +71,7 @@ class EventProps extends FunSuite with Checkers {
     
   test("Event.toSeq") {
     check { (a: EventSeq) =>
-      Await.result(a.event.toSeq.map(_ == a.seq), 5 seconds)
+      Await.result(a.event.toSeq, 5 seconds) == a.seq 
     }
   }
   

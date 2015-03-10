@@ -30,28 +30,28 @@ trait ElectricCharBehavior { slef: Mode[_] =>
 }
 
 trait Stream extends js.Object {
-  def eol(): js.UndefOr[Boolean] = ???
-  def sol(): js.UndefOr[Boolean] = ???
-  def peek(): String = ???
-  def next(): String = ???
-  def eat(`match`: String): js.UndefOr[String] = ???
-  def eat(`match`: RegExp): js.UndefOr[String] = ???
-  def eat(`match`: js.Function1[js.String, Boolean]): js.UndefOr[String] = ???
-  def eatSpace(): js.UndefOr[Boolean] = ???
-  def eatWhile(`match`: String): js.UndefOr[Boolean] = ???
-  def eatWhile(`match`: RegExp): js.UndefOr[Boolean] = ???
-  def eatWhile(`match`: js.Function1[js.String, Boolean]): js.UndefOr[Boolean] = ???  
-  def skipToEnd(): Unit = ???
-  def skipTo(char: Char): js.UndefOr[Boolean] = ???
-  def `match`(pattern: String, consume: Boolean, caseFold: Boolean): js.UndefOr[Boolean] = ???
-  def `match`(pattern: String, consume: Boolean): js.UndefOr[Boolean] = ???
-  def `match`(pattern: String): js.UndefOr[Boolean] = ???
-  def `match`(pattern: RegExp, consume: Boolean): js.Array[String] = ???
-  def `match`(pattern: RegExp): js.Array[String] = ???
-  def backUp(n: Integer): Unit = ???
-  def column(): Int = ???
-  def indentation(): Int = ???
-  def current(): String = ???    
+  def eol(): js.UndefOr[Boolean] = js.native
+  def sol(): js.UndefOr[Boolean] = js.native
+  def peek(): String = js.native
+  def next(): String = js.native
+  def eat(`match`: String): js.UndefOr[String] = js.native
+  def eat(`match`: RegExp): js.UndefOr[String] = js.native
+  def eat(`match`: js.Function1[String, Boolean]): js.UndefOr[String] = js.native
+  def eatSpace(): js.UndefOr[Boolean] = js.native
+  def eatWhile(`match`: String): js.UndefOr[Boolean] = js.native
+  def eatWhile(`match`: RegExp): js.UndefOr[Boolean] = js.native
+  def eatWhile(`match`: js.Function1[String, Boolean]): js.UndefOr[Boolean] = js.native  
+  def skipToEnd(): Unit = js.native
+  def skipTo(char: Char): js.UndefOr[Boolean] = js.native
+  def `match`(pattern: String, consume: Boolean, caseFold: Boolean): js.UndefOr[Boolean] = js.native
+  def `match`(pattern: String, consume: Boolean): js.UndefOr[Boolean] = js.native
+  def `match`(pattern: String): js.UndefOr[Boolean] = js.native
+  def `match`(pattern: RegExp, consume: Boolean): js.Array[String] = js.native
+  def `match`(pattern: RegExp): js.Array[String] = js.native
+  def backUp(n: Integer): Unit = js.native
+  def column(): Int = js.native
+  def indentation(): Int = js.native
+  def current(): String = js.native    
 }
 
 object Stream {

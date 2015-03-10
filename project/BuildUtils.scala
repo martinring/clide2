@@ -24,8 +24,7 @@
 
 import sbt._
 import Keys._
-import scalajs.sbtplugin.ScalaJSPlugin._
-import ScalaJSKeys._
+import org.scalajs.sbtplugin._
 
 trait BuildUtils {
   case class Developer(id: String, name: String, url: URL)
@@ -65,7 +64,7 @@ trait BuildUtils {
   )
 
   def jsModule(suffix: String) =
-    module(suffix,"-js").settings(scalaJSSettings:_*)
+    module(suffix,"-js").enablePlugins(ScalaJSPlugin)
       .settings(target ~= (_ / "javascript"))
 
   def sharedModule(suffix: String) =

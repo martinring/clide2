@@ -40,8 +40,8 @@ text {*
 fun applyOp :: "'char operation \<Rightarrow> 'char document \<Rightarrow> 'char document option"
 where
   "applyOp [] []                       = Some []"
-| "applyOp (Retain# as) (b# bs) = Option.map (\<lambda>ds. b# ds) (applyOp as bs)"
-| "applyOp (Insert c# as) bs       = Option.map (\<lambda>ds. c# ds) (applyOp as bs)"
+| "applyOp (Retain# as) (b# bs) = map_option (\<lambda>ds. b# ds) (applyOp as bs)"
+| "applyOp (Insert c# as) bs       = map_option (\<lambda>ds. c# ds) (applyOp as bs)"
 | "applyOp (Delete# as) (_# bs)  = applyOp as bs"
 | "applyOp _  _                        = None"
            
@@ -51,7 +51,7 @@ text {*
 
   We now define the graph of the function @{term applyOp} as an inductive set; this makes
   inductive reasoning about @{term applyOp} easier.
-  *}
+*}
 
 inductive_set application :: "(('char operation \<times> 'char document) \<times> 'char document) set" where
   empty[intro!]:  "(([],[]),[]) \<in> application"
@@ -62,8 +62,8 @@ inductive_set application :: "(('char operation \<times> 'char document) \<times
 text {* 
   We need to show the equality of the inductively defined set @{term application} and the partial
   function @{term applyOp} in order to use the inductive set for further proofs. We prove the 
-  required eqivalence in both directions separately. 
-  *}
+  required equivalence in both directions separately. 
+*}
 
 lemma applyOpSet1 [rule_format]: 
   "\<forall>d'. applyOp a d = Some d' \<longrightarrow> ((a,d),d') \<in> application"
@@ -80,7 +80,7 @@ subsection {* Input and Output Lengths *}
 
 text{*
   Operations are partial, and can only be applied to documents of a specific length, 
-  called the inputLength. The output length is the length of the result
+  called the input length. The output length is the length of the result
   of the application on a document on which the operation is defined.
   
   The input length is the number of @{term Retain} and @{term Delete} actions, whereas
@@ -214,11 +214,11 @@ text {*
 fun compose :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> 'char operation option"
 where
   "compose [] []                              = Some []"
-| "compose (Delete# as) bs               = Option.map delete (compose as bs)"
-| "compose as (Insert c# bs)             = Option.map (Cons (Insert c)) (compose as bs)"
-| "compose (Retain# as) (Retain# bs) = Option.map (Cons Retain) (compose as bs)"
-| "compose (Retain# as) (Delete# bs)  = Option.map delete (compose as bs)"
-| "compose (Insert c# as) (Retain# bs) = Option.map (Cons (Insert c)) (compose as bs)"
+| "compose (Delete# as) bs               = map_option delete (compose as bs)"
+| "compose as (Insert c# bs)             = map_option (Cons (Insert c)) (compose as bs)"
+| "compose (Retain# as) (Retain# bs) = map_option (Cons Retain) (compose as bs)"
+| "compose (Retain# as) (Delete# bs)  = map_option delete (compose as bs)"
+| "compose (Insert c# as) (Retain# bs) = map_option (Cons (Insert c)) (compose as bs)"
 | "compose (Insert _# as) (Delete# bs) = compose as bs"
 | "compose _ _                                = None"
  
@@ -312,16 +312,16 @@ fun transform :: "'char operation \<Rightarrow> 'char operation \<Rightarrow> ('
 where
   "transform [] []                 = Some ([], [])"
 | "transform (Insert c#as) bs  = 
-              Option.map (\<lambda>(at, bt). (Insert c# at, Retain# bt)) (transform as bs)"
+              map_option (\<lambda>(at, bt). (Insert c# at, Retain# bt)) (transform as bs)"
 | "transform as (Insert c# bs) = 
-              Option.map (\<lambda>(at, bt). (Retain# at, Insert c# bt)) (transform as bs)"
+              map_option (\<lambda>(at, bt). (Retain# at, Insert c# bt)) (transform as bs)"
 | "transform (Retain# as) (Retain# bs) = 
-              Option.map (\<lambda>(at, bt). (Retain# at, Retain# bt)) (transform as bs)"
+              map_option (\<lambda>(at, bt). (Retain# at, Retain# bt)) (transform as bs)"
 | "transform (Delete# as) (Delete# bs) = transform as bs"
 | "transform (Retain# as) (Delete# bs) = 
-              Option.map (\<lambda>(at, bt). (at, Delete# bt)) (transform as bs)"
+              map_option (\<lambda>(at, bt). (at, Delete# bt)) (transform as bs)"
 | "transform (Delete# as) (Retain# bs) = 
-              Option.map (\<lambda>(at, bt). (Delete# at, bt)) (transform as bs)"
+              map_option (\<lambda>(at, bt). (Delete# at, bt)) (transform as bs)"
 | "transform _ _                           = None"
 
 text {* 
@@ -375,9 +375,9 @@ theorem transformCorrect: "transform a b = Some (a',b')
 
 text{*  
   This concludes the main development. 
-  *}
+*}
   
-section{* Normalization *}
+section{* Normalisation *}
 
 text {*
  Normalisation is what occurs during composition. We say an operation is normalised if 
@@ -421,7 +421,7 @@ text{*
   or in more elementary terms, normalizing once is enough.
   *}
   
-lemma normalized_fix: "normalized a \<longleftrightarrow> (normalize a= a)"
+lemma normalized_fix: "normalized a \<longleftrightarrow> (normalize a = a)"
   apply (rule iffI)
   apply (induct a rule: normalize.induct)
   apply (simp_all)
@@ -443,10 +443,9 @@ lemma normalizeValid1: "((a,d),d') \<in> application \<Longrightarrow> ((normali
   apply (auto intro: deleteValid1)
   done
 
-lemma normalizeValid: "applyOp a d = Some d' \<Longrightarrow> applyOp(normalize a) d= Some d'"
+lemma normalizeValid: "applyOp a d = Some d' \<Longrightarrow> applyOp(normalize a) d = Some d'"
   apply (fast intro: applyOpSet2 applyOpSet1 normalizeValid1)
   done
-
 
 text{* The result of @{term compose} is always normalized. *}
 
@@ -510,6 +509,120 @@ lemma transformIdR:
   apply (case_tac "inputLength list")
   apply (case_tac a, simp_all)
   by (case_tac a, simp_all)
+
+section {* Composite Actions *}
+
+datatype 'char cAction = CRetain nat | CInsert "'char list" | CDelete nat
+
+type_synonym 'char cOperation = "'char cAction list"
+
+fun cRetain :: "'char cOperation \<Rightarrow> 'char cOperation" 
+where
+  "cRetain (CRetain n # as) = CRetain (Suc n) # as"
+| "cRetain as               = CRetain 1 # as"
+
+fun cInsert :: "'char \<Rightarrow> 'char cOperation \<Rightarrow> 'char cOperation"
+where
+  "cInsert c (CInsert s # as) = CInsert (c#s) # as"
+| "cInsert c as = CInsert (c#Nil) # as"
+
+fun cDelete :: "'char cOperation \<Rightarrow> 'char cOperation"
+where
+  "cDelete (CInsert s # next) = CInsert s # cDelete next"
+| "cDelete (CDelete n # next) = CDelete (Suc n) # next"
+| "cDelete (next)             = CDelete 1 # next"
+
+fun toCOp :: "'char operation \<Rightarrow> 'char cOperation" 
+where
+  "toCOp Nil = Nil"
+| "toCOp (Retain # as) = cRetain (toCOp as)"
+| "toCOp (Insert c # as) = cInsert c (toCOp as)"
+| "toCOp (Delete # as) = cDelete (toCOp as)"
+
+
+fun unretain :: "nat \<Rightarrow> 'char operation \<Rightarrow> 'char operation"
+where
+  "unretain 0 as = as"
+| "unretain (Suc n) as = Retain # (unretain n as)"
+
+lemma unretainNormalised: "normalized a \<Longrightarrow> normalized (unretain n a)"
+  by (induct_tac n, auto)
+
+fun uninsert :: "'char list \<Rightarrow> 'char operation \<Rightarrow> 'char operation"
+where
+  "uninsert Nil as    = as"
+| "uninsert (c#cs) as = Insert c # (uninsert cs as)"
+
+lemma uninsertNormalised: "normalized a \<Longrightarrow> normalized (uninsert s a)"
+  by (induct_tac s, auto)
+
+fun undelete :: "nat \<Rightarrow> 'char operation \<Rightarrow> 'char operation"
+where
+  "undelete 0 as = as"
+| "undelete (Suc n) as = delete (undelete n as)"
+
+lemma undeleteNormalised: "normalized a \<Longrightarrow> normalized (undelete n a)"
+  by (induct_tac n, auto simp add: deleteNormalized)
+
+fun toOp :: "'char cOperation \<Rightarrow> 'char operation"
+where
+  "toOp (CRetain n # as) = unretain n (toOp as)"
+| "toOp (CInsert s # as) = uninsert s (toOp as)"
+| "toOp (CDelete n # as) = undelete n (toOp as)"
+| "toOp Nil = Nil"
+
+lemma toOpNormalised : "normalized (toOp a)"
+  apply (induct_tac a, auto)
+  by (case_tac a, auto simp add: unretainNormalised uninsertNormalised undeleteNormalised)
+
+lemma convertValid1: "toOp (cRetain a) = Retain # (toOp a)"
+  apply (induct_tac a, auto)
+  by (case_tac a, auto)
+
+lemma convertValid2: "toOp (cInsert c a) = Insert c # (toOp a)"
+  apply (induct_tac a, auto)
+  by (case_tac a, auto)
+
+lemma convertValid3: "toOp (cDelete a) = delete (toOp a)"
+  apply (induct_tac a, auto)
+  apply (case_tac a, simp_all)
+  by (induct_tac lista, auto)
+
+lemma convertValid: "normalized a \<longrightarrow> toOp (toCOp a) = a"
+  apply (rule toCOp.induct, simp_all)
+  apply (simp_all add: convertValid1 convertValid2 convertValid3)
+  apply (case_tac as, simp)
+  by (case_tac a, auto)
+
+
+
+fun splitAt_TR :: "nat \<Rightarrow> 'char document \<Rightarrow> 'char document \<Rightarrow> ('char document \<times> 'char document) option"
+where
+  "splitAt 0 doc       = Some ([],doc)"
+| "splitAt (Suc n) doc = Some ([],doc)"
+
+fun splitAt :: "nat \<Rightarrow> 'char document \<Rightarrow> ('char document \<times> 'char document) option"
+where
+  "splitAt 0 doc       = Some ([],doc)"
+| "splitAt (Suc n) doc = Some ([],doc)"
+
+fun applyCOp :: "'char cOperation \<Rightarrow> 'char document \<Rightarrow> 'char document option"
+where
+  "applyCOp [] []                         = Some []"
+| "applyCOp (CRetain (Suc n) # as) (b#bs) = map_option (\<lambda>ds. b # ds) (applyCOp (CRetain n # as) bs)"
+| "applyCOp (CInsert (c#cs) # as) bs      = map_option (\<lambda>ds. c # cs) (applyCOp (CInsert cs # as) bs)"
+| "applyCOp (CDelete (Suc n) # as) (b#bs) = applyCOp (CDelete n # as) (bs)"
+| "applyCOp _  _                          = None"
+  
+
+lemma cOpEquiv1: "applyOp a = applyCOP b \<longrightarrow> applyOp (Retain # a) = applyCOp (cRetain b)"
+  apply (induct_tac a, induct_tac b, simp)
+
+lemma cOpEquiv: "applyOp a x = Some x' \<longrightarrow> applyCOp (toCOp a) x = Some x'"
+  apply (induct_tac a, simp, case_tac x, simp_all)
+  apply (case_tac a, auto)
+  
+  
 
 code_printing
   code_module "" \<rightharpoonup> (Scala) {*package clide.collaboration*}
