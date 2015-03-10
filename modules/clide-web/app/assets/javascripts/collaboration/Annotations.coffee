@@ -82,7 +82,7 @@ define ['collaboration/Operation'], (Operation) ->
       try
         Annotations.transform(@,op)
       catch error
-        console.error "annotation could not be transformed: #{error}"
+        console.error "annotation could not be transformed: #{error}", @, op
         console.warn  "falling back to plain annotation"
         new Annotations().plain(op.outputLength)
 

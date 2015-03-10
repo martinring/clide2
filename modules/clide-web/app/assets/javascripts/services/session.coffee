@@ -271,7 +271,7 @@ define ['routes','util/actorSocket','collaboration/Operation','collaboration/Cod
           return (
             showHint: () -> console.log 'hn'
           )
-            getOpenFile: getOpenFile
+      getOpenFile: getOpenFile
       receive: (msg) ->
         silence = false
         f = (msg) -> switch typeof msg
