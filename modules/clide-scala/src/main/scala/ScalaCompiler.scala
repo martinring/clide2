@@ -16,7 +16,7 @@ import java.util.jar.JarFile
 import scala.collection.mutable.ListBuffer
 import scala.reflect.internal.util.{BatchSourceFile, Position}
 import scala.tools.nsc.interactive.Global
-import scala.tools.nsc.interpreter.AbstractFileClassLoader
+import scala.reflect.internal.util.AbstractFileClassLoader
 import scala.collection.mutable.SortedSet
 import scala.tools.nsc.interactive.Response
 import scala.io.Source
@@ -31,7 +31,7 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
   /*
    * For a given FQ classname, trick the resource finder into telling us the containing jar.
    */
-  private def classPathOfClass(className: String) = try {
+  private def classPathOfClass(className: String) = {
     val resource = className.split('.').mkString("/", "/", ".class")
     val path = getClass.getResource(resource).getPath
     if (path.indexOf("file:") >= 0) {
@@ -114,7 +114,7 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
     if (!implicits.isDefinedAt(pos.source.file.name))
       implicits(pos.source.file.name) = SortedSet.empty
     val (start,length) =
-      (pos.startOrPoint, pos.endOrPoint - pos.startOrPoint)
+      (pos.start, pos.end - pos.start)
     implicits(pos.source.file.name) += ((start,length,t))
   }
   
@@ -122,7 +122,7 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
     if (!substitutions.isDefinedAt(pos.source.file.name))
       substitutions(pos.source.file.name) = SortedSet.empty
     val (start,length) =
-      (pos.startOrPoint, pos.endOrPoint - pos.startOrPoint)
+      (pos.start, pos.end - pos.start)
     substitutions(pos.source.file.name) += ((start,length,symbol))    
   }
   
@@ -132,7 +132,7 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
     if (!identifiers.isDefinedAt(pos.source.file.name))
       identifiers(pos.source.file.name) = SortedSet.empty(Ordering.by(x => (x._1,x._2)))
     val (start,length) =
-      (pos.startOrPoint, pos.endOrPoint - pos.startOrPoint)  
+      (pos.start, pos.end - pos.start)  
     identifiers(pos.source.file.name) += ((start,length,t,kind))
   }
   
@@ -147,7 +147,7 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
         case _ => "warning"
       }
       val (start,length) = try {
-        (pos.startOrPoint, pos.endOrPoint - pos.startOrPoint)
+        (pos.start, pos.end - pos.start)
       } catch {
         case NonFatal(_) => (0,0)        
       }
@@ -171,12 +171,12 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
   
   var classLoader = new AbstractFileClassLoader(target, this.getClass.getClassLoader)
   
-  def reset() = try {
+  def reset() = {
     reporter.reset()
     classLoader = new AbstractFileClassLoader(target, this.getClass.getClassLoader)
   }
       
-  def complete(state: OpenedFile, p: Int)(respond: List[global.Member] => Unit) = try {    
+  def complete(state: OpenedFile, p: Int)(respond: List[global.Member] => Unit) = {    
     val reloaded = new Response[Unit]
     val source = new BatchSourceFile(state.info.path.mkString("/"), state.state)
     global.askReload(List(source), reloaded)
@@ -220,14 +220,14 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
       c.children.foreach(annotationsFromTree(_))    
     case c: global.ValDef =>
       val classes = "def" :: "val-def" ::
-        (if (c.symbol.isLocal) List("local") else Nil) ++
+        (if (c.symbol.isLocalToBlock) List("local") else Nil) ++
         (if (c.symbol.isParameter) List("param") else Nil) ++
         (if (c.symbol.isVar) List("var-def") else Nil)
       global.ask(() => identifier(c.namePosition,Some(c.symbol.signatureString), classes :_*))
       c.children.foreach(annotationsFromTree(_))          
     case c: global.DefDef =>
       val classes = "def" :: "def-def" ::
-        (if (c.symbol.isLocal) List("local") else Nil) ++
+        (if (c.symbol.isLocalToBlock) List("local") else Nil) ++
         (if (c.symbol.isParameter) List("param") else Nil) ++
         (if (c.symbol.isVar) List("var-def") else Nil)
       global.ask(() => identifier(c.namePosition,Some(c.symbol.signatureString), classes :_*))
@@ -241,7 +241,7 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
       val classes = "ref" :: "select" ::      
         global.ask(() => (if (c.symbol.isDeprecated) List("deprecated") else Nil)) ++        
         (if (c.symbol.isVar) List("variable") else Nil) ++
-        (if (c.symbol.isLocal) List("local") else Nil) ++
+        (if (c.symbol.isLocalToBlock) List("local") else Nil) ++
         (if (c.symbol.isValueParameter) List("param") else Nil) ++
         (if (c.symbol.isModule) List("module") else Nil) ++
         (if (c.symbol.isConstructor) List("constructor", "type") else Nil)
@@ -260,7 +260,7 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
       val classes = "ref" :: "ident" ::
         global.ask(() => (if (i.symbol.isDeprecated) List("deprecated") else Nil)) ++
         (if (i.symbol.isVar) List("variable") else Nil) ++
-        (if (i.symbol.isLocal) List("local") else Nil) ++
+        (if (i.symbol.isLocalToBlock) List("local") else Nil) ++
         (if (i.symbol.isValueParameter) List("param") else Nil) ++
         (if (i.symbol.isModule) List("module") else Nil) ++
         (if (i.symbol.isType) List("type") else Nil)
@@ -270,7 +270,7 @@ trait ScalaCompiler extends CompilerAccess with PimpedTrees { self: ScalaBehavio
       t.children.foreach(annotationsFromTree(_))
   }   
   
-  def compile(state: OpenedFile) = try {    
+  def compile(state: OpenedFile) = {    
     messages.values.foreach(_.clear)   
     val source = new BatchSourceFile(state.info.path.mkString("/"), state.state)
     val reloaded = new Response[Unit]
