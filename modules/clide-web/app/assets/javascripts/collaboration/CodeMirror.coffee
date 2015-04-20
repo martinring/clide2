@@ -174,7 +174,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
         @doc.getEditor().focus()
       widget.onkeypress = (e) =>
         filter = filter + String.fromCharCode(e.charCode)
-        @doc.replaceSelection(filter)
+        @doc.replaceSelection(filter,"around")
         #@doc.setCursor(@doc.getCursor())
         update()
         e.preventDefault()
@@ -185,7 +185,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             e.preventDefault()
             if filter.length > 0
               filter = filter.substr(0, filter.length - 1)
-              @doc.replaceSelection(filter)
+              @doc.replaceSelection(filter,"around")
               update(true)
             else
               @doc.getEditor().focus()
