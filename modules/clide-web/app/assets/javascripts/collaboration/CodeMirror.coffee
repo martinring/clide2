@@ -74,26 +74,29 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             to = doc.posFromIndex(index - a)
             doc.replaceRange "", from, to
 
-    @annotationFromCodeMirrorSelection: (doc,color) ->
-      anchor = doc.indexFromPos(doc.getCursor('anchor'))
-      head   = doc.indexFromPos(doc.getCursor('head'))
-
+    @annotationFromCodeMirrorSelection: (doc,color) -> 
+      result = new Annotations()
+      position = 0
       length = doc.getValue().length # TODO: see above
-
-      if anchor is head
-        return new Annotations().plain(anchor)
-                                .annotate(0,{'c':['cursor',color]})
-                                .plain(length - anchor)
-      else if anchor < head
-        return new Annotations().plain(anchor)
-                                .annotate(head - anchor,{'c':['selection',color]})
-                                .annotate(0,{'c':['cursor',color]})
-                                .plain(length - head)
-      else
-        return new Annotations().plain(head)
-                                .annotate(0,{'c':['cursor',color]})
-                                .annotate(anchor - head,{'c':['selection', color]})
-                                .plain(length - anchor)
+      for selection in doc.listSelections()        
+        anchor = doc.indexFromPos(selection.anchor)
+        head   = doc.indexFromPos(selection.head)
+      
+        if anchor is head
+          result.plain(anchor - position)
+                .annotate(0,'c':['cursor',color])
+          position = anchor          
+        else if anchor < head
+          result.plain(anchor - position)
+                .annotate(head - anchor,{'c':['selection',color]})
+                .annotate(0,{'c':['cursor',color]})                
+          position = head          
+        else
+          result.plain(head - position)
+                .annotate(0,{'c':['cursor',color]})
+                .annotate(anchor - head,{'c':['selection', color]})
+          position = anchor          
+      result.plain(length - position)
 
     registerCallbacks: (cb) =>
       @callbacks = cb
