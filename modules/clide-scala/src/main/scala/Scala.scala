@@ -61,10 +61,10 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
 
   
   def annotate() {
-    messages.foreach { case (path,messages) if files.isDefinedAt(path) =>
+    messages.collect { case (path,messages) if files.isDefinedAt(path) =>
       var annotations = new Annotations
       var last = 0
-      messages.foreach {
+      messages.collect {
 	      case (offset, length, tpe, msg) =>
 	        if (offset > last) {
 	          annotations = annotations.plain(offset - last)
@@ -86,10 +86,10 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
   }
   
   def annotateSemantics() {    
-    identifiers.foreach { case (path,messages) if files.isDefinedAt(path) =>
+    identifiers.collect { case (path,messages) if files.isDefinedAt(path) =>
       var annotations = new Annotations
       var last = 0
-      messages.foreach {
+      messages.collect {
         case (offset, length, tt, tpe) =>
           if (offset > last) {
             annotations = annotations.plain(offset - last)
@@ -106,10 +106,10 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
       control.annotate(file, "semantic", annotations)
     }
     
-    implicits.foreach { case (path,messages) if files.isDefinedAt(path) =>
+    implicits.collect { case (path,messages) if files.isDefinedAt(path) =>
       var annotations = new Annotations
       var last = 0
-      messages.foreach {
+      messages.collect {
         case (offset, length, tt) =>
           if (offset > last) {
             annotations = annotations.plain(offset - last)
@@ -126,10 +126,10 @@ case class ScalaBehavior(control: AssistantControl) extends AssistBehavior with 
       control.annotate(file, "implicits", annotations)
     }
     
-    substitutions.foreach { case (path,messages) if files.isDefinedAt(path) =>
+    substitutions.collect { case (path,messages) if files.isDefinedAt(path) =>
       var annotations = new Annotations
       var last = 0
-      messages.foreach {
+      messages.collect {
         case (offset, length, sym) =>
           if (offset > last) {
             annotations = annotations.plain(offset - last)
