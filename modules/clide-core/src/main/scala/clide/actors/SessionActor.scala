@@ -88,8 +88,7 @@ private class SessionActor(
   def wrap(msg: ProjectMessage) = Messages.internal.WrappedProjectMessage(user,isHuman,level,msg)
 
   def randomColor(): String = {
-    var remaining = colors
-    collaborators.foreach(remaining -= _.color)
+    val remaining = colors -- collaborators.map(_.color).toSet
     if (remaining.size > 0)
       remaining.toSeq(Random.nextInt(remaining.size))
     else
