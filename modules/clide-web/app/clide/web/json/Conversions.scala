@@ -110,7 +110,7 @@ object Conversions {
     def reads(json: JsValue): JsResult[Action[Char]] = json match {
       case JsNumber(n) if n > 0      => JsSuccess(Retain(n.toInt))
       case JsNumber(n) if n < 0      => JsSuccess(Delete(-n.toInt))
-      case JsString(s) if s.nonEmpty => JsSuccess(Insert(s))
+      case JsString(s) if s.nonEmpty => JsSuccess(Insert(s.toList))
 
       case _                         => JsError("cant parse action: expected number, string or object")
     }
