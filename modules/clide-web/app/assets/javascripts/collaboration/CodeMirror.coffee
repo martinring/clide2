@@ -30,7 +30,7 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
     doc = cm.getDoc()
     if doc? and !doc.somethingSelected()
       CodeMirror.signal(doc,'getHelp',doc,doc.indexFromPos(doc.getCursor()))
-  CodeMirror.keyMap['default']['Ctrl-Space'] = 'getHelp'
+  CodeMirror.keyMap['default']['Ctrl-Space'] = 'getHelp'  
 
   class CodeMirrorAdapter
     constructor: (@doc,@color) ->
@@ -112,8 +112,8 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
       key = "c:" + Math.random().toString(36).substr(2)
       widget = document.createElement("ul")
       widget.className = "autocomplete"
-      widget.tabIndex = 1
-      console.log angular.element(widget).controller()
+      widget.tabIndex = 1      
+      filter = ""
       if @autocompletes[this]?
         @autocompletes[this].remove()
       @autocompletes[this] = {
@@ -135,9 +135,10 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
             doc.getEditor().focus()
           angular.element(e).data("suggest",v)
           angular.element(widget).append(e)
+          if v.indexOf(filter) is -1
+            angular.element(e).hide()
         key: key
       }
-      filter = ""
       update = (more) =>
         selected = false
         some = false
@@ -231,14 +232,25 @@ define ['collaboration/Operation','collaboration/Annotations'], (Operation,Annot
         @autocompletes[this]?.remove()
         annotation = new Annotations().plain(@doc.getValue.length)
         @trigger 'annotate', annotation
-      doc.getEditor().addWidget(doc.posFromIndex(index), widget, true)
-      angular.element(widget).focus()
-      annotation = new Annotations().plain(index).annotate(0,{'c': ['cursor',@color],'h': [key]}).plain(doc.getValue().length - index)
+      indexP = doc.posFromIndex(index)
+      word = doc.getEditor().findWordAt(indexP)
+      wordS = doc.getRange(word.anchor,word.head)
+      if wordS? and wordS.length > 0 and not wordS.match(/\W/)?
+        filter = wordS
+        update()
+        doc.setSelections([word])
+        doc.getEditor().addWidget(word.anchor, widget, true)
+        angular.element(widget).focus()
+        annotation = new Annotations().plain(doc.indexFromPos(word.anchor)).annotate(0,{'c': ['cursor',@color],'h': [key]}).plain(doc.getValue().length - index)
+      else                
+        doc.getEditor().addWidget(indexP, widget, true)
+        angular.element(widget).focus()
+        annotation = new Annotations().plain(index).annotate(0,{'c': ['cursor',@color],'h': [key]}).plain(doc.getValue().length - index)
       @trigger 'annotate', annotation
 
     getValue: => @doc.getValue()
 
-    trigger: (event,args...) =>
+    trigger: (event,args...) => 
       action = @callbacks and @callbacks[event]
       action.apply this, args  if action
 
